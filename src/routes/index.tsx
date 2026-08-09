@@ -1,24 +1,59 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/landing/SiteHeader";
+import {
+  ComoFunciona,
+  Comparacao,
+  CtaFinal,
+  Duvidas,
+  EditorDemo,
+  Estatisticas,
+  FaixaSegmentos,
+  Hero,
+  Planos,
+  Recursos,
+  RecursosPorSegmento,
+  SecaoModelos,
+  SiteFooter,
+} from "@/components/landing/sections";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Nexa — Mini-sites profissionais para o seu negócio" },
+      {
+        name: "description",
+        content:
+          "Crie uma página profissional com WhatsApp, catálogo, serviços, agendamentos e localização. Mini-sites brasileiros prontos em minutos.",
+      },
+      { property: "og:title", content: "Nexa — Mini-sites profissionais para o seu negócio" },
+      {
+        property: "og:description",
+        content: "Seu negócio merece mais do que apenas um link. Conheça os modelos da Nexa.",
+      },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <FaixaSegmentos />
+        <Comparacao />
+        <Recursos />
+        <SecaoModelos />
+        <EditorDemo />
+        <RecursosPorSegmento />
+        <Estatisticas />
+        <ComoFunciona />
+        <Planos />
+        <Duvidas />
+        <CtaFinal />
+      </main>
+      <SiteFooter />
     </div>
   );
 }
