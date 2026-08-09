@@ -10,33 +10,159 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModelosRouteImport } from './routes/modelos'
+import { Route as PainelRouteImport } from './routes/painel'
+import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
+import { Route as PainelIndexRouteImport } from './routes/painel.index'
+import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
+import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configuracoes'
+import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
+import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
+import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
+import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelosRoute = ModelosRouteImport.update({
+  id: '/modelos',
+  path: '/modelos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
+  id: '/demonstracao/$modelo',
+  path: '/demonstracao/$modelo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelIndexRoute = PainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelClientesRoute = PainelClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelConfiguracoesRoute = PainelConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelEstatisticasRoute = PainelEstatisticasRouteImport.update({
+  id: '/estatisticas',
+  path: '/estatisticas',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelMidiasRoute = PainelMidiasRouteImport.update({
+  id: '/midias',
+  path: '/midias',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelModelosRoute = PainelModelosRouteImport.update({
+  id: '/modelos',
+  path: '/modelos',
+  getParentRoute: () => PainelRoute,
+} as any)
+const SiteSlugRoute = SiteSlugRouteImport.update({
+  id: '/site/$slug',
+  path: '/site/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/modelos': typeof ModelosRoute
+  '/painel': typeof PainelRouteWithChildren
+  '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/clientes': typeof PainelClientesRoute
+  '/painel/configuracoes': typeof PainelConfiguracoesRoute
+  '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/midias': typeof PainelMidiasRoute
+  '/painel/modelos': typeof PainelModelosRoute
+  '/site/$slug': typeof SiteSlugRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/modelos': typeof ModelosRoute
+  '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/clientes': typeof PainelClientesRoute
+  '/painel/configuracoes': typeof PainelConfiguracoesRoute
+  '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/midias': typeof PainelMidiasRoute
+  '/painel/modelos': typeof PainelModelosRoute
+  '/site/$slug': typeof SiteSlugRoute
+  '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/modelos': typeof ModelosRoute
+  '/painel': typeof PainelRouteWithChildren
+  '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/clientes': typeof PainelClientesRoute
+  '/painel/configuracoes': typeof PainelConfiguracoesRoute
+  '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/midias': typeof PainelMidiasRoute
+  '/painel/modelos': typeof PainelModelosRoute
+  '/site/$slug': typeof SiteSlugRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/modelos'
+    | '/painel'
+    | '/demonstracao/$modelo'
+    | '/painel/clientes'
+    | '/painel/configuracoes'
+    | '/painel/estatisticas'
+    | '/painel/midias'
+    | '/painel/modelos'
+    | '/site/$slug'
+    | '/painel/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/modelos'
+    | '/demonstracao/$modelo'
+    | '/painel/clientes'
+    | '/painel/configuracoes'
+    | '/painel/estatisticas'
+    | '/painel/midias'
+    | '/painel/modelos'
+    | '/site/$slug'
+    | '/painel'
+  id:
+    | '__root__'
+    | '/'
+    | '/modelos'
+    | '/painel'
+    | '/demonstracao/$modelo'
+    | '/painel/clientes'
+    | '/painel/configuracoes'
+    | '/painel/estatisticas'
+    | '/painel/midias'
+    | '/painel/modelos'
+    | '/site/$slug'
+    | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ModelosRoute: typeof ModelosRoute
+  PainelRoute: typeof PainelRouteWithChildren
+  DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
+  SiteSlugRoute: typeof SiteSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +174,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modelos': {
+      id: '/modelos'
+      path: '/modelos'
+      fullPath: '/modelos'
+      preLoaderRoute: typeof ModelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demonstracao/$modelo': {
+      id: '/demonstracao/$modelo'
+      path: '/demonstracao/$modelo'
+      fullPath: '/demonstracao/$modelo'
+      preLoaderRoute: typeof DemonstracaoModeloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel/': {
+      id: '/painel/'
+      path: '/'
+      fullPath: '/painel/'
+      preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/clientes': {
+      id: '/painel/clientes'
+      path: '/clientes'
+      fullPath: '/painel/clientes'
+      preLoaderRoute: typeof PainelClientesRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/configuracoes': {
+      id: '/painel/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/painel/configuracoes'
+      preLoaderRoute: typeof PainelConfiguracoesRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/estatisticas': {
+      id: '/painel/estatisticas'
+      path: '/estatisticas'
+      fullPath: '/painel/estatisticas'
+      preLoaderRoute: typeof PainelEstatisticasRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/midias': {
+      id: '/painel/midias'
+      path: '/midias'
+      fullPath: '/painel/midias'
+      preLoaderRoute: typeof PainelMidiasRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/modelos': {
+      id: '/painel/modelos'
+      path: '/modelos'
+      fullPath: '/painel/modelos'
+      preLoaderRoute: typeof PainelModelosRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/site/$slug': {
+      id: '/site/$slug'
+      path: '/site/$slug'
+      fullPath: '/site/$slug'
+      preLoaderRoute: typeof SiteSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface PainelRouteChildren {
+  PainelClientesRoute: typeof PainelClientesRoute
+  PainelConfiguracoesRoute: typeof PainelConfiguracoesRoute
+  PainelEstatisticasRoute: typeof PainelEstatisticasRoute
+  PainelMidiasRoute: typeof PainelMidiasRoute
+  PainelModelosRoute: typeof PainelModelosRoute
+  PainelIndexRoute: typeof PainelIndexRoute
+}
+
+const PainelRouteChildren: PainelRouteChildren = {
+  PainelClientesRoute: PainelClientesRoute,
+  PainelConfiguracoesRoute: PainelConfiguracoesRoute,
+  PainelEstatisticasRoute: PainelEstatisticasRoute,
+  PainelMidiasRoute: PainelMidiasRoute,
+  PainelModelosRoute: PainelModelosRoute,
+  PainelIndexRoute: PainelIndexRoute,
+}
+
+const PainelRouteWithChildren =
+  PainelRoute._addFileChildren(PainelRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ModelosRoute: ModelosRoute,
+  PainelRoute: PainelRouteWithChildren,
+  DemonstracaoModeloRoute: DemonstracaoModeloRoute,
+  SiteSlugRoute: SiteSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
