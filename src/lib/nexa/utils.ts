@@ -62,7 +62,9 @@ export function estaAberto(horarios: { dia: string; abre: string; fecha: string;
   const hoje = horarios[idx];
   if (!hoje || hoje.fechado) return false;
   const atual = agora.getHours() * 60 + agora.getMinutes();
-  const [ah, am] = hoje.abre.split(":").map(Number);
-  const [fh, fm] = hoje.fecha.split(":").map(Number);
-  return atual >= ah * 60 + am && atual <= fh * 60 + fm;
+  const toMin = (h: string) => {
+    const [a = "0", b = "0"] = h.split(":");
+    return Number(a) * 60 + Number(b);
+  };
+  return atual >= toMin(hoje.abre) && atual <= toMin(hoje.fecha);
 }
