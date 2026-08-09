@@ -52,7 +52,15 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
-export function MiniSite({ site, compacto = false }: { site: Site; compacto?: boolean }) {
+export function MiniSite({
+  site,
+  compacto = false,
+  botaoFlutuante = true,
+}: {
+  site: Site;
+  compacto?: boolean;
+  botaoFlutuante?: boolean;
+}) {
   const a = site.aparencia;
   const ativas = site.secoes.filter((s) => s.ativa);
   const tem = (t: string) => ativas.some((s) => s.tipo === t);
@@ -84,7 +92,7 @@ export function MiniSite({ site, compacto = false }: { site: Site; compacto?: bo
         ))}
       </div>
       {tem("rodape") && <Rodape site={site} />}
-      <BotaoWhatsapp site={site} />
+      {botaoFlutuante && <BotaoWhatsapp site={site} />}
     </div>
   );
 }
