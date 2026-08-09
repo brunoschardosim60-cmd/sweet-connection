@@ -31,14 +31,14 @@ export const Route = createFileRoute("/painel")({
   component: PainelLayout,
 });
 
-const itens = [
+const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean }[] = [
   { to: "/painel", rotulo: "Visão geral", icone: LayoutDashboard, exato: true },
   { to: "/painel/clientes", rotulo: "Clientes", icone: Users },
   { to: "/painel/modelos", rotulo: "Modelos", icone: LayoutGrid },
   { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },
   { to: "/painel/configuracoes", rotulo: "Configurações", icone: Settings },
-] as const;
+];
 
 function PainelLayout() {
   const [recolhida, setRecolhida] = useState(false);

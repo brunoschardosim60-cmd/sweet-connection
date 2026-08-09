@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModelosRouteImport } from './routes/modelos'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
+import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,10 +26,20 @@ const ModelosRoute = ModelosRouteImport.update({
   path: '/modelos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
   id: '/demonstracao/$modelo',
   path: '/demonstracao/$modelo',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PainelIndexRoute = PainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelRoute,
 } as any)
 const SiteSlugRoute = SiteSlugRouteImport.update({
   id: '/site/$slug',
@@ -38,33 +50,52 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/modelos': typeof ModelosRoute
+  '/painel': typeof PainelRouteWithChildren
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/site/$slug': typeof SiteSlugRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/modelos': typeof ModelosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/site/$slug': typeof SiteSlugRoute
+  '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/modelos': typeof ModelosRoute
+  '/painel': typeof PainelRouteWithChildren
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/site/$slug': typeof SiteSlugRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/modelos' | '/demonstracao/$modelo' | '/site/$slug'
+  fullPaths:
+    | '/'
+    | '/modelos'
+    | '/painel'
+    | '/demonstracao/$modelo'
+    | '/site/$slug'
+    | '/painel/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/modelos' | '/demonstracao/$modelo' | '/site/$slug'
-  id: '__root__' | '/' | '/modelos' | '/demonstracao/$modelo' | '/site/$slug'
+  to: '/' | '/modelos' | '/demonstracao/$modelo' | '/site/$slug' | '/painel'
+  id:
+    | '__root__'
+    | '/'
+    | '/modelos'
+    | '/painel'
+    | '/demonstracao/$modelo'
+    | '/site/$slug'
+    | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ModelosRoute: typeof ModelosRoute
+  PainelRoute: typeof PainelRouteWithChildren
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
 }
@@ -85,12 +116,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demonstracao/$modelo': {
       id: '/demonstracao/$modelo'
       path: '/demonstracao/$modelo'
       fullPath: '/demonstracao/$modelo'
       preLoaderRoute: typeof DemonstracaoModeloRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/painel/': {
+      id: '/painel/'
+      path: '/'
+      fullPath: '/painel/'
+      preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRoute
     }
     '/site/$slug': {
       id: '/site/$slug'
@@ -102,9 +147,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PainelRouteChildren {
+  PainelIndexRoute: typeof PainelIndexRoute
+}
+
+const PainelRouteChildren: PainelRouteChildren = {
+  PainelIndexRoute: PainelIndexRoute,
+}
+
+const PainelRouteWithChildren =
+  PainelRoute._addFileChildren(PainelRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ModelosRoute: ModelosRoute,
+  PainelRoute: PainelRouteWithChildren,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
 }
