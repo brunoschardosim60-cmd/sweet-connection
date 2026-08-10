@@ -19,6 +19,7 @@ import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configu
 import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
 import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
 import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
+import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const PainelModelosRoute = PainelModelosRouteImport.update({
   path: '/modelos',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelNovoRoute = PainelNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => PainelRoute,
+} as any)
 const SiteSlugRoute = SiteSlugRouteImport.update({
   id: '/site/$slug',
   path: '/site/$slug',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
   fileRoutesById: FileRoutesById
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelModelosRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/novo': {
+      id: '/painel/novo'
+      path: '/novo'
+      fullPath: '/painel/novo'
+      preLoaderRoute: typeof PainelNovoRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/site/$slug': {
       id: '/site/$slug'
       path: '/site/$slug'
@@ -253,6 +272,7 @@ interface PainelRouteChildren {
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
   PainelMidiasRoute: typeof PainelMidiasRoute
   PainelModelosRoute: typeof PainelModelosRoute
+  PainelNovoRoute: typeof PainelNovoRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
@@ -262,6 +282,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelEstatisticasRoute: PainelEstatisticasRoute,
   PainelMidiasRoute: PainelMidiasRoute,
   PainelModelosRoute: PainelModelosRoute,
+  PainelNovoRoute: PainelNovoRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
 
