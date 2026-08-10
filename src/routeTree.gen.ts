@@ -21,6 +21,7 @@ import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
 import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,11 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
+  id: '/editor/$id',
+  path: '/editor/$id',
+  getParentRoute: () => PainelRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/editor/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/painel/novo'
     | '/site/$slug'
     | '/painel'
+    | '/painel/editor/$id'
   id:
     | '__root__'
     | '/'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/editor/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/editor/$id': {
+      id: '/painel/editor/$id'
+      path: '/editor/$id'
+      fullPath: '/painel/editor/$id'
+      preLoaderRoute: typeof PainelEditorIdRouteImport
+      parentRoute: typeof PainelRoute
+    }
   }
 }
 
@@ -274,6 +293,7 @@ interface PainelRouteChildren {
   PainelModelosRoute: typeof PainelModelosRoute
   PainelNovoRoute: typeof PainelNovoRoute
   PainelIndexRoute: typeof PainelIndexRoute
+  PainelEditorIdRoute: typeof PainelEditorIdRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
@@ -284,6 +304,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelModelosRoute: PainelModelosRoute,
   PainelNovoRoute: PainelNovoRoute,
   PainelIndexRoute: PainelIndexRoute,
+  PainelEditorIdRoute: PainelEditorIdRoute,
 }
 
 const PainelRouteWithChildren =
@@ -299,13 +320,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
