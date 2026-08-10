@@ -19,7 +19,9 @@ import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configu
 import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
 import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
 import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
+import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -71,10 +73,20 @@ const PainelModelosRoute = PainelModelosRouteImport.update({
   path: '/modelos',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelNovoRoute = PainelNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => PainelRoute,
+} as any)
 const SiteSlugRoute = SiteSlugRouteImport.update({
   id: '/site/$slug',
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
+  id: '/editor/$id',
+  path: '/editor/$id',
+  getParentRoute: () => PainelRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -87,8 +99,10 @@ export interface FileRoutesByFullPath {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,8 +113,10 @@ export interface FileRoutesByTo {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,8 +129,10 @@ export interface FileRoutesById {
   '/painel/estatisticas': typeof PainelEstatisticasRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
+  '/painel/novo': typeof PainelNovoRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,8 +146,10 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/editor/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -140,8 +160,10 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel'
+    | '/painel/editor/$id'
   id:
     | '__root__'
     | '/'
@@ -153,8 +175,10 @@ export interface FileRouteTypes {
     | '/painel/estatisticas'
     | '/painel/midias'
     | '/painel/modelos'
+    | '/painel/novo'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/editor/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -237,12 +261,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelModelosRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/novo': {
+      id: '/painel/novo'
+      path: '/novo'
+      fullPath: '/painel/novo'
+      preLoaderRoute: typeof PainelNovoRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/site/$slug': {
       id: '/site/$slug'
       path: '/site/$slug'
       fullPath: '/site/$slug'
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/painel/editor/$id': {
+      id: '/painel/editor/$id'
+      path: '/editor/$id'
+      fullPath: '/painel/editor/$id'
+      preLoaderRoute: typeof PainelEditorIdRouteImport
+      parentRoute: typeof PainelRoute
     }
   }
 }
@@ -253,7 +291,9 @@ interface PainelRouteChildren {
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
   PainelMidiasRoute: typeof PainelMidiasRoute
   PainelModelosRoute: typeof PainelModelosRoute
+  PainelNovoRoute: typeof PainelNovoRoute
   PainelIndexRoute: typeof PainelIndexRoute
+  PainelEditorIdRoute: typeof PainelEditorIdRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
@@ -262,7 +302,9 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelEstatisticasRoute: PainelEstatisticasRoute,
   PainelMidiasRoute: PainelMidiasRoute,
   PainelModelosRoute: PainelModelosRoute,
+  PainelNovoRoute: PainelNovoRoute,
   PainelIndexRoute: PainelIndexRoute,
+  PainelEditorIdRoute: PainelEditorIdRoute,
 }
 
 const PainelRouteWithChildren =
