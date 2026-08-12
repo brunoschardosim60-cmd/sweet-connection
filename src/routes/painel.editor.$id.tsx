@@ -726,6 +726,49 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <SeletorMidia
+              rotulo="Foto do produto"
+              valor={p.imagem ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  produtos: s.produtos.map((x) => (x.id === p.id ? { ...x, imagem: v } : x)),
+                }))
+              }
+            />
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={p.destaque}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      produtos: s.produtos.map((x) =>
+                        x.id === p.id ? { ...x, destaque: e.target.checked } : x,
+                      ),
+                    }))
+                  }
+                />
+                destaque
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={p.disponivel}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      produtos: s.produtos.map((x) =>
+                        x.id === p.id ? { ...x, disponivel: e.target.checked } : x,
+                      ),
+                    }))
+                  }
+                />
+                disponível
+              </label>
+            </div>
+
           </LinhaItem>
         ))}
         <BotaoAdicionar
