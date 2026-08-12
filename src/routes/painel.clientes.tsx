@@ -11,7 +11,9 @@ import {
   QrCode,
   Rows3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useNexa } from "@/lib/nexa/hooks";
