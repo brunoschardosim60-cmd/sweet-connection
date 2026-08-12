@@ -671,47 +671,8 @@ function EntradaSimples({
 function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
-      <Bloco titulo="Links rápidos">
-        {site.links.map((l) => (
-          <LinhaItem
-            key={l.id}
-            onRemover={() => aplicar((s) => ({ ...s, links: s.links.filter((x) => x.id !== l.id) }))}
-          >
-            <EntradaSimples
-              valor={l.titulo}
-              placeholder="Título"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  links: s.links.map((x) => (x.id === l.id ? { ...x, titulo: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={l.valor}
-              placeholder="URL ou número"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  links: s.links.map((x) => (x.id === l.id ? { ...x, valor: v } : x)),
-                }))
-              }
-            />
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar link"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              links: [
-                ...s.links,
-                { id: uid("lnk"), tipo: "personalizado", titulo: "Novo link", valor: "", ativo: true },
-              ],
-            }))
-          }
-        />
-      </Bloco>
+      <BlocoLinksEditor site={site} aplicar={aplicar} />
+
 
       <Bloco titulo="Produtos">
         {site.produtos.map((p) => (
