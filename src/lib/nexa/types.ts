@@ -63,9 +63,12 @@ export interface LinkItem {
   tipo: TipoLink;
   titulo: string;
   valor: string;
+  /** Mensagem pré-preenchida (WhatsApp) ou legenda auxiliar. */
+  mensagem?: string;
   cor?: string;
   ativo: boolean;
 }
+
 
 export interface Produto {
   id: string;
@@ -94,7 +97,16 @@ export interface ItemGaleria {
   id: string;
   url: string;
   titulo: string;
+  tipo?: "imagem" | "video";
 }
+
+export interface ItemVideo {
+  id: string;
+  url: string;
+  titulo: string;
+  descricao?: string;
+}
+
 
 export interface Avaliacao {
   id: string;
