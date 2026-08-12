@@ -16,8 +16,10 @@ import {
   Youtube,
 } from "lucide-react";
 import { brand, whatsappLink } from "@/lib/nexa/brand";
+import { urlEmbed } from "@/lib/nexa/media";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
+
 
 const fontes: Record<Site["aparencia"]["fonte"], string> = {
   moderna: '"Plus Jakarta Sans", system-ui, sans-serif',
@@ -311,7 +313,10 @@ function Secao({ tipo, titulo, site }: { tipo: string; titulo: string; site: Sit
 function urlLink(l: LinkItem) {
   switch (l.tipo) {
     case "whatsapp":
-      return whatsappLink(l.valor, "Olá! Vim pela sua página e gostaria de mais informações.");
+      return whatsappLink(
+        l.valor,
+        l.mensagem || "Olá! Vim pela sua página e gostaria de mais informações.",
+      );
     case "instagram":
       return `https://instagram.com/${l.valor.replace("@", "")}`;
     case "facebook":
@@ -330,6 +335,7 @@ function urlLink(l: LinkItem) {
       return l.valor.startsWith("http") ? l.valor : `https://${l.valor}`;
   }
 }
+
 
 function BlocoLinks({ site }: { site: Site }) {
   const links = site.links.filter((l) => l.ativo);
@@ -554,20 +560,47 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
 }
 
 function BlocoVideos({ site, titulo }: { site: Site; titulo: string }) {
+  const videos = site.videos ?? [];
+  if (videos.length === 0) return null;
   return (
     <section>
       <Titulo site={site}>{titulo}</Titulo>
-      <Cartao site={site}>
-        <div className="grid h-44 place-items-center text-sm opacity-70">
-          <div className="text-center">
-            <Play size={22} className="mx-auto mb-2" style={{ color: site.aparencia.corPrimaria }} />
-            Vídeo em breve
-          </div>
-        </div>
-      </Cartao>
+      <div className="flex flex-col gap-3">
+        {videos.map((v) => {
+          const embed = urlEmbed(v.url);
+          return (
+            <Cartao key={v.id} site={site}>
+              <div className="aspect-video w-full bg-black/40">
+                {embed?.tipo === "iframe" ? (
+                  <iframe
+                    src={embed.src}
+                    title={v.titulo}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full"
+                  />
+                ) : embed ? (
+                  <video src={embed.src} controls playsInline className="h-full w-full object-cover" />
+                ) : (
+                  <div className="grid h-full place-items-center">
+                    <Play size={22} style={{ color: site.aparencia.corPrimaria }} />
+                  </div>
+                )}
+              </div>
+              {(v.titulo || v.descricao) && (
+                <div className="p-3">
+                  <p className="text-sm font-semibold">{v.titulo}</p>
+                  {v.descricao && <p className="mt-1 text-xs opacity-70">{v.descricao}</p>}
+                </div>
+              )}
+            </Cartao>
+          );
+        })}
+      </div>
     </section>
   );
 }
+
 
 function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
   if (site.depoimentos.length === 0) return null;
