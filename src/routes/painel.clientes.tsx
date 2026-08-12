@@ -11,7 +11,9 @@ import {
   QrCode,
   Rows3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useNexa } from "@/lib/nexa/hooks";
@@ -88,24 +90,53 @@ function Clientes() {
           <h1 className="font-display text-2xl font-bold">Clientes</h1>
           <p className="text-sm text-muted-foreground">{lista.length} registros</p>
         </div>
-        <div className="flex shrink-0 rounded-full border border-border p-1">
-          <button
-            type="button"
-            aria-label="Tabela"
-            onClick={() => setVisual("tabela")}
-            className={`grid h-8 w-8 place-items-center rounded-full ${visual === "tabela" ? "bg-ink text-ink-foreground" : ""}`}
-          >
-            <Rows3 size={15} />
-          </button>
-          <button
-            type="button"
-            aria-label="Cards"
-            onClick={() => setVisual("cards")}
-            className={`grid h-8 w-8 place-items-center rounded-full ${visual === "cards" ? "bg-ink text-ink-foreground" : ""}`}
-          >
-            <LayoutGrid size={15} />
-          </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">
+            <Upload size={13} /> Importar JSON
+            <input
+              type="file"
+              accept="application/json,.json,.nexa"
+              className="hidden"
+              onChange={async (e) => {
+                const arquivo = e.target.files?.[0];
+                e.target.value = "";
+                if (!arquivo) return;
+                try {
+                  const importado = lerArquivo(await arquivo.text());
+                  const novo = duplicarImportacao(
+                    importado,
+                    sites.map((s) => s.slug),
+                  );
+                  await store.adicionarSite(novo);
+                  toast.success("Projeto importado", { description: `/site/${novo.slug}` });
+                } catch (err) {
+                  toast.error("Não foi possível importar", {
+                    description: err instanceof Error ? err.message : "Arquivo inválido.",
+                  });
+                }
+              }}
+            />
+          </label>
+          <div className="flex rounded-full border border-border p-1">
+            <button
+              type="button"
+              aria-label="Tabela"
+              onClick={() => setVisual("tabela")}
+              className={`grid h-8 w-8 place-items-center rounded-full ${visual === "tabela" ? "bg-ink text-ink-foreground" : ""}`}
+            >
+              <Rows3 size={15} />
+            </button>
+            <button
+              type="button"
+              aria-label="Cards"
+              onClick={() => setVisual("cards")}
+              className={`grid h-8 w-8 place-items-center rounded-full ${visual === "cards" ? "bg-ink text-ink-foreground" : ""}`}
+            >
+              <LayoutGrid size={15} />
+            </button>
+          </div>
         </div>
+
       </div>
 
       <div className="flex flex-wrap gap-2">

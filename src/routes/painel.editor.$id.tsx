@@ -1,28 +1,39 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   ChevronUp,
+  Copy,
+  Download,
   Eye,
   Globe,
+  History,
+  Loader2,
   Monitor,
   Plus,
   Redo2,
+  RotateCcw,
   Save,
   Smartphone,
   Trash2,
   Undo2,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { SeletorMidia } from "@/components/editor/SeletorMidia";
+import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
-import { imagens } from "@/lib/nexa/images";
 import { modelos } from "@/lib/nexa/modelos";
-import { slugify, telefoneMask, uid } from "@/lib/nexa/utils";
+import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
+import { versaoStore } from "@/lib/nexa/versoes";
+import { brand } from "@/lib/nexa/brand";
+import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Site } from "@/lib/nexa/types";
+import type { Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
@@ -37,7 +48,7 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo";
+type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
@@ -45,18 +56,23 @@ const abas: { id: Aba; rotulo: string }[] = [
   { id: "itens", rotulo: "Itens" },
   { id: "aparencia", rotulo: "Aparência" },
   { id: "seo", rotulo: "SEO" },
+  { id: "versoes", rotulo: "Versões" },
 ];
 
 function Editor() {
   const { id } = Route.useParams();
   const { sites, pronto, store } = useNexa();
   const navigate = useNavigate();
+  const arquivoRef = useRef<HTMLInputElement>(null);
 
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
   const [aba, setAba] = useState<Aba>("conteudo");
   const [dispositivo, setDispositivo] = useState<"celular" | "desktop">("celular");
   const [sujo, setSujo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  const [autosave, setAutosave] = useState(true);
 
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
@@ -73,23 +89,64 @@ function Editor() {
     setSujo(true);
   };
 
-  const salvar = async (patch?: Partial<Site>) => {
-    if (!rascunho) return;
-    const proximo = { ...rascunho, ...patch };
-    setRascunho(proximo);
-    await store.atualizarSite(rascunho.id, () => proximo);
-    setSujo(false);
-    toast.success("Alterações salvas");
-  };
+  const salvar = useCallback(
+    async (patch?: Partial<Site>, silencioso = false) => {
+      setRascunho((atual) => {
+        if (!atual) return atual;
+        const proximo = { ...atual, ...patch };
+        setSalvando(true);
+        void store.atualizarSite(atual.id, () => proximo).then(() => {
+          setSalvando(false);
+          setSujo(false);
+          setSalvoEm(new Date().toISOString());
+          if (!silencioso) toast.success("Alterações salvas");
+        });
+        return proximo;
+      });
+    },
+    [store],
+  );
+
+  /* autosave com atraso curto */
+  useEffect(() => {
+    if (!autosave || !sujo || !rascunho) return;
+    const t = setTimeout(() => void salvar(undefined, true), 1200);
+    return () => clearTimeout(t);
+  }, [autosave, sujo, rascunho, salvar]);
+
+  /* aviso ao sair com pendências */
+  useEffect(() => {
+    if (!sujo) return;
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [sujo]);
 
   const publicar = async () => {
     if (!rascunho) return;
     const publicado = rascunho.status === "publicado";
-    await salvar({ status: publicado ? "rascunho" : "publicado" });
+    if (!publicado) versaoStore.registrar(rascunho, "publicacao");
+    await salvar({ status: publicado ? "rascunho" : "publicado" }, true);
     toast[publicado ? "message" : "success"](
       publicado ? "Mini-site despublicado" : "Mini-site publicado",
       { description: publicado ? "Ele voltou para rascunho." : `Disponível em /site/${rascunho.slug}` },
     );
+  };
+
+  const importar = async (arquivo?: File | null) => {
+    if (!arquivo || !rascunho) return;
+    try {
+      const importado = lerArquivo(await arquivo.text());
+      versaoStore.registrar(rascunho, "importacao", "Antes da importação");
+      const mesclado = mesclarImportacao(rascunho, importado);
+      setRascunho(mesclado);
+      setSujo(true);
+      toast.success("Configuração importada", {
+        description: "Conteúdo, seções e aparência foram substituídos.",
+      });
+    } catch (e) {
+      toast.error("Não foi possível importar", { description: (e as Error).message });
+    }
   };
 
   if (!pronto)
@@ -115,6 +172,16 @@ function Editor() {
       </div>
     );
 
+  const estado = salvando
+    ? { icone: <Loader2 size={12} className="animate-spin" />, texto: "salvando…", cor: "text-muted-foreground" }
+    : sujo
+      ? { icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />, texto: "alterações não salvas", cor: "text-ember" }
+      : {
+          icone: <Check size={12} />,
+          texto: salvoEm ? `salvo ${dataHora(salvoEm)}` : "tudo salvo",
+          cor: "text-muted-foreground",
+        };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl">
@@ -129,13 +196,21 @@ function Editor() {
           </button>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{rascunho.conteudo.nome}</p>
-            <p className="text-xs text-muted-foreground">
-              /site/{rascunho.slug} · {sujo ? "alterações não salvas" : "tudo salvo"}
+            <p className={`flex items-center gap-1.5 text-xs ${estado.cor}`}>
+              /site/{rascunho.slug} · {estado.icone} {estado.texto}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <label className="hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
+            <input
+              type="checkbox"
+              checked={autosave}
+              onChange={(e) => setAutosave(e.target.checked)}
+            />
+            autosave
+          </label>
           <button
             type="button"
             aria-label="Desfazer"
@@ -166,6 +241,34 @@ function Editor() {
           >
             <Redo2 size={15} />
           </button>
+          <button
+            type="button"
+            aria-label="Exportar JSON"
+            title="Exportar JSON"
+            onClick={() => baixarJson(rascunho)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+          >
+            <Download size={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Importar JSON"
+            title="Importar JSON"
+            onClick={() => arquivoRef.current?.click()}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+          >
+            <Upload size={15} />
+          </button>
+          <input
+            ref={arquivoRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              void importar(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
           <div className="hidden rounded-full border border-border p-0.5 sm:flex">
             <button
               type="button"
@@ -194,7 +297,10 @@ function Editor() {
           </a>
           <button
             type="button"
-            onClick={() => void salvar()}
+            onClick={() => {
+              versaoStore.registrar(rascunho, "salvamento");
+              void salvar();
+            }}
             className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
           >
             <Save size={15} /> Salvar
@@ -233,6 +339,16 @@ function Editor() {
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
+            {aba === "versoes" && (
+              <AbaVersoes
+                site={rascunho}
+                onRestaurar={(s) => {
+                  hist.registrar(structuredClone(rascunho));
+                  setRascunho(s);
+                  setSujo(true);
+                }}
+              />
+            )}
           </div>
         </aside>
 
@@ -251,6 +367,7 @@ function Editor() {
     </div>
   );
 }
+
 
 /* ------------------------------ campos ------------------------------ */
 
@@ -353,27 +470,19 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Imagem de capa">
-        <div className="grid grid-cols-4 gap-2">
-          {Object.entries(imagens).map(([chave, url]) => (
-            <button
-              key={chave}
-              type="button"
-              onClick={() => set({ capa: url })}
-              className={`overflow-hidden rounded-lg border ${
-                site.conteudo.capa === url ? "border-ink ring-2 ring-lime" : "border-border"
-              }`}
-            >
-              <img src={url} alt={`Capa ${chave}`} loading="lazy" className="h-12 w-full object-cover" />
-            </button>
-          ))}
-        </div>
-        <Texto
-          rotulo="Ou cole a URL de uma imagem"
+      <Bloco titulo="Logo e capa">
+        <SeletorMidia
+          rotulo="Logo"
+          valor={site.conteudo.logo ?? ""}
+          onChange={(v) => set({ logo: v })}
+        />
+        <SeletorMidia
+          rotulo="Imagem de capa"
           valor={site.conteudo.capa ?? ""}
           onChange={(v) => set({ capa: v })}
         />
       </Bloco>
+
 
       <Bloco titulo="Horários">
         <div className="space-y-2">
@@ -562,47 +671,8 @@ function EntradaSimples({
 function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
-      <Bloco titulo="Links rápidos">
-        {site.links.map((l) => (
-          <LinhaItem
-            key={l.id}
-            onRemover={() => aplicar((s) => ({ ...s, links: s.links.filter((x) => x.id !== l.id) }))}
-          >
-            <EntradaSimples
-              valor={l.titulo}
-              placeholder="Título"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  links: s.links.map((x) => (x.id === l.id ? { ...x, titulo: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={l.valor}
-              placeholder="URL ou número"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  links: s.links.map((x) => (x.id === l.id ? { ...x, valor: v } : x)),
-                }))
-              }
-            />
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar link"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              links: [
-                ...s.links,
-                { id: uid("lnk"), tipo: "personalizado", titulo: "Novo link", valor: "", ativo: true },
-              ],
-            }))
-          }
-        />
-      </Bloco>
+      <BlocoLinksEditor site={site} aplicar={aplicar} />
+
 
       <Bloco titulo="Produtos">
         {site.produtos.map((p) => (
@@ -656,6 +726,49 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <SeletorMidia
+              rotulo="Foto do produto"
+              valor={p.imagem ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  produtos: s.produtos.map((x) => (x.id === p.id ? { ...x, imagem: v } : x)),
+                }))
+              }
+            />
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={p.destaque}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      produtos: s.produtos.map((x) =>
+                        x.id === p.id ? { ...x, destaque: e.target.checked } : x,
+                      ),
+                    }))
+                  }
+                />
+                destaque
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={p.disponivel}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      produtos: s.produtos.map((x) =>
+                        x.id === p.id ? { ...x, disponivel: e.target.checked } : x,
+                      ),
+                    }))
+                  }
+                />
+                disponível
+              </label>
+            </div>
+
           </LinhaItem>
         ))}
         <BotaoAdicionar
@@ -749,46 +862,9 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Galeria">
-        <div className="grid grid-cols-4 gap-2">
-          {Object.entries(imagens).map(([chave, url]) => (
-            <button
-              key={chave}
-              type="button"
-              aria-label={`Adicionar imagem ${chave}`}
-              onClick={() =>
-                aplicar((s) => ({
-                  ...s,
-                  galeria: [...s.galeria, { id: uid("img"), url, titulo: chave }],
-                }))
-              }
-              className="overflow-hidden rounded-lg border border-border"
-            >
-              <img src={url} alt={chave} loading="lazy" className="h-12 w-full object-cover" />
-            </button>
-          ))}
-        </div>
-        {site.galeria.length > 0 && (
-          <ul className="space-y-2">
-            {site.galeria.map((g) => (
-              <li key={g.id} className="flex items-center gap-2 text-sm">
-                <img src={g.url} alt={g.titulo} className="h-8 w-8 rounded object-cover" />
-                <span className="min-w-0 flex-1 truncate">{g.titulo}</span>
-                <button
-                  type="button"
-                  aria-label="Remover imagem"
-                  onClick={() =>
-                    aplicar((s) => ({ ...s, galeria: s.galeria.filter((x) => x.id !== g.id) }))
-                  }
-                  className="text-ember"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Bloco>
+      <BlocoGaleria site={site} aplicar={aplicar} />
+      <BlocoVideosEditor site={site} aplicar={aplicar} />
+
 
       <Bloco titulo="Depoimentos">
         {site.depoimentos.map((d) => (
@@ -1035,6 +1111,14 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const setInt = (patch: Partial<Site["integracoes"]>) =>
     aplicar((s) => ({ ...s, integracoes: { ...s.integracoes, ...patch } }));
 
+  const dominio =
+    site.integracoes.dominio?.trim()
+      ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
+      : typeof window !== "undefined"
+        ? window.location.origin
+        : `https://${brand.dominio}`;
+  const url = `${dominio}/site/${site.slug}`;
+
   return (
     <>
       <Bloco titulo="Busca e compartilhamento">
@@ -1051,6 +1135,39 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           onChange={(v) => set({ palavras: v })}
           placeholder="pizzaria, delivery, São Paulo"
         />
+        <SeletorMidia
+          rotulo="Imagem de compartilhamento"
+          valor={site.seo.imagem ?? ""}
+          onChange={(v) => set({ imagem: v })}
+        />
+      </Bloco>
+
+      <Bloco titulo="Prévia do compartilhamento">
+        <PreviaCompartilhamento site={site} dominio={dominio} />
+      </Bloco>
+
+      <Bloco titulo="Link do mini-site">
+        <p className="break-all rounded-xl border border-border bg-card p-3 text-xs">{url}</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(url);
+              toast.success("Link copiado", { description: "Cole na bio do Instagram ou no WhatsApp." });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+          >
+            <Copy size={13} /> Copiar link
+          </button>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`${site.seo.titulo || site.conteudo.nome} — ${url}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+          >
+            Compartilhar no WhatsApp
+          </a>
+        </div>
       </Bloco>
 
       <Bloco titulo="Integrações">
@@ -1075,3 +1192,319 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     </>
   );
 }
+
+/* ------------------------------ links ------------------------------ */
+
+const tiposLink: { id: TipoLink; rotulo: string; dica: string }[] = [
+  { id: "whatsapp", rotulo: "WhatsApp", dica: "5511999998888" },
+  { id: "instagram", rotulo: "Instagram", dica: "@perfil" },
+  { id: "facebook", rotulo: "Facebook", dica: "pagina" },
+  { id: "tiktok", rotulo: "TikTok", dica: "@perfil" },
+  { id: "youtube", rotulo: "YouTube", dica: "@canal" },
+  { id: "telefone", rotulo: "Telefone", dica: "(11) 99999-8888" },
+  { id: "email", rotulo: "E-mail", dica: "contato@negocio.com" },
+  { id: "localizacao", rotulo: "Localização", dica: "Rua, número, cidade" },
+  { id: "site", rotulo: "Site", dica: "https://..." },
+  { id: "personalizado", rotulo: "Personalizado", dica: "https://..." },
+];
+
+function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const atualizar = (id: string, patch: Partial<Site["links"][number]>) =>
+    aplicar((s) => ({ ...s, links: s.links.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+
+  const adicionar = (tipo: TipoLink) =>
+    aplicar((s) => ({
+      ...s,
+      links: [
+        ...s.links,
+        {
+          id: uid("lnk"),
+          tipo,
+          titulo: tiposLink.find((t) => t.id === tipo)?.rotulo ?? "Novo link",
+          valor: tipo === "whatsapp" ? s.conteudo.whatsapp : tipo === "instagram" ? s.conteudo.instagram : "",
+          ativo: true,
+        },
+      ],
+    }));
+
+  return (
+    <Bloco titulo="Links e redes sociais">
+      <p className="text-xs text-muted-foreground">
+        Escolha o tipo para usar o ícone certo. WhatsApp abre a conversa com mensagem pronta e
+        Instagram vai direto para o perfil.
+      </p>
+      {site.links.map((l) => (
+        <LinhaItem
+          key={l.id}
+          onRemover={() => aplicar((s) => ({ ...s, links: s.links.filter((x) => x.id !== l.id) }))}
+        >
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={l.tipo}
+              onChange={(e) => atualizar(l.id, { tipo: e.target.value as TipoLink })}
+              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+            >
+              {tiposLink.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.rotulo}
+                </option>
+              ))}
+            </select>
+            <EntradaSimples
+              valor={l.titulo}
+              placeholder="Título do botão"
+              onChange={(v) => atualizar(l.id, { titulo: v })}
+            />
+          </div>
+          <EntradaSimples
+            valor={l.valor}
+            placeholder={tiposLink.find((t) => t.id === l.tipo)?.dica ?? "URL"}
+            onChange={(v) => atualizar(l.id, { valor: v })}
+          />
+          {l.tipo === "whatsapp" && (
+            <EntradaSimples
+              valor={l.mensagem ?? ""}
+              placeholder="Mensagem automática ao abrir a conversa"
+              onChange={(v) => atualizar(l.id, { mensagem: v })}
+            />
+          )}
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={l.ativo}
+                onChange={(e) => atualizar(l.id, { ativo: e.target.checked })}
+              />
+              visível
+            </label>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              cor
+              <input
+                type="color"
+                aria-label="Cor do botão"
+                value={l.cor ?? "#ffffff"}
+                onChange={(e) => atualizar(l.id, { cor: e.target.value })}
+                className="h-7 w-9 rounded border border-border"
+              />
+            </label>
+          </div>
+        </LinhaItem>
+      ))}
+      <div className="flex flex-wrap gap-1.5">
+        {(["whatsapp", "instagram", "facebook", "tiktok", "youtube", "personalizado"] as TipoLink[]).map(
+          (t) => (
+            <BotaoAdicionar
+              key={t}
+              rotulo={tiposLink.find((x) => x.id === t)?.rotulo ?? t}
+              onClick={() => adicionar(t)}
+            />
+          ),
+        )}
+      </div>
+    </Bloco>
+  );
+}
+
+/* ------------------------------ galeria e vídeos ------------------------------ */
+
+function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const [novo, setNovo] = useState("");
+  const [tipo, setTipo] = useState<"imagem" | "video">("imagem");
+
+  return (
+    <Bloco titulo="Galeria">
+      <div className="flex gap-1.5">
+        {(["imagem", "video"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTipo(t)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${tipo === t ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"}`}
+          >
+            {t === "imagem" ? "Foto" : "Vídeo"}
+          </button>
+        ))}
+      </div>
+      <SeletorMidia rotulo="Nova mídia" valor={novo} onChange={setNovo} tipo={tipo} />
+      <BotaoAdicionar
+        rotulo="Adicionar à galeria"
+        onClick={() => {
+          if (!novo) {
+            toast.error("Escolha ou envie uma mídia primeiro.");
+            return;
+          }
+          aplicar((s) => ({
+            ...s,
+            galeria: [...s.galeria, { id: uid("mid"), url: novo, titulo: tipo === "video" ? "Vídeo" : "Foto", tipo }],
+          }));
+          setNovo("");
+        }}
+      />
+      {site.galeria.length > 0 && (
+        <ul className="space-y-2">
+          {site.galeria.map((g) => (
+            <li key={g.id} className="flex items-center gap-2 text-sm">
+              {g.tipo === "video" ? (
+                <video src={g.url} muted className="h-8 w-8 rounded object-cover" />
+              ) : (
+                <img src={g.url} alt={g.titulo} className="h-8 w-8 rounded object-cover" />
+              )}
+              <input
+                value={g.titulo}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    galeria: s.galeria.map((x) =>
+                      x.id === g.id ? { ...x, titulo: e.target.value } : x,
+                    ),
+                  }))
+                }
+                className="min-w-0 flex-1 bg-transparent outline-none"
+              />
+              <button
+                type="button"
+                aria-label="Remover mídia"
+                onClick={() =>
+                  aplicar((s) => ({ ...s, galeria: s.galeria.filter((x) => x.id !== g.id) }))
+                }
+                className="text-ember"
+              >
+                <Trash2 size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Bloco>
+  );
+}
+
+function BlocoVideosEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const videos = site.videos ?? [];
+  const atualizar = (id: string, patch: Partial<(typeof videos)[number]>) =>
+    aplicar((s) => ({
+      ...s,
+      videos: (s.videos ?? []).map((v) => (v.id === id ? { ...v, ...patch } : v)),
+    }));
+
+  return (
+    <Bloco titulo="Vídeos">
+      <p className="text-xs text-muted-foreground">
+        Envie um arquivo ou cole um link do YouTube/Vimeo. Ative a seção “Vídeos” na aba Seções.
+      </p>
+      {videos.map((v) => (
+        <LinhaItem
+          key={v.id}
+          onRemover={() =>
+            aplicar((s) => ({ ...s, videos: (s.videos ?? []).filter((x) => x.id !== v.id) }))
+          }
+        >
+          <EntradaSimples
+            valor={v.titulo}
+            placeholder="Título do vídeo"
+            onChange={(t) => atualizar(v.id, { titulo: t })}
+          />
+          <EntradaSimples
+            valor={v.descricao ?? ""}
+            placeholder="Descrição (opcional)"
+            onChange={(t) => atualizar(v.id, { descricao: t })}
+          />
+          <SeletorMidia
+            rotulo="Arquivo ou link"
+            tipo="video"
+            valor={v.url}
+            onChange={(u) => atualizar(v.id, { url: u })}
+          />
+        </LinhaItem>
+      ))}
+      <BotaoAdicionar
+        rotulo="Adicionar vídeo"
+        onClick={() =>
+          aplicar((s) => ({
+            ...s,
+            videos: [...(s.videos ?? []), { id: uid("vid"), url: "", titulo: "Novo vídeo" }],
+          }))
+        }
+      />
+    </Bloco>
+  );
+}
+
+/* ------------------------------ versões ------------------------------ */
+
+function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) => void }) {
+  const versoes = useSyncExternalStore(
+    versaoStore.subscribe,
+    () => versaoStore.listar(site.id),
+    () => [] as ReturnType<typeof versaoStore.listar>,
+  );
+
+  return (
+    <Bloco titulo="Histórico de versões">
+      <p className="text-xs text-muted-foreground">
+        Cada publicação e cada salvamento manual cria um ponto de restauração. Restaurar substitui o
+        rascunho atual — publique novamente para valer no ar.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <BotaoAdicionar
+          rotulo="Criar ponto de restauração"
+          onClick={() => {
+            versaoStore.registrar(site, "manual");
+            toast.success("Ponto de restauração criado");
+          }}
+        />
+        {versoes.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              versaoStore.limpar(site.id);
+              toast.message("Histórico limpo");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ember"
+          >
+            <Trash2 size={13} /> Limpar histórico
+          </button>
+        )}
+      </div>
+
+      {versoes.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+          Nenhuma versão salva ainda.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {versoes.map((v) => (
+            <li key={v.id} className="rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-2">
+                <History size={14} className="text-muted-foreground" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{v.rotulo}</p>
+                  <p className="text-xs text-muted-foreground">{dataHora(v.criadoEm)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onRestaurar(structuredClone(v.dados));
+                    toast.success("Versão restaurada", { description: v.rotulo });
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-semibold hover:bg-secondary"
+                >
+                  <RotateCcw size={12} /> Restaurar
+                </button>
+                <button
+                  type="button"
+                  aria-label="Excluir versão"
+                  onClick={() => versaoStore.remover(site.id, v.id)}
+                  className="text-ember"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Bloco>
+  );
+}
+
