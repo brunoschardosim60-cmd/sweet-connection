@@ -539,12 +539,22 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
             key={g.id}
             type="button"
             onClick={() => setAmpliada(g.url)}
-            className="aspect-square overflow-hidden transition-transform duration-200 hover:scale-[1.02]"
+            className="relative aspect-square overflow-hidden transition-transform duration-200 hover:scale-[1.02]"
             style={{ borderRadius: "var(--ms-radius)" }}
           >
-            <img src={g.url} alt={g.titulo} loading="lazy" className="h-full w-full object-cover" />
+            {g.tipo === "video" ? (
+              <>
+                <video src={g.url} muted playsInline className="h-full w-full object-cover" />
+                <span className="absolute inset-0 grid place-items-center bg-black/25">
+                  <Play size={18} color="#fff" />
+                </span>
+              </>
+            ) : (
+              <img src={g.url} alt={g.titulo} loading="lazy" className="h-full w-full object-cover" />
+            )}
           </button>
         ))}
+
       </div>
       {ampliada && (
         <button
