@@ -858,46 +858,9 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Galeria">
-        <div className="grid grid-cols-4 gap-2">
-          {Object.entries(imagens).map(([chave, url]) => (
-            <button
-              key={chave}
-              type="button"
-              aria-label={`Adicionar imagem ${chave}`}
-              onClick={() =>
-                aplicar((s) => ({
-                  ...s,
-                  galeria: [...s.galeria, { id: uid("img"), url, titulo: chave }],
-                }))
-              }
-              className="overflow-hidden rounded-lg border border-border"
-            >
-              <img src={url} alt={chave} loading="lazy" className="h-12 w-full object-cover" />
-            </button>
-          ))}
-        </div>
-        {site.galeria.length > 0 && (
-          <ul className="space-y-2">
-            {site.galeria.map((g) => (
-              <li key={g.id} className="flex items-center gap-2 text-sm">
-                <img src={g.url} alt={g.titulo} className="h-8 w-8 rounded object-cover" />
-                <span className="min-w-0 flex-1 truncate">{g.titulo}</span>
-                <button
-                  type="button"
-                  aria-label="Remover imagem"
-                  onClick={() =>
-                    aplicar((s) => ({ ...s, galeria: s.galeria.filter((x) => x.id !== g.id) }))
-                  }
-                  className="text-ember"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Bloco>
+      <BlocoGaleria site={site} aplicar={aplicar} />
+      <BlocoVideosEditor site={site} aplicar={aplicar} />
+
 
       <Bloco titulo="Depoimentos">
         {site.depoimentos.map((d) => (
