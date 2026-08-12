@@ -239,6 +239,8 @@ export interface Site {
   produtos: Produto[];
   servicos: Servico[];
   galeria: ItemGaleria[];
+  videos?: ItemVideo[];
+
   depoimentos: Avaliacao[];
   equipe: MembroEquipe[];
   cupons: Cupom[];
