@@ -470,27 +470,19 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Imagem de capa">
-        <div className="grid grid-cols-4 gap-2">
-          {Object.entries(imagens).map(([chave, url]) => (
-            <button
-              key={chave}
-              type="button"
-              onClick={() => set({ capa: url })}
-              className={`overflow-hidden rounded-lg border ${
-                site.conteudo.capa === url ? "border-ink ring-2 ring-lime" : "border-border"
-              }`}
-            >
-              <img src={url} alt={`Capa ${chave}`} loading="lazy" className="h-12 w-full object-cover" />
-            </button>
-          ))}
-        </div>
-        <Texto
-          rotulo="Ou cole a URL de uma imagem"
+      <Bloco titulo="Logo e capa">
+        <SeletorMidia
+          rotulo="Logo"
+          valor={site.conteudo.logo ?? ""}
+          onChange={(v) => set({ logo: v })}
+        />
+        <SeletorMidia
+          rotulo="Imagem de capa"
           valor={site.conteudo.capa ?? ""}
           onChange={(v) => set({ capa: v })}
         />
       </Bloco>
+
 
       <Bloco titulo="Horários">
         <div className="space-y-2">
