@@ -562,7 +562,12 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
           onClick={() => setAmpliada(null)}
           className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-6"
         >
-          <img src={ampliada} alt="Foto ampliada" className="max-h-[80vh] w-auto rounded-lg" />
+          {site.galeria.find((g) => g.url === ampliada)?.tipo === "video" ? (
+            <video src={ampliada} controls autoPlay className="max-h-[80vh] w-auto rounded-lg" />
+          ) : (
+            <img src={ampliada} alt="Foto ampliada" className="max-h-[80vh] w-auto rounded-lg" />
+          )}
+
         </button>
       )}
     </section>
