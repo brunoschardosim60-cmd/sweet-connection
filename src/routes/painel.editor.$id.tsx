@@ -1,28 +1,39 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   ChevronUp,
+  Copy,
+  Download,
   Eye,
   Globe,
+  History,
+  Loader2,
   Monitor,
   Plus,
   Redo2,
+  RotateCcw,
   Save,
   Smartphone,
   Trash2,
   Undo2,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { SeletorMidia } from "@/components/editor/SeletorMidia";
+import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
-import { imagens } from "@/lib/nexa/images";
 import { modelos } from "@/lib/nexa/modelos";
-import { slugify, telefoneMask, uid } from "@/lib/nexa/utils";
+import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
+import { versaoStore } from "@/lib/nexa/versoes";
+import { brand } from "@/lib/nexa/brand";
+import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Site } from "@/lib/nexa/types";
+import type { Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
@@ -37,7 +48,7 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo";
+type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
@@ -45,18 +56,23 @@ const abas: { id: Aba; rotulo: string }[] = [
   { id: "itens", rotulo: "Itens" },
   { id: "aparencia", rotulo: "Aparência" },
   { id: "seo", rotulo: "SEO" },
+  { id: "versoes", rotulo: "Versões" },
 ];
 
 function Editor() {
   const { id } = Route.useParams();
   const { sites, pronto, store } = useNexa();
   const navigate = useNavigate();
+  const arquivoRef = useRef<HTMLInputElement>(null);
 
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
   const [aba, setAba] = useState<Aba>("conteudo");
   const [dispositivo, setDispositivo] = useState<"celular" | "desktop">("celular");
   const [sujo, setSujo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  const [autosave, setAutosave] = useState(true);
 
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
@@ -73,23 +89,64 @@ function Editor() {
     setSujo(true);
   };
 
-  const salvar = async (patch?: Partial<Site>) => {
-    if (!rascunho) return;
-    const proximo = { ...rascunho, ...patch };
-    setRascunho(proximo);
-    await store.atualizarSite(rascunho.id, () => proximo);
-    setSujo(false);
-    toast.success("Alterações salvas");
-  };
+  const salvar = useCallback(
+    async (patch?: Partial<Site>, silencioso = false) => {
+      setRascunho((atual) => {
+        if (!atual) return atual;
+        const proximo = { ...atual, ...patch };
+        setSalvando(true);
+        void store.atualizarSite(atual.id, () => proximo).then(() => {
+          setSalvando(false);
+          setSujo(false);
+          setSalvoEm(new Date().toISOString());
+          if (!silencioso) toast.success("Alterações salvas");
+        });
+        return proximo;
+      });
+    },
+    [store],
+  );
+
+  /* autosave com atraso curto */
+  useEffect(() => {
+    if (!autosave || !sujo || !rascunho) return;
+    const t = setTimeout(() => void salvar(undefined, true), 1200);
+    return () => clearTimeout(t);
+  }, [autosave, sujo, rascunho, salvar]);
+
+  /* aviso ao sair com pendências */
+  useEffect(() => {
+    if (!sujo) return;
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [sujo]);
 
   const publicar = async () => {
     if (!rascunho) return;
     const publicado = rascunho.status === "publicado";
-    await salvar({ status: publicado ? "rascunho" : "publicado" });
+    if (!publicado) versaoStore.registrar(rascunho, "publicacao");
+    await salvar({ status: publicado ? "rascunho" : "publicado" }, true);
     toast[publicado ? "message" : "success"](
       publicado ? "Mini-site despublicado" : "Mini-site publicado",
       { description: publicado ? "Ele voltou para rascunho." : `Disponível em /site/${rascunho.slug}` },
     );
+  };
+
+  const importar = async (arquivo?: File | null) => {
+    if (!arquivo || !rascunho) return;
+    try {
+      const importado = lerArquivo(await arquivo.text());
+      versaoStore.registrar(rascunho, "importacao", "Antes da importação");
+      const mesclado = mesclarImportacao(rascunho, importado);
+      setRascunho(mesclado);
+      setSujo(true);
+      toast.success("Configuração importada", {
+        description: "Conteúdo, seções e aparência foram substituídos.",
+      });
+    } catch (e) {
+      toast.error("Não foi possível importar", { description: (e as Error).message });
+    }
   };
 
   if (!pronto)
@@ -115,6 +172,16 @@ function Editor() {
       </div>
     );
 
+  const estado = salvando
+    ? { icone: <Loader2 size={12} className="animate-spin" />, texto: "salvando…", cor: "text-muted-foreground" }
+    : sujo
+      ? { icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />, texto: "alterações não salvas", cor: "text-ember" }
+      : {
+          icone: <Check size={12} />,
+          texto: salvoEm ? `salvo ${dataHora(salvoEm)}` : "tudo salvo",
+          cor: "text-muted-foreground",
+        };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl">
@@ -129,13 +196,21 @@ function Editor() {
           </button>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{rascunho.conteudo.nome}</p>
-            <p className="text-xs text-muted-foreground">
-              /site/{rascunho.slug} · {sujo ? "alterações não salvas" : "tudo salvo"}
+            <p className={`flex items-center gap-1.5 text-xs ${estado.cor}`}>
+              /site/{rascunho.slug} · {estado.icone} {estado.texto}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <label className="hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
+            <input
+              type="checkbox"
+              checked={autosave}
+              onChange={(e) => setAutosave(e.target.checked)}
+            />
+            autosave
+          </label>
           <button
             type="button"
             aria-label="Desfazer"
@@ -166,6 +241,34 @@ function Editor() {
           >
             <Redo2 size={15} />
           </button>
+          <button
+            type="button"
+            aria-label="Exportar JSON"
+            title="Exportar JSON"
+            onClick={() => baixarJson(rascunho)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+          >
+            <Download size={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Importar JSON"
+            title="Importar JSON"
+            onClick={() => arquivoRef.current?.click()}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+          >
+            <Upload size={15} />
+          </button>
+          <input
+            ref={arquivoRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              void importar(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
           <div className="hidden rounded-full border border-border p-0.5 sm:flex">
             <button
               type="button"
@@ -194,7 +297,10 @@ function Editor() {
           </a>
           <button
             type="button"
-            onClick={() => void salvar()}
+            onClick={() => {
+              versaoStore.registrar(rascunho, "salvamento");
+              void salvar();
+            }}
             className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
           >
             <Save size={15} /> Salvar
@@ -233,6 +339,16 @@ function Editor() {
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
+            {aba === "versoes" && (
+              <AbaVersoes
+                site={rascunho}
+                onRestaurar={(s) => {
+                  hist.registrar(structuredClone(rascunho));
+                  setRascunho(s);
+                  setSujo(true);
+                }}
+              />
+            )}
           </div>
         </aside>
 
@@ -251,6 +367,7 @@ function Editor() {
     </div>
   );
 }
+
 
 /* ------------------------------ campos ------------------------------ */
 
