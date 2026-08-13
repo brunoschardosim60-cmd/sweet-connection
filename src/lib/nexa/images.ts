@@ -10,6 +10,7 @@ import fotografo from "@/assets/seg-fotografo.jpg";
 import imoveis from "@/assets/seg-imoveis.jpg";
 import transporte from "@/assets/seg-transporte.jpg";
 import servicos from "@/assets/seg-servicos.jpg";
+import advocacia from "@/assets/seg-advocacia.jpg";
 
 export const imagens = {
   restaurante,
@@ -24,6 +25,7 @@ export const imagens = {
   imoveis,
   transporte,
   servicos,
+  advocacia,
 } as const;
 
 export type ImagemKey = keyof typeof imagens;

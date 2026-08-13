@@ -113,6 +113,17 @@ export const modelos: Modelo[] = [
     imagem: imagens.transporte,
   },
   {
+    id: "advocacia",
+    nome: "Advocacia e Consultoria Jurídica",
+    segmento: "profissionais",
+    layout: "corporativo",
+    descricao:
+      "Áreas de atuação, equipe de advogados, artigos e agendamento de consulta com ar institucional.",
+    destaque: "Áreas de atuação + consulta",
+    paleta: { fundo: "#0f1418", texto: "#f2efe8", primaria: "#b8935a", suave: "#1a2026" },
+    imagem: imagens.advocacia,
+  },
+  {
     id: "prestador-servicos",
     nome: "Prestador de Serviços",
     segmento: "servicos",

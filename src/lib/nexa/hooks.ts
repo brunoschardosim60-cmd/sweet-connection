@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { analytics } from "./analytics";
 import { store } from "./storage";
 import type { Site } from "./types";
+
+const mapaVazio: ReturnType<typeof analytics.tudo> = {};
 
 const vazio = { sites: [] as Site[], envios: [], pronto: false };
 
@@ -73,4 +76,9 @@ export function useHydrated() {
   const [h, setH] = useState(false);
   useEffect(() => setH(true), []);
   return h;
+}
+
+/** Contador local de visitas e cliques dos mini-sites publicados. */
+export function useDesempenho() {
+  return useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
 }
