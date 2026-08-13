@@ -3,6 +3,8 @@ import { analytics } from "./analytics";
 import { store } from "./storage";
 import type { Site } from "./types";
 
+const mapaVazio: ReturnType<typeof analytics.tudo> = {};
+
 const vazio = { sites: [] as Site[], envios: [], pronto: false };
 
 export function useNexa() {
@@ -78,10 +80,5 @@ export function useHydrated() {
 
 /** Contador local de visitas e cliques dos mini-sites publicados. */
 export function useDesempenho() {
-  const mapa = useSyncExternalStore(
-    analytics.subscribe,
-    analytics.tudo,
-    () => ({}) as ReturnType<typeof analytics.tudo>,
-  );
-  return mapa;
+  return useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
 }
