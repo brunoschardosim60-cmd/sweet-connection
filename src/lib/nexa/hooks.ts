@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { analytics } from "./analytics";
 import { store } from "./storage";
 import type { Site } from "./types";
 
@@ -73,4 +74,14 @@ export function useHydrated() {
   const [h, setH] = useState(false);
   useEffect(() => setH(true), []);
   return h;
+}
+
+/** Contador local de visitas e cliques dos mini-sites publicados. */
+export function useDesempenho() {
+  const mapa = useSyncExternalStore(
+    analytics.subscribe,
+    analytics.tudo,
+    () => ({}) as ReturnType<typeof analytics.tudo>,
+  );
+  return mapa;
 }
