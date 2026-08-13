@@ -19,6 +19,7 @@ const conteudoPorModelo: Record<
     equipe?: Site["equipe"];
     depoimentos?: Site["depoimentos"];
     faq?: Site["faq"];
+    videos?: Site["videos"];
   }
 > = {
   "restaurante-moderno": {
@@ -206,6 +207,36 @@ const conteudoPorModelo: Record<
       { id: "s2", nome: "Reparo hidráulico", descricao: "Vazamentos e trocas de louças.", duracao: "Sob avaliação", preco: 160 },
     ],
   },
+  advocacia: {
+    nome: "Marques & Prado Advocacia",
+    descricao: "Escritório full service em direito trabalhista, civil e empresarial desde 2004.",
+    cidade: "Curitiba",
+    estado: "PR",
+    whatsapp: "5541988774411",
+    instagram: "marquesprado.adv",
+    endereco: "Av. Cândido de Abreu, 660 - Centro Cívico, Curitiba - PR",
+    secoes: ["apresentacao", "links", "servicos", "equipe", "videos", "depoimentos", "faq", "formulario", "localizacao", "horarios", "rodape"],
+    servicos: [
+      { id: "s1", nome: "Direito trabalhista", descricao: "Rescisões, verbas, acordos e defesa em reclamatórias.", duracao: "Consulta 45 min", preco: 350, profissional: "Dra. Helena Marques" },
+      { id: "s2", nome: "Direito de família", descricao: "Divórcio, guarda, pensão e inventário.", duracao: "Consulta 45 min", preco: 350, profissional: "Dr. Rafael Prado" },
+      { id: "s3", nome: "Direito empresarial", descricao: "Contratos, societário e recuperação de crédito.", duracao: "Reunião 1h", preco: 520, profissional: "Dra. Helena Marques" },
+      { id: "s4", nome: "Previdenciário", descricao: "Aposentadorias, revisões e benefícios do INSS.", duracao: "Consulta 45 min", preco: 300, profissional: "Dr. Caio Bertoldo" },
+    ],
+    equipe: [
+      { id: "e1", nome: "Dra. Helena Marques", funcao: "Sócia — OAB/PR 38.221" },
+      { id: "e2", nome: "Dr. Rafael Prado", funcao: "Sócio — OAB/PR 41.905" },
+      { id: "e3", nome: "Dr. Caio Bertoldo", funcao: "Advogado previdenciário" },
+    ],
+    depoimentos: [
+      { id: "d1", nome: "Patrícia Nogueira", nota: 5, comentario: "Explicaram cada etapa do processo com clareza. Ganhei a causa em primeira instância.", data: "2026-05-12", destaque: true },
+      { id: "d2", nome: "Empresa Vetor Ltda.", nota: 5, comentario: "Assessoria contratual impecável e resposta rápida no WhatsApp.", data: "2026-04-02", destaque: false },
+    ],
+    faq: [
+      { id: "f1", pergunta: "A primeira consulta é gratuita?", resposta: "A triagem inicial pelo WhatsApp é sem custo. A consulta técnica é agendada e tem honorário informado antes." },
+      { id: "f2", pergunta: "Vocês atendem online?", resposta: "Sim, atendemos por videoconferência em todo o Brasil, com assinatura digital de procuração." },
+      { id: "f3", pergunta: "Como acompanho meu processo?", resposta: "Enviamos atualizações por WhatsApp a cada movimentação relevante." },
+    ],
+  },
 };
 
 const depoimentosGenericos: Site["depoimentos"] = [
@@ -257,7 +288,7 @@ export function siteDoModelo(modeloId: string): Site {
       layout: modelo.layout,
       capaTipo: "imagem",
     },
-    secoes: criarSecoes().map((s) => ({ ...s, ativa: c.secoes.includes(s.tipo) })),
+    secoes: criarSecoes().map((s) => ({ ...s, ativa: c.secoes.includes(s.tipo) || s.tipo === "links" })),
     links: [
       { id: "l1", tipo: "whatsapp", titulo: "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
       { id: "l2", tipo: "instagram", titulo: `@${c.instagram}`, valor: c.instagram, ativo: true },
@@ -270,6 +301,7 @@ export function siteDoModelo(modeloId: string): Site {
       { id: "g2", url: imagens.moda, titulo: "Detalhes" },
       { id: "g3", url: imagens.salao, titulo: "Ambiente" },
     ],
+    videos: c.videos ?? [],
     depoimentos: c.depoimentos ?? depoimentosGenericos,
     equipe: c.equipe ?? [],
     cupons: [
