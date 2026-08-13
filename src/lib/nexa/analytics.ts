@@ -52,7 +52,14 @@ function gravarTudo(mapa: Mapa) {
 }
 
 const ouvintes = new Set<() => void>();
-const notificar = () => ouvintes.forEach((fn) => fn());
+
+/** Snapshot estável (exigido por useSyncExternalStore). */
+let cache: Mapa | null = null;
+const snapshot = (): Mapa => (cache ??= lerTudo());
+const notificar = () => {
+  cache = null;
+  ouvintes.forEach((fn) => fn());
+};
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 
@@ -78,9 +85,9 @@ export const analytics = {
     ouvintes.add(fn);
     return () => ouvintes.delete(fn);
   },
-  tudo: lerTudo,
+  tudo: snapshot,
   doSite(siteId: string): DesempenhoSite {
-    return lerTudo()[siteId] ?? vazio();
+    return snapshot()[siteId] ?? vazio();
   },
   registrarVisita(siteId: string) {
     atualizar(siteId, (d) => ({
