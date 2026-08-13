@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   BadgePercent,
   Clock,
@@ -15,11 +15,16 @@ import {
   Star,
   Youtube,
 } from "lucide-react";
+import { analytics } from "@/lib/nexa/analytics";
 import { brand, whatsappLink } from "@/lib/nexa/brand";
 import { urlEmbed } from "@/lib/nexa/media";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
+
+/** Contexto de rastreio: ativo apenas no mini-site publicado. */
+const RastreioCtx = createContext<(rotulo: string, whatsapp?: boolean) => void>(() => {});
+export const useRastreio = () => useContext(RastreioCtx);
 
 const fontes: Record<Site["aparencia"]["fonte"], string> = {
   moderna: '"Plus Jakarta Sans", system-ui, sans-serif',
@@ -58,15 +63,37 @@ export function MiniSite({
   site,
   compacto = false,
   botaoFlutuante = true,
+  rastrear = false,
 }: {
   site: Site;
   compacto?: boolean;
   botaoFlutuante?: boolean;
+  /** Registra visitas e cliques no contador local (usado na página publicada). */
+  rastrear?: boolean;
 }) {
   const a = site.aparencia;
   const ativas = site.secoes.filter((s) => s.ativa);
   const tem = (t: string) => ativas.some((s) => s.tipo === t);
-  const aberto = estaAberto(site.conteudo.horarios);
+  // calculado após a hidratação: depende do relógio do visitante
+  const [aberto, setAberto] = useState(false);
+  useEffect(() => {
+    const atualizar = () => setAberto(estaAberto(site.conteudo.horarios));
+    atualizar();
+    const t = setInterval(atualizar, 60000);
+    return () => clearInterval(t);
+  }, [site.conteudo.horarios]);
+
+  useEffect(() => {
+    if (rastrear) analytics.registrarVisita(site.id);
+  }, [rastrear, site.id]);
+
+  const registrar = useMemo(
+    () => (rotulo: string, whatsapp = false) => {
+      if (rastrear) analytics.registrarClique(site.id, rotulo, whatsapp);
+    },
+    [rastrear, site.id],
+  );
+
   const gap = espacos[a.espacamento];
 
   const style = {
@@ -83,6 +110,7 @@ export function MiniSite({
   const secoesOrdenadas = ativas.filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape");
 
   return (
+    <RastreioCtx.Provider value={registrar}>
     <div style={style} className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed">
       <Capa site={site} aberto={aberto} compacto={compacto} />
       <div
@@ -96,6 +124,7 @@ export function MiniSite({
       {tem("rodape") && <Rodape site={site} />}
       {botaoFlutuante && <BotaoWhatsapp site={site} />}
     </div>
+    </RastreioCtx.Provider>
   );
 }
 
@@ -338,6 +367,7 @@ function urlLink(l: LinkItem) {
 
 
 function BlocoLinks({ site }: { site: Site }) {
+  const registrar = useRastreio();
   const links = site.links.filter((l) => l.ativo);
   if (links.length === 0) return null;
   const grade = site.aparencia.layout === "cards" || site.aparencia.layout === "colorido";
@@ -352,6 +382,7 @@ function BlocoLinks({ site }: { site: Site }) {
               href={urlLink(l)}
               target="_blank"
               rel="noreferrer"
+              onClick={() => registrar(l.titulo || l.tipo, l.tipo === "whatsapp")}
               className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-transform duration-200 hover:-translate-y-0.5"
               style={{
                 background: l.cor ?? "var(--ms-surface)",
@@ -370,6 +401,7 @@ function BlocoLinks({ site }: { site: Site }) {
 }
 
 function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
+  const registrar = useRastreio();
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState("Todos");
   const categorias = useMemo(
@@ -472,6 +504,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                       site.conteudo.whatsapp,
                       `Olá! Tenho interesse no produto ${p.nome}, no valor de ${moeda(p.precoPromocional ?? p.preco)}.`,
                     )}
+                    onClick={() => registrar(`Produto: ${p.nome}`, true)}
                   >
                     <MessageCircle size={15} /> Pedir pelo WhatsApp
                   </Botao>
@@ -489,6 +522,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
 }
 
 function BlocoServicos({ site, titulo }: { site: Site; titulo: string }) {
+  const registrar = useRastreio();
   if (site.servicos.length === 0) return null;
   return (
     <section>
@@ -514,6 +548,7 @@ function BlocoServicos({ site, titulo }: { site: Site; titulo: string }) {
                       site.conteudo.whatsapp,
                       `Olá! Gostaria de agendar o serviço ${s.nome}.`,
                     )}
+                    onClick={() => registrar(`Serviço: ${s.nome}`, true)}
                   >
                     Agendar
                   </Botao>
@@ -869,6 +904,7 @@ function Rodape({ site }: { site: Site }) {
 }
 
 function BotaoWhatsapp({ site }: { site: Site }) {
+  const registrar = useRastreio();
   if (!site.conteudo.whatsapp) return null;
   return (
     <a
@@ -876,6 +912,7 @@ function BotaoWhatsapp({ site }: { site: Site }) {
       target="_blank"
       rel="noreferrer"
       aria-label="Falar no WhatsApp"
+      onClick={() => registrar("Botão flutuante WhatsApp", true)}
       className="absolute bottom-5 right-5 grid h-14 w-14 place-items-center shadow-lg transition-transform duration-200 hover:scale-105"
       style={{
         position: "fixed",
