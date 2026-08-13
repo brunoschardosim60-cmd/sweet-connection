@@ -287,7 +287,14 @@ function Botao({
 
   if (href)
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={cls} style={{ ...estilos, borderRadius: radius }}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        onClick={onClick}
+        className={cls}
+        style={{ ...estilos, borderRadius: radius }}
+      >
         {children}
       </a>
     );
