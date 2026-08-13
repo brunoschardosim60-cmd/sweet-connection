@@ -49,7 +49,7 @@ function SitePublico() {
 
   return (
     <div className="min-h-screen">
-      <MiniSite site={site} />
+      <MiniSite site={site} rastrear />
     </div>
   );
 }
