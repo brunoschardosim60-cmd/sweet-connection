@@ -36,7 +36,8 @@ import { PhoneFrame } from "@/components/PhoneFrame";
 import { Reveal } from "@/components/Reveal";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { Logo } from "@/components/Logo";
-import { brand, whatsappLink } from "@/lib/nexa/brand";
+import { whatsappLink } from "@/lib/nexa/brand";
+import { useMarca } from "@/lib/nexa/hooks";
 import { modelos } from "@/lib/nexa/modelos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { segmentos } from "@/lib/nexa/segmentos";
@@ -221,6 +222,7 @@ export function FaixaSegmentos() {
 /* ----------------------------- COMPARAÇÃO ----------------------------- */
 
 export function Comparacao() {
+  const marca = useMarca();
   const [pos, setPos] = useState(48);
   return (
     <section className="mx-auto max-w-6xl px-5 py-20 md:py-28">
@@ -230,7 +232,7 @@ export function Comparacao() {
         </h2>
         <p className="mt-4 max-w-2xl text-muted-foreground">
           Arraste para comparar uma página de links tradicional com um mini-site completo do{" "}
-          {brand.nome}.
+          {marca.nome}.
         </p>
       </Reveal>
 
@@ -852,6 +854,7 @@ const planos = [
 ];
 
 export function Planos() {
+  const marca = useMarca();
   const [modal, setModal] = useState<string | null>(null);
   return (
     <section id="planos" className="border-y border-border bg-sand py-20 md:py-28">
@@ -927,8 +930,8 @@ export function Planos() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href={whatsappLink(
-                  brand.whatsappComercial,
-                  `Olá! Tenho interesse no plano ${modal} do ${brand.nome}.`,
+                  marca.whatsappComercial,
+                  `Olá! Tenho interesse no plano ${modal} do ${marca.nome}.`,
                 )}
                 target="_blank"
                 rel="noreferrer"
@@ -958,8 +961,8 @@ export function Planos() {
 
 /* -------------------------------- FAQ -------------------------------- */
 
-const duvidas = [
-  { p: "Preciso ter um site?", r: `Não. O ${brand.nome} cria a página completa para você — ela já é o seu site.` },
+const duvidasDe = (nome: string) => [
+  { p: "Preciso ter um site?", r: `Não. O ${nome} cria a página completa para você — ela já é o seu site.` },
   { p: "Posso usar meu próprio domínio?", r: "Sim. É possível apontar um domínio próprio, como seunegocio.com.br." },
   { p: "Funciona no celular?", r: "Todos os modelos são feitos primeiro para o celular, onde a maioria dos clientes acessa." },
   { p: "Posso receber pedidos pelo WhatsApp?", r: "Sim. Cada produto ou serviço gera automaticamente a mensagem pronta." },
@@ -969,6 +972,7 @@ const duvidas = [
 ];
 
 export function Duvidas() {
+  const marca = useMarca();
   const [aberta, setAberta] = useState<number | null>(0);
   return (
     <section id="duvidas" className="mx-auto max-w-3xl px-5 py-20 md:py-28">
@@ -976,7 +980,7 @@ export function Duvidas() {
         <h2 className="text-3xl font-extrabold md:text-5xl">Perguntas frequentes</h2>
       </Reveal>
       <div className="mt-10 divide-y divide-border border-y border-border">
-        {duvidas.map((d, i) => (
+        {duvidasDe(marca.nome).map((d, i) => (
           <div key={d.p}>
             <button
               type="button"
@@ -1000,6 +1004,7 @@ export function Duvidas() {
 /* ------------------------------ CTA FINAL ------------------------------ */
 
 export function CtaFinal() {
+  const marca = useMarca();
   return (
     <section className="grain bg-ink py-24 text-ink-foreground">
       <div className="mx-auto max-w-3xl px-5 text-center">
@@ -1019,7 +1024,7 @@ export function CtaFinal() {
               Explorar modelos
             </Link>
             <a
-              href={whatsappLink(brand.whatsappComercial, `Olá! Gostaria de uma demonstração do ${brand.nome}.`)}
+              href={whatsappLink(marca.whatsappComercial, `Olá! Gostaria de uma demonstração do ${marca.nome}.`)}
               target="_blank"
               rel="noreferrer"
               className="rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold"
@@ -1036,6 +1041,7 @@ export function CtaFinal() {
 /* ------------------------------- RODAPÉ ------------------------------- */
 
 export function SiteFooter() {
+  const marca = useMarca();
   const colunas = [
     { titulo: "Produto", itens: ["Recursos", "Modelos", "Planos"] },
     { titulo: "Segmentos", itens: ["Alimentação", "Beleza", "Comércio", "Serviços"] },
@@ -1046,10 +1052,10 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-5 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <Logo />
-          <p className="mt-4 max-w-xs text-sm text-muted-foreground">{brand.slogan}.</p>
+          <p className="mt-4 max-w-xs text-sm text-muted-foreground">{marca.slogan}.</p>
           <div className="mt-5 flex gap-3">
             <a
-              href={`https://instagram.com/${brand.instagram}`}
+              href={`https://instagram.com/${marca.instagram}`}
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
@@ -1058,7 +1064,7 @@ export function SiteFooter() {
               <Instagram size={16} />
             </a>
             <a
-              href={whatsappLink(brand.whatsappComercial, "Olá!")}
+              href={whatsappLink(marca.whatsappComercial, "Olá!")}
               target="_blank"
               rel="noreferrer"
               aria-label="WhatsApp"
@@ -1089,7 +1095,7 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto mt-12 flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 text-xs text-muted-foreground">
         <p>
-          © {new Date().getFullYear()} {brand.nome}. Todos os direitos reservados.
+          © {new Date().getFullYear()} {marca.nome}. Todos os direitos reservados.
         </p>
         <p className="inline-flex items-center gap-1.5">
           <MapPin size={12} /> Feito no Brasil

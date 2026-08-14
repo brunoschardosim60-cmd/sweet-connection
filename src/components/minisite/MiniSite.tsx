@@ -16,7 +16,8 @@ import {
   Youtube,
 } from "lucide-react";
 import { analytics } from "@/lib/nexa/analytics";
-import { brand, whatsappLink } from "@/lib/nexa/brand";
+import { whatsappLink } from "@/lib/nexa/brand";
+import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
@@ -198,6 +199,7 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
             </h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm opacity-80">
               <span
+                suppressHydrationWarning
                 className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
                 style={{
                   background: aberto ? hexToRgba(a.corPrimaria, 0.18) : "rgba(150,150,150,0.18)",
@@ -898,6 +900,7 @@ function BlocoFormulario({ site }: { site: Site }) {
 }
 
 function Rodape({ site }: { site: Site }) {
+  const marca = useMarca();
   return (
     <footer
       className="mt-8 px-5 py-8 text-center text-xs opacity-60"
@@ -905,7 +908,7 @@ function Rodape({ site }: { site: Site }) {
     >
       <p className="font-medium">{site.conteudo.nome}</p>
       <p className="mt-1">{site.conteudo.endereco}</p>
-      <p className="mt-3">{brand.assinatura}</p>
+      {marca.mostrarAssinatura && <p className="mt-3">{marca.assinatura}</p>}
     </footer>
   );
 }

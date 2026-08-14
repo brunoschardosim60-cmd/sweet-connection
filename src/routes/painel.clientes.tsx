@@ -16,8 +16,9 @@ import {
 import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { useNexa } from "@/lib/nexa/hooks";
-import { brand } from "@/lib/nexa/brand";
+import { useMarca, useNexa } from "@/lib/nexa/hooks";
+import { hostMarca } from "@/lib/nexa/marca";
+
 import { segmentos, nomeSegmento } from "@/lib/nexa/segmentos";
 import { numero, tempoRelativo, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,6 +35,8 @@ const cores: Record<Site["status"], string> = {
 };
 
 function Clientes() {
+  const marca = useMarca();
+  const host = hostMarca(marca);
   const { sites, pronto, store } = useNexa();
   const [busca, setBusca] = useState("");
   const [seg, setSeg] = useState("todos");
@@ -51,7 +54,7 @@ function Clientes() {
   );
 
   const copiar = (s: Site) => {
-    void navigator.clipboard?.writeText(`https://${brand.dominio}/${s.slug}`);
+    void navigator.clipboard?.writeText(`https://${host}/${s.slug}`);
     toast.success("Endereço copiado!");
   };
 
@@ -212,7 +215,7 @@ function Clientes() {
                   </td>
                   <td className="p-4 text-muted-foreground">{nomeSegmento(s.cliente.segmento)}</td>
                   <td className="p-4 text-muted-foreground">
-                    {brand.dominio}/{s.slug}
+                    {host}/{s.slug}
                   </td>
                   <td className="p-4">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${cores[s.status]}`}>
@@ -309,7 +312,7 @@ function Clientes() {
                 </span>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                {brand.dominio}/{s.slug} · {numero(s.metricas.visitas)} visitas
+                {host}/{s.slug} · {numero(s.metricas.visitas)} visitas
               </p>
               <div className="mt-4 flex gap-2">
                 <Link
@@ -340,10 +343,10 @@ function Clientes() {
           <div className="rounded-3xl bg-card p-7 text-center" onClick={(e) => e.stopPropagation()}>
             <p className="font-display text-lg font-bold">{qr.conteudo.nome}</p>
             <div className="mt-4 rounded-2xl bg-white p-4">
-              <QRCodeSVG value={`https://${brand.dominio}/${qr.slug}`} size={180} />
+              <QRCodeSVG value={`https://${host}/${qr.slug}`} size={180} />
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              {brand.dominio}/{qr.slug}
+              {host}/{qr.slug}
             </p>
           </div>
         </div>
