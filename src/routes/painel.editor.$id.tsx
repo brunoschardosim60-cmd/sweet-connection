@@ -439,11 +439,19 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           onChange={(v) => set({ descricao: v })}
           placeholder="O que o negócio faz, em uma frase."
         />
-        <Texto
-          rotulo="Endereço do site (slug)"
-          valor={site.slug}
-          onChange={(v) => aplicar((s) => ({ ...s, slug: slugify(v) }))}
-        />
+        <div>
+          <Texto
+            rotulo="Endereço do site (slug)"
+            valor={site.slug}
+            onChange={(v) => aplicar((s) => ({ ...s, slug: slugify(v) }))}
+          />
+          <Medidor
+            valor={site.slug}
+            min={3}
+            ideal={40}
+            dica={`Ficará em /site/${site.slug || "seu-endereco"} — use apenas letras, números e hífens.`}
+          />
+        </div>
       </Bloco>
 
       <Bloco titulo="Contato">
@@ -540,6 +548,19 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 /* ------------------------------ seções ------------------------------ */
 
 function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const [arrastando, setArrastando] = useState<number | null>(null);
+  const [alvo, setAlvo] = useState<number | null>(null);
+
+  const reordenar = (de: number, para: number) =>
+    aplicar((s) => {
+      if (de === para || de < 0 || para < 0 || de >= s.secoes.length || para >= s.secoes.length)
+        return s;
+      const secoes = [...s.secoes];
+      const [item] = secoes.splice(de, 1);
+      secoes.splice(para, 0, item!);
+      return { ...s, secoes };
+    });
+
   const mover = (i: number, delta: number) =>
     aplicar((s) => {
       const secoes = [...s.secoes];
@@ -554,14 +575,44 @@ function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <Bloco titulo="Seções do mini-site">
       <p className="text-xs text-muted-foreground">
-        Ative, desative e reordene. A prévia atualiza na hora.
+        Ative, desative e arraste para reordenar. A prévia atualiza na hora.
       </p>
       <ul className="space-y-2">
         {site.secoes.map((sec, i) => (
           <li
             key={sec.id}
-            className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2"
+            draggable
+            onDragStart={(e) => {
+              setArrastando(i);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (alvo !== i) setAlvo(i);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (arrastando !== null) reordenar(arrastando, i);
+              setArrastando(null);
+              setAlvo(null);
+            }}
+            onDragEnd={() => {
+              setArrastando(null);
+              setAlvo(null);
+            }}
+            className={`flex items-center gap-2 rounded-xl border bg-card px-3 py-2 transition-all ${
+              arrastando === i
+                ? "border-lime opacity-50"
+                : alvo === i
+                  ? "border-lime ring-2 ring-lime/40"
+                  : "border-border"
+            }`}
           >
+            <GripVertical
+              size={14}
+              className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+              aria-hidden
+            />
             <div className="flex flex-col">
               <button
                 type="button"
@@ -1122,13 +1173,29 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
       <Bloco titulo="Busca e compartilhamento">
-        <Texto rotulo="Título" valor={site.seo.titulo} onChange={(v) => set({ titulo: v })} />
-        <Texto
-          rotulo="Descrição"
-          area
-          valor={site.seo.descricao}
-          onChange={(v) => set({ descricao: v })}
-        />
+        <div>
+          <Texto rotulo="Título" valor={site.seo.titulo} onChange={(v) => set({ titulo: v })} />
+          <Medidor
+            valor={site.seo.titulo}
+            min={15}
+            ideal={60}
+            dica="Títulos acima de 60 caracteres são cortados no Google e no WhatsApp."
+          />
+        </div>
+        <div>
+          <Texto
+            rotulo="Descrição"
+            area
+            valor={site.seo.descricao}
+            onChange={(v) => set({ descricao: v })}
+          />
+          <Medidor
+            valor={site.seo.descricao}
+            min={50}
+            ideal={160}
+            dica="A descrição ideal tem entre 50 e 160 caracteres."
+          />
+        </div>
         <Texto
           rotulo="Palavras-chave"
           valor={site.seo.palavras}
@@ -1508,3 +1575,57 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
   );
 }
 
+
+
+/** Indicador elegante de tamanho recomendado para slug, título e descrição. */
+function Medidor({
+  valor,
+  min,
+  ideal,
+  dica,
+}: {
+  valor: string;
+  min: number;
+  ideal: number;
+  dica: string;
+}) {
+  const n = valor.trim().length;
+  const estado = n === 0 ? "vazio" : n < min ? "curto" : n <= ideal ? "bom" : "longo";
+  const cores = {
+    vazio: "bg-muted-foreground/40",
+    curto: "bg-ember",
+    bom: "bg-lime",
+    longo: "bg-destructive",
+  } as const;
+  const rotulos = {
+    vazio: "Preencha para melhorar o compartilhamento",
+    curto: `Um pouco curto — ideal a partir de ${min}`,
+    bom: "Tamanho ideal",
+    longo: `Passou do limite recomendado de ${ideal}`,
+  } as const;
+
+  return (
+    <div className="mt-1.5 space-y-1">
+      <div className="h-1 w-full overflow-hidden rounded-full bg-secondary">
+        <div
+          className={`h-full rounded-full transition-all ${cores[estado]}`}
+          style={{ width: `${Math.min(100, (n / ideal) * 100)}%` }}
+        />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <span className="text-muted-foreground">{dica}</span>
+        <span
+          className={
+            estado === "longo"
+              ? "font-semibold text-destructive"
+              : estado === "bom"
+                ? "font-semibold text-foreground"
+                : "text-muted-foreground"
+          }
+        >
+          {n}/{ideal} · {rotulos[estado]}
+        </span>
+      </div>
+    </div>
+  );
+}
