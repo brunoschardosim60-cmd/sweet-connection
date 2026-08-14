@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  GripVertical,
   Copy,
   Download,
   Eye,
