@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { brand } from "@/lib/nexa/brand";
+import { useMarca } from "@/lib/nexa/hooks";
 import { Logo } from "@/components/Logo";
 
 const itens = [
@@ -12,6 +12,7 @@ const itens = [
 ];
 
 export function SiteHeader() {
+  const marca = useMarca();
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -99,7 +100,7 @@ export function SiteHeader() {
               onClick={() => setAberto(false)}
               className="mt-2 rounded-full bg-ink px-4 py-2.5 text-center text-sm font-semibold text-ink-foreground"
             >
-              Abrir painel do {brand.nome}
+              Abrir painel do {marca.nome}
             </Link>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { analytics } from "./analytics";
+import { marcaStore } from "./marca";
 import { store } from "./storage";
 import type { Site } from "./types";
 
@@ -81,4 +82,9 @@ export function useHydrated() {
 /** Contador local de visitas e cliques dos mini-sites publicados. */
 export function useDesempenho() {
   return useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
+}
+
+/** Identidade white label da plataforma (nome, logo, domínio, contatos). */
+export function useMarca() {
+  return useSyncExternalStore(marcaStore.subscribe, marcaStore.get, marcaStore.servidor);
 }
