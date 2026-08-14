@@ -30,7 +30,7 @@ import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelos } from "@/lib/nexa/modelos";
 import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
 import { versaoStore } from "@/lib/nexa/versoes";
-import { brand } from "@/lib/nexa/brand";
+import { hostMarca, marcaStore } from "@/lib/nexa/marca";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Site, TipoLink } from "@/lib/nexa/types";
@@ -1116,7 +1116,7 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
       ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
       : typeof window !== "undefined"
         ? window.location.origin
-        : `https://${brand.dominio}`;
+        : `https://${hostMarca(marcaStore.get())}`;
   const url = `${dominio}/site/${site.slug}`;
 
   return (

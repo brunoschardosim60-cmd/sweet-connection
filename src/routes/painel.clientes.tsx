@@ -16,7 +16,8 @@ import {
 import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { useNexa } from "@/lib/nexa/hooks";
+import { useMarca, useNexa } from "@/lib/nexa/hooks";
+import { hostMarca } from "@/lib/nexa/marca";
 
 import { segmentos, nomeSegmento } from "@/lib/nexa/segmentos";
 import { numero, tempoRelativo, uid } from "@/lib/nexa/utils";
