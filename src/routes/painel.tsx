@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   Image as ImageIcon,
+  Inbox,
   LayoutGrid,
   Menu,
   Moon,
