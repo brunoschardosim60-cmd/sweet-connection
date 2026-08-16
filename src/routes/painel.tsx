@@ -57,6 +57,29 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel/configuracoes", rotulo: "Configurações", icone: Settings },
 ];
 
+type ItemBusca = {
+  tipo: "site" | "envio" | "modelo";
+  id: string;
+  titulo: string;
+  subtitulo: string;
+};
+type GrupoBusca = { rotulo: string; itens: ItemBusca[] };
+
+/** Realça a parte do texto que corresponde ao termo buscado. */
+function Destacar({ texto, termo }: { texto: string; termo: string }) {
+  const inicio = termo ? texto.toLowerCase().indexOf(termo) : -1;
+  if (inicio < 0) return <>{texto}</>;
+  return (
+    <>
+      {texto.slice(0, inicio)}
+      <mark className="rounded bg-lime px-0.5 text-ink">
+        {texto.slice(inicio, inicio + termo.length)}
+      </mark>
+      {texto.slice(inicio + termo.length)}
+    </>
+  );
+}
+
 function PainelLayout() {
   const navigate = useNavigate();
   const { user, carregando: carregandoSessao } = useAuthSession();
@@ -68,6 +91,8 @@ function PainelLayout() {
   const noEditor = pathname.includes("/painel/editor/");
   const { sites, envios, pronto, erro, store } = useNexa();
   const [busca, setBusca] = useState("");
+  const [ativo, setAtivo] = useState(-1);
+  const opcoesRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
 
