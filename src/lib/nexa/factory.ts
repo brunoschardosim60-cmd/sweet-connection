@@ -267,6 +267,7 @@ export function metricasVazias() {
 export function criarSite(cliente: Cliente, modeloId: string, slug: string): Site {
   const modelo = modeloPorId(modeloId);
   const preset = presetsModelo[modelo.id] ?? presetsModelo["prestador-servicos"]!;
+  const emBranco = modelo.id === "personalizado";
   const agora = new Date().toISOString();
   return {
     id: uid("site"),
