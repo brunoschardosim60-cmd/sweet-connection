@@ -18,6 +18,7 @@ import {
 import { whatsappLink } from "@/lib/nexa/brand";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
+import { secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
@@ -119,19 +120,9 @@ export function MiniSite({
     ["--ms-border" as string]: hexToRgba(a.corTexto, 0.14),
   } as React.CSSProperties;
 
-  // Alguns tipos compartilham o mesmo bloco visual (cardápio/produtos e promoção/cupom).
-  // Mantemos apenas a primeira ocorrência de cada grupo para não repetir o conteúdo.
-  const grupoDe = (tipo: string) =>
-    tipo === "cardapio" ? "produtos" : tipo === "promocao" ? "cupom" : tipo;
-  const gruposVistos = new Set<string>();
-  const secoesOrdenadas = ativas
-    .filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape")
-    .filter((s) => {
-      const g = grupoDe(s.tipo);
-      if (gruposVistos.has(g)) return false;
-      gruposVistos.add(g);
-      return true;
-    });
+  const secoesOrdenadas = secoesSemDuplicadas(
+    ativas.filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape"),
+  );
 
   return (
     <PublicacaoCtx.Provider value={rastrear}>

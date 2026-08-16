@@ -23,8 +23,9 @@ import {
   somarSerie,
   useAdminDados,
   carregarProjetosUsuario,
+  descreverEstadoProjetos,
   useIsAdmin,
-  type AdminProjeto,
+  type EstadoProjetos,
   type AdminUsuario,
   type Periodo,
 } from "@/lib/nexa/admin";
@@ -89,11 +90,11 @@ const CHIP_STATUS: Record<string, string> = {
 };
 
 function ProjetosDoUsuario({ userId, email }: { userId: string; email: string }) {
-  const [estado, setEstado] = useState<{
-    carregando: boolean;
-    erro: string | null;
-    itens: AdminProjeto[];
-  }>({ carregando: true, erro: null, itens: [] });
+  const [estado, setEstado] = useState<EstadoProjetos>({
+    carregando: true,
+    erro: null,
+    itens: [],
+  });
 
   useEffect(() => {
     let ativo = true;
@@ -106,7 +107,9 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
     };
   }, [userId]);
 
-  if (estado.carregando) {
+  const situacao = descreverEstadoProjetos(estado);
+
+  if (situacao === "carregando") {
     return (
       <p className="flex items-center gap-2 px-1 py-3 text-xs text-muted-foreground" role="status">
         <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Carregando projetos de{" "}
@@ -114,14 +117,14 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
       </p>
     );
   }
-  if (estado.erro) {
+  if (situacao === "erro") {
     return (
       <p role="alert" className="px-1 py-3 text-xs text-destructive">
         {estado.erro}
       </p>
     );
   }
-  if (estado.itens.length === 0) {
+  if (situacao === "vazio") {
     return (
       <p className="px-1 py-3 text-xs text-muted-foreground">
         Esta conta ainda não criou nenhum mini-site.
@@ -132,7 +135,7 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
   return (
     <ul className="grid gap-2 pt-3 sm:grid-cols-2">
       {estado.itens.map((p) => (
-        <li key={p.id} className="rounded-xl border border-border bg-background p-3">
+        <li key={p.id} className="min-w-0 rounded-xl border border-border bg-background p-3">
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 truncate text-sm font-semibold">{p.nome}</p>
             <span
@@ -144,7 +147,7 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
             </span>
           </div>
           <p className="mt-1 truncate text-xs text-muted-foreground">/site/{p.slug}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 break-words text-xs text-muted-foreground">
             {p.solicitacoes} solicitação(ões) · criado {dataCurta(p.criado_em)} · atualizado{" "}
             {dataCurta(p.atualizado_em)}
             {p.publicado_em ? ` · publicado ${dataCurta(p.publicado_em)}` : ""}
@@ -153,7 +156,7 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
             <Link
               to="/site/$slug"
               params={{ slug: p.slug }}
-              className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
             >
               <ExternalLink size={12} aria-hidden="true" /> Ver mini-site
             </Link>
@@ -232,7 +235,7 @@ function LinhaUsuario({
                   disabled={alterando || ativo}
                   aria-pressed={ativo}
                   onClick={() => onPlano(p)}
-                  className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors disabled:cursor-default ${
+                  className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors disabled:cursor-default ${
                     ativo ? "bg-lime text-ink" : "text-muted-foreground hover:bg-secondary"
                   }`}
                 >
@@ -460,7 +463,7 @@ function PainelAdmin() {
                   type="button"
                   aria-pressed={periodo === p}
                   onClick={() => setPeriodo(p)}
-                  className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
+                  className={`min-h-11 rounded-full px-3 text-xs font-semibold ${
                     periodo === p
                       ? "bg-ink text-ink-foreground"
                       : "text-muted-foreground hover:bg-secondary"
@@ -473,7 +476,7 @@ function PainelAdmin() {
             <button
               type="button"
               onClick={exportarMetricas}
-              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
             >
               <Download size={13} aria-hidden="true" /> Métricas CSV
             </button>
@@ -481,7 +484,7 @@ function PainelAdmin() {
               type="button"
               onClick={() => void exportarSolicitacoes()}
               disabled={baixandoEnvios}
-              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary disabled:opacity-60"
             >
               {baixandoEnvios ? (
                 <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -552,7 +555,7 @@ function PainelAdmin() {
                 type="button"
                 aria-pressed={plano === f}
                 onClick={() => setPlano(f)}
-                className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
+                className={`min-h-11 rounded-full px-3 text-xs font-semibold ${
                   plano === f
                     ? "bg-ink text-ink-foreground"
                     : "text-muted-foreground hover:bg-secondary"
@@ -573,7 +576,7 @@ function PainelAdmin() {
                 type="button"
                 aria-pressed={atividade === f}
                 onClick={() => setAtividade(f)}
-                className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
+                className={`min-h-11 rounded-full px-3 text-xs font-semibold ${
                   atividade === f
                     ? "bg-ink text-ink-foreground"
                     : "text-muted-foreground hover:bg-secondary"
@@ -583,7 +586,7 @@ function PainelAdmin() {
               </button>
             ))}
           </div>
-          <label className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold">
+          <label className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold">
             <input
               type="checkbox"
               checked={comSites}
@@ -595,7 +598,7 @@ function PainelAdmin() {
           <button
             type="button"
             onClick={exportarUsuarios}
-            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
           >
             <Download size={13} aria-hidden="true" /> Usuários CSV
           </button>

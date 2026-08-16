@@ -57,6 +57,29 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel/configuracoes", rotulo: "Configurações", icone: Settings },
 ];
 
+type ItemBusca = {
+  tipo: "site" | "envio" | "modelo";
+  id: string;
+  titulo: string;
+  subtitulo: string;
+};
+type GrupoBusca = { rotulo: string; itens: ItemBusca[] };
+
+/** Realça a parte do texto que corresponde ao termo buscado. */
+function Destacar({ texto, termo }: { texto: string; termo: string }) {
+  const inicio = termo ? texto.toLowerCase().indexOf(termo) : -1;
+  if (inicio < 0) return <>{texto}</>;
+  return (
+    <>
+      {texto.slice(0, inicio)}
+      <mark className="rounded bg-lime px-0.5 text-ink">
+        {texto.slice(inicio, inicio + termo.length)}
+      </mark>
+      {texto.slice(inicio + termo.length)}
+    </>
+  );
+}
+
 function PainelLayout() {
   const navigate = useNavigate();
   const { user, carregando: carregandoSessao } = useAuthSession();
@@ -68,6 +91,8 @@ function PainelLayout() {
   const noEditor = pathname.includes("/painel/editor/");
   const { sites, envios, pronto, erro, store } = useNexa();
   const [busca, setBusca] = useState("");
+  const [ativo, setAtivo] = useState(-1);
+  const opcoesRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
 
@@ -130,33 +155,87 @@ function PainelLayout() {
   const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
 
   const termo = busca.trim().toLowerCase();
-  const resultadosSites = termo
-    ? sites
-        .filter((s) =>
-          [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
-            .filter(Boolean)
-            .some((v) => v.toLowerCase().includes(termo)),
-        )
-        .slice(0, 6)
+  const grupos: GrupoBusca[] = termo
+    ? [
+        {
+          rotulo: "Mini-sites",
+          itens: sites
+            .filter((s) =>
+              [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
+                .filter(Boolean)
+                .some((v) => v.toLowerCase().includes(termo)),
+            )
+            .slice(0, 6)
+            .map<ItemBusca>((s) => ({
+              tipo: "site",
+              id: s.id,
+              titulo: s.conteudo.nome || s.cliente.empresa || s.slug,
+              subtitulo: `/site/${s.slug} · ${s.status}`,
+            })),
+        },
+        {
+          rotulo: "Solicitações",
+          itens: envios
+            .filter((envio) =>
+              Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
+            )
+            .slice(0, 3)
+            .map<ItemBusca>((envio) => {
+              const site = sites.find((item) => item.id === envio.siteId);
+              return {
+                tipo: "envio",
+                id: envio.id,
+                titulo:
+                  Object.values(envio.dados).find((valor) => valor.toLowerCase().includes(termo)) ??
+                  "Solicitação",
+                subtitulo: site?.conteudo.nome || site?.slug || "Mini-site removido",
+              };
+            }),
+        },
+        {
+          rotulo: "Modelos",
+          itens: modelos
+            .filter((modelo) =>
+              [modelo.nome, modelo.descricao, modelo.destaque].some((valor) =>
+                valor.toLowerCase().includes(termo),
+              ),
+            )
+            .slice(0, 3)
+            .map<ItemBusca>((modelo) => ({
+              tipo: "modelo",
+              id: modelo.id,
+              titulo: modelo.nome,
+              subtitulo: modelo.destaque,
+            })),
+        },
+      ].filter((g) => g.itens.length > 0)
     : [];
-  const resultadosEnvios = termo
-    ? envios
-        .filter((envio) =>
-          Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
-        )
-        .slice(0, 3)
-    : [];
-  const resultadosModelos = termo
-    ? modelos
-        .filter((modelo) =>
-          [modelo.nome, modelo.descricao, modelo.destaque].some((valor) =>
-            valor.toLowerCase().includes(termo),
-          ),
-        )
-        .slice(0, 3)
-    : [];
-  const temResultados =
-    resultadosSites.length + resultadosEnvios.length + resultadosModelos.length > 0;
+  const planos = grupos.flatMap((g) => g.itens);
+  const temResultados = planos.length > 0;
+  const carregandoBusca = termo.length > 0 && !pronto;
+
+  const fecharBusca = () => {
+    setBusca("");
+    setAtivo(-1);
+  };
+
+  const aoTeclarBusca = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      fecharBusca();
+      return;
+    }
+    if (!temResultados) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setAtivo((v) => (v + 1) % planos.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setAtivo((v) => (v <= 0 ? planos.length - 1 : v - 1));
+    } else if (e.key === "Enter" && ativo >= 0) {
+      e.preventDefault();
+      opcoesRef.current[ativo]?.click();
+    }
+  };
 
   const navegacao = admin
     ? [...itens, { to: "/painel/admin", rotulo: "Administração", icone: ShieldCheck }]
@@ -245,93 +324,110 @@ function PainelLayout() {
           <div className="relative min-w-0 md:w-80">
             <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
               <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-              <span className="sr-only">Buscar clientes, mini-sites ou endereços</span>
+              <span className="sr-only">Buscar mini-sites, solicitações ou modelos</span>
               <input
                 value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") setBusca("");
+                onChange={(e) => {
+                  setBusca(e.target.value);
+                  setAtivo(-1);
                 }}
+                onKeyDown={aoTeclarBusca}
                 role="combobox"
                 aria-expanded={temResultados}
                 aria-controls="resultados-busca-painel"
-                placeholder="Buscar clientes, mini-sites ou /slug"
+                aria-autocomplete="list"
+                aria-activedescendant={ativo >= 0 ? `busca-opcao-${ativo}` : undefined}
+                placeholder="Buscar mini-sites, solicitações ou modelos"
                 className="w-full bg-transparent text-sm outline-none"
               />
             </label>
             {termo.length > 0 && (
               <div
                 id="resultados-busca-painel"
-                role="listbox"
-                className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
+                className="absolute left-0 right-0 top-full z-40 mt-2 max-h-[70vh] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card shadow-lg"
               >
-                {!temResultados ? (
-                  <p className="px-4 py-3 text-sm text-muted-foreground">
-                    Nada encontrado para “{busca.trim()}”.
+                {carregandoBusca ? (
+                  <p
+                    role="status"
+                    className="flex min-h-11 items-center gap-2 px-4 py-3 text-sm text-muted-foreground"
+                  >
+                    <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Carregando
+                    seus dados…
                   </p>
+                ) : !temResultados ? (
+                  <div className="px-4 py-4">
+                    <p className="text-sm font-semibold">Nada encontrado</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Nenhum mini-site, solicitação ou modelo corresponde a “{busca.trim()}”.
+                    </p>
+                  </div>
                 ) : (
-                  <>
-                    {resultadosSites.map((site) => (
-                      <Link
-                        key={`site:${site.id}`}
-                        to="/painel/editor/$id"
-                        params={{ id: site.id }}
-                        role="option"
-                        aria-selected="false"
-                        onClick={() => setBusca("")}
-                        className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
-                      >
-                        <span className="truncate text-sm font-medium">
-                          {site.conteudo.nome || site.cliente.empresa || site.slug}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          Mini-site · /site/{site.slug} · {site.status}
-                        </span>
-                      </Link>
-                    ))}
-                    {resultadosEnvios.map((envio) => {
-                      const site = sites.find((item) => item.id === envio.siteId);
-                      const resumo = Object.values(envio.dados).find((valor) =>
-                        valor.toLowerCase().includes(termo),
-                      );
-                      return (
-                        <Link
-                          key={`envio:${envio.id}`}
-                          to="/painel/solicitacoes"
-                          role="option"
-                          aria-selected="false"
-                          onClick={() => setBusca("")}
-                          className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
+                  <ul role="listbox" aria-label="Resultados da busca" className="py-1">
+                    {grupos.map((grupo) => (
+                      <li key={grupo.rotulo} role="presentation">
+                        <p
+                          role="presentation"
+                          className="px-4 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
                         >
-                          <span className="truncate text-sm font-medium">{resumo}</span>
-                          <span className="truncate text-xs text-muted-foreground">
-                            Solicitação ·{" "}
-                            {site?.conteudo.nome || site?.slug || "Mini-site removido"}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                    {resultadosModelos.map((modelo) => (
-                      <Link
-                        key={`modelo:${modelo.id}`}
-                        to="/demonstracao/$modelo"
-                        params={{ modelo: modelo.id }}
-                        role="option"
-                        aria-selected="false"
-                        onClick={() => setBusca("")}
-                        className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
-                      >
-                        <span className="truncate text-sm font-medium">{modelo.nome}</span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          Modelo · {modelo.destaque}
-                        </span>
-                      </Link>
+                          {grupo.rotulo}
+                        </p>
+                        <ul role="group" aria-label={grupo.rotulo}>
+                          {grupo.itens.map((item) => {
+                            const indice = planos.indexOf(item);
+                            const selecionado = indice === ativo;
+                            const comum = {
+                              id: `busca-opcao-${indice}`,
+                              role: "option" as const,
+                              "aria-selected": selecionado,
+                              ref: (el: HTMLAnchorElement | null) => {
+                                opcoesRef.current[indice] = el;
+                              },
+                              onClick: fecharBusca,
+                              onMouseEnter: () => setAtivo(indice),
+                              className: `flex min-h-11 flex-col justify-center px-4 py-2 ${
+                                selecionado ? "bg-secondary" : "hover:bg-secondary"
+                              }`,
+                            };
+                            const conteudo = (
+                              <>
+                                <span className="truncate text-sm font-medium">
+                                  <Destacar texto={item.titulo} termo={termo} />
+                                </span>
+                                <span className="truncate text-xs text-muted-foreground">
+                                  <Destacar texto={item.subtitulo} termo={termo} />
+                                </span>
+                              </>
+                            );
+                            return (
+                              <li key={`${item.tipo}:${item.id}`}>
+                                {item.tipo === "site" ? (
+                                  <Link to="/painel/editor/$id" params={{ id: item.id }} {...comum}>
+                                    {conteudo}
+                                  </Link>
+                                ) : item.tipo === "modelo" ? (
+                                  <Link
+                                    to="/demonstracao/$modelo"
+                                    params={{ modelo: item.id }}
+                                    {...comum}
+                                  >
+                                    {conteudo}
+                                  </Link>
+                                ) : (
+                                  <Link to="/painel/solicitacoes" {...comum}>
+                                    {conteudo}
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </li>
                     ))}
-                  </>
+                  </ul>
                 )}
                 <Link
                   to="/painel/novo"
-                  onClick={() => setBusca("")}
+                  onClick={fecharBusca}
                   className="flex min-h-11 items-center gap-2 border-t border-border px-4 text-sm font-semibold hover:bg-secondary"
                 >
                   <Plus size={14} /> Criar novo mini-site

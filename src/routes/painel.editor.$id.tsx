@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Save,
   Smartphone,
+  Star,
   Undo2,
   Upload,
 } from "lucide-react";
@@ -886,6 +887,133 @@ function EntradaSimples({
   );
 }
 
+/** Nota do depoimento em estrelas — visual, acessível e com alvos de 44px. */
+function NotaEstrelas({ nota, onChange }: { nota: number; onChange: (n: number) => void }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Nota do depoimento"
+      className="flex flex-wrap items-center gap-1"
+    >
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          role="radio"
+          aria-checked={nota === n}
+          aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
+          onClick={() => onChange(n)}
+          className="grid h-11 w-11 place-items-center rounded-lg hover:bg-secondary"
+        >
+          <Star
+            size={18}
+            aria-hidden="true"
+            className={n <= nota ? "fill-lime text-lime" : "text-muted-foreground"}
+          />
+        </button>
+      ))}
+      <span className="ml-1 text-xs text-muted-foreground">
+        {nota} de 5 estrela{nota > 1 ? "s" : ""}
+      </span>
+    </div>
+  );
+}
+
+/** Bloco organizado de um depoimento: foto, nome, comentário, nota e destaque. */
+function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; aplicar: Aplicar }) {
+  const atualizar = (mudanca: Partial<Site["depoimentos"][number]>) =>
+    aplicar((s) => ({
+      ...s,
+      depoimentos: s.depoimentos.map((x) => (x.id === d.id ? { ...x, ...mudanca } : x)),
+    }));
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-card p-3">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0 space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground" htmlFor={`dep-${d.id}`}>
+            Nome do cliente
+          </label>
+          <input
+            id={`dep-${d.id}`}
+            value={d.nome}
+            placeholder="Nome do cliente"
+            onChange={(e) => atualizar({ nome: e.target.value })}
+            className="h-11 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
+          />
+        </div>
+        <div className="min-w-0 space-y-1.5">
+          <span className="block text-xs font-semibold text-muted-foreground">Foto do cliente</span>
+          <SeletorMidia
+            rotulo="Foto do cliente"
+            valor={d.foto ?? ""}
+            onChange={(valor) =>
+              aplicar((s) => ({
+                ...s,
+                depoimentos: s.depoimentos.map((item) => {
+                  if (item.id !== d.id) return item;
+                  const { foto: _anterior, ...restante } = item;
+                  return valor ? { ...restante, foto: valor } : restante;
+                }),
+              }))
+            }
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label
+          className="text-xs font-semibold text-muted-foreground"
+          htmlFor={`dep-comentario-${d.id}`}
+        >
+          Comentário
+        </label>
+        <textarea
+          id={`dep-comentario-${d.id}`}
+          value={d.comentario}
+          rows={3}
+          placeholder="O que o cliente falou sobre o atendimento"
+          onChange={(e) => atualizar({ comentario: e.target.value })}
+          className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-ink"
+        />
+      </div>
+
+      <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
+        <div className="min-w-0 space-y-1">
+          <span className="block text-xs font-semibold text-muted-foreground">Nota</span>
+          <NotaEstrelas nota={d.nota} onChange={(nota) => atualizar({ nota })} />
+        </div>
+        <div className="min-w-0">
+          <label className="flex min-h-11 items-start gap-2 rounded-lg border border-border p-2.5">
+            <input
+              type="checkbox"
+              checked={d.destaque}
+              onChange={(e) => atualizar({ destaque: e.target.checked })}
+              className="mt-0.5 h-5 w-5 shrink-0 accent-current"
+            />
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">Mostrar em destaque</span>
+              <span className="block text-xs text-muted-foreground">
+                Aparece primeiro na seção de depoimentos do mini-site.
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <BotaoRemover
+        onConfirmar={() =>
+          aplicar((s) => ({
+            ...s,
+            depoimentos: s.depoimentos.filter((x) => x.id !== d.id),
+          }))
+        }
+        descricao="Remover este depoimento?"
+      />
+    </div>
+  );
+}
+
 function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
@@ -1160,87 +1288,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
       <Bloco titulo="Depoimentos" id="bloco-depoimentos">
         {site.depoimentos.map((d) => (
-          <LinhaItem
-            key={d.id}
-            onRemover={() =>
-              aplicar((s) => ({ ...s, depoimentos: s.depoimentos.filter((x) => x.id !== d.id) }))
-            }
-          >
-            <EntradaSimples
-              valor={d.nome}
-              placeholder="Nome do cliente"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  depoimentos: s.depoimentos.map((x) => (x.id === d.id ? { ...x, nome: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={d.comentario}
-              placeholder="Comentário"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  depoimentos: s.depoimentos.map((x) =>
-                    x.id === d.id ? { ...x, comentario: v } : x,
-                  ),
-                }))
-              }
-            />
-            <SeletorMidia
-              rotulo="Foto do cliente"
-              valor={d.foto ?? ""}
-              onChange={(valor) =>
-                aplicar((s) => ({
-                  ...s,
-                  depoimentos: s.depoimentos.map((item) => {
-                    if (item.id !== d.id) return item;
-                    const { foto: _anterior, ...restante } = item;
-                    return valor ? { ...restante, foto: valor } : restante;
-                  }),
-                }))
-              }
-            />
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <label className="flex items-center gap-2">
-                Nota
-                <select
-                  value={d.nota}
-                  onChange={(event) =>
-                    aplicar((s) => ({
-                      ...s,
-                      depoimentos: s.depoimentos.map((item) =>
-                        item.id === d.id ? { ...item, nota: Number(event.target.value) } : item,
-                      ),
-                    }))
-                  }
-                  className="min-h-9 rounded-lg border border-border bg-background px-2 text-foreground"
-                >
-                  {[1, 2, 3, 4, 5].map((nota) => (
-                    <option key={nota} value={nota}>
-                      {nota} estrela{nota > 1 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex min-h-9 items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={d.destaque}
-                  onChange={(event) =>
-                    aplicar((s) => ({
-                      ...s,
-                      depoimentos: s.depoimentos.map((item) =>
-                        item.id === d.id ? { ...item, destaque: event.target.checked } : item,
-                      ),
-                    }))
-                  }
-                />
-                Mostrar em destaque
-              </label>
-            </div>
-          </LinhaItem>
+          <EditorDepoimento key={d.id} d={d} aplicar={aplicar} />
         ))}
         <BotaoAdicionar
           rotulo="Adicionar depoimento"
