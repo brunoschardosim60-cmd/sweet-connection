@@ -269,8 +269,11 @@ function NovoSite() {
               <button
                 type="button"
                 disabled={!podeAvancar}
-                onClick={() => setPasso((p) => p + 1)}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
+                onClick={() => {
+                  setTocado(true);
+                  if (podeAvancar) setPasso((p) => p + 1);
+                }}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
               >
                 Continuar <ArrowRight size={15} />
               </button>
@@ -279,9 +282,14 @@ function NovoSite() {
                 type="button"
                 disabled={!podeAvancar || salvando}
                 onClick={() => void criar()}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
               >
-                <Check size={15} /> Criar e editar
+                {salvando ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Check size={15} />
+                )}
+                {salvando ? "Criando…" : "Criar e editar"}
               </button>
             )}
           </div>
