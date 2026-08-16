@@ -237,7 +237,9 @@ const nomeDoConteudo = (draft: unknown, publicado: unknown, slug: string) => {
 export async function carregarProjetosUsuario(userId: string): Promise<AdminProjeto[]> {
   const { data, error } = await supabase
     .from("minisites")
-    .select("id, slug, status, created_at, updated_at, published_at, draft_content, published_content")
+    .select(
+      "id, slug, status, created_at, updated_at, published_at, draft_content, published_content",
+    )
     .eq("owner_id", userId)
     .order("updated_at", { ascending: false });
   if (error) throw new Error(mensagemErroAdmin(error));

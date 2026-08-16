@@ -100,9 +100,7 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
     setEstado({ carregando: true, erro: null, itens: [] });
     carregarProjetosUsuario(userId)
       .then((itens) => ativo && setEstado({ carregando: false, erro: null, itens }))
-      .catch(
-        (e: Error) => ativo && setEstado({ carregando: false, erro: e.message, itens: [] }),
-      );
+      .catch((e: Error) => ativo && setEstado({ carregando: false, erro: e.message, itens: [] }));
     return () => {
       ativo = false;
     };
@@ -256,7 +254,6 @@ function LinhaUsuario({
     </div>
   );
 }
-
 
 function PainelAdmin() {
   const { admin, carregando: checando } = useIsAdmin();
