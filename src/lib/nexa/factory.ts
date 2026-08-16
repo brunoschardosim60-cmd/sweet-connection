@@ -302,7 +302,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       animacoes: true,
       espacamento: "confortavel",
       layout: modelo.layout,
-      capaTipo: "imagem",
+      capaTipo: emBranco ? "cor" : "imagem",
     },
     secoes: criarSecoes(modelo.id),
     links: cliente.telefone
