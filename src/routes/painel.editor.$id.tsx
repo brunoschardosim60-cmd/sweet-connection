@@ -12,19 +12,27 @@ import {
   Globe,
   History,
   Loader2,
-  Monitor,
   Plus,
   Redo2,
   RotateCcw,
   Save,
   Smartphone,
-  Trash2,
   Undo2,
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import {
+  MolduraPrevia,
+  SeletorDispositivo,
+  type Dispositivo,
+} from "@/components/editor/PreviaDispositivo";
+import {
+  PainelQualidade,
+  destinoPorSecao,
+  type DestinoEditor,
+} from "@/components/editor/PainelQualidade";
+import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
@@ -52,7 +60,7 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "versoes";
+type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "qualidade" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
@@ -60,6 +68,7 @@ const abas: { id: Aba; rotulo: string }[] = [
   { id: "itens", rotulo: "Itens" },
   { id: "aparencia", rotulo: "Aparência" },
   { id: "seo", rotulo: "SEO" },
+  { id: "qualidade", rotulo: "Qualidade" },
   { id: "versoes", rotulo: "Versões" },
 ];
 
@@ -72,7 +81,7 @@ function Editor() {
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
   const [aba, setAba] = useState<Aba>("conteudo");
-  const [dispositivo, setDispositivo] = useState<"celular" | "desktop">("celular");
+  const [dispositivo, setDispositivo] = useState<Dispositivo>("celular");
   const [sujo, setSujo] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -84,6 +93,19 @@ function Editor() {
   }, [original, rascunho]);
 
   const hist = useHistorico<Site | null>(rascunho);
+
+  /** Leva o editor até a aba e o bloco corretos, com foco visível. */
+  const irPara = useCallback((destino: DestinoEditor) => {
+    setAba(destino.aba as Aba);
+    setPreviaMovel(false);
+    requestAnimationFrame(() => {
+      const alvo = document.getElementById(destino.bloco);
+      if (!alvo) return;
+      const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      alvo.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
+      alvo.querySelector<HTMLElement>("[data-foco-bloco]")?.focus();
+    });
+  }, []);
 
   const aplicar = (fn: (s: Site) => Site) => {
     setRascunho((atual) => {
@@ -293,26 +315,11 @@ function Editor() {
               e.target.value = "";
             }}
           />
-          <div className="hidden rounded-full border border-border p-0.5 lg:flex">
-            <button
-              type="button"
-              aria-label="Prévia celular"
-              aria-pressed={dispositivo === "celular"}
-              onClick={() => setDispositivo("celular")}
-              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "celular" ? "bg-secondary" : ""}`}
-            >
-              <Smartphone size={15} />
-            </button>
-            <button
-              type="button"
-              aria-label="Prévia desktop"
-              aria-pressed={dispositivo === "desktop"}
-              onClick={() => setDispositivo("desktop")}
-              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "desktop" ? "bg-secondary" : ""}`}
-            >
-              <Monitor size={15} />
-            </button>
-          </div>
+          <SeletorDispositivo
+            valor={dispositivo}
+            onChange={setDispositivo}
+            className="hidden lg:flex"
+          />
           <button
             type="button"
             aria-pressed={previaMovel}
@@ -382,10 +389,13 @@ function Editor() {
 
           <div className="mt-5 space-y-5 pb-24 lg:max-h-[calc(100dvh-160px)] lg:overflow-y-auto lg:pb-4 lg:pr-1">
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
-            {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} />}
+            {aba === "secoes" && (
+              <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />
+            )}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
+            {aba === "qualidade" && <PainelQualidade site={rascunho} onIr={irPara} />}
             {aba === "versoes" && (
               <AbaVersoes
                 site={rascunho}
@@ -400,19 +410,15 @@ function Editor() {
         </aside>
 
         <section
-          className={`min-w-0 place-items-start justify-center overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:grid ${
-            previaMovel ? "grid" : "hidden"
+          aria-label="Prévia do mini-site"
+          className={`min-w-0 flex-col items-center gap-4 overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:flex ${
+            previaMovel ? "flex" : "hidden"
           }`}
         >
-          {dispositivo === "celular" ? (
-            <PhoneFrame altura={680} className="max-w-full">
-              <MiniSite site={rascunho} botaoFlutuante={false} />
-            </PhoneFrame>
-          ) : (
-            <div className="h-[680px] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-              <MiniSite site={rascunho} botaoFlutuante={false} />
-            </div>
-          )}
+          <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
+          <MolduraPrevia dispositivo={dispositivo}>
+            <MiniSite site={rascunho} botaoFlutuante={false} />
+          </MolduraPrevia>
         </section>
       </div>
     </div>
@@ -459,12 +465,45 @@ function Texto({
   );
 }
 
-function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Bloco({
+  titulo,
+  id,
+  children,
+  acao,
+}: {
+  titulo: string;
+  id?: string;
+  children: React.ReactNode;
+  acao?: React.ReactNode;
+}) {
+  const [aberto, setAberto] = useState(true);
+  const conteudoId = id ? `${id}-conteudo` : undefined;
+
   return (
-    <div className="surface space-y-3 p-4">
-      <p className="text-sm font-semibold">{titulo}</p>
-      {children}
-    </div>
+    <section id={id} className="surface p-4">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          data-foco-bloco
+          onClick={() => setAberto((v) => !v)}
+          aria-expanded={aberto}
+          aria-controls={conteudoId}
+          className="-m-1 flex min-h-9 min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left text-sm font-semibold hover:bg-secondary/60"
+        >
+          <ChevronDown
+            size={15}
+            aria-hidden
+            className={`shrink-0 text-muted-foreground transition-transform ${aberto ? "" : "-rotate-90"}`}
+          />
+          <span className="min-w-0 truncate">{titulo}</span>
+          <span className="sr-only">{aberto ? " — recolher bloco" : " — expandir bloco"}</span>
+        </button>
+        {acao}
+      </div>
+      <div id={conteudoId} hidden={!aberto} className="mt-3 space-y-3">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -476,7 +515,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
-      <Bloco titulo="Identificação">
+      <Bloco titulo="Identificação" id="bloco-identificacao">
         <Texto
           rotulo="Nome exibido"
           valor={site.conteudo.nome}
@@ -504,7 +543,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </div>
       </Bloco>
 
-      <Bloco titulo="Contato">
+      <Bloco titulo="Contato" id="bloco-contato">
         <Texto
           rotulo="Telefone"
           valor={site.conteudo.telefone}
@@ -528,7 +567,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Logo e capa">
+      <Bloco titulo="Logo e capa" id="bloco-logo">
         <SeletorMidia
           rotulo="Logo"
           valor={site.conteudo.logo ?? ""}
@@ -541,7 +580,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Horários">
+      <Bloco titulo="Horários" id="bloco-horarios">
         <div className="space-y-2">
           {site.conteudo.horarios.map((h, i) => (
             <div key={h.dia} className="flex flex-wrap items-center gap-2">
@@ -596,119 +635,191 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
 /* ------------------------------ seções ------------------------------ */
 
-function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+function AbaSecoes({
+  site,
+  aplicar,
+  onIr,
+}: {
+  site: Site;
+  aplicar: Aplicar;
+  onIr: (destino: DestinoEditor) => void;
+}) {
   const [arrastando, setArrastando] = useState<number | null>(null);
   const [alvo, setAlvo] = useState<number | null>(null);
+  const [expandida, setExpandida] = useState<string | null>(null);
+  const [aviso, setAviso] = useState("");
 
-  const reordenar = (de: number, para: number) =>
+  const reordenar = (de: number, para: number) => {
+    if (de === para) return;
     aplicar((s) => {
-      if (de === para || de < 0 || para < 0 || de >= s.secoes.length || para >= s.secoes.length)
-        return s;
+      if (de < 0 || para < 0 || de >= s.secoes.length || para >= s.secoes.length) return s;
       const secoes = [...s.secoes];
       const [item] = secoes.splice(de, 1);
       secoes.splice(para, 0, item!);
       return { ...s, secoes };
     });
+    setAviso(`Seção movida para a posição ${para + 1} de ${site.secoes.length}.`);
+  };
 
-  const mover = (i: number, delta: number) =>
+  const mover = (i: number, delta: number) => {
+    const destino = i + delta;
+    if (destino < 0 || destino >= site.secoes.length) return;
     aplicar((s) => {
       const secoes = [...s.secoes];
-      const alvo = i + delta;
-      if (alvo < 0 || alvo >= secoes.length) return s;
       const atual = secoes[i]!;
-      secoes[i] = secoes[alvo]!;
-      secoes[alvo] = atual;
+      secoes[i] = secoes[destino]!;
+      secoes[destino] = atual;
       return { ...s, secoes };
     });
+    setAviso(
+      `“${site.secoes[i]!.titulo}” agora está na posição ${destino + 1} de ${site.secoes.length}.`,
+    );
+  };
+
+  const atualizar = (id: string, patch: Partial<Site["secoes"][number]>) =>
+    aplicar((s) => ({
+      ...s,
+      secoes: s.secoes.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+    }));
 
   return (
-    <Bloco titulo="Seções do mini-site">
+    <Bloco titulo="Seções do mini-site" id="bloco-secoes">
       <p className="text-xs text-muted-foreground">
-        Ative, desative e arraste para reordenar. A prévia atualiza na hora.
+        Arraste pela alça ou use as setas para reordenar. Ative, desative e abra cada seção para
+        renomear. A prévia atualiza na hora.
+      </p>
+      <p aria-live="polite" className="sr-only">
+        {aviso}
       </p>
       <ul className="space-y-2">
-        {site.secoes.map((sec, i) => (
-          <li
-            key={sec.id}
-            draggable
-            onDragStart={(e) => {
-              setArrastando(i);
-              e.dataTransfer.effectAllowed = "move";
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (alvo !== i) setAlvo(i);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (arrastando !== null) reordenar(arrastando, i);
-              setArrastando(null);
-              setAlvo(null);
-            }}
-            onDragEnd={() => {
-              setArrastando(null);
-              setAlvo(null);
-            }}
-            className={`flex items-center gap-2 rounded-xl border bg-card px-3 py-2 transition-all ${
-              arrastando === i
-                ? "border-lime opacity-50"
-                : alvo === i
-                  ? "border-lime ring-2 ring-lime/40"
-                  : "border-border"
-            }`}
-          >
-            <GripVertical
-              size={14}
-              className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-              aria-hidden
-            />
-            <div className="flex flex-col">
-              <button
-                type="button"
-                aria-label="Mover para cima"
-                onClick={() => mover(i, -1)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronUp size={14} />
-              </button>
-              <button
-                type="button"
-                aria-label="Mover para baixo"
-                onClick={() => mover(i, 1)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronDown size={14} />
-              </button>
-            </div>
-            <input
-              value={sec.titulo}
-              onChange={(e) =>
-                aplicar((s) => ({
-                  ...s,
-                  secoes: s.secoes.map((x) =>
-                    x.id === sec.id ? { ...x, titulo: e.target.value } : x,
-                  ),
-                }))
-              }
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-            />
-            <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={sec.ativa}
-                onChange={(e) =>
-                  aplicar((s) => ({
-                    ...s,
-                    secoes: s.secoes.map((x) =>
-                      x.id === sec.id ? { ...x, ativa: e.target.checked } : x,
-                    ),
-                  }))
-                }
-              />
-              ativa
-            </label>
-          </li>
-        ))}
+        {site.secoes.map((sec, i) => {
+          const aberta = expandida === sec.id;
+          return (
+            <li
+              key={sec.id}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (alvo !== i) setAlvo(i);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (arrastando !== null) reordenar(arrastando, i);
+                setArrastando(null);
+                setAlvo(null);
+              }}
+              className={`min-w-0 rounded-xl border bg-card transition-all ${
+                arrastando === i
+                  ? "border-lime opacity-50"
+                  : alvo === i
+                    ? "border-lime ring-2 ring-lime/40"
+                    : "border-border"
+              } ${sec.ativa ? "" : "opacity-70"}`}
+            >
+              <div className="flex min-w-0 items-center gap-1.5 px-2 py-2">
+                <span
+                  draggable
+                  onDragStart={(e) => {
+                    setArrastando(i);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragEnd={() => {
+                    setArrastando(null);
+                    setAlvo(null);
+                  }}
+                  title="Arraste para reordenar"
+                  aria-hidden
+                  className="grid h-9 w-5 shrink-0 cursor-grab place-items-center text-muted-foreground active:cursor-grabbing"
+                >
+                  <GripVertical size={14} />
+                </span>
+
+                <div className="flex shrink-0 flex-col">
+                  <button
+                    type="button"
+                    aria-label={`Mover “${sec.titulo}” para cima`}
+                    title="Mover para cima"
+                    disabled={i === 0}
+                    onClick={() => mover(i, -1)}
+                    className="grid h-5 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Mover “${sec.titulo}” para baixo`}
+                    title="Mover para baixo"
+                    disabled={i === site.secoes.length - 1}
+                    onClick={() => mover(i, 1)}
+                    className="grid h-5 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setExpandida(aberta ? null : sec.id)}
+                  aria-expanded={aberta}
+                  aria-controls={`secao-${sec.id}`}
+                  className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1 text-left hover:bg-secondary/60"
+                >
+                  <ChevronDown
+                    size={13}
+                    aria-hidden
+                    className={`shrink-0 text-muted-foreground transition-transform ${aberta ? "" : "-rotate-90"}`}
+                  />
+                  <span className="min-w-0 truncate text-sm font-medium">{sec.titulo}</span>
+                  <span className="sr-only">
+                    , posição {i + 1} de {site.secoes.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={sec.ativa}
+                  aria-label={`Seção “${sec.titulo}” ${sec.ativa ? "visível" : "oculta"}`}
+                  title={sec.ativa ? "Desativar seção" : "Ativar seção"}
+                  onClick={() => atualizar(sec.id, { ativa: !sec.ativa })}
+                  className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors ${
+                    sec.ativa ? "border-lime bg-lime" : "border-border bg-secondary"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-card shadow transition-all ${
+                      sec.ativa ? "left-[1.4rem]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div id={`secao-${sec.id}`} hidden={!aberta} className="space-y-2 px-3 pb-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                    Título exibido
+                  </span>
+                  <input
+                    value={sec.titulo}
+                    onChange={(e) => atualizar(sec.id, { titulo: e.target.value })}
+                    className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-secondary px-2 py-1 text-[11px] text-muted-foreground">
+                    {sec.ativa ? "Visível no site" : "Oculta no site"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onIr(destinoPorSecao[sec.tipo])}
+                    className="inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+                  >
+                    Editar conteúdo desta seção
+                  </button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </Bloco>
   );
@@ -720,13 +831,7 @@ function LinhaItem({ children, onRemover }: { children: React.ReactNode; onRemov
   return (
     <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       {children}
-      <button
-        type="button"
-        onClick={onRemover}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-ember"
-      >
-        <Trash2 size={13} /> Remover
-      </button>
+      <BotaoRemover onConfirmar={onRemover} descricao="Remover este item?" />
     </div>
   );
 }
@@ -767,7 +872,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     <>
       <BlocoLinksEditor site={site} aplicar={aplicar} />
 
-      <Bloco titulo="Produtos">
+      <Bloco titulo="Produtos" id="bloco-produtos">
         {site.produtos.map((p) => (
           <LinhaItem
             key={p.id}
@@ -886,7 +991,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Serviços">
+      <Bloco titulo="Serviços" id="bloco-servicos">
         {site.servicos.map((sv) => (
           <LinhaItem
             key={sv.id}
@@ -963,7 +1068,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
       <BlocoGaleria site={site} aplicar={aplicar} />
       <BlocoVideosEditor site={site} aplicar={aplicar} />
 
-      <Bloco titulo="Depoimentos">
+      <Bloco titulo="Depoimentos" id="bloco-depoimentos">
         {site.depoimentos.map((d) => (
           <LinhaItem
             key={d.id}
@@ -1016,7 +1121,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Perguntas frequentes">
+      <Bloco titulo="Perguntas frequentes" id="bloco-faq">
         {site.faq.map((f) => (
           <LinhaItem
             key={f.id}
@@ -1217,7 +1322,7 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
-      <Bloco titulo="Busca e compartilhamento">
+      <Bloco titulo="Busca e compartilhamento" id="bloco-seo">
         <div>
           <Texto rotulo="Título" valor={site.seo.titulo} onChange={(v) => set({ titulo: v })} />
           <Medidor
@@ -1347,7 +1452,7 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     }));
 
   return (
-    <Bloco titulo="Links e redes sociais">
+    <Bloco titulo="Links e redes sociais" id="bloco-links">
       <p className="text-xs text-muted-foreground">
         Escolha o tipo para usar o ícone certo. WhatsApp abre a conversa com mensagem pronta e
         Instagram vai direto para o perfil.
@@ -1431,7 +1536,7 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const [tipo, setTipo] = useState<"imagem" | "video">("imagem");
 
   return (
-    <Bloco titulo="Galeria">
+    <Bloco titulo="Galeria" id="bloco-galeria">
       <div className="flex gap-1.5">
         {(["imagem", "video"] as const).map((t) => (
           <button
@@ -1483,16 +1588,12 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
                 className="min-w-0 flex-1 bg-transparent outline-none"
               />
-              <button
-                type="button"
-                aria-label="Remover mídia"
-                onClick={() =>
+              <BotaoRemover
+                descricao="Remover esta mídia?"
+                onConfirmar={() =>
                   aplicar((s) => ({ ...s, galeria: s.galeria.filter((x) => x.id !== g.id) }))
                 }
-                className="text-ember"
-              >
-                <Trash2 size={14} />
-              </button>
+              />
             </li>
           ))}
         </ul>
@@ -1510,7 +1611,7 @@ function BlocoVideosEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) 
     }));
 
   return (
-    <Bloco titulo="Vídeos">
+    <Bloco titulo="Vídeos" id="bloco-videos">
       <p className="text-xs text-muted-foreground">
         Envie um arquivo ou cole um link do YouTube/Vimeo. Ative a seção “Vídeos” na aba Seções.
       </p>
@@ -1576,16 +1677,14 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
           }}
         />
         {versoes.length > 0 && (
-          <button
-            type="button"
-            onClick={() => {
+          <BotaoRemover
+            rotulo="Limpar histórico"
+            descricao="Apagar todas as versões salvas?"
+            onConfirmar={() => {
               versaoStore.limpar(site.id);
               toast.message("Histórico limpo");
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ember"
-          >
-            <Trash2 size={13} /> Limpar histórico
-          </button>
+          />
         )}
       </div>
 
@@ -1613,14 +1712,11 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
                 >
                   <RotateCcw size={12} /> Restaurar
                 </button>
-                <button
-                  type="button"
-                  aria-label="Excluir versão"
-                  onClick={() => versaoStore.remover(site.id, v.id)}
-                  className="text-ember"
-                >
-                  <Trash2 size={13} />
-                </button>
+                <BotaoRemover
+                  rotulo="Excluir"
+                  descricao="Excluir esta versão?"
+                  onConfirmar={() => versaoStore.remover(site.id, v.id)}
+                />
               </div>
             </li>
           ))}
