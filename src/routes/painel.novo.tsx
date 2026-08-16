@@ -82,8 +82,11 @@ function NovoSite() {
       modeloId,
       slugFinal || "previa",
     );
-    return { ...base, aparencia: { ...base.aparencia, logoFormato } };
-  }, [cliente, logoFormato, modeloId, slugFinal]);
+    return {
+      ...base,
+      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+    };
+  }, [cliente, logoFormato, meuModelo, modeloId, slugFinal]);
 
   const podeAvancar =
     passo === 0
