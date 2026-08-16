@@ -1346,7 +1346,7 @@ export function siteDoModelo(modeloId: string): Site {
         resposta: "Fale conosco pelo WhatsApp e retornamos em minutos.",
       },
     ],
-    formulario: {
+    formulario: c.formulario ?? {
       tipo: "orcamento",
       titulo: "Peça um orçamento",
       campos: [
