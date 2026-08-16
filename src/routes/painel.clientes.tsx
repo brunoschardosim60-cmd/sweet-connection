@@ -180,8 +180,8 @@ function Clientes() {
   };
 
   const Cartao = ({ s }: { s: Site }) => (
-    <div className="surface p-5">
-      <div className="flex items-start justify-between gap-3">
+    <div className="surface min-w-0 p-5">
+      <div className="flex min-w-0 items-start justify-between gap-3">
         <Link
           to="/painel/editor/$id"
           params={{ id: s.id }}
