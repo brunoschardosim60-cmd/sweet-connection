@@ -1105,6 +1105,34 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <EntradaSimples
+              valor={sv.profissional ?? ""}
+              placeholder="Profissional responsável"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  servicos: s.servicos.map((x) => {
+                    if (x.id !== sv.id) return x;
+                    const { profissional: _antigo, ...resto } = x;
+                    return v.trim() ? { ...resto, profissional: v } : resto;
+                  }),
+                }))
+              }
+            />
+            <SeletorMidia
+              rotulo="Foto do serviço"
+              valor={sv.imagem ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  servicos: s.servicos.map((x) => {
+                    if (x.id !== sv.id) return x;
+                    const { imagem: _antiga, ...resto } = x;
+                    return v ? { ...resto, imagem: v } : resto;
+                  }),
+                }))
+              }
+            />
           </LinhaItem>
         ))}
         <BotaoAdicionar
