@@ -20,7 +20,6 @@ import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
-import { Route as PainelAdminRouteImport } from './routes/painel.admin'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
 import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configuracoes'
 import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
@@ -29,6 +28,8 @@ import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
+import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -86,11 +87,6 @@ const PainelIndexRoute = PainelIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PainelRoute,
 } as any)
-const PainelAdminRoute = PainelAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => PainelRoute,
-} as any)
 const PainelClientesRoute = PainelClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -131,6 +127,16 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelAdminIndexRoute = PainelAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelAdminPapeisRoute = PainelAdminPapeisRouteImport.update({
+  id: '/admin/papeis',
+  path: '/admin/papeis',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
   id: '/editor/$id',
   path: '/editor/$id',
@@ -148,7 +154,6 @@ export interface FileRoutesByFullPath {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -158,7 +163,9 @@ export interface FileRoutesByFullPath {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin/': typeof PainelAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -170,7 +177,6 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -180,7 +186,9 @@ export interface FileRoutesByTo {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin': typeof PainelAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -194,7 +202,6 @@ export interface FileRoutesById {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -204,7 +211,9 @@ export interface FileRoutesById {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin/': typeof PainelAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -219,7 +228,6 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/termos'
     | '/demonstracao/$modelo'
-    | '/painel/admin'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -229,7 +237,9 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -241,7 +251,6 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/termos'
     | '/demonstracao/$modelo'
-    | '/painel/admin'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -251,7 +260,9 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin'
   id:
     | '__root__'
     | '/'
@@ -264,7 +275,6 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/termos'
     | '/demonstracao/$modelo'
-    | '/painel/admin'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -274,7 +284,9 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -370,13 +382,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRoute
     }
-    '/painel/admin': {
-      id: '/painel/admin'
-      path: '/admin'
-      fullPath: '/painel/admin'
-      preLoaderRoute: typeof PainelAdminRouteImport
-      parentRoute: typeof PainelRoute
-    }
     '/painel/clientes': {
       id: '/painel/clientes'
       path: '/clientes'
@@ -433,6 +438,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/admin/': {
+      id: '/painel/admin/'
+      path: '/admin'
+      fullPath: '/painel/admin/'
+      preLoaderRoute: typeof PainelAdminIndexRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/admin/papeis': {
+      id: '/painel/admin/papeis'
+      path: '/admin/papeis'
+      fullPath: '/painel/admin/papeis'
+      preLoaderRoute: typeof PainelAdminPapeisRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/editor/$id': {
       id: '/painel/editor/$id'
       path: '/editor/$id'
@@ -444,7 +463,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelRouteChildren {
-  PainelAdminRoute: typeof PainelAdminRoute
   PainelClientesRoute: typeof PainelClientesRoute
   PainelConfiguracoesRoute: typeof PainelConfiguracoesRoute
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
@@ -453,11 +471,12 @@ interface PainelRouteChildren {
   PainelNovoRoute: typeof PainelNovoRoute
   PainelSolicitacoesRoute: typeof PainelSolicitacoesRoute
   PainelIndexRoute: typeof PainelIndexRoute
+  PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
   PainelEditorIdRoute: typeof PainelEditorIdRoute
+  PainelAdminIndexRoute: typeof PainelAdminIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
-  PainelAdminRoute: PainelAdminRoute,
   PainelClientesRoute: PainelClientesRoute,
   PainelConfiguracoesRoute: PainelConfiguracoesRoute,
   PainelEstatisticasRoute: PainelEstatisticasRoute,
@@ -466,7 +485,9 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelNovoRoute: PainelNovoRoute,
   PainelSolicitacoesRoute: PainelSolicitacoesRoute,
   PainelIndexRoute: PainelIndexRoute,
+  PainelAdminPapeisRoute: PainelAdminPapeisRoute,
   PainelEditorIdRoute: PainelEditorIdRoute,
+  PainelAdminIndexRoute: PainelAdminIndexRoute,
 }
 
 const PainelRouteWithChildren =
