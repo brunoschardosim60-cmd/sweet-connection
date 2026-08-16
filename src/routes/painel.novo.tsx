@@ -302,11 +302,13 @@ function Campo({
   valor,
   onChange,
   placeholder,
+  erro,
 }: {
   rotulo: string;
   valor: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  erro?: string | undefined;
 }) {
   return (
     <label className="block">
@@ -314,9 +316,13 @@ function Campo({
       <input
         value={valor}
         placeholder={placeholder}
+        aria-invalid={!!erro}
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-ink"
+        className={`h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none focus:border-ink ${
+          erro ? "border-ember" : "border-border"
+        }`}
       />
+      {erro && <span className="mt-1.5 block text-xs text-ember">{erro}</span>}
     </label>
   );
 }
