@@ -211,3 +211,62 @@ export function useAdminDados(periodo: Periodo = 30) {
     definirPlano,
   };
 }
+
+export type AdminProjeto = {
+  id: string;
+  slug: string;
+  nome: string;
+  status: string;
+  criado_em: string;
+  atualizado_em: string;
+  publicado_em: string | null;
+  solicitacoes: number;
+};
+
+type ConteudoBruto = { conteudo?: { nome?: string }; cliente?: { empresa?: string } } | null;
+
+const nomeDoConteudo = (draft: unknown, publicado: unknown, slug: string) => {
+  const c = (publicado ?? draft) as ConteudoBruto;
+  return c?.conteudo?.nome?.trim() || c?.cliente?.empresa?.trim() || slug;
+};
+
+/**
+ * Lê os mini-sites de um usuário específico (permitido pela política de leitura
+ * administrativa já existente) com a contagem real de solicitações de cada um.
+ */
+export async function carregarProjetosUsuario(userId: string): Promise<AdminProjeto[]> {
+  const { data, error } = await supabase
+    .from("minisites")
+    .select("id, slug, status, created_at, updated_at, published_at, draft_content, published_content")
+    .eq("owner_id", userId)
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(mensagemErroAdmin(error));
+
+  const sites = data ?? [];
+  if (sites.length === 0) return [];
+
+  const { data: envios, error: erroEnvios } = await supabase
+    .from("form_submissions")
+    .select("minisite_id")
+    .in(
+      "minisite_id",
+      sites.map((s) => s.id),
+    );
+  if (erroEnvios) throw new Error(mensagemErroAdmin(erroEnvios));
+
+  const porSite = new Map<string, number>();
+  for (const e of envios ?? []) {
+    porSite.set(e.minisite_id, (porSite.get(e.minisite_id) ?? 0) + 1);
+  }
+
+  return sites.map((s) => ({
+    id: s.id,
+    slug: s.slug,
+    nome: nomeDoConteudo(s.draft_content, s.published_content, s.slug),
+    status: s.status,
+    criado_em: s.created_at,
+    atualizado_em: s.updated_at,
+    publicado_em: s.published_at,
+    solicitacoes: porSite.get(s.id) ?? 0,
+  }));
+}
