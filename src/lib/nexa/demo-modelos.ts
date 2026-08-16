@@ -1299,19 +1299,17 @@ export function siteDoModelo(modeloId: string): Site {
       espacamento: "confortavel",
       layout: modelo.layout,
       capaTipo: "imagem",
+      logoFormato: c.logoFormato ?? "redondo",
     },
-    secoes: criarSecoes().map((s) => ({
-      ...s,
-      ativa: c.secoes.includes(s.tipo) || s.tipo === "links",
-    })),
+    secoes: ordenarSecoes(c.secoes),
     links: [
-      { id: "l1", tipo: "whatsapp", titulo: "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
+      { id: "l1", tipo: "whatsapp", titulo: c.cta ?? "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
       { id: "l2", tipo: "instagram", titulo: `@${c.instagram}`, valor: c.instagram, ativo: true },
       { id: "l3", tipo: "localizacao", titulo: "Como chegar", valor: c.endereco, ativo: true },
     ],
     produtos: c.produtos ?? [],
     servicos: c.servicos ?? [],
-    galeria: [
+    galeria: c.galeria ?? [
       { id: "g1", url: modelo.imagem, titulo: c.nome },
       { id: "g2", url: imagens.moda, titulo: "Detalhes" },
       { id: "g3", url: imagens.salao, titulo: "Ambiente" },
@@ -1319,7 +1317,7 @@ export function siteDoModelo(modeloId: string): Site {
     videos: c.videos ?? [],
     depoimentos: c.depoimentos ?? depoimentosGenericos,
     equipe: c.equipe ?? [],
-    cupons: [
+    cupons: c.cupons ?? [
       {
         id: "cp1",
         titulo: "10% na primeira compra",
