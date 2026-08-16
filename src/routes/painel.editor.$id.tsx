@@ -78,6 +78,7 @@ function Editor() {
   const { sites, pronto, store } = useNexa();
   const navigate = useNavigate();
   const arquivoRef = useRef<HTMLInputElement>(null);
+  const painelConfiguracoesRef = useRef<HTMLDivElement>(null);
 
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
@@ -94,6 +95,21 @@ function Editor() {
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
   }, [original, rascunho]);
+
+  /** O editor ocupa uma tela fixa; somente seus painéis internos devem rolar. */
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const overflowHtmlAnterior = html.style.overflow;
+    const overflowBodyAnterior = body.style.overflow;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = overflowHtmlAnterior;
+      body.style.overflow = overflowBodyAnterior;
+    };
+  }, []);
 
   const hist = useHistorico<Site | null>(rascunho);
 
@@ -116,7 +132,15 @@ function Editor() {
       const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const controle = alvo.querySelector<HTMLElement>("[data-foco-bloco]");
       if (controle?.getAttribute("aria-expanded") === "false") controle.click();
-      alvo.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
+      const painel = painelConfiguracoesRef.current;
+      if (painel) {
+        const topo =
+          painel.scrollTop + alvo.getBoundingClientRect().top - painel.getBoundingClientRect().top;
+        painel.scrollTo({
+          top: Math.max(0, topo),
+          behavior: reduzido ? "auto" : "smooth",
+        });
+      }
       controle?.focus({ preventScroll: true });
       setDestinoPendente(null);
     });
@@ -423,7 +447,10 @@ function Editor() {
             ))}
           </div>
 
-          <div className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-24 pr-1 lg:pb-4">
+          <div
+            ref={painelConfiguracoesRef}
+            className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-24 pr-1 lg:pb-4"
+          >
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
