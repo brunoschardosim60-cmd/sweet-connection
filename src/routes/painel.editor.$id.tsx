@@ -42,7 +42,7 @@ import { versaoStore } from "@/lib/nexa/versoes";
 import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Site, TipoLink } from "@/lib/nexa/types";
+import type { CampoFormulario, Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
@@ -943,6 +943,49 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={p.precoPromocional ? String(p.precoPromocional) : ""}
+                placeholder="Preço promocional"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) => {
+                      if (x.id !== p.id) return x;
+                      const { precoPromocional: _antigo, ...resto } = x;
+                      const valor = v.trim() ? Number(v.replace(",", ".")) || 0 : 0;
+                      return valor > 0 ? { ...resto, precoPromocional: valor } : resto;
+                    }),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={p.variacoes.join(", ")}
+                placeholder="Variações (P, M, G)"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id
+                        ? {
+                            ...x,
+                            variacoes: v
+                              .split(",")
+                              .map((t) => t.trim())
+                              .filter(Boolean),
+                          }
+                        : x,
+                    ),
+                  }))
+                }
+              />
+            </div>
+            {p.precoPromocional && p.precoPromocional > 0 && p.precoPromocional < p.preco ? (
+              <p className="text-xs text-muted-foreground">
+                Promoção de {Math.round((1 - p.precoPromocional / p.preco) * 100)}% aparece no
+                mini-site.
+              </p>
+            ) : null}
             <SeletorMidia
               rotulo="Foto do produto"
               valor={p.imagem ?? ""}
@@ -1062,6 +1105,34 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <EntradaSimples
+              valor={sv.profissional ?? ""}
+              placeholder="Profissional responsável"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  servicos: s.servicos.map((x) => {
+                    if (x.id !== sv.id) return x;
+                    const { profissional: _antigo, ...resto } = x;
+                    return v.trim() ? { ...resto, profissional: v } : resto;
+                  }),
+                }))
+              }
+            />
+            <SeletorMidia
+              rotulo="Foto do serviço"
+              valor={sv.imagem ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  servicos: s.servicos.map((x) => {
+                    if (x.id !== sv.id) return x;
+                    const { imagem: _antiga, ...resto } = x;
+                    return v ? { ...resto, imagem: v } : resto;
+                  }),
+                }))
+              }
+            />
           </LinhaItem>
         ))}
         <BotaoAdicionar
@@ -1140,6 +1211,153 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
+      <Bloco titulo="Equipe" id="bloco-equipe">
+        {site.equipe.map((m) => (
+          <LinhaItem
+            key={m.id}
+            onRemover={() =>
+              aplicar((s) => ({ ...s, equipe: s.equipe.filter((x) => x.id !== m.id) }))
+            }
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={m.nome}
+                placeholder="Nome"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, nome: v } : x)),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={m.funcao}
+                placeholder="Função"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, funcao: v } : x)),
+                  }))
+                }
+              />
+            </div>
+            <SeletorMidia
+              rotulo="Foto"
+              valor={m.foto ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  equipe: s.equipe.map((x) => {
+                    if (x.id !== m.id) return x;
+                    const { foto: _antiga, ...resto } = x;
+                    return v ? { ...resto, foto: v } : resto;
+                  }),
+                }))
+              }
+            />
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar pessoa"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              equipe: [...s.equipe, { id: uid("eqp"), nome: "Novo integrante", funcao: "" }],
+            }))
+          }
+        />
+      </Bloco>
+
+      <Bloco titulo="Cupons e promoções" id="bloco-cupons">
+        {site.cupons.map((c) => (
+          <LinhaItem
+            key={c.id}
+            onRemover={() =>
+              aplicar((s) => ({ ...s, cupons: s.cupons.filter((x) => x.id !== c.id) }))
+            }
+          >
+            <EntradaSimples
+              valor={c.titulo}
+              placeholder="Título (ex.: 10% na primeira compra)"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, titulo: v } : x)),
+                }))
+              }
+            />
+            <EntradaSimples
+              valor={c.descricao}
+              placeholder="Descrição / regras"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, descricao: v } : x)),
+                }))
+              }
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={c.codigo}
+                placeholder="Código"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) =>
+                      x.id === c.id ? { ...x, codigo: v.toUpperCase() } : x,
+                    ),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={c.validade}
+                placeholder="Validade (ex.: 31/12)"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, validade: v } : x)),
+                  }))
+                }
+              />
+            </div>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={c.ativo}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) =>
+                      x.id === c.id ? { ...x, ativo: e.target.checked } : x,
+                    ),
+                  }))
+                }
+              />
+              cupom ativo
+            </label>
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar cupom"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              cupons: [
+                ...s.cupons,
+                {
+                  id: uid("cup"),
+                  titulo: "Novo cupom",
+                  descricao: "",
+                  codigo: "NEXA10",
+                  validade: "",
+                  ativo: true,
+                },
+              ],
+            }))
+          }
+        />
+      </Bloco>
+
       <Bloco titulo="Perguntas frequentes" id="bloco-faq">
         {site.faq.map((f) => (
           <LinhaItem
@@ -1177,6 +1395,140 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             }))
           }
         />
+      </Bloco>
+
+      <Bloco titulo="Formulário" id="bloco-formulario">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="grid gap-1 text-xs text-muted-foreground">
+            Tipo do formulário
+            <select
+              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+              value={site.formulario.tipo}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: {
+                    ...s.formulario,
+                    tipo: e.target.value as Site["formulario"]["tipo"],
+                  },
+                }))
+              }
+            >
+              <option value="orcamento">Orçamento</option>
+              <option value="contato">Contato</option>
+              <option value="reserva">Reserva</option>
+              <option value="agendamento">Agendamento</option>
+              <option value="cotacao">Cotação</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs text-muted-foreground">
+            Título exibido
+            <input
+              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+              value={site.formulario.titulo}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: { ...s.formulario, titulo: e.target.value },
+                }))
+              }
+            />
+          </label>
+        </div>
+
+        {site.formulario.campos.map((c) => (
+          <LinhaItem
+            key={c.id}
+            onRemover={() =>
+              aplicar((s) => ({
+                ...s,
+                formulario: {
+                  ...s.formulario,
+                  campos: s.formulario.campos.filter((x) => x.id !== c.id),
+                },
+              }))
+            }
+          >
+            <EntradaSimples
+              valor={c.rotulo}
+              placeholder="Rótulo do campo"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: {
+                    ...s.formulario,
+                    campos: s.formulario.campos.map((x) =>
+                      x.id === c.id ? { ...x, rotulo: v } : x,
+                    ),
+                  },
+                }))
+              }
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                aria-label={`Tipo do campo ${c.rotulo}`}
+                className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                value={c.tipo}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    formulario: {
+                      ...s.formulario,
+                      campos: s.formulario.campos.map((x) =>
+                        x.id === c.id
+                          ? { ...x, tipo: e.target.value as CampoFormulario["tipo"] }
+                          : x,
+                      ),
+                    },
+                  }))
+                }
+              >
+                <option value="texto">Texto</option>
+                <option value="email">E-mail</option>
+                <option value="telefone">Telefone</option>
+                <option value="data">Data</option>
+                <option value="textarea">Texto longo</option>
+              </select>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={c.obrigatorio}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      formulario: {
+                        ...s.formulario,
+                        campos: s.formulario.campos.map((x) =>
+                          x.id === c.id ? { ...x, obrigatorio: e.target.checked } : x,
+                        ),
+                      },
+                    }))
+                  }
+                />
+                obrigatório
+              </label>
+            </div>
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar campo"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              formulario: {
+                ...s.formulario,
+                campos: [
+                  ...s.formulario.campos,
+                  { id: uid("cmp"), rotulo: "Novo campo", tipo: "texto", obrigatorio: false },
+                ],
+              },
+            }))
+          }
+        />
+        <p className="text-xs text-muted-foreground">
+          Os campos definem apenas o formulário exibido no mini-site. O envio continua sendo tratado
+          pela integração já existente.
+        </p>
       </Bloco>
     </>
   );

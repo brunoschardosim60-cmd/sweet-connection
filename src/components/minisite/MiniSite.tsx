@@ -586,6 +586,14 @@ function BlocoServicos({ site, titulo }: { site: Site; titulo: string }) {
         {site.servicos.map((s) => (
           <Cartao key={s.id} site={site}>
             <div className="flex items-start justify-between gap-3 p-4">
+              {s.imagem && (
+                <img
+                  src={s.imagem}
+                  alt={s.nome}
+                  loading="lazy"
+                  className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                />
+              )}
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold">{s.nome}</h3>
                 <p className="mt-1 text-xs opacity-70">{s.descricao}</p>

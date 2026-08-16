@@ -11,6 +11,12 @@ import imoveis from "@/assets/seg-imoveis.jpg";
 import transporte from "@/assets/seg-transporte.jpg";
 import servicos from "@/assets/seg-servicos.jpg";
 import advocacia from "@/assets/seg-advocacia.jpg";
+import petshop from "@/assets/seg-petshop.jpg";
+import odontologia from "@/assets/seg-odontologia.jpg";
+import mecanica from "@/assets/seg-mecanica.jpg";
+import pizzaria from "@/assets/seg-pizzaria.jpg";
+import doceria from "@/assets/seg-doceria.jpg";
+import eventos from "@/assets/seg-eventos.jpg";
 
 export const imagens = {
   restaurante,
@@ -26,6 +32,12 @@ export const imagens = {
   transporte,
   servicos,
   advocacia,
+  petshop,
+  odontologia,
+  mecanica,
+  pizzaria,
+  doceria,
+  eventos,
 } as const;
 
 export type ImagemKey = keyof typeof imagens;
