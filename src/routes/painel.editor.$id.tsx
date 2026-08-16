@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Save,
   Smartphone,
+  Star,
   Undo2,
   Upload,
 } from "lucide-react";
