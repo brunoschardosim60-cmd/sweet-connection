@@ -183,13 +183,33 @@ export function sitesDemo(): Site[] {
       },
     ],
     faq: [
-      { id: "f1", pergunta: "Vocês entregam?", resposta: "Sim, em toda a região do Cambuí e Nova Campinas." },
-      { id: "f2", pergunta: "Aceitam reserva?", resposta: "Sim, pelo WhatsApp com até 2 dias de antecedência." },
+      {
+        id: "f1",
+        pergunta: "Vocês entregam?",
+        resposta: "Sim, em toda a região do Cambuí e Nova Campinas.",
+      },
+      {
+        id: "f2",
+        pergunta: "Aceitam reserva?",
+        resposta: "Sim, pelo WhatsApp com até 2 dias de antecedência.",
+      },
     ],
     links: [
       { id: "l1", tipo: "whatsapp", titulo: "Fazer pedido", valor: "5519974123388", ativo: true },
-      { id: "l2", tipo: "instagram", titulo: "@cantinadovale", valor: "cantinadovale", ativo: true },
-      { id: "l3", tipo: "localizacao", titulo: "Como chegar", valor: "Rua das Oliveiras, 340", ativo: true },
+      {
+        id: "l2",
+        tipo: "instagram",
+        titulo: "@cantinadovale",
+        valor: "cantinadovale",
+        ativo: true,
+      },
+      {
+        id: "l3",
+        tipo: "localizacao",
+        titulo: "Como chegar",
+        valor: "Rua das Oliveiras, 340",
+        ativo: true,
+      },
     ],
   });
   ligarSecoes(cantina, [
@@ -220,7 +240,8 @@ export function sitesDemo(): Site[] {
     },
     conteudo: {
       nome: "Navalha de Ouro",
-      descricao: "Barbearia clássica com atendimento por hora marcada. Corte, barba e cuidado de verdade.",
+      descricao:
+        "Barbearia clássica com atendimento por hora marcada. Corte, barba e cuidado de verdade.",
       capa: imagens.barbearia,
       telefone: "(21) 3622-9090",
       whatsapp: "5521988124477",
@@ -243,9 +264,30 @@ export function sitesDemo(): Site[] {
       capaTipo: "imagem",
     },
     servicos: [
-      { id: "s1", nome: "Corte social", descricao: "Máquina, tesoura e finalização.", duracao: "45 min", preco: 70, profissional: "Diego" },
-      { id: "s2", nome: "Barba terapia", descricao: "Toalha quente, óleo e navalha.", duracao: "40 min", preco: 60, profissional: "Ricardo" },
-      { id: "s3", nome: "Combo completo", descricao: "Corte + barba + sobrancelha.", duracao: "1h20", preco: 120, profissional: "Diego" },
+      {
+        id: "s1",
+        nome: "Corte social",
+        descricao: "Máquina, tesoura e finalização.",
+        duracao: "45 min",
+        preco: 70,
+        profissional: "Diego",
+      },
+      {
+        id: "s2",
+        nome: "Barba terapia",
+        descricao: "Toalha quente, óleo e navalha.",
+        duracao: "40 min",
+        preco: 60,
+        profissional: "Ricardo",
+      },
+      {
+        id: "s3",
+        nome: "Combo completo",
+        descricao: "Corte + barba + sobrancelha.",
+        duracao: "1h20",
+        preco: 120,
+        profissional: "Diego",
+      },
     ],
     equipe: [
       { id: "e1", nome: "Diego Menezes", funcao: "Barbeiro-chefe" },
@@ -253,11 +295,30 @@ export function sitesDemo(): Site[] {
     ],
     galeria: [{ id: "g1", url: imagens.barbearia, titulo: "Ambiente" }],
     depoimentos: [
-      { id: "d1", nome: "Thiago Souza", nota: 5, comentario: "Agendamento fácil e corte perfeito.", data: "2026-07-02", destaque: true },
+      {
+        id: "d1",
+        nome: "Thiago Souza",
+        nota: 5,
+        comentario: "Agendamento fácil e corte perfeito.",
+        data: "2026-07-02",
+        destaque: true,
+      },
     ],
     links: [
-      { id: "l1", tipo: "whatsapp", titulo: "Agendar horário", valor: "5521988124477", ativo: true },
-      { id: "l2", tipo: "instagram", titulo: "Portfólio no Instagram", valor: "navalhadeouro", ativo: true },
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: "Agendar horário",
+        valor: "5521988124477",
+        ativo: true,
+      },
+      {
+        id: "l2",
+        tipo: "instagram",
+        titulo: "Portfólio no Instagram",
+        valor: "navalhadeouro",
+        ativo: true,
+      },
     ],
   });
   ligarSecoes(navalha, [
@@ -310,12 +371,48 @@ export function sitesDemo(): Site[] {
       capaTipo: "imagem",
     },
     produtos: [
-      { id: "p1", nome: "Blazer linho areia", descricao: "Linho puro, forro em algodão.", preco: 489, categoria: "Alfaiataria", variacoes: ["P", "M", "G"], imagem: imagens.moda, disponivel: true, destaque: true },
-      { id: "p2", nome: "Calça pantalona", descricao: "Caimento fluido, cintura alta.", preco: 329, precoPromocional: 279, categoria: "Alfaiataria", variacoes: ["36", "38", "40", "42"], imagem: imagens.moda, disponivel: true, destaque: true },
-      { id: "p3", nome: "Camisa seda off", descricao: "Toque frio, botões de madrepérola.", preco: 359, categoria: "Camisaria", variacoes: ["P", "M", "G"], disponivel: false, destaque: false },
+      {
+        id: "p1",
+        nome: "Blazer linho areia",
+        descricao: "Linho puro, forro em algodão.",
+        preco: 489,
+        categoria: "Alfaiataria",
+        variacoes: ["P", "M", "G"],
+        imagem: imagens.moda,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p2",
+        nome: "Calça pantalona",
+        descricao: "Caimento fluido, cintura alta.",
+        preco: 329,
+        precoPromocional: 279,
+        categoria: "Alfaiataria",
+        variacoes: ["36", "38", "40", "42"],
+        imagem: imagens.moda,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p3",
+        nome: "Camisa seda off",
+        descricao: "Toque frio, botões de madrepérola.",
+        preco: 359,
+        categoria: "Camisaria",
+        variacoes: ["P", "M", "G"],
+        disponivel: false,
+        destaque: false,
+      },
     ],
     links: [
-      { id: "l1", tipo: "whatsapp", titulo: "Comprar pelo WhatsApp", valor: "5531996542210", ativo: true },
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: "Comprar pelo WhatsApp",
+        valor: "5531996542210",
+        ativo: true,
+      },
       { id: "l2", tipo: "instagram", titulo: "@atelie.lume", valor: "atelie.lume", ativo: true },
     ],
   });
@@ -336,7 +433,8 @@ export function sitesDemo(): Site[] {
     },
     conteudo: {
       nome: "Rota Norte Transportes",
-      descricao: "Cargas fracionadas e dedicadas para todo o Sul e Sudeste. Cotação em até 2 horas.",
+      descricao:
+        "Cargas fracionadas e dedicadas para todo o Sul e Sudeste. Cotação em até 2 horas.",
       capa: imagens.transporte,
       telefone: "(41) 3355-1200",
       whatsapp: "5541991207788",
@@ -359,8 +457,20 @@ export function sitesDemo(): Site[] {
       capaTipo: "imagem",
     },
     servicos: [
-      { id: "s1", nome: "Carga fracionada", descricao: "Coletas diárias na região metropolitana.", duracao: "24-72h", preco: 0 },
-      { id: "s2", nome: "Carga dedicada", descricao: "Veículo exclusivo com rastreamento.", duracao: "Sob demanda", preco: 0 },
+      {
+        id: "s1",
+        nome: "Carga fracionada",
+        descricao: "Coletas diárias na região metropolitana.",
+        duracao: "24-72h",
+        preco: 0,
+      },
+      {
+        id: "s2",
+        nome: "Carga dedicada",
+        descricao: "Veículo exclusivo com rastreamento.",
+        duracao: "Sob demanda",
+        preco: 0,
+      },
     ],
     formulario: {
       tipo: "cotacao",
@@ -372,7 +482,15 @@ export function sitesDemo(): Site[] {
         { id: "c4", rotulo: "Detalhes da carga", tipo: "textarea", obrigatorio: false },
       ],
     },
-    links: [{ id: "l1", tipo: "whatsapp", titulo: "Falar com o comercial", valor: "5541991207788", ativo: true }],
+    links: [
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: "Falar com o comercial",
+        valor: "5541991207788",
+        ativo: true,
+      },
+    ],
   });
   ligarSecoes(rota, ["apresentacao", "servicos", "formulario", "faq", "localizacao", "rodape"]);
 
@@ -420,10 +538,30 @@ export function sitesDemo(): Site[] {
       { id: "g3", url: imagens.salao, titulo: "Beleza" },
     ],
     servicos: [
-      { id: "s1", nome: "Ensaio editorial", descricao: "2h de sessão, 30 fotos tratadas.", duracao: "2h", preco: 1200 },
-      { id: "s2", nome: "Fotografia de marca", descricao: "Banco de imagens para redes sociais.", duracao: "4h", preco: 2400 },
+      {
+        id: "s1",
+        nome: "Ensaio editorial",
+        descricao: "2h de sessão, 30 fotos tratadas.",
+        duracao: "2h",
+        preco: 1200,
+      },
+      {
+        id: "s2",
+        nome: "Fotografia de marca",
+        descricao: "Banco de imagens para redes sociais.",
+        duracao: "4h",
+        preco: 2400,
+      },
     ],
-    links: [{ id: "l1", tipo: "whatsapp", titulo: "Pedir orçamento", valor: "5551983304412", ativo: true }],
+    links: [
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: "Pedir orçamento",
+        valor: "5551983304412",
+        ativo: true,
+      },
+    ],
   });
   ligarSecoes(studio, ["apresentacao", "galeria", "servicos", "formulario", "rodape"]);
 
@@ -465,20 +603,59 @@ export function sitesDemo(): Site[] {
       capaTipo: "imagem",
     },
     servicos: [
-      { id: "s1", nome: "Clínica geral", descricao: "Consulta de rotina e encaminhamentos.", duracao: "40 min", preco: 280 },
-      { id: "s2", nome: "Nutrição", descricao: "Plano alimentar individualizado.", duracao: "50 min", preco: 240 },
-      { id: "s3", nome: "Cardiologia", descricao: "Avaliação com eletrocardiograma.", duracao: "1h", preco: 420 },
+      {
+        id: "s1",
+        nome: "Clínica geral",
+        descricao: "Consulta de rotina e encaminhamentos.",
+        duracao: "40 min",
+        preco: 280,
+      },
+      {
+        id: "s2",
+        nome: "Nutrição",
+        descricao: "Plano alimentar individualizado.",
+        duracao: "50 min",
+        preco: 240,
+      },
+      {
+        id: "s3",
+        nome: "Cardiologia",
+        descricao: "Avaliação com eletrocardiograma.",
+        duracao: "1h",
+        preco: 420,
+      },
     ],
     equipe: [
       { id: "e1", nome: "Dra. Helena Braga", funcao: "Clínica geral" },
       { id: "e2", nome: "Dr. Paulo Ferrari", funcao: "Cardiologia" },
     ],
     faq: [
-      { id: "f1", pergunta: "Atendem convênios?", resposta: "Sim, trabalhamos com os principais convênios nacionais." },
+      {
+        id: "f1",
+        pergunta: "Atendem convênios?",
+        resposta: "Sim, trabalhamos com os principais convênios nacionais.",
+      },
     ],
-    links: [{ id: "l1", tipo: "whatsapp", titulo: "Agendar consulta", valor: "5562982771190", ativo: true }],
+    links: [
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: "Agendar consulta",
+        valor: "5562982771190",
+        ativo: true,
+      },
+    ],
   });
-  ligarSecoes(vitalis, ["apresentacao", "servicos", "equipe", "faq", "formulario", "localizacao", "horarios", "rodape"]);
+  ligarSecoes(vitalis, [
+    "apresentacao",
+    "servicos",
+    "equipe",
+    "faq",
+    "formulario",
+    "localizacao",
+    "horarios",
+    "rodape",
+  ]);
 
   return [cantina, navalha, ateliê, rota, studio, vitalis];
 }

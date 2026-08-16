@@ -22,15 +22,7 @@ import {
   Tag,
   Utensils,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from "recharts";
+import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Reveal } from "@/components/Reveal";
@@ -262,7 +254,11 @@ export function Comparacao() {
           >
             <div className="grid h-full place-items-center p-6">
               <PhoneFrame largura={280} altura={470}>
-                <MiniSite site={siteDoModelo("restaurante-moderno")} compacto botaoFlutuante={false} />
+                <MiniSite
+                  site={siteDoModelo("restaurante-moderno")}
+                  compacto
+                  botaoFlutuante={false}
+                />
               </PhoneFrame>
             </div>
             <span className="absolute right-5 top-5 rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink">
@@ -352,7 +348,11 @@ export function Recursos() {
           <Reveal className="md:col-span-3" delay={60}>
             <div className="grid h-full gap-4 sm:grid-cols-2">
               {[
-                { i: ShoppingBag, t: "Catálogo com variações", d: "Preço, promoção, categoria e disponibilidade." },
+                {
+                  i: ShoppingBag,
+                  t: "Catálogo com variações",
+                  d: "Preço, promoção, categoria e disponibilidade.",
+                },
                 { i: Utensils, t: "Cardápio digital", d: "Seções, adicionais e taxa de entrega." },
                 { i: Calendar, t: "Agendamentos", d: "Serviços com duração e profissional." },
                 { i: QrCode, t: "QR Code automático", d: "Pronto para imprimir na vitrine." },
@@ -651,7 +651,14 @@ const porSegmento = [
   {
     id: "restaurantes",
     nome: "Restaurantes",
-    itens: ["Cardápio", "Adicionais", "Horário de funcionamento", "Pedido pelo WhatsApp", "Taxa de entrega", "Área de atendimento"],
+    itens: [
+      "Cardápio",
+      "Adicionais",
+      "Horário de funcionamento",
+      "Pedido pelo WhatsApp",
+      "Taxa de entrega",
+      "Área de atendimento",
+    ],
   },
   {
     id: "beleza",
@@ -666,7 +673,13 @@ const porSegmento = [
   {
     id: "transportadoras",
     nome: "Transportadoras",
-    itens: ["Solicitação de cotação", "Regiões atendidas", "Tipos de veículos", "Rastreamento (em breve)", "Contato comercial"],
+    itens: [
+      "Solicitação de cotação",
+      "Regiões atendidas",
+      "Tipos de veículos",
+      "Rastreamento (em breve)",
+      "Contato comercial",
+    ],
   },
   {
     id: "profissionais",
@@ -801,9 +814,21 @@ export function Estatisticas() {
 
 export function ComoFunciona() {
   const etapas = [
-    { t: "Escolha um modelo", d: "12 modelos com estrutura pensada para cada segmento.", i: ImageIcon },
-    { t: "Personalize o conteúdo", d: "Textos, cores, produtos, serviços e links — tudo ao vivo.", i: Palette },
-    { t: "Publique e compartilhe", d: "Link curto, QR Code e compartilhamento em um toque.", i: Share2 },
+    {
+      t: "Escolha um modelo",
+      d: "12 modelos com estrutura pensada para cada segmento.",
+      i: ImageIcon,
+    },
+    {
+      t: "Personalize o conteúdo",
+      d: "Textos, cores, produtos, serviços e links — tudo ao vivo.",
+      i: Palette,
+    },
+    {
+      t: "Publique e compartilhe",
+      d: "Link curto, QR Code e compartilhamento em um toque.",
+      i: Share2,
+    },
   ];
   return (
     <section className="mx-auto max-w-6xl px-5 pb-20 md:pb-28">
@@ -843,13 +868,25 @@ const planos = [
     preco: "R$ 79",
     destaque: true,
     resumo: "Para empresas que apresentam serviços e recebem solicitações.",
-    itens: ["Tudo do Essencial", "Serviços e agendamento", "Portfólio e depoimentos", "Formulário de orçamento", "Estatísticas"],
+    itens: [
+      "Tudo do Essencial",
+      "Serviços e agendamento",
+      "Portfólio e depoimentos",
+      "Formulário de orçamento",
+      "Estatísticas",
+    ],
   },
   {
     nome: "Catálogo",
     preco: "R$ 119",
     resumo: "Para lojas e restaurantes que divulgam produtos e recebem pedidos.",
-    itens: ["Tudo do Profissional", "Catálogo e cardápio", "Cupons e promoções", "Pix Copia e Cola", "Domínio personalizado"],
+    itens: [
+      "Tudo do Profissional",
+      "Catálogo e cardápio",
+      "Cupons e promoções",
+      "Pix Copia e Cola",
+      "Domínio personalizado",
+    ],
   },
 ];
 
@@ -883,7 +920,9 @@ export function Planos() {
                   </span>
                 )}
                 <h3 className="font-display text-2xl font-bold">{p.nome}</h3>
-                <p className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}>
+                <p
+                  className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
+                >
                   {p.resumo}
                 </p>
                 <p className="mt-6 font-display text-4xl font-extrabold">
@@ -893,7 +932,10 @@ export function Planos() {
                 <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                   {p.itens.map((it) => (
                     <li key={it} className="flex items-start gap-2">
-                      <Check size={16} className={p.destaque ? "mt-0.5 text-lime" : "mt-0.5 text-ink"} />
+                      <Check
+                        size={16}
+                        className={p.destaque ? "mt-0.5 text-lime" : "mt-0.5 text-ink"}
+                      />
                       {it}
                     </li>
                   ))}
@@ -924,8 +966,8 @@ export function Planos() {
           >
             <h3 className="font-display text-2xl font-bold">Plano {modal}</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Fale com nosso time para receber uma demonstração e ativar o plano para o seu
-              negócio. Nenhum pagamento é processado nesta versão.
+              Fale com nosso time para receber uma demonstração e ativar o plano para o seu negócio.
+              Nenhum pagamento é processado nesta versão.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
@@ -962,13 +1004,34 @@ export function Planos() {
 /* -------------------------------- FAQ -------------------------------- */
 
 const duvidasDe = (nome: string) => [
-  { p: "Preciso ter um site?", r: `Não. O ${nome} cria a página completa para você — ela já é o seu site.` },
-  { p: "Posso usar meu próprio domínio?", r: "Sim. É possível apontar um domínio próprio, como seunegocio.com.br." },
-  { p: "Funciona no celular?", r: "Todos os modelos são feitos primeiro para o celular, onde a maioria dos clientes acessa." },
-  { p: "Posso receber pedidos pelo WhatsApp?", r: "Sim. Cada produto ou serviço gera automaticamente a mensagem pronta." },
-  { p: "É possível alterar o conteúdo depois?", r: "Sempre. O editor mostra as mudanças na hora e publica com um clique." },
-  { p: "Consigo acompanhar os acessos?", r: "Sim, com visitas, cliques no WhatsApp, origens e horários de maior movimento." },
-  { p: "Preciso instalar algum aplicativo?", r: "Nenhum. Tudo funciona pelo navegador, no computador ou no celular." },
+  {
+    p: "Preciso ter um site?",
+    r: `Não. O ${nome} cria a página completa para você — ela já é o seu site.`,
+  },
+  {
+    p: "Posso usar meu próprio domínio?",
+    r: "Sim. É possível apontar um domínio próprio, como seunegocio.com.br.",
+  },
+  {
+    p: "Funciona no celular?",
+    r: "Todos os modelos são feitos primeiro para o celular, onde a maioria dos clientes acessa.",
+  },
+  {
+    p: "Posso receber pedidos pelo WhatsApp?",
+    r: "Sim. Cada produto ou serviço gera automaticamente a mensagem pronta.",
+  },
+  {
+    p: "É possível alterar o conteúdo depois?",
+    r: "Sempre. O editor mostra as mudanças na hora e publica com um clique.",
+  },
+  {
+    p: "Consigo acompanhar os acessos?",
+    r: "Sim, com visitas, cliques no WhatsApp, origens e horários de maior movimento.",
+  },
+  {
+    p: "Preciso instalar algum aplicativo?",
+    r: "Nenhum. Tudo funciona pelo navegador, no computador ou no celular.",
+  },
 ];
 
 export function Duvidas() {
@@ -1024,7 +1087,10 @@ export function CtaFinal() {
               Explorar modelos
             </Link>
             <a
-              href={whatsappLink(marca.whatsappComercial, `Olá! Gostaria de uma demonstração do ${marca.nome}.`)}
+              href={whatsappLink(
+                marca.whatsappComercial,
+                `Olá! Gostaria de uma demonstração do ${marca.nome}.`,
+              )}
               target="_blank"
               rel="noreferrer"
               className="rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold"

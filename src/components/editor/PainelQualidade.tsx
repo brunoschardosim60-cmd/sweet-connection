@@ -213,9 +213,7 @@ export function PainelQualidade({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">
-                <span className="sr-only">
-                  {i.situacao === "ok" ? "Concluído: " : "Revisar: "}
-                </span>
+                <span className="sr-only">{i.situacao === "ok" ? "Concluído: " : "Revisar: "}</span>
                 {i.titulo}
               </p>
               <p className="break-words text-xs text-muted-foreground">{i.detalhe}</p>

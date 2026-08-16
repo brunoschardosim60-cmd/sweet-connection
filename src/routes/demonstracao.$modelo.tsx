@@ -39,19 +39,23 @@ function Demonstracao() {
         </Link>
         <div className="flex shrink-0 items-center gap-2">
           <div className="flex rounded-full border border-border p-1">
-            {([["celular", Smartphone], ["tablet", Tablet], ["computador", Monitor]] as const).map(
-              ([k, Icone]) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-label={k}
-                  onClick={() => setDisp(k)}
-                  className={`grid h-8 w-8 place-items-center rounded-full ${disp === k ? "bg-ink text-ink-foreground" : ""}`}
-                >
-                  <Icone size={15} />
-                </button>
-              ),
-            )}
+            {(
+              [
+                ["celular", Smartphone],
+                ["tablet", Tablet],
+                ["computador", Monitor],
+              ] as const
+            ).map(([k, Icone]) => (
+              <button
+                key={k}
+                type="button"
+                aria-label={k}
+                onClick={() => setDisp(k)}
+                className={`grid h-8 w-8 place-items-center rounded-full ${disp === k ? "bg-ink text-ink-foreground" : ""}`}
+              >
+                <Icone size={15} />
+              </button>
+            ))}
           </div>
           <Link
             to="/painel/novo"

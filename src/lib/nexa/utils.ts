@@ -46,17 +46,11 @@ export const tempoRelativo = (iso: string) => {
   return `há ${d} ${d === 1 ? "dia" : "dias"}`;
 };
 
-export const diasSemana = [
-  "Segunda",
-  "Terça",
-  "Quarta",
-  "Quinta",
-  "Sexta",
-  "Sábado",
-  "Domingo",
-];
+export const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
-export function estaAberto(horarios: { dia: string; abre: string; fecha: string; fechado: boolean }[]) {
+export function estaAberto(
+  horarios: { dia: string; abre: string; fecha: string; fechado: boolean }[],
+) {
   const agora = new Date();
   const idx = (agora.getDay() + 6) % 7;
   const hoje = horarios[idx];

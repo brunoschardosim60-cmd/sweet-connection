@@ -34,7 +34,10 @@ export function baixarJson(site: Site) {
 
 export function lerArquivo(texto: string): Site {
   const bruto = JSON.parse(texto) as ArquivoNexa | Site;
-  const site = (bruto as ArquivoNexa).formato === "nexa-minisite" ? (bruto as ArquivoNexa).site : (bruto as Site);
+  const site =
+    (bruto as ArquivoNexa).formato === "nexa-minisite"
+      ? (bruto as ArquivoNexa).site
+      : (bruto as Site);
   if (!site || typeof site !== "object" || !site.conteudo || !site.aparencia)
     throw new Error("Arquivo inválido: não parece uma configuração de mini-site Nexa.");
   return site;

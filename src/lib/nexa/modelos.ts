@@ -7,7 +7,8 @@ export const modelos: Modelo[] = [
     nome: "Restaurante Moderno",
     segmento: "alimentacao",
     layout: "editorial",
-    descricao: "Cardápio digital, reservas e pedidos pelo WhatsApp com clima de casa contemporânea.",
+    descricao:
+      "Cardápio digital, reservas e pedidos pelo WhatsApp com clima de casa contemporânea.",
     destaque: "Cardápio + reserva",
     paleta: { fundo: "#12100e", texto: "#f7f3ec", primaria: "#e2b04a", suave: "#241f19" },
     imagem: imagens.restaurante,

@@ -69,7 +69,6 @@ export interface LinkItem {
   ativo: boolean;
 }
 
-
 export interface Produto {
   id: string;
   nome: string;
@@ -106,7 +105,6 @@ export interface ItemVideo {
   titulo: string;
   descricao?: string;
 }
-
 
 export interface Avaliacao {
   id: string;

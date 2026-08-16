@@ -21,9 +21,7 @@ export function PreviaCompartilhamento({ site, dominio }: { site: Site; dominio:
         <div className="rounded-2xl bg-[#075E54]/10 p-3">
           <div className="ml-auto max-w-[290px] rounded-xl rounded-tr-sm bg-[#dcf8c6] p-1.5 text-[#111b21] shadow-sm">
             <div className="overflow-hidden rounded-lg bg-white/70">
-              {imagem && (
-                <img src={imagem} alt="" className="h-28 w-full object-cover" />
-              )}
+              {imagem && <img src={imagem} alt="" className="h-28 w-full object-cover" />}
               <div className="p-2">
                 <p className="line-clamp-2 text-[12px] font-semibold leading-snug">{titulo}</p>
                 <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug opacity-70">
