@@ -59,7 +59,7 @@ export function MolduraPrevia({
 }) {
   if (dispositivo === "celular")
     return (
-      <PhoneFrame altura={660} className="max-w-full">
+      <PhoneFrame largura={240} altura={528} className="max-w-full">
         {children}
       </PhoneFrame>
     );

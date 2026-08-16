@@ -414,8 +414,8 @@ function NovoSite() {
           </div>
         </div>
 
-        <div className="hidden justify-center lg:flex">
-          <PhoneFrame>
+        <div className="hidden justify-center lg:sticky lg:top-20 lg:flex lg:self-start">
+          <PhoneFrame largura={240} altura={496}>
             <MiniSite site={previa} compacto botaoFlutuante={false} />
           </PhoneFrame>
         </div>
