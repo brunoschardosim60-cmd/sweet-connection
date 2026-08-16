@@ -174,6 +174,8 @@ export interface Aparencia {
   espacamento: "compacto" | "confortavel" | "amplo";
   layout: LayoutModelo;
   capaTipo: "imagem" | "cor";
+  /** Formato do ícone de perfil do mini-site. Padrão: redondo. */
+  logoFormato?: "redondo" | "quadrado";
 }
 
 export interface Integracoes {
