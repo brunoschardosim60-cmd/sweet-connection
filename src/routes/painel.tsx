@@ -123,7 +123,18 @@ function PainelLayout() {
     await navigate({ to: "/login", replace: true });
   };
 
-  const pendentes = pronto ? sites.reduce((total, s) => total + s.metricas.solicitacoes, 0) : 0;
+  const pendentes = pronto ? envios.length : 0;
+
+  const termo = busca.trim().toLowerCase();
+  const resultados = termo
+    ? sites
+        .filter((s) =>
+          [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
+            .filter(Boolean)
+            .some((v) => v.toLowerCase().includes(termo)),
+        )
+        .slice(0, 6)
+    : [];
 
   const ativoDe = (i: (typeof itens)[number]) =>
     i.exato ? pathname === i.to : pathname.startsWith(i.to);
