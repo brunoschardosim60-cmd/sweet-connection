@@ -225,10 +225,63 @@ export type AdminProjeto = {
 
 type ConteudoBruto = { conteudo?: { nome?: string }; cliente?: { empresa?: string } } | null;
 
-const nomeDoConteudo = (draft: unknown, publicado: unknown, slug: string) => {
-  const c = (publicado ?? draft) as ConteudoBruto;
-  return c?.conteudo?.nome?.trim() || c?.cliente?.empresa?.trim() || slug;
+const nomeDe = (bruto: unknown) => {
+  const c = bruto as ConteudoBruto;
+  return c?.conteudo?.nome?.trim() || c?.cliente?.empresa?.trim() || "";
 };
+
+/**
+ * O rascunho é a versão mais recente editada pelo dono; o conteúdo publicado
+ * serve apenas como alternativa quando o rascunho ainda não tem nome.
+ */
+export const nomeDoProjeto = (draft: unknown, publicado: unknown, slug: string) =>
+  nomeDe(draft) || nomeDe(publicado) || slug;
+
+export type LinhaMinisite = {
+  id: string;
+  slug: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  draft_content: unknown;
+  published_content: unknown;
+};
+
+/** Junta mini-sites e contagem de solicitações — puro, coberto por testes. */
+export function mapearProjetos(
+  sites: LinhaMinisite[],
+  envios: { minisite_id: string }[],
+): AdminProjeto[] {
+  const porSite = new Map<string, number>();
+  for (const e of envios) porSite.set(e.minisite_id, (porSite.get(e.minisite_id) ?? 0) + 1);
+  return sites.map((s) => ({
+    id: s.id,
+    slug: s.slug,
+    nome: nomeDoProjeto(s.draft_content, s.published_content, s.slug),
+    status: s.status,
+    criado_em: s.created_at,
+    atualizado_em: s.updated_at,
+    publicado_em: s.published_at,
+    solicitacoes: porSite.get(s.id) ?? 0,
+  }));
+}
+
+export type EstadoProjetos = {
+  carregando: boolean;
+  erro: string | null;
+  itens: AdminProjeto[];
+};
+
+/** Traduz o estado bruto da consulta em um dos quatro estados da interface. */
+export function descreverEstadoProjetos(
+  estado: EstadoProjetos,
+): "carregando" | "erro" | "vazio" | "lista" {
+  if (estado.carregando) return "carregando";
+  if (estado.erro) return "erro";
+  if (estado.itens.length === 0) return "vazio";
+  return "lista";
+}
 
 /**
  * Lê os mini-sites de um usuário específico (permitido pela política de leitura
