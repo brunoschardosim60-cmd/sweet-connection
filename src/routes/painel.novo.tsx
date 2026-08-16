@@ -58,7 +58,13 @@ function NovoSite() {
     () => modelos.filter((m) => m.segmento === cliente.segmento),
     [cliente.segmento],
   );
-  const lista = filtro === "todos" || sugeridos.length === 0 ? modelos : sugeridos;
+  const lista =
+    filtro === "todos" || sugeridos.length === 0
+      ? modelosCriacao
+      : [modeloPersonalizado, ...sugeridos];
+
+  /** Aparência salva pelo usuário, aplicada por cima do modelo escolhido. */
+  const meuModelo = meusModelos.find((m) => m.id === meuModeloId);
 
   const erroEmpresa =
     tocado && cliente.empresa.trim().length < 2 ? "Informe o nome da empresa." : undefined;
