@@ -280,7 +280,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     conteudo: {
       nome: cliente.empresa,
       descricao: "",
-      capa: modelo.imagem,
+      capa: emBranco ? undefined : modelo.imagem,
       telefone: cliente.telefone,
       whatsapp: cliente.telefone,
       email: cliente.email,
