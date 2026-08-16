@@ -28,7 +28,7 @@ export const modelos: Modelo[] = [
     nome: "Loja de Roupas",
     segmento: "comercio",
     layout: "catalogo",
-    descricao: "Vitrine de coleções com variações de tamanho, promoções e Pix copia e cola.",
+    descricao: "Vitrine de coleções com variações de tamanho, promoções e pedidos pelo WhatsApp.",
     destaque: "Catálogo com variações",
     paleta: { fundo: "#faf6f1", texto: "#201c18", primaria: "#c1633f", suave: "#efe6dc" },
     imagem: imagens.moda,

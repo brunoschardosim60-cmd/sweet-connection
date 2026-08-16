@@ -122,8 +122,8 @@ function Configuracoes() {
           <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">
             {hostMarca(marca)}/site/slug
           </code>{" "}
-          — nada precisa ser refeito. Cada cliente também pode ter um domínio próprio no campo de
-          integrações do editor.
+          — nada precisa ser refeito. Domínios próprios diferentes para cada cliente ainda estão
+          identificados como uma integração futura no editor.
         </p>
       </div>
 

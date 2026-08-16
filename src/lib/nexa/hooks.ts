@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { analytics } from "./analytics";
 import { marcaStore } from "./marca";
 import { store } from "./storage";
@@ -43,31 +43,42 @@ export function useSitePorSlug(slug?: string) {
 export function useHistorico<T>(atual: T) {
   const [pilha, setPilha] = useState<T[]>([]);
   const [refazer, setRefazer] = useState<T[]>([]);
+  const pilhaRef = useRef<T[]>([]);
+  const refazerRef = useRef<T[]>([]);
 
   const registrar = useCallback((anterior: T) => {
-    setPilha((p) => [...p.slice(-29), anterior]);
+    const proximaPilha = [...pilhaRef.current.slice(-29), anterior];
+    pilhaRef.current = proximaPilha;
+    refazerRef.current = [];
+    setPilha(proximaPilha);
     setRefazer([]);
   }, []);
 
   const desfazer = useCallback(() => {
-    let valor: T | undefined;
-    setPilha((p) => {
-      if (p.length === 0) return p;
-      valor = p[p.length - 1];
-      return p.slice(0, -1);
-    });
-    if (valor !== undefined) setRefazer((r) => [...r, atual]);
+    const existente = pilhaRef.current;
+    if (existente.length === 0) return undefined;
+
+    const valor = existente[existente.length - 1];
+    const proximaPilha = existente.slice(0, -1);
+    const proximoRefazer = [...refazerRef.current.slice(-29), atual];
+    pilhaRef.current = proximaPilha;
+    refazerRef.current = proximoRefazer;
+    setPilha(proximaPilha);
+    setRefazer(proximoRefazer);
     return valor;
   }, [atual]);
 
   const refazerAcao = useCallback(() => {
-    let valor: T | undefined;
-    setRefazer((r) => {
-      if (r.length === 0) return r;
-      valor = r[r.length - 1];
-      return r.slice(0, -1);
-    });
-    if (valor !== undefined) setPilha((p) => [...p, atual]);
+    const existente = refazerRef.current;
+    if (existente.length === 0) return undefined;
+
+    const valor = existente[existente.length - 1];
+    const proximoRefazer = existente.slice(0, -1);
+    const proximaPilha = [...pilhaRef.current.slice(-29), atual];
+    refazerRef.current = proximoRefazer;
+    pilhaRef.current = proximaPilha;
+    setRefazer(proximoRefazer);
+    setPilha(proximaPilha);
     return valor;
   }, [atual]);
 

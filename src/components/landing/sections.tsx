@@ -307,11 +307,11 @@ const recursos = [
   "Promoções temporárias",
   "Perguntas frequentes",
   "Formulário de orçamento",
-  "Pix Copia e Cola",
+  "Pix Copia e Cola (em breve)",
   "QR Code automático",
-  "Domínio personalizado",
-  "Pixel da Meta",
-  "Google Analytics",
+  "Domínio personalizado (em breve)",
+  "Pixel da Meta (em breve)",
+  "Google Analytics (em breve)",
   "Estatísticas de acessos",
   "Botões personalizados",
   "Tema claro ou escuro",
@@ -397,7 +397,7 @@ export function Recursos() {
           <Reveal className="md:col-span-2" delay={180}>
             <div className="h-full rounded-3xl border border-white/12 bg-white/[0.04] p-6">
               <CreditCard size={20} className="text-lime" />
-              <h3 className="mt-4 font-semibold">Pix Copia e Cola</h3>
+              <h3 className="mt-4 font-semibold">Pix Copia e Cola (em breve)</h3>
               <p className="mt-1 text-sm text-ink-muted">
                 Receba sem depender de maquininha ou link externo.
               </p>
@@ -668,7 +668,13 @@ const porSegmento = [
   {
     id: "lojas",
     nome: "Lojas",
-    itens: ["Catálogo", "Variações de produto", "Promoções", "Pix", "Pedido pelo WhatsApp"],
+    itens: [
+      "Catálogo",
+      "Variações de produto",
+      "Promoções",
+      "Pix (em breve)",
+      "Pedido pelo WhatsApp",
+    ],
   },
   {
     id: "transportadoras",
@@ -867,8 +873,8 @@ const planos = [
       "Tudo do Profissional",
       "Catálogo e cardápio",
       "Cupons e promoções",
-      "Pix Copia e Cola",
-      "Domínio personalizado",
+      "Pix Copia e Cola (em breve)",
+      "Domínio personalizado (em breve)",
     ],
   },
 ];
@@ -992,7 +998,7 @@ const duvidasDe = (nome: string) => [
   },
   {
     p: "Posso usar meu próprio domínio?",
-    r: "Sim. É possível apontar um domínio próprio, como seunegocio.com.br.",
+    r: "Ainda não por cliente. O domínio personalizado está identificado como uma integração futura no painel.",
   },
   {
     p: "Funciona no celular?",
