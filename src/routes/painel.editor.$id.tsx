@@ -1516,16 +1516,12 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
                 className="min-w-0 flex-1 bg-transparent outline-none"
               />
-              <button
-                type="button"
-                aria-label="Remover mídia"
-                onClick={() =>
+              <BotaoRemover
+                descricao="Remover esta mídia?"
+                onConfirmar={() =>
                   aplicar((s) => ({ ...s, galeria: s.galeria.filter((x) => x.id !== g.id) }))
                 }
-                className="text-ember"
-              >
-                <Trash2 size={14} />
-              </button>
+              />
             </li>
           ))}
         </ul>
@@ -1609,16 +1605,14 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
           }}
         />
         {versoes.length > 0 && (
-          <button
-            type="button"
-            onClick={() => {
+          <BotaoRemover
+            rotulo="Limpar histórico"
+            descricao="Apagar todas as versões salvas?"
+            onConfirmar={() => {
               versaoStore.limpar(site.id);
               toast.message("Histórico limpo");
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ember"
-          >
-            <Trash2 size={13} /> Limpar histórico
-          </button>
+          />
         )}
       </div>
 
@@ -1646,14 +1640,11 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
                 >
                   <RotateCcw size={12} /> Restaurar
                 </button>
-                <button
-                  type="button"
-                  aria-label="Excluir versão"
-                  onClick={() => versaoStore.remover(site.id, v.id)}
-                  className="text-ember"
-                >
-                  <Trash2 size={13} />
-                </button>
+                <BotaoRemover
+                  rotulo="Excluir"
+                  descricao="Excluir esta versão?"
+                  onConfirmar={() => versaoStore.remover(site.id, v.id)}
+                />
               </div>
             </li>
           ))}
