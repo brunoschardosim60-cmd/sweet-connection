@@ -1,3 +1,5 @@
+import type { Site } from "@/lib/nexa/types";
+
 /**
  * Regras puras de exibição de seções do mini-site.
  * Alguns tipos compartilham o mesmo bloco visual (cardápio/produtos e
@@ -16,4 +18,32 @@ export function secoesSemDuplicadas<T extends { tipo: string }>(secoes: T[]): T[
     vistos.add(grupo);
     return true;
   });
+}
+
+/** Indica se uma seção baseada em itens já tem algo para renderizar. */
+export function secaoTemConteudo(site: Site, tipo: string): boolean {
+  switch (grupoDeSecao(tipo)) {
+    case "links":
+      return site.links.some((item) => item.ativo);
+    case "produtos":
+      return site.produtos.length > 0;
+    case "servicos":
+      return site.servicos.length > 0;
+    case "galeria":
+      return site.galeria.length > 0;
+    case "videos":
+      return (site.videos?.length ?? 0) > 0;
+    case "depoimentos":
+      return site.depoimentos.length > 0;
+    case "equipe":
+      return site.equipe.length > 0;
+    case "cupom":
+      return site.cupons.some((item) => item.ativo);
+    case "faq":
+      return site.faq.length > 0;
+    case "formulario":
+      return site.formulario.campos.length > 0;
+    default:
+      return true;
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { grupoDeSecao, secoesSemDuplicadas } from "@/lib/nexa/secoes";
+import { grupoDeSecao, secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { modelos } from "@/lib/nexa/modelos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { extrasPorModelo } from "@/lib/nexa/demo-extras";
@@ -72,5 +72,54 @@ describe("conteúdo complementar dos modelos", () => {
   it("cada modelo tem nome e destaque próprios", () => {
     const nomes = new Set(modelos.map((m) => m.nome));
     expect(nomes.size).toBe(modelos.length);
+  });
+});
+
+describe("conteúdo visível das seções", () => {
+  it("considera vazias as seções de itens sem registros", () => {
+    const site = siteDoModelo(modelos[0]!.id);
+    site.produtos = [];
+    site.servicos = [];
+    site.galeria = [];
+    site.videos = [];
+    site.depoimentos = [];
+    site.equipe = [];
+    site.cupons = [];
+    site.faq = [];
+    site.links = [];
+    site.formulario.campos = [];
+
+    for (const tipo of [
+      "links",
+      "produtos",
+      "cardapio",
+      "servicos",
+      "galeria",
+      "videos",
+      "depoimentos",
+      "equipe",
+      "promocao",
+      "cupom",
+      "faq",
+      "formulario",
+    ]) {
+      expect(secaoTemConteudo(site, tipo), tipo).toBe(false);
+    }
+  });
+
+  it("mantém apresentação, localização, horários e rodapé visíveis sem listas", () => {
+    const site = siteDoModelo(modelos[0]!.id);
+    for (const tipo of ["apresentacao", "localizacao", "horarios", "rodape"]) {
+      expect(secaoTemConteudo(site, tipo), tipo).toBe(true);
+    }
+  });
+
+  it("ignora links e cupons desativados", () => {
+    const site = siteDoModelo(modelos[0]!.id);
+    site.links = site.links.map((item) => ({ ...item, ativo: false }));
+    site.cupons = site.cupons.map((item) => ({ ...item, ativo: false }));
+
+    expect(secaoTemConteudo(site, "links")).toBe(false);
+    expect(secaoTemConteudo(site, "cupom")).toBe(false);
   });
 });

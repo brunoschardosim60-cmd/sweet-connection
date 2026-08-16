@@ -43,6 +43,7 @@ import { versaoStore } from "@/lib/nexa/versoes";
 import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { grupoDeSecao, secaoTemConteudo } from "@/lib/nexa/secoes";
 import type { CampoFormulario, Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
@@ -478,7 +479,7 @@ function Editor() {
         >
           <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
           <MolduraPrevia dispositivo={dispositivo}>
-            <MiniSite site={rascunho} botaoFlutuante={false} />
+            <MiniSite site={rascunho} botaoFlutuante={false} modoEdicao />
           </MolduraPrevia>
         </section>
       </div>
@@ -743,6 +744,13 @@ function AbaSecoes({
       secoes: s.secoes.map((x) => (x.id === id ? { ...x, ...patch } : x)),
     }));
 
+  const atualizarTitulo = (secao: Site["secoes"][number], titulo: string) =>
+    aplicar((s) => ({
+      ...s,
+      secoes: s.secoes.map((item) => (item.id === secao.id ? { ...item, titulo } : item)),
+      formulario: secao.tipo === "formulario" ? { ...s.formulario, titulo } : s.formulario,
+    }));
+
   return (
     <Bloco titulo="Seções do mini-site" id="bloco-secoes">
       <p className="text-xs text-muted-foreground">
@@ -755,6 +763,10 @@ function AbaSecoes({
       <ul className="space-y-2">
         {site.secoes.map((sec, i) => {
           const aberta = expandida === sec.id;
+          const tituloEditavel = sec.tipo !== "apresentacao" && sec.tipo !== "rodape";
+          const tituloAtual = sec.tipo === "formulario" ? site.formulario.titulo : sec.titulo;
+          const vazio = !secaoTemConteudo(site, sec.tipo);
+          const compartilhaItens = ["produtos", "cardapio", "promocao", "cupom"].includes(sec.tipo);
           return (
             <li
               key={sec.id}
@@ -855,16 +867,37 @@ function AbaSecoes({
               </div>
 
               <div id={`secao-${sec.id}`} hidden={!aberta} className="space-y-2 px-3 pb-3">
-                <label className="block">
-                  <span className="mb-1 block text-xs font-medium text-muted-foreground">
-                    Título exibido
-                  </span>
-                  <input
-                    value={sec.titulo}
-                    onChange={(e) => atualizar(sec.id, { titulo: e.target.value })}
-                    className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
-                  />
-                </label>
+                {tituloEditavel ? (
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                      Título exibido
+                    </span>
+                    <input
+                      value={tituloAtual}
+                      onChange={(e) => atualizarTitulo(sec, e.target.value)}
+                      className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
+                    />
+                  </label>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {sec.tipo === "apresentacao"
+                      ? "Nome, descrição e imagens são editados em Conteúdo."
+                      : "Os dados do rodapé são editados em Conteúdo."}
+                  </p>
+                )}
+                {sec.ativa && vazio && (
+                  <p className="rounded-lg bg-secondary px-2.5 py-2 text-xs text-muted-foreground">
+                    Esta seção está ativa, mas ainda não possui itens. Use o botão abaixo para
+                    adicionar conteúdo.
+                  </p>
+                )}
+                {compartilhaItens && (
+                  <p className="text-xs text-muted-foreground">
+                    {grupoDeSecao(sec.tipo) === "produtos"
+                      ? "Produtos e Cardápio usam a mesma lista de itens."
+                      : "Promoção e Cupom usam a mesma lista de cupons."}
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-secondary px-2 py-1 text-[11px] text-muted-foreground">
                     {sec.ativa ? "Visível no site" : "Oculta no site"}

@@ -18,7 +18,7 @@ import {
 import { whatsappLink } from "@/lib/nexa/brand";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
-import { secoesSemDuplicadas } from "@/lib/nexa/secoes";
+import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
@@ -74,6 +74,7 @@ export function MiniSite({
   botaoFlutuante = true,
   rastrear = false,
   interacoesExternas = true,
+  modoEdicao = false,
 }: {
   site: Site;
   compacto?: boolean;
@@ -82,6 +83,8 @@ export function MiniSite({
   rastrear?: boolean;
   /** Permite abrir WhatsApp, mapas e outros destinos fora da Nexa. */
   interacoesExternas?: boolean;
+  /** Exibe marcadores para seções ativas ainda sem itens, somente na prévia do editor. */
+  modoEdicao?: boolean;
 }) {
   const a = site.aparencia;
   const ativas = site.secoes.filter((s) => s.ativa);
@@ -137,13 +140,19 @@ export function MiniSite({
             data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
             className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed"
           >
-            <Capa site={site} aberto={aberto} compacto={compacto} />
+            {tem("apresentacao") && <Capa site={site} aberto={aberto} compacto={compacto} />}
             <div
               className="mx-auto w-full max-w-[680px] px-5 pb-28"
               style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
             >
               {secoesOrdenadas.map((s) => (
-                <Secao key={s.id} tipo={s.tipo} titulo={s.titulo} site={site} />
+                <Secao
+                  key={s.id}
+                  tipo={s.tipo}
+                  titulo={s.titulo}
+                  site={site}
+                  modoEdicao={modoEdicao}
+                />
               ))}
             </div>
             {tem("rodape") && <Rodape site={site} />}
@@ -369,10 +378,24 @@ function contraste(hex: string) {
   return lum > 0.6 ? "#101010" : "#ffffff";
 }
 
-function Secao({ tipo, titulo, site }: { tipo: string; titulo: string; site: Site }) {
+function Secao({
+  tipo,
+  titulo,
+  site,
+  modoEdicao,
+}: {
+  tipo: string;
+  titulo: string;
+  site: Site;
+  modoEdicao: boolean;
+}) {
+  if (modoEdicao && !secaoTemConteudo(site, tipo)) {
+    return <SecaoVazia site={site} titulo={titulo} />;
+  }
+
   switch (tipo) {
     case "links":
-      return <BlocoLinks site={site} />;
+      return <BlocoLinks site={site} titulo={titulo} />;
     case "produtos":
     case "cardapio":
       return <BlocoProdutos site={site} titulo={titulo} />;
@@ -402,6 +425,20 @@ function Secao({ tipo, titulo, site }: { tipo: string; titulo: string; site: Sit
   }
 }
 
+function SecaoVazia({ site, titulo }: { site: Site; titulo: string }) {
+  return (
+    <section data-secao-vazia>
+      <Titulo site={site}>{titulo}</Titulo>
+      <div
+        className="px-4 py-5 text-center text-sm opacity-60"
+        style={{ border: "1px dashed var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+      >
+        Seção ativa. Adicione conteúdo na aba Itens.
+      </div>
+    </section>
+  );
+}
+
 function urlLink(l: LinkItem) {
   switch (l.tipo) {
     case "whatsapp":
@@ -428,7 +465,7 @@ function urlLink(l: LinkItem) {
   }
 }
 
-function BlocoLinks({ site }: { site: Site }) {
+function BlocoLinks({ site, titulo }: { site: Site; titulo: string }) {
   const registrar = useRastreio();
   const interacoesExternas = useContext(InteracoesExternasCtx);
   const links = site.links.filter((l) => l.ativo);
@@ -436,6 +473,7 @@ function BlocoLinks({ site }: { site: Site }) {
   const grade = site.aparencia.layout === "cards" || site.aparencia.layout === "colorido";
   return (
     <section>
+      <Titulo site={site}>{titulo}</Titulo>
       <div className={grade ? "grid grid-cols-2 gap-3" : "flex flex-col gap-3"}>
         {links.map((l) => {
           const Icone = iconesLink[l.tipo] ?? Link2;
