@@ -99,7 +99,10 @@ function NovoSite() {
     if (!podeAvancar || salvando) return;
     setSalvando(true);
     const base = criarSite(cliente, modeloId, slugFinal);
-    const site = { ...base, aparencia: { ...base.aparencia, logoFormato } };
+    const site = {
+      ...base,
+      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+    };
     try {
       const salvo = await store.adicionarSite(site);
       toast.success("Mini-site criado", { description: "Agora personalize no editor." });
