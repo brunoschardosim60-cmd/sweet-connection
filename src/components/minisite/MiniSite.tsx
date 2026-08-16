@@ -26,6 +26,7 @@ import type { LinkItem, Site } from "@/lib/nexa/types";
 /** Contexto de rastreio: ativo apenas no mini-site publicado. */
 const RastreioCtx = createContext<(rotulo: string, whatsapp?: boolean) => void>(() => {});
 const PublicacaoCtx = createContext(false);
+const InteracoesExternasCtx = createContext(true);
 export const useRastreio = () => useContext(RastreioCtx);
 
 const fontes: Record<Site["aparencia"]["fonte"], string> = {
@@ -72,12 +73,15 @@ export function MiniSite({
   compacto = false,
   botaoFlutuante = true,
   rastrear = false,
+  interacoesExternas = true,
 }: {
   site: Site;
   compacto?: boolean;
   botaoFlutuante?: boolean;
   /** Registra visitas e cliques no contador local (usado na página publicada). */
   rastrear?: boolean;
+  /** Permite abrir WhatsApp, mapas e outros destinos fora da Nexa. */
+  interacoesExternas?: boolean;
 }) {
   const a = site.aparencia;
   const ativas = site.secoes.filter((s) => s.ativa);
@@ -126,24 +130,27 @@ export function MiniSite({
 
   return (
     <PublicacaoCtx.Provider value={rastrear}>
-      <RastreioCtx.Provider value={registrar}>
-        <div
-          style={style}
-          className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed"
-        >
-          <Capa site={site} aberto={aberto} compacto={compacto} />
+      <InteracoesExternasCtx.Provider value={interacoesExternas}>
+        <RastreioCtx.Provider value={registrar}>
           <div
-            className="mx-auto w-full max-w-[680px] px-5 pb-28"
-            style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
+            style={style}
+            data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
+            className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed"
           >
-            {secoesOrdenadas.map((s) => (
-              <Secao key={s.id} tipo={s.tipo} titulo={s.titulo} site={site} />
-            ))}
+            <Capa site={site} aberto={aberto} compacto={compacto} />
+            <div
+              className="mx-auto w-full max-w-[680px] px-5 pb-28"
+              style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
+            >
+              {secoesOrdenadas.map((s) => (
+                <Secao key={s.id} tipo={s.tipo} titulo={s.titulo} site={site} />
+              ))}
+            </div>
+            {tem("rodape") && <Rodape site={site} />}
+            {botaoFlutuante && <BotaoWhatsapp site={site} />}
           </div>
-          {tem("rodape") && <Rodape site={site} />}
-          {botaoFlutuante && <BotaoWhatsapp site={site} />}
-        </div>
-      </RastreioCtx.Provider>
+        </RastreioCtx.Provider>
+      </InteracoesExternasCtx.Provider>
     </PublicacaoCtx.Provider>
   );
 }
@@ -311,6 +318,7 @@ function Botao({
   bloco?: boolean;
 }) {
   const a = site.aparencia;
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const estilos: React.CSSProperties =
     a.botao === "contorno"
       ? { border: `1px solid ${a.corPrimaria}`, color: a.corPrimaria, background: "transparent" }
@@ -324,10 +332,11 @@ function Botao({
   if (href)
     return (
       <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        onClick={onClick}
+        href={interacoesExternas ? href : undefined}
+        target={interacoesExternas ? "_blank" : undefined}
+        rel={interacoesExternas ? "noreferrer" : undefined}
+        aria-disabled={interacoesExternas ? undefined : true}
+        onClick={interacoesExternas ? onClick : undefined}
         className={cls}
         style={{ ...estilos, borderRadius: radius }}
       >
@@ -421,6 +430,7 @@ function urlLink(l: LinkItem) {
 
 function BlocoLinks({ site }: { site: Site }) {
   const registrar = useRastreio();
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const links = site.links.filter((l) => l.ativo);
   if (links.length === 0) return null;
   const grade = site.aparencia.layout === "cards" || site.aparencia.layout === "colorido";
@@ -432,10 +442,15 @@ function BlocoLinks({ site }: { site: Site }) {
           return (
             <a
               key={l.id}
-              href={urlLink(l)}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => registrar(l.titulo || l.tipo, l.tipo === "whatsapp")}
+              href={interacoesExternas ? urlLink(l) : undefined}
+              target={interacoesExternas ? "_blank" : undefined}
+              rel={interacoesExternas ? "noreferrer" : undefined}
+              aria-disabled={interacoesExternas ? undefined : true}
+              onClick={
+                interacoesExternas
+                  ? () => registrar(l.titulo || l.tipo, l.tipo === "whatsapp")
+                  : undefined
+              }
               className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-transform duration-200 hover:-translate-y-0.5"
               style={{
                 background: l.cor ?? "var(--ms-surface)",
@@ -1054,14 +1069,20 @@ function Rodape({ site }: { site: Site }) {
 
 function BotaoWhatsapp({ site }: { site: Site }) {
   const registrar = useRastreio();
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   if (!site.conteudo.whatsapp) return null;
   return (
     <a
-      href={whatsappLink(site.conteudo.whatsapp, `Olá! Vim pela página de ${site.conteudo.nome}.`)}
-      target="_blank"
-      rel="noreferrer"
+      href={
+        interacoesExternas
+          ? whatsappLink(site.conteudo.whatsapp, `Olá! Vim pela página de ${site.conteudo.nome}.`)
+          : undefined
+      }
+      target={interacoesExternas ? "_blank" : undefined}
+      rel={interacoesExternas ? "noreferrer" : undefined}
+      aria-disabled={interacoesExternas ? undefined : true}
       aria-label="Falar no WhatsApp"
-      onClick={() => registrar("Botão flutuante WhatsApp", true)}
+      onClick={interacoesExternas ? () => registrar("Botão flutuante WhatsApp", true) : undefined}
       className="absolute bottom-5 right-5 grid h-14 w-14 place-items-center shadow-lg transition-transform duration-200 hover:scale-105"
       style={{
         position: "fixed",

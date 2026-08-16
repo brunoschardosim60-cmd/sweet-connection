@@ -73,7 +73,7 @@ function Demonstracao() {
           style={{ maxWidth: larguras[disp], height: "80vh" }}
         >
           <div className="h-full overflow-y-auto overflow-x-hidden">
-            <MiniSite site={site} botaoFlutuante={false} />
+            <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
           </div>
         </div>
       </div>

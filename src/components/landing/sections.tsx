@@ -139,7 +139,7 @@ export function Hero() {
                 }}
               >
                 <PhoneFrame largura={272} altura={560}>
-                  <MiniSite site={s} compacto botaoFlutuante={false} />
+                  <MiniSite site={s} compacto botaoFlutuante={false} interacoesExternas={false} />
                 </PhoneFrame>
               </div>
             );
@@ -170,7 +170,12 @@ export function Hero() {
 
         <div className="mx-auto lg:hidden">
           <PhoneFrame largura={280} altura={560}>
-            <MiniSite site={sites[ativo]!} compacto botaoFlutuante={false} />
+            <MiniSite
+              site={sites[ativo]!}
+              compacto
+              botaoFlutuante={false}
+              interacoesExternas={false}
+            />
           </PhoneFrame>
         </div>
       </div>
@@ -258,6 +263,7 @@ export function Comparacao() {
                   site={siteDoModelo("restaurante-moderno")}
                   compacto
                   botaoFlutuante={false}
+                  interacoesExternas={false}
                 />
               </PhoneFrame>
             </div>
@@ -637,7 +643,7 @@ export function EditorDemo() {
 
         <Reveal delay={80} className="mx-auto">
           <PhoneFrame largura={300} altura={600}>
-            <MiniSite site={site} compacto botaoFlutuante={false} />
+            <MiniSite site={site} compacto botaoFlutuante={false} interacoesExternas={false} />
           </PhoneFrame>
         </Reveal>
       </div>
