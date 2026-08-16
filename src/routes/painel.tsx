@@ -130,33 +130,88 @@ function PainelLayout() {
   const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
 
   const termo = busca.trim().toLowerCase();
-  const resultadosSites = termo
-    ? sites
-        .filter((s) =>
-          [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
-            .filter(Boolean)
-            .some((v) => v.toLowerCase().includes(termo)),
-        )
-        .slice(0, 6)
+  const grupos: GrupoBusca[] = termo
+    ? [
+        {
+          rotulo: "Mini-sites",
+          itens: sites
+            .filter((s) =>
+              [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
+                .filter(Boolean)
+                .some((v) => v.toLowerCase().includes(termo)),
+            )
+            .slice(0, 6)
+            .map<ItemBusca>((s) => ({
+              tipo: "site",
+              id: s.id,
+              titulo: s.conteudo.nome || s.cliente.empresa || s.slug,
+              subtitulo: `/site/${s.slug} · ${s.status}`,
+            })),
+        },
+        {
+          rotulo: "Solicitações",
+          itens: envios
+            .filter((envio) =>
+              Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
+            )
+            .slice(0, 3)
+            .map<ItemBusca>((envio) => {
+              const site = sites.find((item) => item.id === envio.siteId);
+              return {
+                tipo: "envio",
+                id: envio.id,
+                titulo:
+                  Object.values(envio.dados).find((valor) => valor.toLowerCase().includes(termo)) ??
+                  "Solicitação",
+                subtitulo: site?.conteudo.nome || site?.slug || "Mini-site removido",
+              };
+            }),
+        },
+        {
+          rotulo: "Modelos",
+          itens: modelos
+            .filter((modelo) =>
+              [modelo.nome, modelo.descricao, modelo.destaque].some((valor) =>
+                valor.toLowerCase().includes(termo),
+              ),
+            )
+            .slice(0, 3)
+            .map<ItemBusca>((modelo) => ({
+              tipo: "modelo",
+              id: modelo.id,
+              titulo: modelo.nome,
+              subtitulo: modelo.destaque,
+            })),
+        },
+      ].filter((g) => g.itens.length > 0)
     : [];
-  const resultadosEnvios = termo
-    ? envios
-        .filter((envio) =>
-          Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
-        )
-        .slice(0, 3)
-    : [];
-  const resultadosModelos = termo
-    ? modelos
-        .filter((modelo) =>
-          [modelo.nome, modelo.descricao, modelo.destaque].some((valor) =>
-            valor.toLowerCase().includes(termo),
-          ),
-        )
-        .slice(0, 3)
-    : [];
-  const temResultados =
-    resultadosSites.length + resultadosEnvios.length + resultadosModelos.length > 0;
+  const planos = grupos.flatMap((g) => g.itens);
+  const temResultados = planos.length > 0;
+  const carregandoBusca = termo.length > 0 && !pronto;
+
+  const fecharBusca = () => {
+    setBusca("");
+    setAtivo(-1);
+  };
+
+  const aoTeclarBusca = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      fecharBusca();
+      return;
+    }
+    if (!temResultados) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setAtivo((v) => (v + 1) % planos.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setAtivo((v) => (v <= 0 ? planos.length - 1 : v - 1));
+    } else if (e.key === "Enter" && ativo >= 0) {
+      e.preventDefault();
+      opcoesRef.current[ativo]?.click();
+    }
+  };
+
 
   const navegacao = admin
     ? [...itens, { to: "/painel/admin", rotulo: "Administração", icone: ShieldCheck }]
