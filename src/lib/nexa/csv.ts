@@ -1,6 +1,9 @@
 /** Utilitários de exportação CSV usados no painel administrativo. */
 
-export type ColunaCsv<T> = { cabecalho: string; valor: (item: T) => string | number | null | undefined };
+export type ColunaCsv<T> = {
+  cabecalho: string;
+  valor: (item: T) => string | number | null | undefined;
+};
 
 /** Escapa um valor para CSV (aspas duplas, quebras de linha e ponto e vírgula). */
 export function campoCsv(valor: string | number | null | undefined): string {

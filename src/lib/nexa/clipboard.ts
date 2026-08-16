@@ -15,13 +15,13 @@ function normalizarOrigem(valor: string | undefined) {
   }
 }
 
-/** Origem real do host atual ou a URL pÃºblica configurada no build de produÃ§Ã£o. */
+/** Origem real do host atual ou a URL pública configurada no build de produção. */
 export function origemPublica() {
   if (typeof window !== "undefined") return window.location.origin;
   return normalizarOrigem(import.meta.env["VITE_PUBLIC_SITE_URL"]);
 }
 
-/** EndereÃ§o completo exibido/copiado para um mini-site. */
+/** Endereço completo exibido/copiado para um mini-site. */
 export const enderecoSite = (slug: string, origem = origemPublica()) =>
   `${origem.replace(/\/+$/, "")}${caminhoSite(slug)}`;
 

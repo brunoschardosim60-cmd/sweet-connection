@@ -159,6 +159,7 @@ export interface EnvioFormulario {
   siteId: string;
   criadoEm: string;
   dados: Record<string, string>;
+  status: "novo" | "lido" | "arquivado";
 }
 
 export interface Aparencia {

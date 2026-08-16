@@ -24,6 +24,18 @@ export function useNexa() {
 
   useEffect(() => {
     void store.carregar();
+
+    const atualizarAoRetomar = () => {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        void store.carregar(true);
+      }
+    };
+    window.addEventListener("focus", atualizarAoRetomar);
+    document.addEventListener("visibilitychange", atualizarAoRetomar);
+    return () => {
+      window.removeEventListener("focus", atualizarAoRetomar);
+      document.removeEventListener("visibilitychange", atualizarAoRetomar);
+    };
   }, []);
 
   return { ...estado, store };

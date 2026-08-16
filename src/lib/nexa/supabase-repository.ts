@@ -96,7 +96,7 @@ export const supabaseRepository = {
   async listarEnvios(): Promise<EnvioFormulario[]> {
     const { data, error } = await supabase
       .from("form_submissions")
-      .select("id,minisite_id,payload,created_at")
+      .select("id,minisite_id,payload,created_at,status")
       .order("created_at", { ascending: false });
     if (error) throw new Error(mensagemErro(error));
     return data.map((row) => ({
@@ -104,7 +104,19 @@ export const supabaseRepository = {
       siteId: row.minisite_id,
       criadoEm: row.created_at,
       dados: row.payload as Record<string, string>,
+      status: row.status,
     }));
+  },
+
+  async definirStatusEnvio(id: string, status: EnvioFormulario["status"]) {
+    const { data, error } = await supabase
+      .from("form_submissions")
+      .update({ status })
+      .eq("id", id)
+      .select("status")
+      .single();
+    if (error) throw new Error(mensagemErro(error));
+    return data.status;
   },
 
   async limparTudo() {

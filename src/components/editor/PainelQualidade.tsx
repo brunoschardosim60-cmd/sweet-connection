@@ -23,13 +23,13 @@ export const destinoPorSecao: Record<TipoSecao, DestinoEditor> = {
   galeria: { aba: "itens", bloco: "bloco-galeria" },
   videos: { aba: "itens", bloco: "bloco-videos" },
   depoimentos: { aba: "itens", bloco: "bloco-depoimentos" },
-  equipe: { aba: "itens", bloco: "bloco-servicos" },
-  promocao: { aba: "itens", bloco: "bloco-produtos" },
-  cupom: { aba: "itens", bloco: "bloco-produtos" },
+  equipe: { aba: "itens", bloco: "bloco-equipe" },
+  promocao: { aba: "itens", bloco: "bloco-cupons" },
+  cupom: { aba: "itens", bloco: "bloco-cupons" },
   localizacao: { aba: "conteudo", bloco: "bloco-contato" },
   horarios: { aba: "conteudo", bloco: "bloco-horarios" },
   faq: { aba: "itens", bloco: "bloco-faq" },
-  formulario: { aba: "itens", bloco: "bloco-links" },
+  formulario: { aba: "itens", bloco: "bloco-formulario" },
   rodape: { aba: "conteudo", bloco: "bloco-contato" },
 };
 

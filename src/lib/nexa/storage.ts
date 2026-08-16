@@ -107,6 +107,14 @@ export const store = {
     await supabaseRepository.removerSite(id);
     definir({ sites: estado.sites.filter((site) => site.id !== id) });
   },
+  async definirStatusEnvio(id: string, status: EnvioFormulario["status"]) {
+    const confirmado = await supabaseRepository.definirStatusEnvio(id, status);
+    definir({
+      envios: estado.envios.map((envio) =>
+        envio.id === id ? { ...envio, status: confirmado } : envio,
+      ),
+    });
+  },
   async limpar() {
     await midiaStore.removerTudo();
     await supabaseRepository.limparTudo();

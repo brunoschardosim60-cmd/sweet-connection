@@ -23,11 +23,7 @@ describe("csv", () => {
       ],
     );
 
-    expect(csv.split("\n")).toEqual([
-      "E-mail;Sites",
-      "a@nexa.com;2",
-      '"b;x@nexa.com";0',
-    ]);
+    expect(csv.split("\n")).toEqual(["E-mail;Sites", "a@nexa.com;2", '"b;x@nexa.com";0']);
   });
 
   it("gera nome de arquivo com a data", () => {

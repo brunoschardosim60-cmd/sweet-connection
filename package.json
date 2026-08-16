@@ -9,6 +9,10 @@
     "build:dev": "vite build --mode development",
     "preview": "wrangler dev --config .output/server/wrangler.json",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run typecheck && npm run lint && npm test",
     "format": "prettier --write ."
   },
   "dependencies": {

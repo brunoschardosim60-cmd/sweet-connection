@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type PapelNexa = "admin" | "pro" | "free";
+export type PapelNexa = "admin";
+export type PlanoNexa = "pro" | "free";
 
 export type AdminResumo = {
   usuarios: number;
@@ -24,12 +25,26 @@ export type AdminUsuario = {
   created_at: string;
   last_active_at: string;
   deletion_scheduled_at: string | null;
-  plano: string;
+  plano: PlanoNexa;
+  plan_updated_at: string;
+  plan_changed_by: string | null;
   is_admin: boolean;
   sites: number;
   sites_publicados: number;
   solicitacoes: number;
   papeis: PapelRegistro[];
+};
+
+export type AdminAuditoria = {
+  id: number;
+  actor_user_id: string | null;
+  actor_email: string | null;
+  target_user_id: string | null;
+  target_email: string | null;
+  action: "plan_changed";
+  previous_value: string | null;
+  new_value: string | null;
+  created_at: string;
 };
 
 export type AdminPonto = {
@@ -63,8 +78,7 @@ export function filtrarUsuarios(
   return usuarios.filter((u) => {
     if (filtro.plano && filtro.plano !== "todos" && u.plano !== filtro.plano) return false;
     if (filtro.papel && filtro.papel !== "todos") {
-      const tem = filtro.papel === "admin" ? u.is_admin : u.papeis.some((p) => p.role === filtro.papel);
-      if (!tem) return false;
+      if (!u.is_admin) return false;
     }
     if (filtro.atividade && filtro.atividade !== "todos") {
       const ativo = agora - new Date(u.last_active_at).getTime() <= 30 * DIA;
@@ -144,18 +158,20 @@ export function useAdminDados(periodo: Periodo = 30) {
   const [resumo, setResumo] = useState<AdminResumo | null>(null);
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([]);
   const [serie, setSerie] = useState<AdminPonto[]>([]);
+  const [auditoria, setAuditoria] = useState<AdminAuditoria[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
     setErro(null);
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4] = await Promise.all([
       supabase.rpc("nexa_admin_overview"),
       supabase.rpc("nexa_admin_users"),
       supabase.rpc("nexa_admin_series", { requested_days: periodo }),
+      supabase.rpc("nexa_admin_audit", { requested_limit: 100 }),
     ]);
-    const falha = r1.error ?? r2.error ?? r3.error;
+    const falha = r1.error ?? r2.error ?? r3.error ?? r4.error;
     if (falha) {
       setErro(mensagemErroAdmin(falha));
       setCarregando(false);
@@ -164,6 +180,7 @@ export function useAdminDados(periodo: Periodo = 30) {
     setResumo(r1.data as unknown as AdminResumo);
     setUsuarios((r2.data ?? []) as unknown as AdminUsuario[]);
     setSerie((r3.data ?? []) as unknown as AdminPonto[]);
+    setAuditoria((r4.data ?? []) as unknown as AdminAuditoria[]);
     setCarregando(false);
   }, [periodo]);
 
@@ -171,22 +188,11 @@ export function useAdminDados(periodo: Periodo = 30) {
     void carregar();
   }, [carregar]);
 
-  const definirPlano = useCallback(async (userId: string, plano: "pro" | "free") => {
-    const { error } = await supabase.rpc("nexa_admin_set_plan", {
-      requested_user_id: userId,
-      requested_plan: plano,
-    });
-    if (error) throw new Error(mensagemErroAdmin(error));
-    setUsuarios((atual) => atual.map((u) => (u.user_id === userId ? { ...u, plano } : u)));
-  }, []);
-
-  /** Concede ou remove qualquer papel, registrando a data no banco. */
-  const definirPapel = useCallback(
-    async (userId: string, papel: PapelNexa, ativo: boolean) => {
-      const { error } = await supabase.rpc("nexa_admin_set_role", {
+  const definirPlano = useCallback(
+    async (userId: string, plano: PlanoNexa) => {
+      const { error } = await supabase.rpc("nexa_admin_set_plan", {
         requested_user_id: userId,
-        requested_role: papel,
-        requested_enabled: ativo,
+        requested_plan: plano,
       });
       if (error) throw new Error(mensagemErroAdmin(error));
       await carregar();
@@ -194,5 +200,14 @@ export function useAdminDados(periodo: Periodo = 30) {
     [carregar],
   );
 
-  return { resumo, usuarios, serie, carregando, erro, recarregar: carregar, definirPlano, definirPapel };
+  return {
+    resumo,
+    usuarios,
+    serie,
+    auditoria,
+    carregando,
+    erro,
+    recarregar: carregar,
+    definirPlano,
+  };
 }

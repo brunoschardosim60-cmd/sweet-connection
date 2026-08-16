@@ -126,7 +126,7 @@ function PainelLayout() {
     await navigate({ to: "/login", replace: true });
   };
 
-  const pendentes = pronto ? envios.length : 0;
+  const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
 
   const termo = busca.trim().toLowerCase();
   const resultados = termo

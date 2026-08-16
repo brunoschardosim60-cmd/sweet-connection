@@ -12,14 +12,18 @@ function envDoArquivo(chave: string): string | undefined {
   try {
     const conteudo = readFileSync(new URL("../.env", import.meta.url), "utf8");
     const linha = conteudo.split("\n").find((l) => l.trim().startsWith(`${chave}=`));
-    return linha?.slice(linha.indexOf("=") + 1).trim().replace(/^"|"$/g, "");
+    return linha
+      ?.slice(linha.indexOf("=") + 1)
+      .trim()
+      .replace(/^"|"$/g, "");
   } catch {
     return undefined;
   }
 }
 
 const url = envDoArquivo("VITE_SUPABASE_URL");
-const chave = envDoArquivo("VITE_SUPABASE_PUBLISHABLE_KEY") ?? envDoArquivo("VITE_SUPABASE_ANON_KEY");
+const chave =
+  envDoArquivo("VITE_SUPABASE_PUBLISHABLE_KEY") ?? envDoArquivo("VITE_SUPABASE_ANON_KEY");
 const configurado = Boolean(url && chave);
 
 describe.runIf(configurado)("autorização administrativa (RLS)", () => {
@@ -34,28 +38,25 @@ describe.runIf(configurado)("autorização administrativa (RLS)", () => {
   it("nexa_admin_overview nega quem não é administrador", async () => {
     const { data, error } = await anon.rpc("nexa_admin_overview");
     expect(data).toBeNull();
-    expect(error).not.toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
   it("nexa_admin_users nega quem não é administrador", async () => {
     const { data, error } = await anon.rpc("nexa_admin_users");
     expect(data).toBeNull();
-    expect(error).not.toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
   it("nexa_admin_series nega quem não é administrador", async () => {
     const { data, error } = await anon.rpc("nexa_admin_series", { requested_days: 30 });
     expect(data).toBeNull();
-    expect(error).not.toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
-  it("nexa_admin_set_role nega quem não é administrador", async () => {
-    const { error } = await anon.rpc("nexa_admin_set_role", {
-      requested_user_id: "00000000-0000-4000-8000-000000000000",
-      requested_role: "admin",
-      requested_enabled: true,
-    });
-    expect(error).not.toBeNull();
+  it("nexa_admin_audit nega quem não é administrador", async () => {
+    const { data, error } = await anon.rpc("nexa_admin_audit", { requested_limit: 10 });
+    expect(data).toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
   it("nexa_admin_set_plan nega quem não é administrador", async () => {
@@ -63,7 +64,7 @@ describe.runIf(configurado)("autorização administrativa (RLS)", () => {
       requested_user_id: "00000000-0000-4000-8000-000000000000",
       requested_plan: "pro",
     });
-    expect(error).not.toBeNull();
+    expect(error?.code).toBe("42501");
   });
 
   it("user_roles não expõe papéis para visitantes", async () => {

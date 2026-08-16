@@ -1,4 +1,4 @@
-import { criarSecoes, horariosPadrao, metricasPadrao } from "./factory";
+import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
 import { imagens } from "./images";
 import { modeloPorId, modelos } from "./modelos";
 import type { Site, TipoSecao } from "./types";
@@ -627,7 +627,50 @@ const depoimentosGenericos: Site["depoimentos"] = [
 
 export function siteDoModelo(modeloId: string): Site {
   const modelo = modeloPorId(modeloId);
-  const c = conteudoPorModelo[modelo.id] ?? conteudoPorModelo["prestador-servicos"]!;
+  const base = conteudoPorModelo["prestador-servicos"]!;
+  const nomes: Record<string, string> = {
+    petshop: "Clube do Pet",
+    odontologia: "Odonto Sorriso",
+    mecanica: "Auto Prime Oficina",
+    pizzaria: "Forno da Vila",
+    doceria: "Doce Afeto",
+    "eventos-festas": "Celebra Buffet",
+  };
+  const alimentacao = modelo.segmento === "alimentacao";
+  const c = conteudoPorModelo[modelo.id] ?? {
+    ...base,
+    nome: nomes[modelo.id] ?? modelo.nome,
+    descricao: modelo.descricao,
+    instagram: modelo.id.replace(/-/g, "."),
+    secoes: presetsModelo[modelo.id]?.secoes ?? base.secoes,
+    produtos: alimentacao
+      ? [
+          {
+            id: "p1",
+            nome: modelo.id === "pizzaria" ? "Pizza especial da casa" : "Produto em destaque",
+            descricao: "Apresentação de exemplo para personalizar no editor.",
+            preco: 49.9,
+            categoria: modelo.id === "pizzaria" ? "Pizzas" : "Destaques",
+            variacoes: modelo.id === "pizzaria" ? ["Média", "Grande"] : [],
+            imagem: modelo.imagem,
+            disponivel: true,
+            destaque: true,
+          },
+        ]
+      : [],
+    servicos: alimentacao
+      ? []
+      : [
+          {
+            id: "s1",
+            nome: modelo.destaque,
+            descricao: "Serviço de exemplo para substituir pelas informações reais do negócio.",
+            duracao: "Consulte",
+            preco: 0,
+            imagem: modelo.imagem,
+          },
+        ],
+  };
   const agora = new Date().toISOString();
   return {
     id: `demo_${modelo.id}`,

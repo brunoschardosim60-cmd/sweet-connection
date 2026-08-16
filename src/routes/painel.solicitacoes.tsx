@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, Inbox, MessageCircle, Search } from "lucide-react";
+import { Archive, Download, Inbox, MessageCircle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useNexa } from "@/lib/nexa/hooks";
 import { dataHora, tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { EnvioFormulario, Site } from "@/lib/nexa/types";
+import { telefoneWhatsApp } from "@/lib/nexa/telefone";
 
 export const Route = createFileRoute("/painel/solicitacoes")({
   head: () => ({
@@ -50,11 +51,12 @@ function resumo(dados: Record<string, string>) {
 function csv(envios: EnvioFormulario[], sites: Site[]) {
   const colunas = new Set<string>();
   for (const e of envios) for (const c of Object.keys(e.dados)) colunas.add(c);
-  const cabecalho = ["data", "minisite", ...colunas];
+  const cabecalho = ["data", "status", "minisite", ...colunas];
   const escapar = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const linhas = envios.map((e) =>
     [
       dataHora(e.criadoEm),
+      e.status,
       sites.find((s) => s.id === e.siteId)?.conteudo.nome ?? e.siteId,
       ...Array.from(colunas).map((c) => e.dados[c] ?? ""),
     ]
@@ -65,9 +67,10 @@ function csv(envios: EnvioFormulario[], sites: Site[]) {
 }
 
 function PaginaSolicitacoes() {
-  const { sites, envios, pronto } = useNexa();
+  const { sites, envios, pronto, store } = useNexa();
   const [siteId, setSiteId] = useState("todos");
   const [periodo, setPeriodo] = useState<(typeof periodos)[number]["id"]>("todos");
+  const [status, setStatus] = useState<"todos" | EnvioFormulario["status"]>("todos");
   const [busca, setBusca] = useState("");
   const [aberto, setAberto] = useState<string | null>(null);
 
@@ -77,11 +80,37 @@ function PaginaSolicitacoes() {
     const termo = busca.trim().toLowerCase();
     return envios.filter((e) => {
       if (siteId !== "todos" && e.siteId !== siteId) return false;
+      if (status !== "todos" && e.status !== status) return false;
       if (limite && new Date(e.criadoEm).getTime() < limite) return false;
       if (!termo) return true;
       return Object.values(e.dados).some((v) => (v ?? "").toLowerCase().includes(termo));
     });
-  }, [busca, envios, periodo, siteId]);
+  }, [busca, envios, periodo, siteId, status]);
+
+  const abrirEnvio = async (envio: EnvioFormulario) => {
+    const vaiAbrir = aberto !== envio.id;
+    setAberto(vaiAbrir ? envio.id : null);
+    if (vaiAbrir && envio.status === "novo") {
+      try {
+        await store.definirStatusEnvio(envio.id, "lido");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Não foi possível marcar como lido.");
+      }
+    }
+  };
+
+  const arquivar = async (envio: EnvioFormulario) => {
+    try {
+      await store.definirStatusEnvio(envio.id, envio.status === "arquivado" ? "lido" : "arquivado");
+      toast.success(
+        envio.status === "arquivado" ? "Solicitação restaurada." : "Solicitação arquivada.",
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível alterar a solicitação.",
+      );
+    }
+  };
 
   const exportar = () => {
     if (filtrados.length === 0) {
@@ -128,7 +157,7 @@ function PaginaSolicitacoes() {
         </button>
       </div>
 
-      <div className="surface grid gap-3 p-4 sm:grid-cols-3">
+      <div className="surface grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-3">
           <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
           <span className="sr-only">Buscar nas solicitações</span>
@@ -152,6 +181,21 @@ function PaginaSolicitacoes() {
                 {s.conteudo.nome || s.slug}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <span className="sr-only sm:not-sr-only">Status</span>
+          <select
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as "todos" | EnvioFormulario["status"])
+            }
+            className="min-h-11 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+          >
+            <option value="todos">Todos os status</option>
+            <option value="novo">Novos</option>
+            <option value="lido">Lidos</option>
+            <option value="arquivado">Arquivados</option>
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
@@ -192,19 +236,19 @@ function PaginaSolicitacoes() {
                   <button
                     type="button"
                     aria-expanded={expandido}
-                    onClick={() => setAberto(expandido ? null : e.id)}
+                    onClick={() => void abrirEnvio(e)}
                     className="min-w-0 flex-1 text-left"
                   >
                     <p className="truncate font-semibold">{resumo(e.dados)}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {site?.conteudo.nome || site?.slug || "Mini-site removido"} ·{" "}
+                      {site?.conteudo.nome || site?.slug || "Mini-site removido"} · {e.status} ·{" "}
                       {tempoRelativo(e.criadoEm)} · {dataHora(e.criadoEm)}
                     </p>
                   </button>
                   <div className="flex shrink-0 items-center gap-2">
                     {telefone && (
                       <a
-                        href={`https://wa.me/55${telefone}`}
+                        href={`https://wa.me/${telefoneWhatsApp(telefone)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground"
@@ -212,6 +256,14 @@ function PaginaSolicitacoes() {
                         <MessageCircle size={15} /> WhatsApp
                       </a>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => void arquivar(e)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary"
+                    >
+                      <Archive size={15} aria-hidden="true" />
+                      {e.status === "arquivado" ? "Restaurar" : "Arquivar"}
+                    </button>
                     {site && (
                       <Link
                         to="/painel/editor/$id"
@@ -241,11 +293,6 @@ function PaginaSolicitacoes() {
           })}
         </ul>
       )}
-
-      <p className="text-xs text-muted-foreground">
-        Marcar como respondido, arquivar e avisos automáticos dependem de novos campos no banco —
-        ainda não estão disponíveis.
-      </p>
     </div>
   );
 }

@@ -1742,8 +1742,8 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                   description: "Cole na bio do Instagram ou no WhatsApp.",
                 });
               } else {
-                toast.error("NÃ£o foi possÃ­vel copiar", {
-                  description: "O navegador bloqueou o acesso Ã  Ã¡rea de transferÃªncia.",
+                toast.error("Não foi possível copiar", {
+                  description: "O navegador bloqueou o acesso à área de transferência.",
                 });
               }
             }}

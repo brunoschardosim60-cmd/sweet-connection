@@ -44,7 +44,9 @@ export const Route = createFileRoute("/painel/admin/")({
 });
 
 const dataCurta = (v: string | null) =>
-  v ? new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  v
+    ? new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+    : "—";
 
 const rotuloDia = (dia: string) =>
   new Date(`${dia}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
@@ -99,8 +101,8 @@ function LinhaUsuario({
         </p>
         <p className="truncate text-xs text-muted-foreground">{u.email ?? "e-mail indisponível"}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          {u.sites} site(s) · {u.sites_publicados} publicado(s) · {u.solicitacoes} solicitação(ões) ·
-          cadastro {dataCurta(u.created_at)} · ativo {dataCurta(u.last_active_at)}
+          {u.sites} site(s) · {u.sites_publicados} publicado(s) · {u.solicitacoes} solicitação(ões)
+          · cadastro {dataCurta(u.created_at)} · ativo {dataCurta(u.last_active_at)}
         </p>
       </div>
 
@@ -155,7 +157,9 @@ function PainelAdmin() {
     setAlterando(u.user_id);
     try {
       await definirPlano(u.user_id, novo);
-      toast.success(`Plano de ${u.email ?? "usuário"} atualizado para ${novo === "pro" ? "Pro" : "Gratuito"}.`);
+      toast.success(
+        `Plano de ${u.email ?? "usuário"} atualizado para ${novo === "pro" ? "Pro" : "Gratuito"}.`,
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível alterar o plano.");
     } finally {
@@ -263,7 +267,7 @@ function PainelAdmin() {
             to="/painel/admin/papeis"
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary"
           >
-            <ShieldCheck size={15} aria-hidden="true" /> Papéis de acesso
+            <ShieldCheck size={15} aria-hidden="true" /> Planos e auditoria
           </Link>
           <button
             type="button"
@@ -325,7 +329,11 @@ function PainelAdmin() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full border border-border p-1" role="group" aria-label="Período das métricas">
+            <div
+              className="flex items-center gap-1 rounded-full border border-border p-1"
+              role="group"
+              aria-label="Período das métricas"
+            >
               {PERIODOS.map((p) => (
                 <button
                   key={p}
@@ -333,7 +341,9 @@ function PainelAdmin() {
                   aria-pressed={periodo === p}
                   onClick={() => setPeriodo(p)}
                   className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
-                    periodo === p ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
+                    periodo === p
+                      ? "bg-ink text-ink-foreground"
+                      : "text-muted-foreground hover:bg-secondary"
                   }`}
                 >
                   {p} dias
@@ -374,9 +384,13 @@ function PainelAdmin() {
           <div className="h-40">
             <GraficoBarras
               ariaLabel={`Solicitações por dia nos últimos ${periodo} dias`}
-              dados={serie.slice(-14).map((p) => ({ rotulo: rotuloDia(p.dia), valor: p.solicitacoes }))}
+              dados={serie
+                .slice(-14)
+                .map((p) => ({ rotulo: rotuloDia(p.dia), valor: p.solicitacoes }))}
             />
-            <p className="mt-1 text-xs text-muted-foreground">Solicitações recebidas (14 dias finais)</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Solicitações recebidas (14 dias finais)
+            </p>
           </div>
           <div className="h-40">
             <GraficoArea
@@ -407,7 +421,11 @@ function PainelAdmin() {
           />
         </label>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full border border-border p-1" role="group" aria-label="Filtrar por plano">
+          <div
+            className="flex items-center gap-1 rounded-full border border-border p-1"
+            role="group"
+            aria-label="Filtrar por plano"
+          >
             {(["todos", "pro", "free"] as const).map((f) => (
               <button
                 key={f}
@@ -415,14 +433,20 @@ function PainelAdmin() {
                 aria-pressed={plano === f}
                 onClick={() => setPlano(f)}
                 className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
-                  plano === f ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
+                  plano === f
+                    ? "bg-ink text-ink-foreground"
+                    : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 {f === "todos" ? "Todos" : f === "pro" ? "Pro" : "Gratuitos"}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-border p-1" role="group" aria-label="Filtrar por atividade">
+          <div
+            className="flex items-center gap-1 rounded-full border border-border p-1"
+            role="group"
+            aria-label="Filtrar por atividade"
+          >
             {(["todos", "ativos", "inativos"] as const).map((f) => (
               <button
                 key={f}
@@ -430,7 +454,9 @@ function PainelAdmin() {
                 aria-pressed={atividade === f}
                 onClick={() => setAtividade(f)}
                 className={`min-h-9 rounded-full px-3 text-xs font-semibold ${
-                  atividade === f ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
+                  atividade === f
+                    ? "bg-ink text-ink-foreground"
+                    : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 {f === "todos" ? "Qualquer" : f === "ativos" ? "Ativos 30d" : "Inativos"}

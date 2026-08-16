@@ -18,19 +18,24 @@ const base = (over: Partial<AdminUsuario>): AdminUsuario => ({
   last_active_at: dias(1),
   deletion_scheduled_at: null,
   plano: "free",
+  plan_updated_at: dias(100),
+  plan_changed_by: null,
   is_admin: false,
   sites: 1,
   sites_publicados: 0,
   solicitacoes: 0,
-  papeis: [{ role: "free", created_at: dias(100), updated_at: dias(100) }],
+  papeis: [],
   ...over,
 });
 
 const usuarios: AdminUsuario[] = [
-  base({ user_id: "a", email: "adm@nexa.com", is_admin: true, plano: "pro", papeis: [
-    { role: "admin", created_at: dias(50), updated_at: dias(50) },
-    { role: "pro", created_at: dias(50), updated_at: dias(2) },
-  ] }),
+  base({
+    user_id: "a",
+    email: "adm@nexa.com",
+    is_admin: true,
+    plano: "pro",
+    papeis: [{ role: "admin", created_at: dias(50), updated_at: dias(50) }],
+  }),
   base({ user_id: "b", email: "pro@nexa.com", plano: "pro", sites: 3 }),
   base({ user_id: "c", email: "inativo@nexa.com", last_active_at: dias(120), sites: 0 }),
 ];
@@ -41,27 +46,44 @@ describe("filtrarUsuarios", () => {
   });
 
   it("filtra por plano", () => {
-    expect(filtrarUsuarios(usuarios, { plano: "pro" }, AGORA).map((u) => u.user_id)).toEqual(["a", "b"]);
-    expect(filtrarUsuarios(usuarios, { plano: "free" }, AGORA).map((u) => u.user_id)).toEqual(["c"]);
+    expect(filtrarUsuarios(usuarios, { plano: "pro" }, AGORA).map((u) => u.user_id)).toEqual([
+      "a",
+      "b",
+    ]);
+    expect(filtrarUsuarios(usuarios, { plano: "free" }, AGORA).map((u) => u.user_id)).toEqual([
+      "c",
+    ]);
   });
 
   it("filtra por papel de administrador", () => {
-    expect(filtrarUsuarios(usuarios, { papel: "admin" }, AGORA).map((u) => u.user_id)).toEqual(["a"]);
+    expect(filtrarUsuarios(usuarios, { papel: "admin" }, AGORA).map((u) => u.user_id)).toEqual([
+      "a",
+    ]);
   });
 
   it("filtra por atividade nos últimos 30 dias", () => {
-    expect(filtrarUsuarios(usuarios, { atividade: "ativos" }, AGORA).map((u) => u.user_id)).toEqual(["a", "b"]);
-    expect(filtrarUsuarios(usuarios, { atividade: "inativos" }, AGORA).map((u) => u.user_id)).toEqual(["c"]);
+    expect(filtrarUsuarios(usuarios, { atividade: "ativos" }, AGORA).map((u) => u.user_id)).toEqual(
+      ["a", "b"],
+    );
+    expect(
+      filtrarUsuarios(usuarios, { atividade: "inativos" }, AGORA).map((u) => u.user_id),
+    ).toEqual(["c"]);
   });
 
   it("filtra apenas quem tem mini-sites e busca por e-mail", () => {
     expect(filtrarUsuarios(usuarios, { comSites: true }, AGORA)).toHaveLength(2);
-    expect(filtrarUsuarios(usuarios, { busca: "ADM@" }, AGORA).map((u) => u.user_id)).toEqual(["a"]);
+    expect(filtrarUsuarios(usuarios, { busca: "ADM@" }, AGORA).map((u) => u.user_id)).toEqual([
+      "a",
+    ]);
     expect(filtrarUsuarios(usuarios, { busca: "inexistente" }, AGORA)).toHaveLength(0);
   });
 
   it("combina filtros", () => {
-    const r = filtrarUsuarios(usuarios, { plano: "pro", atividade: "ativos", comSites: true }, AGORA);
+    const r = filtrarUsuarios(
+      usuarios,
+      { plano: "pro", atividade: "ativos", comSites: true },
+      AGORA,
+    );
     expect(r.map((u) => u.user_id)).toEqual(["a", "b"]);
   });
 });
@@ -82,11 +104,15 @@ describe("somarSerie", () => {
 
 describe("mensagemErroAdmin", () => {
   it("traduz negação de permissão do Postgres", () => {
-    expect(mensagemErroAdmin({ message: "admin_required", code: "42501" })).toMatch(/administrador/i);
+    expect(mensagemErroAdmin({ message: "admin_required", code: "42501" })).toMatch(
+      /administrador/i,
+    );
   });
 
   it("avisa quando as funções não existem no banco", () => {
-    expect(mensagemErroAdmin({ message: "not found", code: "PGRST202" })).toMatch(/funções administrativas/i);
+    expect(mensagemErroAdmin({ message: "not found", code: "PGRST202" })).toMatch(
+      /funções administrativas/i,
+    );
   });
 
   it("repassa outras mensagens", () => {
