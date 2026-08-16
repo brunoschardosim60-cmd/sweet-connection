@@ -1188,6 +1188,58 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }))
               }
             />
+            <SeletorMidia
+              rotulo="Foto do cliente"
+              valor={d.foto ?? ""}
+              onChange={(valor) =>
+                aplicar((s) => ({
+                  ...s,
+                  depoimentos: s.depoimentos.map((item) => {
+                    if (item.id !== d.id) return item;
+                    const { foto: _anterior, ...restante } = item;
+                    return valor ? { ...restante, foto: valor } : restante;
+                  }),
+                }))
+              }
+            />
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <label className="flex items-center gap-2">
+                Nota
+                <select
+                  value={d.nota}
+                  onChange={(event) =>
+                    aplicar((s) => ({
+                      ...s,
+                      depoimentos: s.depoimentos.map((item) =>
+                        item.id === d.id ? { ...item, nota: Number(event.target.value) } : item,
+                      ),
+                    }))
+                  }
+                  className="min-h-9 rounded-lg border border-border bg-background px-2 text-foreground"
+                >
+                  {[1, 2, 3, 4, 5].map((nota) => (
+                    <option key={nota} value={nota}>
+                      {nota} estrela{nota > 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex min-h-9 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={d.destaque}
+                  onChange={(event) =>
+                    aplicar((s) => ({
+                      ...s,
+                      depoimentos: s.depoimentos.map((item) =>
+                        item.id === d.id ? { ...item, destaque: event.target.checked } : item,
+                      ),
+                    }))
+                  }
+                />
+                Mostrar em destaque
+              </label>
+            </div>
           </LinhaItem>
         ))}
         <BotaoAdicionar

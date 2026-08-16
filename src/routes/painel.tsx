@@ -32,6 +32,7 @@ import { versaoStore } from "@/lib/nexa/versoes";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { useIsAdmin } from "@/lib/nexa/admin";
 import { supabase } from "@/integrations/supabase/client";
+import { modelos } from "@/lib/nexa/modelos";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -129,7 +130,7 @@ function PainelLayout() {
   const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
 
   const termo = busca.trim().toLowerCase();
-  const resultados = termo
+  const resultadosSites = termo
     ? sites
         .filter((s) =>
           [s.conteudo.nome, s.cliente.empresa, s.cliente.responsavel, s.slug]
@@ -138,6 +139,24 @@ function PainelLayout() {
         )
         .slice(0, 6)
     : [];
+  const resultadosEnvios = termo
+    ? envios
+        .filter((envio) =>
+          Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
+        )
+        .slice(0, 3)
+    : [];
+  const resultadosModelos = termo
+    ? modelos
+        .filter((modelo) =>
+          [modelo.nome, modelo.descricao, modelo.destaque].some((valor) =>
+            valor.toLowerCase().includes(termo),
+          ),
+        )
+        .slice(0, 3)
+    : [];
+  const temResultados =
+    resultadosSites.length + resultadosEnvios.length + resultadosModelos.length > 0;
 
   const navegacao = admin
     ? [...itens, { to: "/painel/admin", rotulo: "Administração", icone: ShieldCheck }]
@@ -234,7 +253,7 @@ function PainelLayout() {
                   if (e.key === "Escape") setBusca("");
                 }}
                 role="combobox"
-                aria-expanded={resultados.length > 0}
+                aria-expanded={temResultados}
                 aria-controls="resultados-busca-painel"
                 placeholder="Buscar clientes, mini-sites ou /slug"
                 className="w-full bg-transparent text-sm outline-none"
@@ -246,29 +265,69 @@ function PainelLayout() {
                 role="listbox"
                 className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
               >
-                {resultados.length === 0 ? (
+                {!temResultados ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">
                     Nada encontrado para “{busca.trim()}”.
                   </p>
                 ) : (
-                  resultados.map((s) => (
-                    <Link
-                      key={s.id}
-                      to="/painel/editor/$id"
-                      params={{ id: s.id }}
-                      role="option"
-                      aria-selected="false"
-                      onClick={() => setBusca("")}
-                      className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
-                    >
-                      <span className="truncate text-sm font-medium">
-                        {s.conteudo.nome || s.cliente.empresa || s.slug}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        /site/{s.slug} · {s.status}
-                      </span>
-                    </Link>
-                  ))
+                  <>
+                    {resultadosSites.map((site) => (
+                      <Link
+                        key={`site:${site.id}`}
+                        to="/painel/editor/$id"
+                        params={{ id: site.id }}
+                        role="option"
+                        aria-selected="false"
+                        onClick={() => setBusca("")}
+                        className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
+                      >
+                        <span className="truncate text-sm font-medium">
+                          {site.conteudo.nome || site.cliente.empresa || site.slug}
+                        </span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          Mini-site · /site/{site.slug} · {site.status}
+                        </span>
+                      </Link>
+                    ))}
+                    {resultadosEnvios.map((envio) => {
+                      const site = sites.find((item) => item.id === envio.siteId);
+                      const resumo = Object.values(envio.dados).find((valor) =>
+                        valor.toLowerCase().includes(termo),
+                      );
+                      return (
+                        <Link
+                          key={`envio:${envio.id}`}
+                          to="/painel/solicitacoes"
+                          role="option"
+                          aria-selected="false"
+                          onClick={() => setBusca("")}
+                          className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
+                        >
+                          <span className="truncate text-sm font-medium">{resumo}</span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            Solicitação ·{" "}
+                            {site?.conteudo.nome || site?.slug || "Mini-site removido"}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                    {resultadosModelos.map((modelo) => (
+                      <Link
+                        key={`modelo:${modelo.id}`}
+                        to="/demonstracao/$modelo"
+                        params={{ modelo: modelo.id }}
+                        role="option"
+                        aria-selected="false"
+                        onClick={() => setBusca("")}
+                        className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
+                      >
+                        <span className="truncate text-sm font-medium">{modelo.nome}</span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          Modelo · {modelo.destaque}
+                        </span>
+                      </Link>
+                    ))}
+                  </>
                 )}
                 <Link
                   to="/painel/novo"
