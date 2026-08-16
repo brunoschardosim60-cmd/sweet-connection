@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   BarChart3,
+  ChevronDown,
   Crown,
+  ExternalLink,
   Download,
   Globe,
   Inbox,
@@ -20,7 +22,9 @@ import {
   filtrarUsuarios,
   somarSerie,
   useAdminDados,
+  carregarProjetosUsuario,
   useIsAdmin,
+  type AdminProjeto,
   type AdminUsuario,
   type Periodo,
 } from "@/lib/nexa/admin";
@@ -78,6 +82,88 @@ function Cartao({
   );
 }
 
+const CHIP_STATUS: Record<string, string> = {
+  publicado: "bg-lime text-ink",
+  rascunho: "border border-border text-muted-foreground",
+  pausado: "bg-secondary text-foreground",
+};
+
+function ProjetosDoUsuario({ userId, email }: { userId: string; email: string }) {
+  const [estado, setEstado] = useState<{
+    carregando: boolean;
+    erro: string | null;
+    itens: AdminProjeto[];
+  }>({ carregando: true, erro: null, itens: [] });
+
+  useEffect(() => {
+    let ativo = true;
+    setEstado({ carregando: true, erro: null, itens: [] });
+    carregarProjetosUsuario(userId)
+      .then((itens) => ativo && setEstado({ carregando: false, erro: null, itens }))
+      .catch((e: Error) => ativo && setEstado({ carregando: false, erro: e.message, itens: [] }));
+    return () => {
+      ativo = false;
+    };
+  }, [userId]);
+
+  if (estado.carregando) {
+    return (
+      <p className="flex items-center gap-2 px-1 py-3 text-xs text-muted-foreground" role="status">
+        <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Carregando projetos de{" "}
+        {email}…
+      </p>
+    );
+  }
+  if (estado.erro) {
+    return (
+      <p role="alert" className="px-1 py-3 text-xs text-destructive">
+        {estado.erro}
+      </p>
+    );
+  }
+  if (estado.itens.length === 0) {
+    return (
+      <p className="px-1 py-3 text-xs text-muted-foreground">
+        Esta conta ainda não criou nenhum mini-site.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="grid gap-2 pt-3 sm:grid-cols-2">
+      {estado.itens.map((p) => (
+        <li key={p.id} className="rounded-xl border border-border bg-background p-3">
+          <div className="flex items-start justify-between gap-2">
+            <p className="min-w-0 truncate text-sm font-semibold">{p.nome}</p>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize ${
+                CHIP_STATUS[p.status] ?? "border border-border text-muted-foreground"
+              }`}
+            >
+              {p.status}
+            </span>
+          </div>
+          <p className="mt-1 truncate text-xs text-muted-foreground">/site/{p.slug}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {p.solicitacoes} solicitação(ões) · criado {dataCurta(p.criado_em)} · atualizado{" "}
+            {dataCurta(p.atualizado_em)}
+            {p.publicado_em ? ` · publicado ${dataCurta(p.publicado_em)}` : ""}
+          </p>
+          {p.status === "publicado" && (
+            <Link
+              to="/site/$slug"
+              params={{ slug: p.slug }}
+              className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+            >
+              <ExternalLink size={12} aria-hidden="true" /> Ver mini-site
+            </Link>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function LinhaUsuario({
   u,
   alterando,
@@ -87,54 +173,84 @@ function LinhaUsuario({
   alterando: boolean;
   onPlano: (plano: "pro" | "free") => void;
 }) {
+  const [aberto, setAberto] = useState(false);
+  const identificacao = u.email ?? u.user_id;
+
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0">
-        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-          <span className="truncate">{u.display_name?.trim() || u.email || "Sem nome"}</span>
-          {u.is_admin && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-ink-foreground">
-              <ShieldCheck size={11} aria-hidden="true" /> admin
-            </span>
-          )}
-          {u.deletion_scheduled_at && (
-            <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
-              exclusão agendada
-            </span>
-          )}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">{u.email ?? "e-mail indisponível"}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {u.sites} site(s) · {u.sites_publicados} publicado(s) · {u.solicitacoes} solicitação(ões)
-          · cadastro {dataCurta(u.created_at)} · ativo {dataCurta(u.last_active_at)}
-        </p>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <span className="truncate">{u.display_name?.trim() || u.email || "Sem nome"}</span>
+            {u.is_admin && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-ink-foreground">
+                <ShieldCheck size={11} aria-hidden="true" /> admin
+              </span>
+            )}
+            {u.deletion_scheduled_at && (
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                exclusão agendada
+              </span>
+            )}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {u.email ?? "e-mail indisponível"}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {u.sites} site(s) · {u.sites_publicados} publicado(s) · {u.solicitacoes}{" "}
+            solicitação(ões) · cadastro {dataCurta(u.created_at)} · ativo{" "}
+            {dataCurta(u.last_active_at)}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 md:shrink-0">
+          <button
+            type="button"
+            onClick={() => setAberto((v) => !v)}
+            aria-expanded={aberto}
+            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${aberto ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+            {aberto ? "Ocultar projetos" : "Ver projetos"}
+          </button>
+
+          <div
+            className="flex shrink-0 items-center gap-1 rounded-full border border-border p-1"
+            role="group"
+            aria-label={`Plano de ${identificacao}`}
+          >
+            {(["free", "pro"] as const).map((p) => {
+              const ativo = u.plano === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  disabled={alterando || ativo}
+                  aria-pressed={ativo}
+                  onClick={() => onPlano(p)}
+                  className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors disabled:cursor-default ${
+                    ativo ? "bg-lime text-ink" : "text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {p === "pro" && <Crown size={12} aria-hidden="true" />}
+                  {p === "pro" ? "Pro" : "Gratuito"}
+                </button>
+              );
+            })}
+            {alterando && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+          </div>
+        </div>
       </div>
 
-      <div
-        className="flex shrink-0 items-center gap-1 rounded-full border border-border p-1"
-        role="group"
-        aria-label={`Plano de ${u.email ?? u.user_id}`}
-      >
-        {(["free", "pro"] as const).map((p) => {
-          const ativo = u.plano === p;
-          return (
-            <button
-              key={p}
-              type="button"
-              disabled={alterando || ativo}
-              aria-pressed={ativo}
-              onClick={() => onPlano(p)}
-              className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors disabled:cursor-default ${
-                ativo ? "bg-lime text-ink" : "text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {p === "pro" && <Crown size={12} aria-hidden="true" />}
-              {p === "pro" ? "Pro" : "Gratuito"}
-            </button>
-          );
-        })}
-        {alterando && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
-      </div>
+      {aberto && (
+        <div className="mt-3 border-t border-border pt-1">
+          <ProjetosDoUsuario userId={u.user_id} email={identificacao} />
+        </div>
+      )}
     </div>
   );
 }

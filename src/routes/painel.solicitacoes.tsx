@@ -8,6 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { EnvioFormulario, Site } from "@/lib/nexa/types";
 import { telefoneWhatsApp } from "@/lib/nexa/telefone";
 
+const CHIP_ENVIO: Record<string, string> = {
+  novo: "bg-lime text-ink",
+  lido: "bg-secondary text-foreground",
+  arquivado: "border border-border text-muted-foreground",
+};
+
 export const Route = createFileRoute("/painel/solicitacoes")({
   head: () => ({
     meta: [
@@ -231,7 +237,16 @@ function PaginaSolicitacoes() {
             const telefone = telefoneDoEnvio(e.dados);
             const expandido = aberto === e.id;
             return (
-              <li key={e.id} className="surface p-4">
+              <li
+                key={e.id}
+                className={`surface p-4 ${
+                  e.status === "novo"
+                    ? "border-l-4 border-l-lime"
+                    : e.status === "arquivado"
+                      ? "opacity-80"
+                      : ""
+                }`}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <button
                     type="button"
@@ -239,9 +254,16 @@ function PaginaSolicitacoes() {
                     onClick={() => void abrirEnvio(e)}
                     className="min-w-0 flex-1 text-left"
                   >
-                    <p className="truncate font-semibold">{resumo(e.dados)}</p>
+                    <p className="flex flex-wrap items-center gap-2 font-semibold">
+                      <span className="min-w-0 truncate">{resumo(e.dados)}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${CHIP_ENVIO[e.status]}`}
+                      >
+                        {e.status === "novo" ? "Novo" : e.status === "lido" ? "Lido" : "Arquivado"}
+                      </span>
+                    </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {site?.conteudo.nome || site?.slug || "Mini-site removido"} · {e.status} ·{" "}
+                      {site?.conteudo.nome || site?.slug || "Mini-site removido"} ·{" "}
                       {tempoRelativo(e.criadoEm)} · {dataHora(e.criadoEm)}
                     </p>
                   </button>
