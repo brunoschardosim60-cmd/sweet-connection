@@ -88,23 +88,38 @@ function VisaoGeral() {
 
         <div className="surface p-5">
           <p className="font-semibold">Atividades recentes</p>
-          <ul className="mt-4 space-y-4">
-            {sites.slice(0, 6).map((s) => (
-              <li key={s.id} className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-lime" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{s.conteudo.nome}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {s.status === "publicado" ? "Publicado" : "Atualizado"} ·{" "}
-                    {tempoRelativo(s.atualizadoEm)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {sites.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Nenhum registro ainda. As atividades aparecerão aqui quando você criar mini-sites.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-2">
+              {sites.slice(0, 6).map((s) => (
+                <li key={s.id}>
+                  <Link
+                    to="/painel/editor/$id"
+                    params={{ id: s.id }}
+                    className="flex min-h-11 items-start gap-3 rounded-xl px-2 py-2 hover:bg-secondary"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-lime"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{s.conteudo.nome}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {s.status === "publicado" ? "Publicado" : "Atualizado"} ·{" "}
+                        {tempoRelativo(s.atualizadoEm)}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           <Link
             to="/painel/clientes"
-            className="mt-5 inline-block text-sm font-semibold underline underline-offset-4"
+            className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
           >
             Ver todos os clientes
           </Link>
