@@ -86,6 +86,7 @@ const schemaSiteImportado = z
           "colorido",
         ]),
         capaTipo: z.enum(["imagem", "cor"]),
+        logoFormato: z.enum(["redondo", "quadrado"]).optional(),
       })
       .passthrough(),
     secoes: z

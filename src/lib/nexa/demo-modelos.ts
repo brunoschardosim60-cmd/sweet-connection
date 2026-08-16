@@ -20,6 +20,12 @@ const conteudoPorModelo: Record<
     depoimentos?: Site["depoimentos"];
     faq?: Site["faq"];
     videos?: Site["videos"];
+    /** Rótulo do botão principal da demonstração. */
+    cta?: string;
+    formulario?: Site["formulario"];
+    galeria?: Site["galeria"];
+    cupons?: Site["cupons"];
+    logoFormato?: Site["aparencia"]["logoFormato"];
   }
 > = {
   "restaurante-moderno": {
@@ -602,6 +608,587 @@ const conteudoPorModelo: Record<
         pergunta: "Como acompanho meu processo?",
         resposta: "Enviamos atualizações por WhatsApp a cada movimentação relevante.",
       },
+     ],
+  },
+
+  /* ---------------- demonstrações por segmento ---------------- */
+
+  petshop: {
+    nome: "Clube do Pet (demonstração)",
+    descricao: "Banho, tosa e hidratação com transporte próprio na Zona Sul de Curitiba.",
+    cidade: "Curitiba",
+    estado: "PR",
+    whatsapp: "5541996330011",
+    instagram: "clubedopet.demo",
+    endereco: "Rua Nicolau Maeder, 210 - Alto da Glória, Curitiba - PR",
+    cta: "Agendar atendimento",
+    secoes: [
+      "apresentacao",
+      "servicos",
+      "produtos",
+      "galeria",
+      "equipe",
+      "depoimentos",
+      "formulario",
+      "localizacao",
+      "horarios",
+      "rodape",
+    ],
+    servicos: [
+      {
+        id: "s1",
+        nome: "Banho completo",
+        descricao: "Shampoo neutro, secagem e perfume suave.",
+        duracao: "1h30",
+        preco: 79,
+        profissional: "Marina Alves",
+        imagem: imagens.petshop,
+      },
+      {
+        id: "s2",
+        nome: "Tosa higiênica",
+        descricao: "Patinhas, barriga e focinho com acabamento na máquina.",
+        duracao: "45 min",
+        preco: 59,
+        profissional: "Rafael Lopes",
+      },
+      {
+        id: "s3",
+        nome: "Hidratação de pelos",
+        descricao: "Máscara nutritiva para pelagens longas e ressecadas.",
+        duracao: "1h",
+        preco: 95,
+      },
+      {
+        id: "s4",
+        nome: "Cuidados e taxi pet",
+        descricao: "Corte de unhas, limpeza de ouvidos e busca em casa.",
+        duracao: "Sob consulta",
+        preco: 39,
+      },
+    ],
+    produtos: [
+      {
+        id: "p1",
+        nome: "Ração natural 2kg",
+        descricao: "Sem corantes, indicada para cães adultos.",
+        preco: 89.9,
+        categoria: "Alimentação",
+        variacoes: ["Frango", "Carne"],
+        imagem: imagens.petshop,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p2",
+        nome: "Kit banho em casa",
+        descricao: "Shampoo, condicionador e escova.",
+        preco: 64.9,
+        precoPromocional: 54.9,
+        categoria: "Higiene",
+        variacoes: [],
+        disponivel: true,
+        destaque: false,
+      },
+    ],
+    equipe: [
+      { id: "e1", nome: "Marina Alves", funcao: "Banhista e tosadora" },
+      { id: "e2", nome: "Rafael Lopes", funcao: "Tosador pet" },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Carla (demonstração)",
+        nota: 5,
+        comentario: "Minha Lulu voltou cheirosa e super calma. Agendamento pelo WhatsApp é rápido.",
+        data: "2026-06-02",
+        destaque: true,
+      },
+      {
+        id: "d2",
+        nome: "Tiago (demonstração)",
+        nota: 5,
+        comentario: "O taxi pet salvou minha semana. Atendimento cuidadoso com o Thor.",
+        data: "2026-05-11",
+        destaque: false,
+      },
+    ],
+    formulario: {
+      tipo: "agendamento",
+      titulo: "Agende o atendimento do seu pet",
+      campos: [
+        { id: "c1", rotulo: "Seu nome", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "Nome do pet", tipo: "texto", obrigatorio: true },
+        { id: "c3", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c4", rotulo: "Melhor data", tipo: "data", obrigatorio: false },
+        { id: "c5", rotulo: "Serviço desejado", tipo: "textarea", obrigatorio: false },
+      ],
+    },
+    faq: [
+      {
+        id: "f1",
+        pergunta: "Vocês buscam o pet em casa?",
+        resposta: "Sim, temos taxi pet para bairros próximos mediante agendamento.",
+      },
+    ],
+  },
+
+  odontologia: {
+    nome: "Odonto Sorriso (demonstração)",
+    descricao: "Clínica odontológica com avaliação gratuita, prevenção e estética dental.",
+    cidade: "Belo Horizonte",
+    estado: "MG",
+    whatsapp: "5531988440022",
+    instagram: "odontosorriso.demo",
+    endereco: "Av. do Contorno, 4.500 - Funcionários, BH - MG",
+    cta: "Agendar avaliação",
+    logoFormato: "quadrado",
+    secoes: [
+      "apresentacao",
+      "servicos",
+      "equipe",
+      "depoimentos",
+      "faq",
+      "formulario",
+      "localizacao",
+      "horarios",
+      "rodape",
+    ],
+    servicos: [
+      {
+        id: "s1",
+        nome: "Avaliação inicial",
+        descricao: "Exame clínico, radiografia e plano de tratamento.",
+        duracao: "40 min",
+        preco: 0,
+        profissional: "Dra. Helena Prado",
+        imagem: imagens.odontologia,
+      },
+      {
+        id: "s2",
+        nome: "Limpeza e profilaxia",
+        descricao: "Remoção de tártaro e aplicação de flúor.",
+        duracao: "50 min",
+        preco: 220,
+        profissional: "Dra. Helena Prado",
+      },
+      {
+        id: "s3",
+        nome: "Clareamento dental",
+        descricao: "Protocolo em consultório com moldeira de acompanhamento.",
+        duracao: "3 sessões",
+        preco: 1290,
+      },
+      {
+        id: "s4",
+        nome: "Tratamentos restauradores",
+        descricao: "Restaurações, canal e próteses com materiais certificados.",
+        duracao: "Sob avaliação",
+        preco: 0,
+      },
+    ],
+    equipe: [
+      { id: "e1", nome: "Dra. Helena Prado", funcao: "Clínica geral e estética" },
+      { id: "e2", nome: "Dr. Bruno Teixeira", funcao: "Implantodontia" },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Renata (demonstração)",
+        nota: 5,
+        comentario: "Explicaram cada etapa antes de começar. Saí sem dor e com tudo agendado.",
+        data: "2026-06-21",
+        destaque: true,
+      },
+      {
+        id: "d2",
+        nome: "Paulo (demonstração)",
+        nota: 5,
+        comentario: "Clínica limpa, horário respeitado e orçamento transparente.",
+        data: "2026-04-28",
+        destaque: false,
+      },
+    ],
+    formulario: {
+      tipo: "agendamento",
+      titulo: "Agende sua avaliação",
+      campos: [
+        { id: "c1", rotulo: "Nome completo", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c3", rotulo: "Preferência de data", tipo: "data", obrigatorio: false },
+        { id: "c4", rotulo: "O que você precisa?", tipo: "textarea", obrigatorio: false },
+      ],
+    },
+    faq: [
+      {
+        id: "f1",
+        pergunta: "Atendem convênios?",
+        resposta: "Atendemos particular e os principais convênios; confirme pelo WhatsApp.",
+      },
+      {
+        id: "f2",
+        pergunta: "A avaliação tem custo?",
+        resposta: "A primeira avaliação clínica é gratuita e sem compromisso.",
+      },
+    ],
+  },
+
+  mecanica: {
+    nome: "Auto Prime Oficina (demonstração)",
+    descricao: "Revisão, freios e diagnóstico eletrônico com orçamento aprovado por WhatsApp.",
+    cidade: "Guarulhos",
+    estado: "SP",
+    whatsapp: "5511987552244",
+    instagram: "autoprime.demo",
+    endereco: "Av. Tiradentes, 1.180 - Vila Augusta, Guarulhos - SP",
+    cta: "Solicitar orçamento",
+    logoFormato: "quadrado",
+    secoes: [
+      "apresentacao",
+      "servicos",
+      "galeria",
+      "faq",
+      "formulario",
+      "localizacao",
+      "horarios",
+      "rodape",
+    ],
+    servicos: [
+      {
+        id: "s1",
+        nome: "Revisão completa",
+        descricao: "Checklist de 32 itens com relatório fotográfico.",
+        duracao: "3h",
+        preco: 349,
+        imagem: imagens.mecanica,
+      },
+      {
+        id: "s2",
+        nome: "Troca de óleo e filtros",
+        descricao: "Óleo sintético e filtros originais.",
+        duracao: "1h",
+        preco: 289,
+      },
+      {
+        id: "s3",
+        nome: "Freios e suspensão",
+        descricao: "Pastilhas, discos e alinhamento com teste em pista.",
+        duracao: "2h30",
+        preco: 0,
+      },
+      {
+        id: "s4",
+        nome: "Diagnóstico eletrônico",
+        descricao: "Leitura de injeção e módulos com scanner automotivo.",
+        duracao: "40 min",
+        preco: 120,
+      },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Marcos (demonstração)",
+        nota: 5,
+        comentario: "Mandaram o orçamento com fotos antes de mexer. Preço fechado e prazo cumprido.",
+        data: "2026-06-09",
+        destaque: true,
+      },
+    ],
+    formulario: {
+      tipo: "orcamento",
+      titulo: "Solicite um orçamento",
+      campos: [
+        { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c3", rotulo: "Veículo e ano", tipo: "texto", obrigatorio: true },
+        { id: "c4", rotulo: "Descreva o problema", tipo: "textarea", obrigatorio: false },
+      ],
+    },
+    faq: [
+      {
+        id: "f1",
+        pergunta: "Fazem orçamento sem compromisso?",
+        resposta: "Sim. Avaliamos o veículo e enviamos o orçamento antes de qualquer serviço.",
+      },
+      {
+        id: "f2",
+        pergunta: "Qual a garantia dos serviços?",
+        resposta: "90 dias de garantia em mão de obra e peças instaladas na oficina.",
+      },
+    ],
+  },
+
+  pizzaria: {
+    nome: "Forno da Vila (demonstração)",
+    descricao: "Pizzas de fermentação natural, combos e entrega em 40 minutos.",
+    cidade: "Porto Alegre",
+    estado: "RS",
+    whatsapp: "5551997220033",
+    instagram: "fornodavila.demo",
+    endereco: "Rua Padre Chagas, 320 - Moinhos de Vento, Porto Alegre - RS",
+    cta: "Fazer pedido",
+    secoes: [
+      "apresentacao",
+      "cardapio",
+      "produtos",
+      "promocao",
+      "cupom",
+      "depoimentos",
+      "formulario",
+      "localizacao",
+      "horarios",
+      "rodape",
+    ],
+    produtos: [
+      {
+        id: "p1",
+        nome: "Margherita da casa",
+        descricao: "Molho de tomate italiano, muçarela de búfala e manjericão.",
+        preco: 62,
+        categoria: "Pizzas salgadas",
+        variacoes: ["Média 6 fatias", "Grande 8 fatias"],
+        imagem: imagens.pizzaria,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p2",
+        nome: "Calabresa artesanal",
+        descricao: "Calabresa defumada, cebola roxa e orégano fresco.",
+        preco: 58,
+        precoPromocional: 49.9,
+        categoria: "Pizzas salgadas",
+        variacoes: ["Média 6 fatias", "Grande 8 fatias"],
+        imagem: imagens.pizzaria,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p3",
+        nome: "Combo família",
+        descricao: "Duas pizzas grandes + refrigerante 2L.",
+        preco: 129,
+        precoPromocional: 109,
+        categoria: "Combos",
+        variacoes: [],
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p4",
+        nome: "Doce de Nutella",
+        descricao: "Massa fina com Nutella e morangos.",
+        preco: 69,
+        categoria: "Pizzas doces",
+        variacoes: ["Média", "Grande"],
+        disponivel: true,
+        destaque: false,
+      },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Juliana (demonstração)",
+        nota: 5,
+        comentario: "Pedido pelo WhatsApp em dois minutos e a pizza chegou quentinha.",
+        data: "2026-06-14",
+        destaque: true,
+      },
+      {
+        id: "d2",
+        nome: "Diego (demonstração)",
+        nota: 5,
+        comentario: "Massa leve, borda perfeita. O combo família vale muito a pena.",
+        data: "2026-05-25",
+        destaque: false,
+      },
+    ],
+    cupons: [
+      {
+        id: "cp1",
+        titulo: "Refrigerante grátis no combo",
+        descricao: "Válido de segunda a quinta nos pedidos acima de R$ 100.",
+        codigo: "FORNO2L",
+        validade: "2026-12-31",
+        ativo: true,
+      },
+    ],
+    formulario: {
+      tipo: "contato",
+      titulo: "Faça seu pedido",
+      campos: [
+        { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c3", rotulo: "Endereço de entrega", tipo: "texto", obrigatorio: true },
+        { id: "c4", rotulo: "Seu pedido", tipo: "textarea", obrigatorio: true },
+      ],
+    },
+  },
+
+  doceria: {
+    nome: "Doce Afeto (demonstração)",
+    descricao: "Bolos, doces finos e kits de festa feitos sob encomenda.",
+    cidade: "Florianópolis",
+    estado: "SC",
+    whatsapp: "5548996110044",
+    instagram: "doceafeto.demo",
+    endereco: "Rua Bocaiúva, 1.120 - Centro, Florianópolis - SC",
+    cta: "Fazer encomenda",
+    secoes: [
+      "apresentacao",
+      "produtos",
+      "galeria",
+      "promocao",
+      "cupom",
+      "depoimentos",
+      "formulario",
+      "rodape",
+    ],
+    produtos: [
+      {
+        id: "p1",
+        nome: "Bolo de festa 2 andares",
+        descricao: "Recheio à escolha e acabamento em chantilly.",
+        preco: 320,
+        categoria: "Bolos",
+        variacoes: ["25 fatias", "40 fatias"],
+        imagem: imagens.doceria,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p2",
+        nome: "Kit 100 doces finos",
+        descricao: "Brigadeiro belga, beijinho e casadinho.",
+        preco: 240,
+        precoPromocional: 210,
+        categoria: "Kits",
+        variacoes: [],
+        imagem: imagens.doceria,
+        disponivel: true,
+        destaque: true,
+      },
+      {
+        id: "p3",
+        nome: "Torta holandesa",
+        descricao: "Feita no dia, serve 8 pessoas.",
+        preco: 98,
+        categoria: "Tortas",
+        variacoes: [],
+        disponivel: true,
+        destaque: false,
+      },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Amanda (demonstração)",
+        nota: 5,
+        comentario: "O bolo ficou lindo e o sabor surpreendeu todo mundo na festa.",
+        data: "2026-06-05",
+        destaque: true,
+      },
+    ],
+    cupons: [
+      {
+        id: "cp1",
+        titulo: "10% na primeira encomenda",
+        descricao: "Informe o código ao fechar o pedido pelo WhatsApp.",
+        codigo: "DOCE10",
+        validade: "2026-12-31",
+        ativo: true,
+      },
+    ],
+    formulario: {
+      tipo: "orcamento",
+      titulo: "Solicite sua encomenda",
+      campos: [
+        { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c3", rotulo: "Data de retirada", tipo: "data", obrigatorio: true },
+        { id: "c4", rotulo: "O que você quer encomendar?", tipo: "textarea", obrigatorio: true },
+      ],
+    },
+  },
+
+  "eventos-festas": {
+    nome: "Celebra Buffet (demonstração)",
+    descricao: "Buffet completo para casamentos, aniversários e eventos corporativos.",
+    cidade: "Ribeirão Preto",
+    estado: "SP",
+    whatsapp: "5516993880055",
+    instagram: "celebrabuffet.demo",
+    endereco: "Av. Braz Olaia Acosta, 900 - Jardim Califórnia, Ribeirão Preto - SP",
+    cta: "Solicitar orçamento",
+    secoes: [
+      "apresentacao",
+      "servicos",
+      "galeria",
+      "depoimentos",
+      "faq",
+      "formulario",
+      "localizacao",
+      "rodape",
+    ],
+    servicos: [
+      {
+        id: "s1",
+        nome: "Casamentos",
+        descricao: "Coquetel, jantar servido, equipe uniformizada e decoração de mesas.",
+        duracao: "Pacote completo",
+        preco: 0,
+        imagem: imagens.eventos,
+      },
+      {
+        id: "s2",
+        nome: "Aniversários",
+        descricao: "Buffet de finger food, mesa de doces e bar de bebidas.",
+        duracao: "5h de evento",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Eventos corporativos",
+        descricao: "Coffee break, brunch e almoço executivo com nota fiscal.",
+        duracao: "Sob demanda",
+        preco: 0,
+      },
+    ],
+    depoimentos: [
+      {
+        id: "d1",
+        nome: "Letícia e Rafael (demonstração)",
+        nota: 5,
+        comentario: "Cuidaram de tudo no nosso casamento. Os convidados elogiaram a comida.",
+        data: "2026-05-18",
+        destaque: true,
+      },
+      {
+        id: "d2",
+        nome: "Grupo Vertt (demonstração)",
+        nota: 5,
+        comentario: "Coffee break impecável para 120 pessoas, montado no horário combinado.",
+        data: "2026-04-02",
+        destaque: false,
+      },
+    ],
+    formulario: {
+      tipo: "orcamento",
+      titulo: "Solicite um orçamento",
+      campos: [
+        { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
+        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
+        { id: "c3", rotulo: "Data do evento", tipo: "data", obrigatorio: true },
+        { id: "c4", rotulo: "Número de convidados", tipo: "texto", obrigatorio: false },
+        { id: "c5", rotulo: "Tipo de evento", tipo: "textarea", obrigatorio: false },
+      ],
+    },
+    faq: [
+      {
+        id: "f1",
+        pergunta: "Com quanta antecedência devo reservar?",
+        resposta: "Recomendamos de 60 a 90 dias, principalmente para datas de fim de semana.",
+      },
     ],
   },
 };
@@ -624,6 +1211,18 @@ const depoimentosGenericos: Site["depoimentos"] = [
     destaque: false,
   },
 ];
+
+/** Ordena as seções da demonstração conforme a sequência definida no modelo. */
+function ordenarSecoes(ordem: TipoSecao[]): Site["secoes"] {
+  const todas = criarSecoes();
+  const posicao = (tipo: TipoSecao) => {
+    const i = ordem.indexOf(tipo);
+    return i === -1 ? ordem.length + 1 : i;
+  };
+  return [...todas]
+    .sort((a, b) => posicao(a.tipo) - posicao(b.tipo))
+    .map((s) => ({ ...s, ativa: ordem.includes(s.tipo) || s.tipo === "links" }));
+}
 
 export function siteDoModelo(modeloId: string): Site {
   const modelo = modeloPorId(modeloId);
@@ -712,19 +1311,17 @@ export function siteDoModelo(modeloId: string): Site {
       espacamento: "confortavel",
       layout: modelo.layout,
       capaTipo: "imagem",
+      logoFormato: c.logoFormato ?? "redondo",
     },
-    secoes: criarSecoes().map((s) => ({
-      ...s,
-      ativa: c.secoes.includes(s.tipo) || s.tipo === "links",
-    })),
+    secoes: ordenarSecoes(c.secoes),
     links: [
-      { id: "l1", tipo: "whatsapp", titulo: "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
+      { id: "l1", tipo: "whatsapp", titulo: c.cta ?? "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
       { id: "l2", tipo: "instagram", titulo: `@${c.instagram}`, valor: c.instagram, ativo: true },
       { id: "l3", tipo: "localizacao", titulo: "Como chegar", valor: c.endereco, ativo: true },
     ],
     produtos: c.produtos ?? [],
     servicos: c.servicos ?? [],
-    galeria: [
+    galeria: c.galeria ?? [
       { id: "g1", url: modelo.imagem, titulo: c.nome },
       { id: "g2", url: imagens.moda, titulo: "Detalhes" },
       { id: "g3", url: imagens.salao, titulo: "Ambiente" },
@@ -732,7 +1329,7 @@ export function siteDoModelo(modeloId: string): Site {
     videos: c.videos ?? [],
     depoimentos: c.depoimentos ?? depoimentosGenericos,
     equipe: c.equipe ?? [],
-    cupons: [
+    cupons: c.cupons ?? [
       {
         id: "cp1",
         titulo: "10% na primeira compra",
@@ -749,7 +1346,7 @@ export function siteDoModelo(modeloId: string): Site {
         resposta: "Fale conosco pelo WhatsApp e retornamos em minutos.",
       },
     ],
-    formulario: {
+    formulario: c.formulario ?? {
       tipo: "orcamento",
       titulo: "Peça um orçamento",
       campos: [

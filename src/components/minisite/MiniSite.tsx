@@ -188,7 +188,14 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
           <div
             className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden border-2 text-xl font-bold"
             style={{
-              borderRadius: layout === "urbano" ? "8px" : "999px",
+              borderRadius:
+                a.logoFormato === "quadrado"
+                  ? "14px"
+                  : a.logoFormato === "redondo"
+                    ? "999px"
+                    : layout === "urbano"
+                      ? "8px"
+                      : "999px",
               borderColor: a.corPrimaria,
               background: hexToRgba(a.corTexto, 0.08),
               backdropFilter: "blur(6px)",

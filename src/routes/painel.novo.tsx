@@ -45,6 +45,7 @@ function NovoSite() {
   const [slug, setSlug] = useState("");
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
+  const [logoFormato, setLogoFormato] = useState<"redondo" | "quadrado">("redondo");
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
@@ -62,15 +63,14 @@ function NovoSite() {
   const slugFinal = slug || slugify(cliente.empresa);
   const slugEmUso = sites.some((s) => s.slug === slugFinal);
 
-  const previa = useMemo(
-    () =>
-      criarSite(
-        { ...cliente, empresa: cliente.empresa || "Seu negócio" },
-        modeloId,
-        slugFinal || "previa",
-      ),
-    [cliente, modeloId, slugFinal],
-  );
+  const previa = useMemo(() => {
+    const base = criarSite(
+      { ...cliente, empresa: cliente.empresa || "Seu negócio" },
+      modeloId,
+      slugFinal || "previa",
+    );
+    return { ...base, aparencia: { ...base.aparencia, logoFormato } };
+  }, [cliente, logoFormato, modeloId, slugFinal]);
 
   const podeAvancar =
     passo === 0
@@ -82,7 +82,8 @@ function NovoSite() {
   const criar = async () => {
     if (!podeAvancar || salvando) return;
     setSalvando(true);
-    const site = criarSite(cliente, modeloId, slugFinal);
+    const base = criarSite(cliente, modeloId, slugFinal);
+    const site = { ...base, aparencia: { ...base.aparencia, logoFormato } };
     try {
       const salvo = await store.adicionarSite(site);
       toast.success("Mini-site criado", { description: "Agora personalize no editor." });
@@ -333,6 +334,45 @@ function NovoSite() {
               {slugEmUso && (
                 <p className="text-sm text-ember">Este endereço já está sendo usado.</p>
               )}
+
+              <fieldset className="rounded-2xl border border-border p-4">
+                <legend className="px-1 text-sm font-medium">Ícone de perfil</legend>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Formato da foto/logo que aparece no topo do mini-site. Você pode mudar depois no
+                  editor.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {(
+                    [
+                      { valor: "redondo", rotulo: "Redondo", raio: "999px" },
+                      { valor: "quadrado", rotulo: "Quadrado", raio: "12px" },
+                    ] as const
+                  ).map((op) => (
+                    <label
+                      key={op.valor}
+                      className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-4 py-2 text-sm font-medium transition-colors focus-within:ring-2 focus-within:ring-ring ${
+                        logoFormato === op.valor
+                          ? "border-ink bg-secondary"
+                          : "border-border hover:bg-secondary/60"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="logo-formato"
+                        className="sr-only"
+                        checked={logoFormato === op.valor}
+                        onChange={() => setLogoFormato(op.valor)}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="h-8 w-8 shrink-0 border-2 border-current bg-secondary"
+                        style={{ borderRadius: op.raio }}
+                      />
+                      {op.rotulo}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <p className="text-sm text-muted-foreground">
                 O mini-site é criado como rascunho. Você pode editar tudo e publicar quando quiser.
               </p>

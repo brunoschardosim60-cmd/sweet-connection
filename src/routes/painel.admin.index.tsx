@@ -63,13 +63,17 @@ function Cartao({
   icone: typeof Users;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">{rotulo}</p>
-        <Icone size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+    <div className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {rotulo}
+        </p>
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary">
+          <Icone size={15} className="text-muted-foreground" aria-hidden="true" />
+        </span>
       </div>
-      <p className="mt-2 text-2xl font-bold tabular-nums">{valor}</p>
-      {detalhe && <p className="mt-1 text-xs text-muted-foreground">{detalhe}</p>}
+      <p className="mt-3 text-3xl font-bold leading-none tabular-nums">{valor}</p>
+      {detalhe && <p className="mt-2 text-xs text-muted-foreground">{detalhe}</p>}
     </div>
   );
 }
