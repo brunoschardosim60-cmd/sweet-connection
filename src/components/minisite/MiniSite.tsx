@@ -119,7 +119,19 @@ export function MiniSite({
     ["--ms-border" as string]: hexToRgba(a.corTexto, 0.14),
   } as React.CSSProperties;
 
-  const secoesOrdenadas = ativas.filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape");
+  // Alguns tipos compartilham o mesmo bloco visual (cardápio/produtos e promoção/cupom).
+  // Mantemos apenas a primeira ocorrência de cada grupo para não repetir o conteúdo.
+  const grupoDe = (tipo: string) =>
+    tipo === "cardapio" ? "produtos" : tipo === "promocao" ? "cupom" : tipo;
+  const gruposVistos = new Set<string>();
+  const secoesOrdenadas = ativas
+    .filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape")
+    .filter((s) => {
+      const g = grupoDe(s.tipo);
+      if (gruposVistos.has(g)) return false;
+      gruposVistos.add(g);
+      return true;
+    });
 
   return (
     <PublicacaoCtx.Provider value={rastrear}>
@@ -472,7 +484,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       <Titulo site={site}>{titulo}</Titulo>
       <div className="mb-4 flex flex-col gap-3">
         <div
-          className="flex items-center gap-2 px-3 py-2"
+          className="flex min-h-11 items-center gap-2 px-3 py-2"
           style={{
             background: "var(--ms-surface)",
             border: "1px solid var(--ms-border)",
@@ -495,7 +507,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 key={c}
                 type="button"
                 onClick={() => setCat(c)}
-                className="px-3 py-1.5 text-xs font-medium transition-colors"
+                className="min-h-11 px-4 py-2.5 text-xs font-medium transition-colors"
                 style={{
                   borderRadius: "999px",
                   border: "1px solid var(--ms-border)",
