@@ -310,14 +310,22 @@ function NovoSite() {
             <div className="max-w-md space-y-4">
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Endereço do mini-site</span>
-                <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+                <div
+                  className={`flex items-center gap-2 rounded-xl border bg-card px-3 ${
+                    slugEmUso ? "border-ember" : "border-border focus-within:border-ink"
+                  }`}
+                >
                   <span className="text-sm text-muted-foreground">/site/</span>
                   <input
                     value={slugFinal}
+                    aria-invalid={slugEmUso}
                     onChange={(e) => setSlug(slugify(e.target.value))}
                     className="h-11 w-full bg-transparent text-sm outline-none"
                   />
                 </div>
+                <span className="mt-1.5 block text-xs text-muted-foreground">
+                  Endereço final: <span className="font-medium text-foreground">/site/{slugFinal || "…"}</span>
+                </span>
               </label>
               {slugEmUso && (
                 <p className="text-sm text-ember">Este endereço já está sendo usado.</p>
