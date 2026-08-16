@@ -29,6 +29,7 @@ import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 
@@ -132,6 +133,11 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelAdminIndexRoute = PainelAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelAdminRoute,
+} as any)
 const PainelAdminPapeisRoute = PainelAdminPapeisRouteImport.update({
   id: '/papeis',
   path: '/papeis',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/painel/': typeof PainelIndexRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin/': typeof PainelAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -177,7 +184,6 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRouteWithChildren
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -189,6 +195,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelIndexRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin': typeof PainelAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -214,6 +221,7 @@ export interface FileRoutesById {
   '/painel/': typeof PainelIndexRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/painel/admin/': typeof PainelAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +248,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -251,7 +260,6 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/termos'
     | '/demonstracao/$modelo'
-    | '/painel/admin'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -263,6 +271,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin'
   id:
     | '__root__'
     | '/'
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/painel/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -445,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/admin/': {
+      id: '/painel/admin/'
+      path: '/'
+      fullPath: '/painel/admin/'
+      preLoaderRoute: typeof PainelAdminIndexRouteImport
+      parentRoute: typeof PainelAdminRoute
+    }
     '/painel/admin/papeis': {
       id: '/painel/admin/papeis'
       path: '/papeis'
@@ -464,10 +481,12 @@ declare module '@tanstack/react-router' {
 
 interface PainelAdminRouteChildren {
   PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
+  PainelAdminIndexRoute: typeof PainelAdminIndexRoute
 }
 
 const PainelAdminRouteChildren: PainelAdminRouteChildren = {
   PainelAdminPapeisRoute: PainelAdminPapeisRoute,
+  PainelAdminIndexRoute: PainelAdminIndexRoute,
 }
 
 const PainelAdminRouteWithChildren = PainelAdminRoute._addFileChildren(
