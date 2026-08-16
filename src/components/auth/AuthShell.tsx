@@ -57,7 +57,7 @@ export function CampoTexto({
   rotulo: string;
   valor: string;
   onChange: (v: string) => void;
-  erro?: string;
+  erro?: string | undefined;
   tipo?: string;
   placeholder?: string;
   autoComplete?: string;

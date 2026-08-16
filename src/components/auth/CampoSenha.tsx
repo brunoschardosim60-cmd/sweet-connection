@@ -21,7 +21,7 @@ export function CampoSenha({
   rotulo: string;
   valor: string;
   onChange: (v: string) => void;
-  erro?: string;
+  erro?: string | undefined;
   autoComplete?: string;
   requisitos?: boolean;
 }) {
