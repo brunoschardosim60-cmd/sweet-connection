@@ -1,3 +1,4 @@
+import { extrasPorModelo } from "./demo-extras";
 import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
 import { imagens } from "./images";
 import { modeloPorId, modelos } from "./modelos";
@@ -1237,7 +1238,7 @@ export function siteDoModelo(modeloId: string): Site {
     "eventos-festas": "Celebra Buffet",
   };
   const alimentacao = modelo.segmento === "alimentacao";
-  const c = conteudoPorModelo[modelo.id] ?? {
+  const proprio = conteudoPorModelo[modelo.id] ?? {
     ...base,
     nome: nomes[modelo.id] ?? modelo.nome,
     descricao: modelo.descricao,
@@ -1271,6 +1272,9 @@ export function siteDoModelo(modeloId: string): Site {
           },
         ],
   };
+  // Complementa os modelos mais antigos com CTA, depoimentos, formulário,
+  // cupom, FAQ e galeria próprios do segmento, sem sobrescrever o que já existe.
+  const c = { ...(extrasPorModelo[modelo.id] ?? {}), ...proprio };
   const agora = new Date().toISOString();
   return {
     id: `demo_${modelo.id}`,
