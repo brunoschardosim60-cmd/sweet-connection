@@ -544,8 +544,8 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
       <Bloco titulo="Horários">
         <div className="space-y-2">
           {site.conteudo.horarios.map((h, i) => (
-            <div key={h.dia} className="flex items-center gap-2">
-              <span className="w-20 shrink-0 text-sm">{h.dia}</span>
+            <div key={h.dia} className="flex flex-wrap items-center gap-2">
+              <span className="w-16 shrink-0 text-sm">{h.dia}</span>
               <input
                 type="time"
                 value={h.abre}
@@ -557,7 +557,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                     return { ...s, conteudo: { ...s.conteudo, horarios } };
                   })
                 }
-                className="h-9 w-24 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
+                className="h-9 w-[5.5rem] min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
               />
               <input
                 type="time"
@@ -570,9 +570,9 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                     return { ...s, conteudo: { ...s.conteudo, horarios } };
                   })
                 }
-                className="h-9 w-24 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
+                className="h-9 w-[5.5rem] min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
               />
-              <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+              <label className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={h.fechado}
