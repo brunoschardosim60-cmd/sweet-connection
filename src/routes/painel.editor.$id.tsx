@@ -40,7 +40,10 @@ export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
     meta: [
       { title: "Editor visual — Nexa" },
-      { name: "description", content: "Edite conteúdo, seções e aparência com prévia em tempo real." },
+      {
+        name: "description",
+        content: "Edite conteúdo, seções e aparência com prévia em tempo real.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Editor visual — Nexa" },
       { property: "og:description", content: "Personalize o mini-site e publique em um clique." },
@@ -74,6 +77,7 @@ function Editor() {
   const [salvando, setSalvando] = useState(false);
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [autosave, setAutosave] = useState(true);
+  const [previaMovel, setPreviaMovel] = useState(false);
 
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
@@ -96,12 +100,14 @@ function Editor() {
         if (!atual) return atual;
         const proximo = { ...atual, ...patch };
         setSalvando(true);
-        void store.atualizarSite(atual.id, () => proximo).then(() => {
-          setSalvando(false);
-          setSujo(false);
-          setSalvoEm(new Date().toISOString());
-          if (!silencioso) toast.success("Alterações salvas");
-        });
+        void store
+          .atualizarSite(atual.id, () => proximo)
+          .then(() => {
+            setSalvando(false);
+            setSujo(false);
+            setSalvoEm(new Date().toISOString());
+            if (!silencioso) toast.success("Alterações salvas");
+          });
         return proximo;
       });
     },
@@ -130,7 +136,11 @@ function Editor() {
     await salvar({ status: publicado ? "rascunho" : "publicado" }, true);
     toast[publicado ? "message" : "success"](
       publicado ? "Mini-site despublicado" : "Mini-site publicado",
-      { description: publicado ? "Ele voltou para rascunho." : `Disponível em /site/${rascunho.slug}` },
+      {
+        description: publicado
+          ? "Ele voltou para rascunho."
+          : `Disponível em /site/${rascunho.slug}`,
+      },
     );
   };
 
@@ -174,9 +184,17 @@ function Editor() {
     );
 
   const estado = salvando
-    ? { icone: <Loader2 size={12} className="animate-spin" />, texto: "salvando…", cor: "text-muted-foreground" }
+    ? {
+        icone: <Loader2 size={12} className="animate-spin" />,
+        texto: "salvando…",
+        cor: "text-muted-foreground",
+      }
     : sujo
-      ? { icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />, texto: "alterações não salvas", cor: "text-ember" }
+      ? {
+          icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />,
+          texto: "alterações não salvas",
+          cor: "text-ember",
+        }
       : {
           icone: <Check size={12} />,
           texto: salvoEm ? `salvo ${dataHora(salvoEm)}` : "tudo salvo",
@@ -184,27 +202,30 @@ function Editor() {
         };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl">
-        <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-h-dvh flex-col bg-background">
+      <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-3 py-3 backdrop-blur-xl sm:px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             type="button"
-            aria-label="Voltar"
+            aria-label="Voltar para clientes"
             onClick={() => void navigate({ to: "/painel/clientes" })}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border hover:bg-secondary"
           >
             <ArrowLeft size={16} />
           </button>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{rascunho.conteudo.nome}</p>
-            <p className={`flex items-center gap-1.5 text-xs ${estado.cor}`}>
+            <p
+              aria-live="polite"
+              className={`flex items-center gap-1.5 truncate text-xs ${estado.cor}`}
+            >
               /site/{rascunho.slug} · {estado.icone} {estado.texto}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+          <label className="hidden items-center gap-1.5 text-xs text-muted-foreground xl:flex">
             <input
               type="checkbox"
               checked={autosave}
@@ -215,6 +236,7 @@ function Editor() {
           <button
             type="button"
             aria-label="Desfazer"
+            title={hist.podeDesfazer ? "Desfazer" : "Nada para desfazer"}
             disabled={!hist.podeDesfazer}
             onClick={() => {
               const v = hist.desfazer();
@@ -223,13 +245,14 @@ function Editor() {
                 setSujo(true);
               }
             }}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border disabled:opacity-40"
+            className="grid h-11 w-11 place-items-center rounded-full border border-border disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Undo2 size={15} />
           </button>
           <button
             type="button"
             aria-label="Refazer"
+            title={hist.podeRefazer ? "Refazer" : "Nada para refazer"}
             disabled={!hist.podeRefazer}
             onClick={() => {
               const v = hist.refazer();
@@ -238,7 +261,7 @@ function Editor() {
                 setSujo(true);
               }
             }}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border disabled:opacity-40"
+            className="grid h-11 w-11 place-items-center rounded-full border border-border disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Redo2 size={15} />
           </button>
@@ -247,7 +270,7 @@ function Editor() {
             aria-label="Exportar JSON"
             title="Exportar JSON"
             onClick={() => baixarJson(rascunho)}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+            className="hidden h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary sm:grid"
           >
             <Download size={15} />
           </button>
@@ -256,7 +279,7 @@ function Editor() {
             aria-label="Importar JSON"
             title="Importar JSON"
             onClick={() => arquivoRef.current?.click()}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+            className="hidden h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary sm:grid"
           >
             <Upload size={15} />
           </button>
@@ -264,52 +287,65 @@ function Editor() {
             ref={arquivoRef}
             type="file"
             accept="application/json,.json"
-            className="hidden"
+            className="sr-only"
             onChange={(e) => {
               void importar(e.target.files?.[0]);
               e.target.value = "";
             }}
           />
-          <div className="hidden rounded-full border border-border p-0.5 sm:flex">
+          <div className="hidden rounded-full border border-border p-0.5 lg:flex">
             <button
               type="button"
               aria-label="Prévia celular"
+              aria-pressed={dispositivo === "celular"}
               onClick={() => setDispositivo("celular")}
-              className={`grid h-8 w-8 place-items-center rounded-full ${dispositivo === "celular" ? "bg-secondary" : ""}`}
+              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "celular" ? "bg-secondary" : ""}`}
             >
               <Smartphone size={15} />
             </button>
             <button
               type="button"
               aria-label="Prévia desktop"
+              aria-pressed={dispositivo === "desktop"}
               onClick={() => setDispositivo("desktop")}
-              className={`grid h-8 w-8 place-items-center rounded-full ${dispositivo === "desktop" ? "bg-secondary" : ""}`}
+              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "desktop" ? "bg-secondary" : ""}`}
             >
               <Monitor size={15} />
             </button>
           </div>
+          <button
+            type="button"
+            aria-pressed={previaMovel}
+            onClick={() => setPreviaMovel((v) => !v)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary lg:hidden"
+          >
+            <Smartphone size={15} /> {previaMovel ? "Editar" : "Prévia"}
+          </button>
           <a
             href={`/site/${rascunho.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary"
           >
             <Eye size={15} /> <span className="hidden sm:inline">Ver site</span>
+            <span className="sr-only sm:hidden">Ver site</span>
           </a>
           <button
             type="button"
+            disabled={salvando}
             onClick={() => {
               versaoStore.registrar(rascunho, "salvamento");
               void salvar();
             }}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Save size={15} /> Salvar
+            {salvando ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {salvando ? "Salvando…" : "Salvar"}
           </button>
           <button
             type="button"
             onClick={() => void publicar()}
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-ink-foreground"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground"
           >
             <Globe size={15} />
             {rascunho.status === "publicado" ? "Despublicar" : "Publicar"}
@@ -317,15 +353,25 @@ function Editor() {
         </div>
       </header>
 
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[400px_1fr]">
-        <aside className="border-b border-border p-4 lg:border-b-0 lg:border-r">
-          <div className="flex flex-wrap gap-1.5">
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[minmax(340px,400px)_1fr]">
+        <aside
+          className={`min-w-0 border-b border-border p-4 lg:block lg:border-b-0 lg:border-r ${
+            previaMovel ? "hidden" : "block"
+          }`}
+        >
+          <div
+            role="tablist"
+            aria-label="Seções do editor"
+            className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {abas.map((a) => (
               <button
                 key={a.id}
                 type="button"
+                role="tab"
+                aria-selected={aba === a.id}
                 onClick={() => setAba(a.id)}
-                className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${
+                className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-medium ${
                   aba === a.id ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
                 }`}
               >
@@ -334,7 +380,7 @@ function Editor() {
             ))}
           </div>
 
-          <div className="mt-5 space-y-5 lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto lg:pr-1">
+          <div className="mt-5 space-y-5 pb-24 lg:max-h-[calc(100dvh-160px)] lg:overflow-y-auto lg:pb-4 lg:pr-1">
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} />}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
@@ -353,9 +399,13 @@ function Editor() {
           </div>
         </aside>
 
-        <section className="grid place-items-start justify-center bg-secondary/40 p-6">
+        <section
+          className={`min-w-0 place-items-start justify-center overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:grid ${
+            previaMovel ? "grid" : "hidden"
+          }`}
+        >
           {dispositivo === "celular" ? (
-            <PhoneFrame altura={680}>
+            <PhoneFrame altura={680} className="max-w-full">
               <MiniSite site={rascunho} botaoFlutuante={false} />
             </PhoneFrame>
           ) : (
@@ -368,7 +418,6 @@ function Editor() {
     </div>
   );
 }
-
 
 /* ------------------------------ campos ------------------------------ */
 
@@ -492,12 +541,11 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-
       <Bloco titulo="Horários">
         <div className="space-y-2">
           {site.conteudo.horarios.map((h, i) => (
-            <div key={h.dia} className="flex items-center gap-2">
-              <span className="w-20 shrink-0 text-sm">{h.dia}</span>
+            <div key={h.dia} className="flex flex-wrap items-center gap-2">
+              <span className="w-16 shrink-0 text-sm">{h.dia}</span>
               <input
                 type="time"
                 value={h.abre}
@@ -509,7 +557,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                     return { ...s, conteudo: { ...s.conteudo, horarios } };
                   })
                 }
-                className="h-9 w-24 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
+                className="h-9 w-[5.5rem] min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
               />
               <input
                 type="time"
@@ -522,9 +570,9 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                     return { ...s, conteudo: { ...s.conteudo, horarios } };
                   })
                 }
-                className="h-9 w-24 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
+                className="h-9 w-[5.5rem] min-w-0 flex-1 rounded-lg border border-border bg-card px-2 text-xs disabled:opacity-40"
               />
-              <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+              <label className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={h.fechado}
@@ -668,13 +716,7 @@ function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
 /* ------------------------------ itens ------------------------------ */
 
-function LinhaItem({
-  children,
-  onRemover,
-}: {
-  children: React.ReactNode;
-  onRemover: () => void;
-}) {
+function LinhaItem({ children, onRemover }: { children: React.ReactNode; onRemover: () => void }) {
   return (
     <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       {children}
@@ -724,7 +766,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
       <BlocoLinksEditor site={site} aplicar={aplicar} />
-
 
       <Bloco titulo="Produtos">
         {site.produtos.map((p) => (
@@ -820,7 +861,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 disponível
               </label>
             </div>
-
           </LinhaItem>
         ))}
         <BotaoAdicionar
@@ -907,7 +947,13 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
               ...s,
               servicos: [
                 ...s.servicos,
-                { id: uid("srv"), nome: "Novo serviço", descricao: "", duracao: "30 min", preco: 0 },
+                {
+                  id: uid("srv"),
+                  nome: "Novo serviço",
+                  descricao: "",
+                  duracao: "30 min",
+                  preco: 0,
+                },
               ],
             }))
           }
@@ -916,7 +962,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
       <BlocoGaleria site={site} aplicar={aplicar} />
       <BlocoVideosEditor site={site} aplicar={aplicar} />
-
 
       <Bloco titulo="Depoimentos">
         {site.depoimentos.map((d) => (
@@ -1163,12 +1208,11 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const setInt = (patch: Partial<Site["integracoes"]>) =>
     aplicar((s) => ({ ...s, integracoes: { ...s.integracoes, ...patch } }));
 
-  const dominio =
-    site.integracoes.dominio?.trim()
-      ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : `https://${hostMarca(marcaStore.get())}`;
+  const dominio = site.integracoes.dominio?.trim()
+    ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
+    : typeof window !== "undefined"
+      ? window.location.origin
+      : `https://${hostMarca(marcaStore.get())}`;
   const url = `${dominio}/site/${site.slug}`;
 
   return (
@@ -1221,7 +1265,9 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             type="button"
             onClick={() => {
               void navigator.clipboard?.writeText(url);
-              toast.success("Link copiado", { description: "Cole na bio do Instagram ou no WhatsApp." });
+              toast.success("Link copiado", {
+                description: "Cole na bio do Instagram ou no WhatsApp.",
+              });
             }}
             className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
           >
@@ -1289,7 +1335,12 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           id: uid("lnk"),
           tipo,
           titulo: tiposLink.find((t) => t.id === tipo)?.rotulo ?? "Novo link",
-          valor: tipo === "whatsapp" ? s.conteudo.whatsapp : tipo === "instagram" ? s.conteudo.instagram : "",
+          valor:
+            tipo === "whatsapp"
+              ? s.conteudo.whatsapp
+              : tipo === "instagram"
+                ? s.conteudo.instagram
+                : "",
           ativo: true,
         },
       ],
@@ -1359,15 +1410,15 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </LinhaItem>
       ))}
       <div className="flex flex-wrap gap-1.5">
-        {(["whatsapp", "instagram", "facebook", "tiktok", "youtube", "personalizado"] as TipoLink[]).map(
-          (t) => (
-            <BotaoAdicionar
-              key={t}
-              rotulo={tiposLink.find((x) => x.id === t)?.rotulo ?? t}
-              onClick={() => adicionar(t)}
-            />
-          ),
-        )}
+        {(
+          ["whatsapp", "instagram", "facebook", "tiktok", "youtube", "personalizado"] as TipoLink[]
+        ).map((t) => (
+          <BotaoAdicionar
+            key={t}
+            rotulo={tiposLink.find((x) => x.id === t)?.rotulo ?? t}
+            onClick={() => adicionar(t)}
+          />
+        ))}
       </div>
     </Bloco>
   );
@@ -1403,7 +1454,10 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           }
           aplicar((s) => ({
             ...s,
-            galeria: [...s.galeria, { id: uid("mid"), url: novo, titulo: tipo === "video" ? "Vídeo" : "Foto", tipo }],
+            galeria: [
+              ...s.galeria,
+              { id: uid("mid"), url: novo, titulo: tipo === "video" ? "Vídeo" : "Foto", tipo },
+            ],
           }));
           setNovo("");
         }}
@@ -1575,8 +1629,6 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
     </Bloco>
   );
 }
-
-
 
 /** Indicador elegante de tamanho recomendado para slug, título e descrição. */
 function Medidor({
