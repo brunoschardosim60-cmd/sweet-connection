@@ -221,7 +221,7 @@ function PainelAdmin() {
           <Cartao
             rotulo="Visitas (30 dias)"
             valor={resumo.visitas_30d}
-            detalhe={`${resumo.planos?.pro ?? 0} contas Pro · ${resumo.planos?.free ?? 0} gratuitas`}
+            detalhe={`${resumo.planos?.["pro"] ?? 0} contas Pro · ${resumo.planos?.["free"] ?? 0} gratuitas`}
             icone={BarChart3}
           />
         </div>
