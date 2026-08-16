@@ -18,6 +18,7 @@ import {
 import { whatsappLink } from "@/lib/nexa/brand";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
+import { secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
