@@ -950,16 +950,12 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 onChange={(v) =>
                   aplicar((s) => ({
                     ...s,
-                    produtos: s.produtos.map((x) =>
-                      x.id === p.id
-                        ? {
-                            ...x,
-                            precoPromocional: v.trim()
-                              ? Number(v.replace(",", ".")) || 0
-                              : undefined,
-                          }
-                        : x,
-                    ),
+                    produtos: s.produtos.map((x) => {
+                      if (x.id !== p.id) return x;
+                      const { precoPromocional: _antigo, ...resto } = x;
+                      const valor = v.trim() ? Number(v.replace(",", ".")) || 0 : 0;
+                      return valor > 0 ? { ...resto, precoPromocional: valor } : resto;
+                    }),
                   }))
                 }
               />
