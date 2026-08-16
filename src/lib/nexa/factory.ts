@@ -173,7 +173,17 @@ export const secoesPadrao: { tipo: TipoSecao; titulo: string; ativa: boolean }[]
   { tipo: "rodape", titulo: "Rodapé", ativa: true },
 ];
 
+/** Base em branco do modelo personalizado: só o essencial fica ativo. */
+const ATIVAS_PERSONALIZADO: TipoSecao[] = ["apresentacao", "links", "rodape"];
+
 export const criarSecoes = (modeloId?: string): Secao[] => {
+  if (modeloId === "personalizado") {
+    return secoesPadrao.map((secao) => ({
+      id: uid("sec"),
+      ...secao,
+      ativa: ATIVAS_PERSONALIZADO.includes(secao.tipo),
+    }));
+  }
   const preset = modeloId ? presetsModelo[modeloId] : undefined;
   if (!preset) return secoesPadrao.map((secao) => ({ id: uid("sec"), ...secao }));
 
