@@ -635,119 +635,191 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
 /* ------------------------------ seções ------------------------------ */
 
-function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+function AbaSecoes({
+  site,
+  aplicar,
+  onIr,
+}: {
+  site: Site;
+  aplicar: Aplicar;
+  onIr: (destino: DestinoEditor) => void;
+}) {
   const [arrastando, setArrastando] = useState<number | null>(null);
   const [alvo, setAlvo] = useState<number | null>(null);
+  const [expandida, setExpandida] = useState<string | null>(null);
+  const [aviso, setAviso] = useState("");
 
-  const reordenar = (de: number, para: number) =>
+  const reordenar = (de: number, para: number) => {
+    if (de === para) return;
     aplicar((s) => {
-      if (de === para || de < 0 || para < 0 || de >= s.secoes.length || para >= s.secoes.length)
-        return s;
+      if (de < 0 || para < 0 || de >= s.secoes.length || para >= s.secoes.length) return s;
       const secoes = [...s.secoes];
       const [item] = secoes.splice(de, 1);
       secoes.splice(para, 0, item!);
       return { ...s, secoes };
     });
+    setAviso(`Seção movida para a posição ${para + 1} de ${site.secoes.length}.`);
+  };
 
-  const mover = (i: number, delta: number) =>
+  const mover = (i: number, delta: number) => {
+    const destino = i + delta;
+    if (destino < 0 || destino >= site.secoes.length) return;
     aplicar((s) => {
       const secoes = [...s.secoes];
-      const alvo = i + delta;
-      if (alvo < 0 || alvo >= secoes.length) return s;
       const atual = secoes[i]!;
-      secoes[i] = secoes[alvo]!;
-      secoes[alvo] = atual;
+      secoes[i] = secoes[destino]!;
+      secoes[destino] = atual;
       return { ...s, secoes };
     });
+    setAviso(
+      `“${site.secoes[i]!.titulo}” agora está na posição ${destino + 1} de ${site.secoes.length}.`,
+    );
+  };
+
+  const atualizar = (id: string, patch: Partial<Site["secoes"][number]>) =>
+    aplicar((s) => ({
+      ...s,
+      secoes: s.secoes.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+    }));
 
   return (
     <Bloco titulo="Seções do mini-site" id="bloco-secoes">
       <p className="text-xs text-muted-foreground">
-        Ative, desative e arraste para reordenar. A prévia atualiza na hora.
+        Arraste pela alça ou use as setas para reordenar. Ative, desative e abra cada seção para
+        renomear. A prévia atualiza na hora.
+      </p>
+      <p aria-live="polite" className="sr-only">
+        {aviso}
       </p>
       <ul className="space-y-2">
-        {site.secoes.map((sec, i) => (
-          <li
-            key={sec.id}
-            draggable
-            onDragStart={(e) => {
-              setArrastando(i);
-              e.dataTransfer.effectAllowed = "move";
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (alvo !== i) setAlvo(i);
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (arrastando !== null) reordenar(arrastando, i);
-              setArrastando(null);
-              setAlvo(null);
-            }}
-            onDragEnd={() => {
-              setArrastando(null);
-              setAlvo(null);
-            }}
-            className={`flex items-center gap-2 rounded-xl border bg-card px-3 py-2 transition-all ${
-              arrastando === i
-                ? "border-lime opacity-50"
-                : alvo === i
-                  ? "border-lime ring-2 ring-lime/40"
-                  : "border-border"
-            }`}
-          >
-            <GripVertical
-              size={14}
-              className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-              aria-hidden
-            />
-            <div className="flex flex-col">
-              <button
-                type="button"
-                aria-label="Mover para cima"
-                onClick={() => mover(i, -1)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronUp size={14} />
-              </button>
-              <button
-                type="button"
-                aria-label="Mover para baixo"
-                onClick={() => mover(i, 1)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronDown size={14} />
-              </button>
-            </div>
-            <input
-              value={sec.titulo}
-              onChange={(e) =>
-                aplicar((s) => ({
-                  ...s,
-                  secoes: s.secoes.map((x) =>
-                    x.id === sec.id ? { ...x, titulo: e.target.value } : x,
-                  ),
-                }))
-              }
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-            />
-            <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={sec.ativa}
-                onChange={(e) =>
-                  aplicar((s) => ({
-                    ...s,
-                    secoes: s.secoes.map((x) =>
-                      x.id === sec.id ? { ...x, ativa: e.target.checked } : x,
-                    ),
-                  }))
-                }
-              />
-              ativa
-            </label>
-          </li>
-        ))}
+        {site.secoes.map((sec, i) => {
+          const aberta = expandida === sec.id;
+          return (
+            <li
+              key={sec.id}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (alvo !== i) setAlvo(i);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (arrastando !== null) reordenar(arrastando, i);
+                setArrastando(null);
+                setAlvo(null);
+              }}
+              className={`min-w-0 rounded-xl border bg-card transition-all ${
+                arrastando === i
+                  ? "border-lime opacity-50"
+                  : alvo === i
+                    ? "border-lime ring-2 ring-lime/40"
+                    : "border-border"
+              } ${sec.ativa ? "" : "opacity-70"}`}
+            >
+              <div className="flex min-w-0 items-center gap-1.5 px-2 py-2">
+                <span
+                  draggable
+                  onDragStart={(e) => {
+                    setArrastando(i);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragEnd={() => {
+                    setArrastando(null);
+                    setAlvo(null);
+                  }}
+                  title="Arraste para reordenar"
+                  aria-hidden
+                  className="grid h-9 w-5 shrink-0 cursor-grab place-items-center text-muted-foreground active:cursor-grabbing"
+                >
+                  <GripVertical size={14} />
+                </span>
+
+                <div className="flex shrink-0 flex-col">
+                  <button
+                    type="button"
+                    aria-label={`Mover “${sec.titulo}” para cima`}
+                    title="Mover para cima"
+                    disabled={i === 0}
+                    onClick={() => mover(i, -1)}
+                    className="grid h-5 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Mover “${sec.titulo}” para baixo`}
+                    title="Mover para baixo"
+                    disabled={i === site.secoes.length - 1}
+                    onClick={() => mover(i, 1)}
+                    className="grid h-5 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setExpandida(aberta ? null : sec.id)}
+                  aria-expanded={aberta}
+                  aria-controls={`secao-${sec.id}`}
+                  className="flex min-h-9 min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1 text-left hover:bg-secondary/60"
+                >
+                  <ChevronDown
+                    size={13}
+                    aria-hidden
+                    className={`shrink-0 text-muted-foreground transition-transform ${aberta ? "" : "-rotate-90"}`}
+                  />
+                  <span className="min-w-0 truncate text-sm font-medium">{sec.titulo}</span>
+                  <span className="sr-only">
+                    , posição {i + 1} de {site.secoes.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={sec.ativa}
+                  aria-label={`Seção “${sec.titulo}” ${sec.ativa ? "visível" : "oculta"}`}
+                  title={sec.ativa ? "Desativar seção" : "Ativar seção"}
+                  onClick={() => atualizar(sec.id, { ativa: !sec.ativa })}
+                  className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors ${
+                    sec.ativa ? "border-lime bg-lime" : "border-border bg-secondary"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-card shadow transition-all ${
+                      sec.ativa ? "left-[1.4rem]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div id={`secao-${sec.id}`} hidden={!aberta} className="space-y-2 px-3 pb-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                    Título exibido
+                  </span>
+                  <input
+                    value={sec.titulo}
+                    onChange={(e) => atualizar(sec.id, { titulo: e.target.value })}
+                    className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-secondary px-2 py-1 text-[11px] text-muted-foreground">
+                    {sec.ativa ? "Visível no site" : "Oculta no site"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onIr(destinoPorSecao[sec.tipo])}
+                    className="inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+                  >
+                    Editar conteúdo desta seção
+                  </button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </Bloco>
   );
