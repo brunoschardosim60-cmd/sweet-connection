@@ -23,8 +23,9 @@ import {
   somarSerie,
   useAdminDados,
   carregarProjetosUsuario,
+  descreverEstadoProjetos,
   useIsAdmin,
-  type AdminProjeto,
+  type EstadoProjetos,
   type AdminUsuario,
   type Periodo,
 } from "@/lib/nexa/admin";
