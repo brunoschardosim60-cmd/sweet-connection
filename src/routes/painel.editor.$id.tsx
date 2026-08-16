@@ -1396,6 +1396,140 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           }
         />
       </Bloco>
+
+      <Bloco titulo="Formulário" id="bloco-formulario">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="grid gap-1 text-xs text-muted-foreground">
+            Tipo do formulário
+            <select
+              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+              value={site.formulario.tipo}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: {
+                    ...s.formulario,
+                    tipo: e.target.value as Site["formulario"]["tipo"],
+                  },
+                }))
+              }
+            >
+              <option value="orcamento">Orçamento</option>
+              <option value="contato">Contato</option>
+              <option value="reserva">Reserva</option>
+              <option value="agendamento">Agendamento</option>
+              <option value="cotacao">Cotação</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs text-muted-foreground">
+            Título exibido
+            <input
+              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+              value={site.formulario.titulo}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: { ...s.formulario, titulo: e.target.value },
+                }))
+              }
+            />
+          </label>
+        </div>
+
+        {site.formulario.campos.map((c) => (
+          <LinhaItem
+            key={c.id}
+            onRemover={() =>
+              aplicar((s) => ({
+                ...s,
+                formulario: {
+                  ...s.formulario,
+                  campos: s.formulario.campos.filter((x) => x.id !== c.id),
+                },
+              }))
+            }
+          >
+            <EntradaSimples
+              valor={c.rotulo}
+              placeholder="Rótulo do campo"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: {
+                    ...s.formulario,
+                    campos: s.formulario.campos.map((x) =>
+                      x.id === c.id ? { ...x, rotulo: v } : x,
+                    ),
+                  },
+                }))
+              }
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                aria-label={`Tipo do campo ${c.rotulo}`}
+                className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                value={c.tipo}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    formulario: {
+                      ...s.formulario,
+                      campos: s.formulario.campos.map((x) =>
+                        x.id === c.id
+                          ? { ...x, tipo: e.target.value as CampoFormulario["tipo"] }
+                          : x,
+                      ),
+                    },
+                  }))
+                }
+              >
+                <option value="texto">Texto</option>
+                <option value="email">E-mail</option>
+                <option value="telefone">Telefone</option>
+                <option value="data">Data</option>
+                <option value="textarea">Texto longo</option>
+              </select>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={c.obrigatorio}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      formulario: {
+                        ...s.formulario,
+                        campos: s.formulario.campos.map((x) =>
+                          x.id === c.id ? { ...x, obrigatorio: e.target.checked } : x,
+                        ),
+                      },
+                    }))
+                  }
+                />
+                obrigatório
+              </label>
+            </div>
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar campo"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              formulario: {
+                ...s.formulario,
+                campos: [
+                  ...s.formulario.campos,
+                  { id: uid("cmp"), rotulo: "Novo campo", tipo: "texto", obrigatorio: false },
+                ],
+              },
+            }))
+          }
+        />
+        <p className="text-xs text-muted-foreground">
+          Os campos definem apenas o formulário exibido no mini-site. O envio continua sendo tratado
+          pela integração já existente.
+        </p>
+      </Bloco>
     </>
   );
 }
