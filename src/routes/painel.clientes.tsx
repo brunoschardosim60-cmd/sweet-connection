@@ -19,8 +19,7 @@ import {
 import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { useMarca, useNexa } from "@/lib/nexa/hooks";
-import { hostMarca } from "@/lib/nexa/marca";
+import { useNexa } from "@/lib/nexa/hooks";
 import { caminhoSite, copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 
 import { segmentos, nomeSegmento } from "@/lib/nexa/segmentos";
@@ -57,8 +56,6 @@ function Selo({ status }: { status: Site["status"] }) {
 }
 
 function Clientes() {
-  const marca = useMarca();
-  const host = hostMarca(marca);
   const { sites, pronto, store } = useNexa();
   const [busca, setBusca] = useState("");
   const [seg, setSeg] = useState("todos");
@@ -76,7 +73,7 @@ function Clientes() {
   );
 
   const copiar = async (s: Site) => {
-    const ok = await copiarTexto(enderecoSite(host, s.slug));
+    const ok = await copiarTexto(enderecoSite(s.slug));
     if (ok) toast.success("Endereço copiado", { description: caminhoSite(s.slug) });
     else
       toast.error("Não foi possível copiar", {
@@ -453,12 +450,9 @@ function Clientes() {
           >
             <p className="font-display text-lg font-bold">{qr.conteudo.nome}</p>
             <div className="mt-4 grid place-items-center rounded-2xl bg-white p-4">
-              <QRCodeSVG value={enderecoSite(host, qr.slug)} size={168} />
+              <QRCodeSVG value={enderecoSite(qr.slug)} size={168} />
             </div>
-            <p className="mt-3 break-all text-xs text-muted-foreground">
-              {host}
-              {caminhoSite(qr.slug)}
-            </p>
+            <p className="mt-3 break-all text-xs text-muted-foreground">{enderecoSite(qr.slug)}</p>
             <button
               type="button"
               onClick={() => setQr(null)}

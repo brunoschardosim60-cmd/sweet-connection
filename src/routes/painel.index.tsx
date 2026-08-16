@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { ArrowUpRight, FileEdit, Globe, MessageCircle, Users } from "lucide-react";
+import { GraficoArea } from "@/components/Graficos";
 import { useDesempenho, useNexa } from "@/lib/nexa/hooks";
 import { numero, tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -77,25 +77,10 @@ function VisaoGeral() {
         <div className="surface p-5 lg:col-span-2">
           <p className="font-semibold">Visitas nos últimos 30 dias</p>
           <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={serie}>
-                <defs>
-                  <linearGradient id="pv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.6} />
-                    <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="dia" hide />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="visitas"
-                  stroke="var(--color-chart-1)"
-                  strokeWidth={2.5}
-                  fill="url(#pv)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <GraficoArea
+              dados={serie.map((p) => ({ rotulo: p.dia, valor: p.visitas }))}
+              ariaLabel="Visitas diárias nos últimos 30 dias"
+            />
           </div>
         </div>
 

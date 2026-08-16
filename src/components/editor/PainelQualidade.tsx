@@ -172,8 +172,8 @@ export function PainelQualidade({
       <div>
         <p className="text-sm font-semibold">Checklist de qualidade</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Baseado apenas no conteúdo carregado nesta tela. Não verifica banco de dados, publicação,
-          domínio nem envio de formulários.
+          Baseado no conteúdo carregado nesta tela. A publicação, o banco e os formulários são
+          confirmados separadamente quando essas ações são executadas.
         </p>
       </div>
 
@@ -233,8 +233,8 @@ export function PainelQualidade({
 
       <p className="flex items-start gap-2 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
         <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
-        Este painel não testa a publicação real, o domínio próprio nem o recebimento de mensagens —
-        essas verificações dependem de recursos ainda não conectados.
+        Este checklist não publica o site nem envia uma mensagem de teste. Ele apenas aponta o que
+        ainda precisa ser revisado antes dessas verificações finais.
       </p>
     </div>
   );

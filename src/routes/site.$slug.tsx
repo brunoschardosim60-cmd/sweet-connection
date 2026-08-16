@@ -1,11 +1,12 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
+import { enderecoSite } from "@/lib/nexa/clipboard";
 
 export const Route = createFileRoute("/site/$slug")({
   loader: async ({ params }) => {
     const site = await buscarMinisitePublicado(params.slug);
-    if (!site) throw notFound();
+    if (!site) throw notFound({ routeId: "/site/$slug" });
     return site;
   },
   head: ({ loaderData }) => {
@@ -21,10 +22,7 @@ export const Route = createFileRoute("/site/$slug")({
     const titulo = loaderData.seo.titulo || loaderData.conteudo.nome;
     const descricao = loaderData.seo.descricao || loaderData.conteudo.descricao;
     const imagem = loaderData.seo.imagem || loaderData.conteudo.capa;
-    const dominio = loaderData.integracoes.dominio?.trim().replace(/^https?:\/\//, "");
-    const canonical = dominio
-      ? `https://${dominio.replace(/\/+$/, "")}/site/${loaderData.slug}`
-      : `/site/${loaderData.slug}`;
+    const canonical = enderecoSite(loaderData.slug);
 
     return {
       meta: [
@@ -44,7 +42,27 @@ export const Route = createFileRoute("/site/$slug")({
     };
   },
   component: SitePublico,
+  notFoundComponent: MinisiteNaoEncontrado,
 });
+
+function MinisiteNaoEncontrado() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="font-display text-3xl font-bold">Mini-site indisponível</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Este endereço não existe, ainda não foi publicado ou está pausado.
+        </p>
+        <Link
+          to="/"
+          className="mt-6 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground"
+        >
+          Voltar ao início
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 function SitePublico() {
   const site = Route.useLoaderData();

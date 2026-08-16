@@ -39,7 +39,7 @@ import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelos } from "@/lib/nexa/modelos";
 import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
 import { versaoStore } from "@/lib/nexa/versoes";
-import { hostMarca, marcaStore } from "@/lib/nexa/marca";
+import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Site, TipoLink } from "@/lib/nexa/types";
@@ -1332,12 +1332,8 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const setInt = (patch: Partial<Site["integracoes"]>) =>
     aplicar((s) => ({ ...s, integracoes: { ...s.integracoes, ...patch } }));
 
-  const dominio = site.integracoes.dominio?.trim()
-    ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
-    : typeof window !== "undefined"
-      ? window.location.origin
-      : `https://${hostMarca(marcaStore.get())}`;
-  const url = `${dominio}/site/${site.slug}`;
+  const dominio = origemPublica() || "https://seu-dominio.com.br";
+  const url = enderecoSite(site.slug, dominio);
 
   return (
     <>
@@ -1387,11 +1383,17 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => {
-              void navigator.clipboard?.writeText(url);
-              toast.success("Link copiado", {
-                description: "Cole na bio do Instagram ou no WhatsApp.",
-              });
+            onClick={async () => {
+              const copiado = await copiarTexto(url);
+              if (copiado) {
+                toast.success("Link copiado", {
+                  description: "Cole na bio do Instagram ou no WhatsApp.",
+                });
+              } else {
+                toast.error("NÃ£o foi possÃ­vel copiar", {
+                  description: "O navegador bloqueou o acesso Ã  Ã¡rea de transferÃªncia.",
+                });
+              }
             }}
             className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
           >
@@ -1408,20 +1410,20 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </div>
       </Bloco>
 
-      <Bloco titulo="Integrações">
+      <Bloco titulo="Integrações futuras">
         <Texto
-          rotulo="Google Analytics"
+          rotulo="Google Analytics (em breve)"
           valor={site.integracoes.googleAnalytics}
           onChange={(v) => setInt({ googleAnalytics: v })}
           placeholder="G-XXXXXXX"
         />
         <Texto
-          rotulo="Meta Pixel"
+          rotulo="Meta Pixel (em breve)"
           valor={site.integracoes.metaPixel}
           onChange={(v) => setInt({ metaPixel: v })}
         />
         <Texto
-          rotulo="Domínio próprio"
+          rotulo="Domínio próprio (em breve)"
           valor={site.integracoes.dominio}
           onChange={(v) => setInt({ dominio: v })}
           placeholder="www.cliente.com.br"

@@ -22,8 +22,8 @@ import {
   Tag,
   Utensils,
 } from "lucide-react";
-import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { toast } from "sonner";
+import { GraficoArea, GraficoBarras } from "@/components/Graficos";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Reveal } from "@/components/Reveal";
 import { MiniSite } from "@/components/minisite/MiniSite";
@@ -762,25 +762,10 @@ export function Estatisticas() {
               </span>
             </div>
             <div className="mt-6 h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={serie}>
-                  <defs>
-                    <linearGradient id="gv" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.6} />
-                      <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="dia" hide />
-                  <Tooltip cursor={{ stroke: "var(--color-border)" }} />
-                  <Area
-                    type="monotone"
-                    dataKey="visitas"
-                    stroke="var(--color-chart-1)"
-                    strokeWidth={2.5}
-                    fill="url(#gv)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <GraficoArea
+                dados={serie.map((p) => ({ rotulo: p.dia, valor: p.visitas }))}
+                ariaLabel="Demonstração de visitas no período"
+              />
             </div>
           </div>
         </Reveal>
@@ -795,12 +780,10 @@ export function Estatisticas() {
             <div className="surface p-6">
               <p className="text-sm text-muted-foreground">Origem dos visitantes</p>
               <div className="mt-4 h-32">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={origens}>
-                    <XAxis dataKey="nome" tickLine={false} axisLine={false} fontSize={11} />
-                    <Bar dataKey="valor" fill="var(--color-chart-2)" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <GraficoBarras
+                  dados={origens.map((p) => ({ rotulo: p.nome, valor: p.valor }))}
+                  ariaLabel="Demonstração das origens dos visitantes"
+                />
               </div>
             </div>
           </div>
@@ -984,10 +967,9 @@ export function Planos() {
               <button
                 type="button"
                 onClick={() => {
-                  toast.success("Interesse registrado!", {
-                    description: "Nosso time entra em contato em breve.",
+                  toast("Registro de interesse disponível em breve", {
+                    description: "Por enquanto, fale com o time pelo WhatsApp.",
                   });
-                  setModal(null);
                 }}
                 className="rounded-full border border-border px-5 py-3 text-sm font-semibold"
               >

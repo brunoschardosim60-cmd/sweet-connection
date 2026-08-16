@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { GraficoArea } from "@/components/Graficos";
 import { useDesempenho, useNexa } from "@/lib/nexa/hooks";
 import { numero } from "@/lib/nexa/utils";
 
@@ -85,20 +85,10 @@ function Estatisticas() {
         <div className="surface p-5">
           <p className="font-semibold">Visitas por dia — {principal.conteudo.nome}</p>
           <div className="mt-4 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dadosPrincipal.dias}>
-                <XAxis dataKey="dia" hide />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="visitas"
-                  stroke="var(--color-chart-1)"
-                  fill="var(--color-chart-1)"
-                  fillOpacity={0.25}
-                  strokeWidth={2.5}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <GraficoArea
+              dados={dadosPrincipal.dias.map((p) => ({ rotulo: p.dia, valor: p.visitas }))}
+              ariaLabel={`Visitas diárias de ${principal.conteudo.nome}`}
+            />
           </div>
         </div>
       )}
