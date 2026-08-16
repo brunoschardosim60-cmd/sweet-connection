@@ -51,7 +51,8 @@ describe("conteúdo complementar dos modelos", () => {
   it("todo modelo demonstrativo tem CTA, formulário, depoimentos e FAQ", () => {
     for (const m of modelos) {
       const site = siteDoModelo(m.id);
-      expect(site.conteudo.cta.trim().length, `cta ${m.id}`).toBeGreaterThan(0);
+      const principal = site.links[0]?.titulo ?? "";
+      expect(principal.trim().length, `cta ${m.id}`).toBeGreaterThan(0);
       expect(site.formulario.campos.length, `formulário ${m.id}`).toBeGreaterThan(0);
       expect(site.depoimentos.length, `depoimentos ${m.id}`).toBeGreaterThan(0);
       expect(site.faq.length, `faq ${m.id}`).toBeGreaterThan(0);
