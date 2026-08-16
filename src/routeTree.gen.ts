@@ -29,6 +29,7 @@ import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -131,6 +132,11 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelAdminPapeisRoute = PainelAdminPapeisRouteImport.update({
+  id: '/papeis',
+  path: '/papeis',
+  getParentRoute: () => PainelAdminRoute,
+} as any)
 const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
   id: '/editor/$id',
   path: '/editor/$id',
@@ -148,7 +154,7 @@ export interface FileRoutesByFullPath {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
+  '/painel/admin': typeof PainelAdminRouteWithChildren
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesByTo {
@@ -170,7 +177,7 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
+  '/painel/admin': typeof PainelAdminRouteWithChildren
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRoutesById {
@@ -194,7 +202,7 @@ export interface FileRoutesById {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
-  '/painel/admin': typeof PainelAdminRoute
+  '/painel/admin': typeof PainelAdminRouteWithChildren
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
 }
 export interface FileRouteTypes {
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
   id:
     | '__root__'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/painel/admin/papeis'
     | '/painel/editor/$id'
   fileRoutesById: FileRoutesById
 }
@@ -433,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/admin/papeis': {
+      id: '/painel/admin/papeis'
+      path: '/papeis'
+      fullPath: '/painel/admin/papeis'
+      preLoaderRoute: typeof PainelAdminPapeisRouteImport
+      parentRoute: typeof PainelAdminRoute
+    }
     '/painel/editor/$id': {
       id: '/painel/editor/$id'
       path: '/editor/$id'
@@ -443,8 +462,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PainelAdminRouteChildren {
+  PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
+}
+
+const PainelAdminRouteChildren: PainelAdminRouteChildren = {
+  PainelAdminPapeisRoute: PainelAdminPapeisRoute,
+}
+
+const PainelAdminRouteWithChildren = PainelAdminRoute._addFileChildren(
+  PainelAdminRouteChildren,
+)
+
 interface PainelRouteChildren {
-  PainelAdminRoute: typeof PainelAdminRoute
+  PainelAdminRoute: typeof PainelAdminRouteWithChildren
   PainelClientesRoute: typeof PainelClientesRoute
   PainelConfiguracoesRoute: typeof PainelConfiguracoesRoute
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
@@ -457,7 +488,7 @@ interface PainelRouteChildren {
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
-  PainelAdminRoute: PainelAdminRoute,
+  PainelAdminRoute: PainelAdminRouteWithChildren,
   PainelClientesRoute: PainelClientesRoute,
   PainelConfiguracoesRoute: PainelConfiguracoesRoute,
   PainelEstatisticasRoute: PainelEstatisticasRoute,
