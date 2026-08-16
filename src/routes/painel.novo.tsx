@@ -43,12 +43,21 @@ function NovoSite() {
   });
   const [modeloId, setModeloId] = useState(modelos[0]!.id);
   const [slug, setSlug] = useState("");
+  const [tocado, setTocado] = useState(false);
+  const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
     [cliente.segmento],
   );
-  const lista = sugeridos.length > 0 ? sugeridos : modelos;
+  const lista = filtro === "todos" || sugeridos.length === 0 ? modelos : sugeridos;
+
+  const erroEmpresa =
+    tocado && cliente.empresa.trim().length < 2 ? "Informe o nome da empresa." : undefined;
+  const erroTelefone =
+    tocado && cliente.telefone.replace(/\D/g, "").length < 10
+      ? "Informe um WhatsApp válido com DDD."
+      : undefined;
 
   const slugFinal = slug || slugify(cliente.empresa);
   const slugEmUso = sites.some((s) => s.slug === slugFinal);
