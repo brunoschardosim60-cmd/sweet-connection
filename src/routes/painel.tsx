@@ -237,7 +237,6 @@ function PainelLayout() {
     }
   };
 
-
   const navegacao = admin
     ? [...itens, { to: "/painel/admin", rotulo: "Administração", icone: ShieldCheck }]
     : itens;

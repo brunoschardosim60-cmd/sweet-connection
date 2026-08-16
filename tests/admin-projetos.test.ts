@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /** Respostas controladas do cliente Supabase para cada tabela consultada. */
-const respostas: Record<string, { data: unknown; error: { message: string; code?: string } | null }> =
-  {
-    minisites: { data: [], error: null },
-    form_submissions: { data: [], error: null },
-  };
+const respostas: Record<
+  string,
+  { data: unknown; error: { message: string; code?: string } | null }
+> = {
+  minisites: { data: [], error: null },
+  form_submissions: { data: [], error: null },
+};
 
 vi.mock("@/integrations/supabase/client", () => {
   const consulta = (tabela: string) => {
@@ -44,14 +46,18 @@ beforeEach(() => {
 describe("nome do projeto no painel administrativo", () => {
   it("prioriza o rascunho, que é a versão mais recente", () => {
     expect(
-      nomeDoProjeto({ conteudo: { nome: "Rascunho" } }, { conteudo: { nome: "Publicado" } }, "slug"),
+      nomeDoProjeto(
+        { conteudo: { nome: "Rascunho" } },
+        { conteudo: { nome: "Publicado" } },
+        "slug",
+      ),
     ).toBe("Rascunho");
   });
 
   it("usa o publicado como alternativa quando o rascunho não tem nome", () => {
-    expect(nomeDoProjeto({ conteudo: { nome: "  " } }, { conteudo: { nome: "Publicado" } }, "slug")).toBe(
-      "Publicado",
-    );
+    expect(
+      nomeDoProjeto({ conteudo: { nome: "  " } }, { conteudo: { nome: "Publicado" } }, "slug"),
+    ).toBe("Publicado");
     expect(nomeDoProjeto(null, { cliente: { empresa: "Empresa" } }, "slug")).toBe("Empresa");
   });
 

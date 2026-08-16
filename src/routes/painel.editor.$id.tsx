@@ -1001,10 +1001,15 @@ function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; apli
         </div>
       </div>
 
-      <BotaoRemover onConfirmar={() => aplicar((s) => ({
-        ...s,
-        depoimentos: s.depoimentos.filter((x) => x.id !== d.id),
-      }))} descricao="Remover este depoimento?" />
+      <BotaoRemover
+        onConfirmar={() =>
+          aplicar((s) => ({
+            ...s,
+            depoimentos: s.depoimentos.filter((x) => x.id !== d.id),
+          }))
+        }
+        descricao="Remover este depoimento?"
+      />
     </div>
   );
 }
