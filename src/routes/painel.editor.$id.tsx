@@ -12,19 +12,27 @@ import {
   Globe,
   History,
   Loader2,
-  Monitor,
   Plus,
   Redo2,
   RotateCcw,
   Save,
   Smartphone,
-  Trash2,
   Undo2,
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import {
+  MolduraPrevia,
+  SeletorDispositivo,
+  type Dispositivo,
+} from "@/components/editor/PreviaDispositivo";
+import {
+  PainelQualidade,
+  destinoPorSecao,
+  type DestinoEditor,
+} from "@/components/editor/PainelQualidade";
+import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
@@ -52,7 +60,7 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "versoes";
+type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "qualidade" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
@@ -60,6 +68,7 @@ const abas: { id: Aba; rotulo: string }[] = [
   { id: "itens", rotulo: "Itens" },
   { id: "aparencia", rotulo: "Aparência" },
   { id: "seo", rotulo: "SEO" },
+  { id: "qualidade", rotulo: "Qualidade" },
   { id: "versoes", rotulo: "Versões" },
 ];
 
@@ -72,7 +81,7 @@ function Editor() {
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
   const [aba, setAba] = useState<Aba>("conteudo");
-  const [dispositivo, setDispositivo] = useState<"celular" | "desktop">("celular");
+  const [dispositivo, setDispositivo] = useState<Dispositivo>("celular");
   const [sujo, setSujo] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -84,6 +93,19 @@ function Editor() {
   }, [original, rascunho]);
 
   const hist = useHistorico<Site | null>(rascunho);
+
+  /** Leva o editor até a aba e o bloco corretos, com foco visível. */
+  const irPara = useCallback((destino: DestinoEditor) => {
+    setAba(destino.aba as Aba);
+    setPreviaMovel(false);
+    requestAnimationFrame(() => {
+      const alvo = document.getElementById(destino.bloco);
+      if (!alvo) return;
+      const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      alvo.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
+      alvo.querySelector<HTMLElement>("[data-foco-bloco]")?.focus();
+    });
+  }, []);
 
   const aplicar = (fn: (s: Site) => Site) => {
     setRascunho((atual) => {
@@ -293,26 +315,11 @@ function Editor() {
               e.target.value = "";
             }}
           />
-          <div className="hidden rounded-full border border-border p-0.5 lg:flex">
-            <button
-              type="button"
-              aria-label="Prévia celular"
-              aria-pressed={dispositivo === "celular"}
-              onClick={() => setDispositivo("celular")}
-              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "celular" ? "bg-secondary" : ""}`}
-            >
-              <Smartphone size={15} />
-            </button>
-            <button
-              type="button"
-              aria-label="Prévia desktop"
-              aria-pressed={dispositivo === "desktop"}
-              onClick={() => setDispositivo("desktop")}
-              className={`grid h-9 w-9 place-items-center rounded-full ${dispositivo === "desktop" ? "bg-secondary" : ""}`}
-            >
-              <Monitor size={15} />
-            </button>
-          </div>
+          <SeletorDispositivo
+            valor={dispositivo}
+            onChange={setDispositivo}
+            className="hidden lg:flex"
+          />
           <button
             type="button"
             aria-pressed={previaMovel}
@@ -382,10 +389,13 @@ function Editor() {
 
           <div className="mt-5 space-y-5 pb-24 lg:max-h-[calc(100dvh-160px)] lg:overflow-y-auto lg:pb-4 lg:pr-1">
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
-            {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} />}
+            {aba === "secoes" && (
+              <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />
+            )}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
+            {aba === "qualidade" && <PainelQualidade site={rascunho} onIr={irPara} />}
             {aba === "versoes" && (
               <AbaVersoes
                 site={rascunho}
@@ -400,19 +410,15 @@ function Editor() {
         </aside>
 
         <section
-          className={`min-w-0 place-items-start justify-center overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:grid ${
-            previaMovel ? "grid" : "hidden"
+          aria-label="Prévia do mini-site"
+          className={`min-w-0 flex-col items-center gap-4 overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:flex ${
+            previaMovel ? "flex" : "hidden"
           }`}
         >
-          {dispositivo === "celular" ? (
-            <PhoneFrame altura={680} className="max-w-full">
-              <MiniSite site={rascunho} botaoFlutuante={false} />
-            </PhoneFrame>
-          ) : (
-            <div className="h-[680px] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-              <MiniSite site={rascunho} botaoFlutuante={false} />
-            </div>
-          )}
+          <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
+          <MolduraPrevia dispositivo={dispositivo}>
+            <MiniSite site={rascunho} botaoFlutuante={false} />
+          </MolduraPrevia>
         </section>
       </div>
     </div>
