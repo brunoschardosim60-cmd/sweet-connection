@@ -15,6 +15,9 @@ type ProfileRow = {
   id: string;
   display_name: string;
   role: string;
+  last_active_at: string;
+  deletion_scheduled_at: string | null;
+  cleanup_claimed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -105,6 +108,9 @@ export type Database = {
           id: string;
           display_name?: string;
           role?: string;
+          last_active_at?: string;
+          deletion_scheduled_at?: string | null;
+          cleanup_claimed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         }
@@ -203,6 +209,15 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       clear_nexa_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      claim_nexa_accounts_for_cleanup: {
+        Args: { requested_secret: string };
+        Returns: { user_id: string }[];
+      };
+      confirm_nexa_account_cleanup: {
+        Args: { requested_user_id: string; requested_secret: string };
+        Returns: boolean;
+      };
+      delete_nexa_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       delete_minisite: { Args: { requested_id: string }; Returns: undefined };
       get_published_minisite: { Args: { requested_slug: string }; Returns: Json };
       publish_minisite: { Args: { requested_id: string }; Returns: MinisiteRow };
@@ -247,6 +262,7 @@ export type Database = {
         };
         Returns: string;
       };
+      touch_nexa_activity: { Args: Record<PropertyKey, never>; Returns: ProfileRow };
       update_nexa_profile: {
         Args: { requested_display_name: string };
         Returns: ProfileRow;

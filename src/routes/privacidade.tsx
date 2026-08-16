@@ -80,7 +80,10 @@ function Privacidade() {
         <p>
           Os dados permanecem enquanto forem necessários para prestar o serviço ou cumprir obrigação
           legal. O administrador pode usar <strong>Apagar tudo</strong> para excluir clientes,
-          mini-sites e envios da própria conta. Pedidos adicionais de acesso, correção,
+          mini-sites e envios, ou <strong>Excluir minha conta</strong> para remover também seu
+          login. Contas sem atividade por 180 dias entram em uma carência de 30 dias; um novo acesso
+          durante a carência cancela a exclusão. Após 210 dias contínuos de inatividade, a conta e
+          seus dados podem ser removidos automaticamente. Pedidos adicionais de acesso, correção,
           portabilidade ou exclusão devem ser encaminhados ao canal de contato divulgado pelo
           responsável pela plataforma.
         </p>

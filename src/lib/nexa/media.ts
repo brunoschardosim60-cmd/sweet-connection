@@ -82,10 +82,15 @@ export const midiaStore = {
   async removerTudo() {
     const { data: auth, error: authError } = await supabase.auth.getUser();
     if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente.");
-    const listed = await supabase.storage.from(BUCKET).list(auth.user.id, { limit: 1000 });
-    if (listed.error) throw new Error(listed.error.message);
-    const caminhos = listed.data.map((item) => `${auth.user!.id}/${item.name}`);
-    if (caminhos.length > 0) {
+
+    // Always list from the beginning after each batch: removed objects no
+    // longer occupy offsets, and the loop also covers accounts above 1,000 files.
+    while (true) {
+      const listed = await supabase.storage.from(BUCKET).list(auth.user.id, { limit: 100 });
+      if (listed.error) throw new Error(listed.error.message);
+      if (listed.data.length === 0) break;
+
+      const caminhos = listed.data.map((item) => `${auth.user!.id}/${item.name}`);
       const { error } = await supabase.storage.from(BUCKET).remove(caminhos);
       if (error) throw new Error(error.message);
     }

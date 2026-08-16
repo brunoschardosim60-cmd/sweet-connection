@@ -13,12 +13,14 @@ export function useAuthSession() {
       if (!ativo) return;
       setUser(session?.user ?? null);
       setCarregando(false);
+      if (session?.user) void supabase.rpc("touch_nexa_activity").then(() => undefined);
     });
 
     void supabase.auth.getUser().then(({ data, error }) => {
       if (!ativo) return;
       setUser(error ? null : (data.user ?? null));
       setCarregando(false);
+      if (!error && data.user) void supabase.rpc("touch_nexa_activity").then(() => undefined);
     });
 
     return () => {

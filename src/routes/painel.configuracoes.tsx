@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
+import { ExcluirConta } from "@/components/account/ExcluirConta";
 import { useMarca, useNexa } from "@/lib/nexa/hooks";
 import { hostMarca, marcaStore, type Marca } from "@/lib/nexa/marca";
 
@@ -131,6 +132,11 @@ function Configuracoes() {
         <p className="text-sm text-muted-foreground">
           Clientes, mini-sites e formulários são armazenados no Supabase e isolados pela sua conta.
         </p>
+        <p className="rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+          Contas sem atividade por 180 dias entram em uma carência de 30 dias. Um novo acesso
+          durante a carência cancela automaticamente a exclusão. Depois de 210 dias sem atividade, a
+          conta e seus dados podem ser removidos permanentemente.
+        </p>
         <div className="flex flex-wrap gap-3">
           <BotaoRemover
             rotulo="Apagar tudo"
@@ -146,6 +152,7 @@ function Configuracoes() {
                 );
             }}
           />
+          <ExcluirConta />
         </div>
       </div>
 

@@ -14,6 +14,8 @@ métricas são isolados por conta com Row Level Security (RLS).
 - Biblioteca de mídia no Supabase Storage, limitada a tipos permitidos e 10 MB por arquivo.
 - Exportação, importação validada, duplicação com slug único e histórico de versões.
 - Termos de uso e política de privacidade públicos, vinculados ao cadastro e ao rodapé.
+- Exclusão completa da conta com confirmação de senha e limpeza de arquivos.
+- Ciclo de inatividade: 180 dias sem acesso, 30 dias de carência e limpeza automática diária.
 - Google Analytics, Pixel da Meta e domínio personalizado continuam marcados como recursos futuros.
 - As imagens de demonstração presentes no repositório são usadas apenas nos modelos e na biblioteca
   de imagens do sistema. O banco remoto não recebe clientes ou métricas fictícias automaticamente.
@@ -68,6 +70,31 @@ npm audit
 
 O build gera um worker compatível com Cloudflare em `.output`. Para publicar, autentique o Wrangler
 na conta de destino e use o artefato gerado pelo Nitro.
+
+### Vercel para testes
+
+A Vercel define `VERCEL=1` durante o build. O `vite.config.ts` detecta esse ambiente e usa o preset
+Nitro `vercel`, gerando `.vercel/output`; builds locais e o sandbox da Lovable continuam usando
+Cloudflare. Ao importar o repositório na Vercel, use o runtime Node.js detectado pelo Nitro, o comando
+`npm run build` e configure:
+
+```sh
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
+VITE_PUBLIC_SITE_URL=https://seu-projeto.vercel.app
+```
+
+Não configure `service_role` na Vercel. Depois do primeiro deploy, inclua a URL `.vercel.app` em
+**Supabase Auth → URL Configuration** e nos Redirect URLs com `/recuperar-senha`.
+
+### Exclusão por inatividade
+
+A migration `20260816190000_account_lifecycle.sql` agenda contas depois de 180 dias sem atividade e
+aplica mais 30 dias de carência. O job diário chama a Edge Function
+`cleanup-inactive-accounts`, que remove arquivos pelo Storage API antes de excluir o usuário. O
+segredo do agendamento é gerado e mantido no Supabase Vault; nunca vai para o frontend.
 
 Antes de abrir o produto para clientes:
 

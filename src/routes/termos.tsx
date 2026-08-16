@@ -80,8 +80,9 @@ function Termos() {
         <p>
           Contas usadas para abuso, fraude, violação de direitos ou risco à segurança podem ser
           suspensas. O usuário pode apagar os dados operacionais de sua conta pelo painel; a
-          exclusão da identidade de autenticação pode exigir solicitação ao responsável pela
-          plataforma.
+          exclusão completa exige confirmação da senha. Contas que permanecerem 180 dias sem
+          atividade entram em uma carência de 30 dias e podem ser excluídas após 210 dias contínuos
+          sem acesso. Entrar novamente durante a carência cancela a exclusão automática.
         </p>
       </section>
 
