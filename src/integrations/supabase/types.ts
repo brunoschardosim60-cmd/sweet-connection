@@ -1,288 +1,620 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
-
-type SiteStatus = "rascunho" | "publicado" | "pausado";
-type SubmissionStatus = "novo" | "lido" | "arquivado";
-type EventType = "visita" | "clique" | "whatsapp" | "formulario";
-
-type Tabela<Row, Insert, Update = Partial<Insert>> = {
-  Row: Row;
-  Insert: Insert;
-  Update: Update;
-  Relationships: [];
-};
-
-type ProfileRow = {
-  id: string;
-  display_name: string;
-  role: string;
-  last_active_at: string;
-  deletion_scheduled_at: string | null;
-  cleanup_claimed_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-type ClientRow = {
-  id: string;
-  owner_id: string;
-  company: string;
-  segment: string;
-  contact_name: string;
-  phone: string;
-  email: string;
-  city: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type MinisiteRow = {
-  id: string;
-  owner_id: string;
-  client_id: string;
-  slug: string;
-  status: SiteStatus;
-  draft_content: Json;
-  published_content: Json | null;
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-type SettingsRow = {
-  owner_id: string;
-  settings: Json;
-  created_at: string;
-  updated_at: string;
-};
-
-type SubmissionRow = {
-  id: string;
-  minisite_id: string;
-  payload: Json;
-  origin: string;
-  status: SubmissionStatus;
-  fingerprint_hash: string | null;
-  created_at: string;
-};
-
-type MediaRow = {
-  id: string;
-  owner_id: string;
-  bucket: string;
-  object_path: string;
-  mime_type: string;
-  size_bytes: number;
-  original_name: string;
-  created_at: string;
-};
-
-type VersionRow = {
-  id: string;
-  minisite_id: string;
-  owner_id: string;
-  origin: "manual" | "salvamento" | "publicacao" | "importacao";
-  label: string;
-  content: Json;
-  created_at: string;
-};
-
-type AnalyticsRow = {
-  id: number;
-  minisite_id: string;
-  event_type: EventType;
-  target: string | null;
-  source: string | null;
-  visitor_hash: string | null;
-  session_hash: string | null;
-  occurred_at: string;
-};
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
-  __InternalSupabase: { PostgrestVersion: "14.15" };
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.15"
+  }
   public: {
     Tables: {
-      profiles: Tabela<
-        ProfileRow,
-        {
-          id: string;
-          display_name?: string;
-          role?: string;
-          last_active_at?: string;
-          deletion_scheduled_at?: string | null;
-          cleanup_claimed_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
+      analytics_events: {
+        Row: {
+          event_type: Database["public"]["Enums"]["nexa_event_type"]
+          id: number
+          minisite_id: string
+          occurred_at: string
+          session_hash: string | null
+          source: string | null
+          target: string | null
+          visitor_hash: string | null
         }
-      >;
-      clients: Tabela<
-        ClientRow,
-        {
-          id?: string;
-          owner_id?: string;
-          company: string;
-          segment: string;
-          contact_name?: string;
-          phone?: string;
-          email?: string;
-          city?: string;
-          state?: string;
-          created_at?: string;
-          updated_at?: string;
+        Insert: {
+          event_type: Database["public"]["Enums"]["nexa_event_type"]
+          id?: never
+          minisite_id: string
+          occurred_at?: string
+          session_hash?: string | null
+          source?: string | null
+          target?: string | null
+          visitor_hash?: string | null
         }
-      >;
-      minisites: Tabela<
-        MinisiteRow,
-        {
-          id?: string;
-          owner_id?: string;
-          client_id: string;
-          slug: string;
-          status?: SiteStatus;
-          draft_content: Json;
-          published_content?: Json | null;
-          published_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
+        Update: {
+          event_type?: Database["public"]["Enums"]["nexa_event_type"]
+          id?: never
+          minisite_id?: string
+          occurred_at?: string
+          session_hash?: string | null
+          source?: string | null
+          target?: string | null
+          visitor_hash?: string | null
         }
-      >;
-      platform_settings: Tabela<
-        SettingsRow,
-        {
-          owner_id?: string;
-          settings?: Json;
-          created_at?: string;
-          updated_at?: string;
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          city: string
+          company: string
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          owner_id: string
+          phone: string
+          segment: string
+          state: string
+          updated_at: string
         }
-      >;
-      form_submissions: Tabela<
-        SubmissionRow,
-        {
-          id?: string;
-          minisite_id: string;
-          payload: Json;
-          origin?: string;
-          status?: SubmissionStatus;
-          fingerprint_hash?: string | null;
-          created_at?: string;
+        Insert: {
+          city?: string
+          company: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          owner_id?: string
+          phone?: string
+          segment: string
+          state?: string
+          updated_at?: string
         }
-      >;
-      media: Tabela<
-        MediaRow,
-        {
-          id?: string;
-          owner_id?: string;
-          bucket?: string;
-          object_path: string;
-          mime_type: string;
-          size_bytes: number;
-          original_name?: string;
-          created_at?: string;
+        Update: {
+          city?: string
+          company?: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          owner_id?: string
+          phone?: string
+          segment?: string
+          state?: string
+          updated_at?: string
         }
-      >;
-      minisite_versions: Tabela<
-        VersionRow,
-        {
-          id?: string;
-          minisite_id: string;
-          owner_id?: string;
-          origin: VersionRow["origin"];
-          label: string;
-          content: Json;
-          created_at?: string;
+        Relationships: []
+      }
+      form_submissions: {
+        Row: {
+          created_at: string
+          fingerprint_hash: string | null
+          id: string
+          minisite_id: string
+          origin: string
+          payload: Json
+          status: Database["public"]["Enums"]["nexa_submission_status"]
         }
-      >;
-      analytics_events: Tabela<
-        AnalyticsRow,
-        {
-          id?: never;
-          minisite_id: string;
-          event_type: EventType;
-          target?: string | null;
-          source?: string | null;
-          visitor_hash?: string | null;
-          session_hash?: string | null;
-          occurred_at?: string;
+        Insert: {
+          created_at?: string
+          fingerprint_hash?: string | null
+          id?: string
+          minisite_id: string
+          origin?: string
+          payload: Json
+          status?: Database["public"]["Enums"]["nexa_submission_status"]
         }
-      >;
-    };
-    Views: { [_ in never]: never };
+        Update: {
+          created_at?: string
+          fingerprint_hash?: string | null
+          id?: string
+          minisite_id?: string
+          origin?: string
+          payload?: Json
+          status?: Database["public"]["Enums"]["nexa_submission_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: string
+          mime_type: string
+          object_path: string
+          original_name: string
+          owner_id: string
+          size_bytes: number
+        }
+        Insert: {
+          bucket?: string
+          created_at?: string
+          id?: string
+          mime_type: string
+          object_path: string
+          original_name?: string
+          owner_id?: string
+          size_bytes: number
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: string
+          mime_type?: string
+          object_path?: string
+          original_name?: string
+          owner_id?: string
+          size_bytes?: number
+        }
+        Relationships: []
+      }
+      minisite_versions: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          label: string
+          minisite_id: string
+          origin: string
+          owner_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          label: string
+          minisite_id: string
+          origin: string
+          owner_id?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          label?: string
+          minisite_id?: string
+          origin?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "versions_minisite_owner_fk"
+            columns: ["minisite_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      minisites: {
+        Row: {
+          client_id: string
+          created_at: string
+          draft_content: Json
+          id: string
+          owner_id: string
+          published_at: string | null
+          published_content: Json | null
+          slug: string
+          status: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          draft_content: Json
+          id?: string
+          owner_id?: string
+          published_at?: string | null
+          published_content?: Json | null
+          slug: string
+          status?: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          draft_content?: Json
+          id?: string
+          owner_id?: string
+          published_at?: string | null
+          published_content?: Json | null
+          slug?: string
+          status?: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "minisites_client_owner_fk"
+            columns: ["client_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      platform_settings: {
+        Row: {
+          created_at: string
+          owner_id: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          owner_id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          owner_id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cleanup_claimed_at: string | null
+          created_at: string
+          deletion_scheduled_at: string | null
+          display_name: string
+          id: string
+          last_active_at: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          cleanup_claimed_at?: string | null
+          created_at?: string
+          deletion_scheduled_at?: string | null
+          display_name?: string
+          id: string
+          last_active_at?: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          cleanup_claimed_at?: string | null
+          created_at?: string
+          deletion_scheduled_at?: string | null
+          display_name?: string
+          id?: string
+          last_active_at?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
-      clear_nexa_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       claim_nexa_accounts_for_cleanup: {
-        Args: { requested_secret: string };
-        Returns: { user_id: string }[];
-      };
+        Args: { requested_secret: string }
+        Returns: {
+          user_id: string
+        }[]
+      }
+      clear_nexa_account: { Args: never; Returns: undefined }
       confirm_nexa_account_cleanup: {
-        Args: { requested_user_id: string; requested_secret: string };
-        Returns: boolean;
-      };
-      delete_nexa_account: { Args: Record<PropertyKey, never>; Returns: undefined };
-      delete_minisite: { Args: { requested_id: string }; Returns: undefined };
-      get_published_minisite: { Args: { requested_slug: string }; Returns: Json };
-      publish_minisite: { Args: { requested_id: string }; Returns: MinisiteRow };
+        Args: { requested_secret: string; requested_user_id: string }
+        Returns: boolean
+      }
+      delete_minisite: { Args: { requested_id: string }; Returns: undefined }
+      delete_nexa_account: { Args: never; Returns: undefined }
+      get_published_minisite: {
+        Args: { requested_slug: string }
+        Returns: Json
+      }
+      publish_minisite: {
+        Args: { requested_id: string }
+        Returns: {
+          client_id: string
+          created_at: string
+          draft_content: Json
+          id: string
+          owner_id: string
+          published_at: string | null
+          published_content: Json | null
+          slug: string
+          status: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "minisites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       record_minisite_event: {
         Args: {
-          requested_slug: string;
-          requested_event: EventType;
-          requested_target?: string;
-          request_source?: string;
-          session_fingerprint?: string;
-        };
-        Returns: undefined;
-      };
+          request_source?: string
+          requested_event: Database["public"]["Enums"]["nexa_event_type"]
+          requested_slug: string
+          requested_target?: string
+          session_fingerprint?: string
+        }
+        Returns: undefined
+      }
       save_minisite_draft: {
         Args: {
-          requested_slug: string;
-          site_content: Json;
-          client_content: Json;
-          requested_id?: string;
-        };
-        Returns: MinisiteRow;
-      };
+          client_content: Json
+          requested_id?: string
+          requested_slug: string
+          site_content: Json
+        }
+        Returns: {
+          client_id: string
+          created_at: string
+          draft_content: Json
+          id: string
+          owner_id: string
+          published_at: string | null
+          published_content: Json | null
+          slug: string
+          status: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "minisites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       save_minisite_version: {
         Args: {
-          requested_site_id: string;
-          requested_origin: string;
-          requested_label: string;
-          requested_content: Json;
-        };
-        Returns: VersionRow;
-      };
+          requested_content: Json
+          requested_label: string
+          requested_origin: string
+          requested_site_id: string
+        }
+        Returns: {
+          content: Json
+          created_at: string
+          id: string
+          label: string
+          minisite_id: string
+          origin: string
+          owner_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "minisite_versions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_minisite_status: {
-        Args: { requested_id: string; requested_status: SiteStatus };
-        Returns: MinisiteRow;
-      };
+        Args: {
+          requested_id: string
+          requested_status: Database["public"]["Enums"]["nexa_site_status"]
+        }
+        Returns: {
+          client_id: string
+          created_at: string
+          draft_content: Json
+          id: string
+          owner_id: string
+          published_at: string | null
+          published_content: Json | null
+          slug: string
+          status: Database["public"]["Enums"]["nexa_site_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "minisites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_minisite_form: {
         Args: {
-          requested_slug: string;
-          submitted_payload: Json;
-          request_origin?: string;
-          fingerprint?: string;
-        };
-        Returns: string;
-      };
-      touch_nexa_activity: { Args: Record<PropertyKey, never>; Returns: ProfileRow };
+          fingerprint?: string
+          request_origin?: string
+          requested_slug: string
+          submitted_payload: Json
+        }
+        Returns: string
+      }
+      touch_nexa_activity: {
+        Args: never
+        Returns: {
+          cleanup_claimed_at: string | null
+          created_at: string
+          deletion_scheduled_at: string | null
+          display_name: string
+          id: string
+          last_active_at: string
+          role: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       update_nexa_profile: {
-        Args: { requested_display_name: string };
-        Returns: ProfileRow;
-      };
-    };
+        Args: { requested_display_name: string }
+        Returns: {
+          cleanup_claimed_at: string | null
+          created_at: string
+          deletion_scheduled_at: string | null
+          display_name: string
+          id: string
+          last_active_at: string
+          role: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+    }
     Enums: {
-      nexa_site_status: SiteStatus;
-      nexa_submission_status: SubmissionStatus;
-      nexa_event_type: EventType;
-    };
-    CompositeTypes: { [_ in never]: never };
-  };
-};
+      nexa_event_type: "visita" | "clique" | "whatsapp" | "formulario"
+      nexa_site_status: "rascunho" | "publicado" | "pausado"
+      nexa_submission_status: "novo" | "lido" | "arquivado"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
     Enums: {
+      nexa_event_type: ["visita", "clique", "whatsapp", "formulario"],
       nexa_site_status: ["rascunho", "publicado", "pausado"],
       nexa_submission_status: ["novo", "lido", "arquivado"],
-      nexa_event_type: ["visita", "clique", "whatsapp", "formulario"],
     },
   },
-} as const;
+} as const
