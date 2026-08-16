@@ -2,7 +2,9 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { NotaEstrelas } from "@/components/editor/NotaEstrelas";
+import { destinoPorSecao } from "@/components/editor/PainelQualidade";
 import { proximoIndiceBusca } from "@/lib/nexa/busca";
+import type { TipoSecao } from "@/lib/nexa/types";
 
 describe("navegação da busca global", () => {
   it("percorre os resultados para baixo e volta ao início", () => {
@@ -38,5 +40,53 @@ describe("nota acessível dos depoimentos", () => {
     expect(html).toContain('role="radiogroup"');
     expect(html).toContain('aria-label="3 estrelas"');
     expect(html).toMatch(/checked="" value="3"|value="3" checked=""/);
+  });
+});
+
+describe("atalhos das seções para o editor", () => {
+  it("direciona todos os tipos para uma aba e um bloco existentes", () => {
+    const tipos: TipoSecao[] = [
+      "apresentacao",
+      "links",
+      "produtos",
+      "promocao",
+      "cupom",
+      "formulario",
+      "localizacao",
+      "horarios",
+      "rodape",
+      "servicos",
+      "cardapio",
+      "galeria",
+      "videos",
+      "depoimentos",
+      "equipe",
+      "faq",
+    ];
+
+    expect(Object.keys(destinoPorSecao).sort()).toEqual([...tipos].sort());
+    for (const tipo of tipos) {
+      expect(["conteudo", "itens"]).toContain(destinoPorSecao[tipo].aba);
+      expect(destinoPorSecao[tipo].bloco).toMatch(/^bloco-/);
+    }
+  });
+
+  it("abre os editores de coleções na aba Itens", () => {
+    const tiposDeItens: TipoSecao[] = [
+      "links",
+      "produtos",
+      "promocao",
+      "cupom",
+      "formulario",
+      "servicos",
+      "cardapio",
+      "galeria",
+      "videos",
+      "depoimentos",
+      "equipe",
+      "faq",
+    ];
+
+    for (const tipo of tiposDeItens) expect(destinoPorSecao[tipo].aba).toBe("itens");
   });
 });

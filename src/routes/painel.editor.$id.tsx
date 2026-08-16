@@ -88,6 +88,7 @@ function Editor() {
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [autosave, setAutosave] = useState(true);
   const [previaMovel, setPreviaMovel] = useState(false);
+  const [destinoPendente, setDestinoPendente] = useState<DestinoEditor | null>(null);
   const revisaoRef = useRef(0);
 
   useEffect(() => {
@@ -98,16 +99,29 @@ function Editor() {
 
   /** Leva o editor até a aba e o bloco corretos, com foco visível. */
   const irPara = useCallback((destino: DestinoEditor) => {
+    setDestinoPendente(destino);
     setAba(destino.aba as Aba);
     setPreviaMovel(false);
-    requestAnimationFrame(() => {
-      const alvo = document.getElementById(destino.bloco);
-      if (!alvo) return;
-      const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      alvo.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
-      alvo.querySelector<HTMLElement>("[data-foco-bloco]")?.focus();
-    });
   }, []);
+
+  /** Aguarda a nova aba ser renderizada antes de procurar e rolar até o bloco. */
+  useEffect(() => {
+    if (!destinoPendente || destinoPendente.aba !== aba) return;
+    const frame = requestAnimationFrame(() => {
+      const alvo = document.getElementById(destinoPendente.bloco);
+      if (!alvo) {
+        setDestinoPendente(null);
+        return;
+      }
+      const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const controle = alvo.querySelector<HTMLElement>("[data-foco-bloco]");
+      if (controle?.getAttribute("aria-expanded") === "false") controle.click();
+      alvo.scrollIntoView({ behavior: reduzido ? "auto" : "smooth", block: "start" });
+      controle?.focus({ preventScroll: true });
+      setDestinoPendente(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [aba, destinoPendente]);
 
   const aplicar = (fn: (s: Site) => Site) => {
     revisaoRef.current += 1;
