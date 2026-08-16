@@ -20,6 +20,12 @@ const conteudoPorModelo: Record<
     depoimentos?: Site["depoimentos"];
     faq?: Site["faq"];
     videos?: Site["videos"];
+    /** Rótulo do botão principal da demonstração. */
+    cta?: string;
+    formulario?: Site["formulario"];
+    galeria?: Site["galeria"];
+    cupons?: Site["cupons"];
+    logoFormato?: Site["aparencia"]["logoFormato"];
   }
 > = {
   "restaurante-moderno": {
