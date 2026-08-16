@@ -45,6 +45,7 @@ function NovoSite() {
   const [slug, setSlug] = useState("");
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
+  const [logoFormato, setLogoFormato] = useState<"redondo" | "quadrado">("redondo");
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
