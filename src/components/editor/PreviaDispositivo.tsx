@@ -37,7 +37,7 @@ export function SeletorDispositivo({
             aria-label={`Prévia ${d.rotulo.toLowerCase()}`}
             aria-pressed={ativo}
             onClick={() => onChange(d.id)}
-            className={`grid h-9 w-9 place-items-center rounded-full ${
+            className={`grid h-11 w-11 place-items-center rounded-full ${
               ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
             }`}
           >

@@ -51,7 +51,7 @@ function Demonstracao() {
                 type="button"
                 aria-label={k}
                 onClick={() => setDisp(k)}
-                className={`grid h-8 w-8 place-items-center rounded-full ${disp === k ? "bg-ink text-ink-foreground" : ""}`}
+                className={`grid h-11 w-11 place-items-center rounded-full ${disp === k ? "bg-ink text-ink-foreground" : ""}`}
               >
                 <Icone size={15} />
               </button>
