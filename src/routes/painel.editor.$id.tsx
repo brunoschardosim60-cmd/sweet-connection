@@ -1211,6 +1211,153 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
+      <Bloco titulo="Equipe" id="bloco-equipe">
+        {site.equipe.map((m) => (
+          <LinhaItem
+            key={m.id}
+            onRemover={() =>
+              aplicar((s) => ({ ...s, equipe: s.equipe.filter((x) => x.id !== m.id) }))
+            }
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={m.nome}
+                placeholder="Nome"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, nome: v } : x)),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={m.funcao}
+                placeholder="Função"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, funcao: v } : x)),
+                  }))
+                }
+              />
+            </div>
+            <SeletorMidia
+              rotulo="Foto"
+              valor={m.foto ?? ""}
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  equipe: s.equipe.map((x) => {
+                    if (x.id !== m.id) return x;
+                    const { foto: _antiga, ...resto } = x;
+                    return v ? { ...resto, foto: v } : resto;
+                  }),
+                }))
+              }
+            />
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar pessoa"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              equipe: [...s.equipe, { id: uid("eqp"), nome: "Novo integrante", funcao: "" }],
+            }))
+          }
+        />
+      </Bloco>
+
+      <Bloco titulo="Cupons e promoções" id="bloco-cupons">
+        {site.cupons.map((c) => (
+          <LinhaItem
+            key={c.id}
+            onRemover={() =>
+              aplicar((s) => ({ ...s, cupons: s.cupons.filter((x) => x.id !== c.id) }))
+            }
+          >
+            <EntradaSimples
+              valor={c.titulo}
+              placeholder="Título (ex.: 10% na primeira compra)"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, titulo: v } : x)),
+                }))
+              }
+            />
+            <EntradaSimples
+              valor={c.descricao}
+              placeholder="Descrição / regras"
+              onChange={(v) =>
+                aplicar((s) => ({
+                  ...s,
+                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, descricao: v } : x)),
+                }))
+              }
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={c.codigo}
+                placeholder="Código"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) =>
+                      x.id === c.id ? { ...x, codigo: v.toUpperCase() } : x,
+                    ),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={c.validade}
+                placeholder="Validade (ex.: 31/12)"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, validade: v } : x)),
+                  }))
+                }
+              />
+            </div>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={c.ativo}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    cupons: s.cupons.map((x) =>
+                      x.id === c.id ? { ...x, ativo: e.target.checked } : x,
+                    ),
+                  }))
+                }
+              />
+              cupom ativo
+            </label>
+          </LinhaItem>
+        ))}
+        <BotaoAdicionar
+          rotulo="Adicionar cupom"
+          onClick={() =>
+            aplicar((s) => ({
+              ...s,
+              cupons: [
+                ...s.cupons,
+                {
+                  id: uid("cup"),
+                  titulo: "Novo cupom",
+                  descricao: "",
+                  codigo: "NEXA10",
+                  validade: "",
+                  ativo: true,
+                },
+              ],
+            }))
+          }
+        />
+      </Bloco>
+
       <Bloco titulo="Perguntas frequentes" id="bloco-faq">
         {site.faq.map((f) => (
           <LinhaItem
