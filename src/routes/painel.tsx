@@ -33,6 +33,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { useIsAdmin } from "@/lib/nexa/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { modelos } from "@/lib/nexa/modelos";
+import { proximoIndiceBusca } from "@/lib/nexa/busca";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -124,6 +125,10 @@ function PainelLayout() {
   useEffect(() => {
     setMenuMovel(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (ativo >= 0) opcoesRef.current[ativo]?.scrollIntoView({ block: "nearest" });
+  }, [ativo]);
 
   if (carregandoSessao) {
     return (
@@ -227,10 +232,10 @@ function PainelLayout() {
     if (!temResultados) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setAtivo((v) => (v + 1) % planos.length);
+      setAtivo((v) => proximoIndiceBusca(v, planos.length, "ArrowDown"));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setAtivo((v) => (v <= 0 ? planos.length - 1 : v - 1));
+      setAtivo((v) => proximoIndiceBusca(v, planos.length, "ArrowUp"));
     } else if (e.key === "Enter" && ativo >= 0) {
       e.preventDefault();
       opcoesRef.current[ativo]?.click();
@@ -333,7 +338,7 @@ function PainelLayout() {
                 }}
                 onKeyDown={aoTeclarBusca}
                 role="combobox"
-                aria-expanded={temResultados}
+                aria-expanded={termo.length > 0}
                 aria-controls="resultados-busca-painel"
                 aria-autocomplete="list"
                 aria-activedescendant={ativo >= 0 ? `busca-opcao-${ativo}` : undefined}
@@ -342,89 +347,97 @@ function PainelLayout() {
               />
             </label>
             {termo.length > 0 && (
-              <div
-                id="resultados-busca-painel"
-                className="absolute left-0 right-0 top-full z-40 mt-2 max-h-[70vh] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card shadow-lg"
-              >
-                {carregandoBusca ? (
-                  <p
-                    role="status"
-                    className="flex min-h-11 items-center gap-2 px-4 py-3 text-sm text-muted-foreground"
-                  >
-                    <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Carregando
-                    seus dados…
-                  </p>
-                ) : !temResultados ? (
-                  <div className="px-4 py-4">
-                    <p className="text-sm font-semibold">Nada encontrado</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Nenhum mini-site, solicitação ou modelo corresponde a “{busca.trim()}”.
+              <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-[70vh] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card shadow-lg">
+                <div
+                  id="resultados-busca-painel"
+                  role="listbox"
+                  aria-label="Resultados da busca"
+                  aria-busy={carregandoBusca}
+                >
+                  {carregandoBusca ? (
+                    <p
+                      role="status"
+                      className="flex min-h-11 items-center gap-2 px-4 py-3 text-sm text-muted-foreground"
+                    >
+                      <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Carregando
+                      seus dados…
                     </p>
-                  </div>
-                ) : (
-                  <ul role="listbox" aria-label="Resultados da busca" className="py-1">
-                    {grupos.map((grupo) => (
-                      <li key={grupo.rotulo} role="presentation">
-                        <p
-                          role="presentation"
-                          className="px-4 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
-                        >
-                          {grupo.rotulo}
-                        </p>
-                        <ul role="group" aria-label={grupo.rotulo}>
-                          {grupo.itens.map((item) => {
-                            const indice = planos.indexOf(item);
-                            const selecionado = indice === ativo;
-                            const comum = {
-                              id: `busca-opcao-${indice}`,
-                              role: "option" as const,
-                              "aria-selected": selecionado,
-                              ref: (el: HTMLAnchorElement | null) => {
-                                opcoesRef.current[indice] = el;
-                              },
-                              onClick: fecharBusca,
-                              onMouseEnter: () => setAtivo(indice),
-                              className: `flex min-h-11 flex-col justify-center px-4 py-2 ${
-                                selecionado ? "bg-secondary" : "hover:bg-secondary"
-                              }`,
-                            };
-                            const conteudo = (
-                              <>
-                                <span className="truncate text-sm font-medium">
-                                  <Destacar texto={item.titulo} termo={termo} />
-                                </span>
-                                <span className="truncate text-xs text-muted-foreground">
-                                  <Destacar texto={item.subtitulo} termo={termo} />
-                                </span>
-                              </>
-                            );
-                            return (
-                              <li key={`${item.tipo}:${item.id}`}>
-                                {item.tipo === "site" ? (
-                                  <Link to="/painel/editor/$id" params={{ id: item.id }} {...comum}>
-                                    {conteudo}
-                                  </Link>
-                                ) : item.tipo === "modelo" ? (
-                                  <Link
-                                    to="/demonstracao/$modelo"
-                                    params={{ modelo: item.id }}
-                                    {...comum}
-                                  >
-                                    {conteudo}
-                                  </Link>
-                                ) : (
-                                  <Link to="/painel/solicitacoes" {...comum}>
-                                    {conteudo}
-                                  </Link>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                  ) : !temResultados ? (
+                    <div role="status" className="px-4 py-4">
+                      <p className="text-sm font-semibold">Nada encontrado</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Nenhum mini-site, solicitação ou modelo corresponde a “{busca.trim()}”.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul role="presentation" className="py-1">
+                      {grupos.map((grupo) => (
+                        <li key={grupo.rotulo} role="presentation">
+                          <p
+                            role="presentation"
+                            className="px-4 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
+                          >
+                            {grupo.rotulo}
+                          </p>
+                          <ul role="group" aria-label={grupo.rotulo}>
+                            {grupo.itens.map((item) => {
+                              const indice = planos.indexOf(item);
+                              const selecionado = indice === ativo;
+                              const comum = {
+                                id: `busca-opcao-${indice}`,
+                                role: "option" as const,
+                                "aria-selected": selecionado,
+                                ref: (el: HTMLAnchorElement | null) => {
+                                  opcoesRef.current[indice] = el;
+                                },
+                                onClick: fecharBusca,
+                                onMouseEnter: () => setAtivo(indice),
+                                className: `flex min-h-11 flex-col justify-center px-4 py-2 ${
+                                  selecionado ? "bg-secondary" : "hover:bg-secondary"
+                                }`,
+                              };
+                              const conteudo = (
+                                <>
+                                  <span className="truncate text-sm font-medium">
+                                    <Destacar texto={item.titulo} termo={termo} />
+                                  </span>
+                                  <span className="truncate text-xs text-muted-foreground">
+                                    <Destacar texto={item.subtitulo} termo={termo} />
+                                  </span>
+                                </>
+                              );
+                              return (
+                                <li key={`${item.tipo}:${item.id}`}>
+                                  {item.tipo === "site" ? (
+                                    <Link
+                                      to="/painel/editor/$id"
+                                      params={{ id: item.id }}
+                                      {...comum}
+                                    >
+                                      {conteudo}
+                                    </Link>
+                                  ) : item.tipo === "modelo" ? (
+                                    <Link
+                                      to="/demonstracao/$modelo"
+                                      params={{ modelo: item.id }}
+                                      {...comum}
+                                    >
+                                      {conteudo}
+                                    </Link>
+                                  ) : (
+                                    <Link to="/painel/solicitacoes" {...comum}>
+                                      {conteudo}
+                                    </Link>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <Link
                   to="/painel/novo"
                   onClick={fecharBusca}

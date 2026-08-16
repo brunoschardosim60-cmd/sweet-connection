@@ -17,7 +17,6 @@ import {
   RotateCcw,
   Save,
   Smartphone,
-  Star,
   Undo2,
   Upload,
 } from "lucide-react";
@@ -35,6 +34,7 @@ import {
 } from "@/components/editor/PainelQualidade";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
+import { NotaEstrelas } from "@/components/editor/NotaEstrelas";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelos } from "@/lib/nexa/modelos";
@@ -887,38 +887,6 @@ function EntradaSimples({
   );
 }
 
-/** Nota do depoimento em estrelas — visual, acessível e com alvos de 44px. */
-function NotaEstrelas({ nota, onChange }: { nota: number; onChange: (n: number) => void }) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Nota do depoimento"
-      className="flex flex-wrap items-center gap-1"
-    >
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          role="radio"
-          aria-checked={nota === n}
-          aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
-          onClick={() => onChange(n)}
-          className="grid h-11 w-11 place-items-center rounded-lg hover:bg-secondary"
-        >
-          <Star
-            size={18}
-            aria-hidden="true"
-            className={n <= nota ? "fill-lime text-lime" : "text-muted-foreground"}
-          />
-        </button>
-      ))}
-      <span className="ml-1 text-xs text-muted-foreground">
-        {nota} de 5 estrela{nota > 1 ? "s" : ""}
-      </span>
-    </div>
-  );
-}
-
 /** Bloco organizado de um depoimento: foto, nome, comentário, nota e destaque. */
 function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; aplicar: Aplicar }) {
   const atualizar = (mudanca: Partial<Site["depoimentos"][number]>) =>
@@ -981,7 +949,11 @@ function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; apli
       <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
         <div className="min-w-0 space-y-1">
           <span className="block text-xs font-semibold text-muted-foreground">Nota</span>
-          <NotaEstrelas nota={d.nota} onChange={(nota) => atualizar({ nota })} />
+          <NotaEstrelas
+            nota={d.nota}
+            nomeGrupo={`nota-depoimento-${d.id}`}
+            onChange={(nota) => atualizar({ nota })}
+          />
         </div>
         <div className="min-w-0">
           <label className="flex min-h-11 items-start gap-2 rounded-lg border border-border p-2.5">
