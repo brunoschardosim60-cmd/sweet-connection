@@ -24,16 +24,22 @@ export const Route = createFileRoute("/demonstracao/$modelo")({
   component: Demonstracao,
 });
 
-const larguras = { celular: 390, tablet: 768, computador: 1100 };
+const dispositivos = {
+  celular: { largura: 390, altura: 844 },
+  tablet: { largura: 768, altura: 1024 },
+  computador: null,
+} as const;
 
 function Demonstracao() {
   const { modelo } = Route.useParams();
-  const [disp, setDisp] = useState<keyof typeof larguras>("celular");
+  const [disp, setDisp] = useState<keyof typeof dispositivos>("celular");
   const site = siteDoModelo(modelo);
+  const dispositivo = dispositivos[disp];
+  const desktop = disp === "computador";
 
   return (
-    <div className="min-h-screen bg-sand">
-      <header className="sticky top-0 z-40 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:flex sm:justify-between">
+    <div className="flex h-dvh flex-col overflow-hidden bg-sand">
+      <header className="z-40 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:flex sm:justify-between">
         <Link to="/modelos" className="inline-flex min-w-0 items-center gap-2 text-sm font-medium">
           <ArrowLeft size={16} /> <span className="truncate">Voltar aos modelos</span>
         </Link>
@@ -67,16 +73,30 @@ function Demonstracao() {
         </div>
       </header>
 
-      <div className="flex justify-center p-4 sm:p-8">
+      <main
+        className={`flex min-h-0 flex-1 justify-center overflow-hidden ${desktop ? "p-0" : "items-center p-3 sm:p-5"}`}
+      >
         <div
-          className="w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
-          style={{ maxWidth: larguras[disp], height: "80vh" }}
+          data-dispositivo={disp}
+          className={
+            desktop
+              ? "h-full w-full overflow-hidden bg-background"
+              : "max-w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
+          }
+          style={
+            dispositivo
+              ? {
+                  aspectRatio: `${dispositivo.largura} / ${dispositivo.altura}`,
+                  width: `min(100%, ${dispositivo.largura}px, calc((100dvh - 6.5rem) * ${dispositivo.largura / dispositivo.altura}))`,
+                }
+              : undefined
+          }
         >
           <div className="h-full overflow-y-auto overflow-x-hidden">
             <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
