@@ -93,7 +93,7 @@ export function somarSerie(serie: AdminPonto[]) {
   );
 }
 
-function mensagem(error: { message: string; code?: string }) {
+export function mensagemErroAdmin(error: { message: string; code?: string }) {
   if (error.code === "42501") return "Esta conta não tem permissão de administrador.";
   if (error.code === "PGRST202") return "O banco ainda não recebeu as funções administrativas.";
   return error.message;
@@ -157,7 +157,7 @@ export function useAdminDados(periodo: Periodo = 30) {
     ]);
     const falha = r1.error ?? r2.error ?? r3.error;
     if (falha) {
-      setErro(mensagem(falha));
+      setErro(mensagemErroAdmin(falha));
       setCarregando(false);
       return;
     }
@@ -176,7 +176,7 @@ export function useAdminDados(periodo: Periodo = 30) {
       requested_user_id: userId,
       requested_plan: plano,
     });
-    if (error) throw new Error(mensagem(error));
+    if (error) throw new Error(mensagemErroAdmin(error));
     setUsuarios((atual) => atual.map((u) => (u.user_id === userId ? { ...u, plano } : u)));
   }, []);
 
@@ -188,7 +188,7 @@ export function useAdminDados(periodo: Periodo = 30) {
         requested_role: papel,
         requested_enabled: ativo,
       });
-      if (error) throw new Error(mensagem(error));
+      if (error) throw new Error(mensagemErroAdmin(error));
       await carregar();
     },
     [carregar],
