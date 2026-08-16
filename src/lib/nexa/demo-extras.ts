@@ -17,9 +17,7 @@ export interface ExtrasModelo {
 
 type CampoTipo = Site["formulario"]["campos"][number]["tipo"];
 
-const depo = (
-  itens: { nome: string; nota: number; comentario: string }[],
-): Site["depoimentos"] =>
+const depo = (itens: { nome: string; nota: number; comentario: string }[]): Site["depoimentos"] =>
   itens.map((d, i) => ({
     id: `d${i + 1}`,
     nome: `${d.nome} (demonstração)`,
@@ -413,7 +411,10 @@ export const extrasPorModelo: Record<string, ExtrasModelo> = {
     ),
     faq: faq([
       ["Cobram taxa para visitar?", "Não. As visitas são gratuitas e sem compromisso."],
-      ["Ajudam na documentação?", "Sim, acompanhamos financiamento, cartório e entrega das chaves."],
+      [
+        "Ajudam na documentação?",
+        "Sim, acompanhamos financiamento, cartório e entrega das chaves.",
+      ],
     ]),
     galeria: galeria([
       [imagens.imoveis, "Apartamento decorado"],

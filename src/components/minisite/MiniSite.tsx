@@ -133,7 +133,6 @@ export function MiniSite({
       return true;
     });
 
-
   return (
     <PublicacaoCtx.Provider value={rastrear}>
       <RastreioCtx.Provider value={registrar}>
