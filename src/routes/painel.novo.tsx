@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
-import { modelos } from "@/lib/nexa/modelos";
+import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos";
+import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
 import type { Cliente, SegmentoId } from "@/lib/nexa/types";
