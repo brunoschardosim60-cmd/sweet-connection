@@ -1,9 +1,10 @@
 import { Link, Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   Image as ImageIcon,
   LayoutGrid,
+  Menu,
   Moon,
   PanelLeft,
   Plus,
@@ -11,12 +12,15 @@ import {
   Settings,
   Sun,
   Users,
+  X,
   BarChart3,
   Globe,
   LayoutDashboard,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
+import { useNexa } from "@/lib/nexa/hooks";
+import { useTema } from "@/lib/nexa/tema";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -42,22 +46,57 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
 
 function PainelLayout() {
   const [recolhida, setRecolhida] = useState(false);
-  const [escuro, setEscuro] = useState(false);
+  const [menuMovel, setMenuMovel] = useState(false);
+  const { escuro, alternar } = useTema();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const noEditor = pathname.includes("/painel/editor/");
+  const { sites, pronto } = useNexa();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const botaoMenuRef = useRef<HTMLButtonElement>(null);
+
+  /* Escape fecha o menu móvel, foco entra no drawer e o scroll de fundo trava. */
+  useEffect(() => {
+    if (!menuMovel) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuMovel(false);
+        botaoMenuRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    drawerRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = anterior;
+    };
+  }, [menuMovel]);
+
+  useEffect(() => {
+    setMenuMovel(false);
+  }, [pathname]);
 
   if (noEditor) return <Outlet />;
 
-  const alternarTema = () => {
-    const novo = !escuro;
-    setEscuro(novo);
-    document.documentElement.classList.toggle("dark", novo);
-  };
+  const pendentes = pronto
+    ? sites.reduce((total, s) => total + s.metricas.solicitacoes, 0)
+    : 0;
+
+  const ativoDe = (i: (typeof itens)[number]) =>
+    i.exato ? pathname === i.to : pathname.startsWith(i.to);
+
+  const linkClasse = (ativo: boolean) =>
+    `flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+      ativo
+        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+        : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+    }`;
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-dvh w-full bg-background">
       <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground transition-all md:flex ${
+        className={`sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground transition-all md:flex ${
           recolhida ? "w-[72px]" : "w-64"
         }`}
       >
@@ -65,26 +104,25 @@ function PainelLayout() {
           {!recolhida && <Logo invertido />}
           <button
             type="button"
-            aria-label="Recolher menu"
+            aria-label={recolhida ? "Expandir menu lateral" : "Recolher menu lateral"}
+            aria-pressed={recolhida}
             onClick={() => setRecolhida((v) => !v)}
-            className="grid h-8 w-8 place-items-center rounded-lg hover:bg-sidebar-accent"
+            className="grid h-9 w-9 place-items-center rounded-lg hover:bg-sidebar-accent"
           >
             <PanelLeft size={16} />
           </button>
         </div>
 
-        <nav className="mt-4 flex flex-1 flex-col gap-1">
+        <nav aria-label="Navegação do painel" className="mt-4 flex flex-1 flex-col gap-1">
           {itens.map((i) => {
-            const ativo = i.exato ? pathname === i.to : pathname.startsWith(i.to);
+            const ativo = ativoDe(i);
             return (
               <Link
                 key={i.to}
                 to={i.to}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                  ativo
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
+                aria-current={ativo ? "page" : undefined}
+                title={recolhida ? i.rotulo : undefined}
+                className={linkClasse(ativo)}
               >
                 <i.icone size={17} className="shrink-0" />
                 {!recolhida && <span className="truncate">{i.rotulo}</span>}
@@ -95,7 +133,7 @@ function PainelLayout() {
 
         <Link
           to="/"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+          className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
         >
           <Globe size={17} className="shrink-0" />
           {!recolhida && "Ver landing page"}
@@ -103,9 +141,22 @@ function PainelLayout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:flex sm:justify-between">
-          <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 sm:w-80">
-            <Search size={15} className="shrink-0 text-muted-foreground" />
+        <header className="sticky top-0 z-30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/90 px-3 py-3 backdrop-blur-xl sm:gap-3 sm:px-4 md:flex md:justify-between">
+          <button
+            ref={botaoMenuRef}
+            type="button"
+            aria-label="Abrir menu de navegação"
+            aria-expanded={menuMovel}
+            aria-controls="menu-painel-movel"
+            onClick={() => setMenuMovel(true)}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border hover:bg-secondary md:hidden"
+          >
+            <Menu size={18} />
+          </button>
+
+          <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 md:w-80">
+            <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="sr-only">Buscar clientes ou mini-sites</span>
             <input
               placeholder="Buscar clientes ou mini-sites"
               onKeyDown={(e) => {
@@ -118,36 +169,113 @@ function PainelLayout() {
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
-              aria-label="Notificações"
-              onClick={() =>
-                toast("3 novidades", {
-                  description: "1 novo pedido, 1 agendamento e 1 formulário recebido.",
-                })
+              aria-label={
+                pendentes > 0
+                  ? `Notificações: ${pendentes} solicitações recebidas`
+                  : "Notificações: nenhuma novidade"
               }
-              className="relative grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+              onClick={() =>
+                toast(
+                  pendentes > 0
+                    ? `${pendentes} solicitações recebidas`
+                    : "Nenhuma novidade por enquanto",
+                  {
+                    description:
+                      pendentes > 0
+                        ? "Veja os detalhes em Estatísticas."
+                        : "Novos registros aparecerão aqui.",
+                  },
+                )
+              }
+              className="relative hidden h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary sm:grid"
             >
               <Bell size={16} />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" />
+              {pendentes > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" />
+              )}
             </button>
             <button
               type="button"
-              aria-label="Alternar tema"
-              onClick={alternarTema}
-              className="grid h-9 w-9 place-items-center rounded-full border border-border hover:bg-secondary"
+              aria-label={escuro ? "Ativar tema claro" : "Ativar tema escuro"}
+              aria-pressed={escuro}
+              onClick={alternar}
+              className="grid h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary"
             >
               {escuro ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <Link
               to="/painel/novo"
-              className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-ink-foreground"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground"
             >
-              <Plus size={15} /> <span className="hidden sm:inline">Criar novo mini-site</span>
+              <Plus size={15} /> <span className="hidden lg:inline">Criar novo mini-site</span>
+              <span className="sr-only lg:hidden">Criar novo mini-site</span>
             </Link>
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-sm font-bold text-ink">
+            <span
+              aria-hidden="true"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-sm font-bold text-ink sm:grid"
+            >
               AD
             </span>
           </div>
         </header>
+
+        {menuMovel && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <button
+              type="button"
+              aria-label="Fechar menu de navegação"
+              onClick={() => setMenuMovel(false)}
+              className="absolute inset-0 h-full w-full cursor-default bg-ink/60"
+            />
+            <div
+              ref={drawerRef}
+              id="menu-painel-movel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu de navegação"
+              className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground"
+            >
+              <div className="flex items-center justify-between px-2 py-3">
+                <Logo invertido />
+                <button
+                  type="button"
+                  aria-label="Fechar menu de navegação"
+                  onClick={() => setMenuMovel(false)}
+                  className="grid h-11 w-11 place-items-center rounded-lg hover:bg-sidebar-accent"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <nav aria-label="Navegação do painel" className="mt-2 flex flex-1 flex-col gap-1">
+                {itens.map((i) => {
+                  const ativo = ativoDe(i);
+                  return (
+                    <Link
+                      key={i.to}
+                      to={i.to}
+                      aria-current={ativo ? "page" : undefined}
+                      onClick={() => setMenuMovel(false)}
+                      className={linkClasse(ativo)}
+                    >
+                      <i.icone size={17} className="shrink-0" />
+                      <span className="truncate">{i.rotulo}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <Link
+                to="/"
+                onClick={() => setMenuMovel(false)}
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+              >
+                <Globe size={17} className="shrink-0" />
+                Ver landing page
+              </Link>
+            </div>
+          </div>
+        )}
 
         <main className="min-w-0 flex-1 p-4 sm:p-6">
           <Outlet />
