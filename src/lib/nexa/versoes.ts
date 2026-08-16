@@ -21,6 +21,7 @@ type VersionRow = {
 };
 
 let cache: Record<string, Versao[]> = {};
+const VERSOES_VAZIAS: Versao[] = [];
 const carregando = new Set<string>();
 const ouvintes = new Set<() => void>();
 const notificar = () => ouvintes.forEach((fn) => fn());
@@ -52,7 +53,8 @@ export const versaoStore = {
     return () => ouvintes.delete(fn);
   },
   tudo: () => cache,
-  listar: (siteId: string) => cache[siteId] ?? [],
+  listar: (siteId: string) => cache[siteId] ?? VERSOES_VAZIAS,
+  snapshotVazio: () => VERSOES_VAZIAS,
   async carregar(siteId: string, forcar = false) {
     if (carregando.has(siteId) || (!forcar && siteId in cache)) return;
     carregando.add(siteId);

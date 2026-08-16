@@ -1678,7 +1678,7 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
   const versoes = useSyncExternalStore(
     versaoStore.subscribe,
     () => versaoStore.listar(site.id),
-    () => [] as ReturnType<typeof versaoStore.listar>,
+    versaoStore.snapshotVazio,
   );
 
   useEffect(() => {

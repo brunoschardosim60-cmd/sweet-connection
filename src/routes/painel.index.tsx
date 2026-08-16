@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { ArrowUpRight, FileEdit, Globe, MessageCircle, Users } from "lucide-react";
-import { useNexa } from "@/lib/nexa/hooks";
+import { useDesempenho, useNexa } from "@/lib/nexa/hooks";
 import { numero, tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -10,7 +10,8 @@ export const Route = createFileRoute("/painel/")({
 });
 
 function VisaoGeral() {
-  const { sites, pronto } = useNexa();
+  const { sites, envios, pronto } = useNexa();
+  const desempenho = useDesempenho();
 
   if (!pronto)
     return (
@@ -23,13 +24,25 @@ function VisaoGeral() {
 
   const publicados = sites.filter((s) => s.status === "publicado");
   const rascunhos = sites.filter((s) => s.status === "rascunho");
-  const visitas = sites.reduce((t, s) => t + s.metricas.visitas, 0);
-  const cliques = sites.reduce((t, s) => t + s.metricas.cliquesWhatsapp, 0);
-  const solicitacoes = sites.reduce((t, s) => t + s.metricas.solicitacoes, 0);
+  const visitas = sites.reduce((total, site) => total + (desempenho[site.id]?.visitas ?? 0), 0);
+  const cliques = sites.reduce(
+    (total, site) => total + (desempenho[site.id]?.cliquesWhatsapp ?? 0),
+    0,
+  );
+  const solicitacoes = envios.length;
+
+  const visitasPorDia = new Map<string, number>();
+  for (const site of sites) {
+    for (const registro of desempenho[site.id]?.dias ?? []) {
+      visitasPorDia.set(registro.dia, (visitasPorDia.get(registro.dia) ?? 0) + registro.visitas);
+    }
+  }
 
   const serie = Array.from({ length: 30 }, (_, i) => {
-    const total = sites.reduce((t, s) => t + (s.metricas.serie[i]?.visitas ?? 0), 0);
-    return { dia: sites[0]?.metricas.serie[i]?.dia ?? String(i), visitas: total };
+    const data = new Date();
+    data.setDate(data.getDate() - (29 - i));
+    const dia = data.toISOString().slice(0, 10);
+    return { dia, visitas: visitasPorDia.get(dia) ?? 0 };
   });
 
   const cards = [

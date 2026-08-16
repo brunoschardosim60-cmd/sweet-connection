@@ -86,7 +86,7 @@ export function useHydrated() {
   return h;
 }
 
-/** Contador local de visitas e cliques dos mini-sites publicados. */
+/** Visitas, cliques e formulários centralizados no Supabase. */
 export function useDesempenho() {
   const desempenho = useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
   useEffect(() => {
