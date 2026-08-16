@@ -307,6 +307,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -328,6 +349,34 @@ export type Database = {
       get_published_minisite: {
         Args: { requested_slug: string }
         Returns: Json
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      nexa_admin_overview: { Args: never; Returns: Json }
+      nexa_admin_set_plan: {
+        Args: { requested_plan: string; requested_user_id: string }
+        Returns: undefined
+      }
+      nexa_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          deletion_scheduled_at: string
+          display_name: string
+          email: string
+          is_admin: boolean
+          last_active_at: string
+          plano: string
+          sites: number
+          sites_publicados: number
+          solicitacoes: number
+          user_id: string
+        }[]
       }
       publish_minisite: {
         Args: { requested_id: string }
@@ -482,6 +531,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "pro" | "free"
       nexa_event_type: "visita" | "clique" | "whatsapp" | "formulario"
       nexa_site_status: "rascunho" | "publicado" | "pausado"
       nexa_submission_status: "novo" | "lido" | "arquivado"
@@ -612,6 +662,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "pro", "free"],
       nexa_event_type: ["visita", "clique", "whatsapp", "formulario"],
       nexa_site_status: ["rascunho", "publicado", "pausado"],
       nexa_submission_status: ["novo", "lido", "arquivado"],

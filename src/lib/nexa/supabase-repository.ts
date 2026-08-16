@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Json, MinisiteRow } from "@/integrations/supabase/types";
+import type { Json, Tables } from "@/integrations/supabase/types";
+
+type MinisiteRow = Tables<"minisites">;
 import type { EnvioFormulario, Site, StatusSite } from "./types";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

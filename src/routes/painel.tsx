@@ -19,6 +19,7 @@ import {
   LayoutDashboard,
   Loader2,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -29,6 +30,7 @@ import { analytics } from "@/lib/nexa/analytics";
 import { midiaStore } from "@/lib/nexa/media";
 import { versaoStore } from "@/lib/nexa/versoes";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { useIsAdmin } from "@/lib/nexa/admin";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/painel")({
@@ -60,6 +62,7 @@ function PainelLayout() {
   const [recolhida, setRecolhida] = useState(false);
   const [menuMovel, setMenuMovel] = useState(false);
   const { escuro, alternar } = useTema();
+  const { admin } = useIsAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const noEditor = pathname.includes("/painel/editor/");
   const { sites, envios, pronto, erro, store } = useNexa();
@@ -136,6 +139,10 @@ function PainelLayout() {
         .slice(0, 6)
     : [];
 
+  const navegacao = admin
+    ? [...itens, { to: "/painel/admin", rotulo: "Administração", icone: ShieldCheck }]
+    : itens;
+
   const ativoDe = (i: (typeof itens)[number]) =>
     i.exato ? pathname === i.to : pathname.startsWith(i.to);
 
@@ -167,7 +174,7 @@ function PainelLayout() {
         </div>
 
         <nav aria-label="Navegação do painel" className="mt-4 flex flex-1 flex-col gap-1">
-          {itens.map((i) => {
+          {navegacao.map((i) => {
             const ativo = ativoDe(i);
             return (
               <Link
@@ -343,7 +350,7 @@ function PainelLayout() {
               </div>
 
               <nav aria-label="Navegação do painel" className="mt-2 flex flex-1 flex-col gap-1">
-                {itens.map((i) => {
+                {navegacao.map((i) => {
                   const ativo = ativoDe(i);
                   return (
                     <Link
