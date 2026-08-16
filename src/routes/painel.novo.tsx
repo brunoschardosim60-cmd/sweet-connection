@@ -42,6 +42,12 @@ function NovoSite() {
     estado: "SP",
   });
   const [modeloId, setModeloId] = useState(modelos[0]!.id);
+  const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
+  const meusModelos = useSyncExternalStore(
+    modelosUsuarioStore.subscribe,
+    modelosUsuarioStore.get,
+    modelosUsuarioStore.getServer,
+  );
   const [slug, setSlug] = useState("");
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
