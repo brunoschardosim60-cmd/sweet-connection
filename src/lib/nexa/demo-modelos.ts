@@ -1212,6 +1212,18 @@ const depoimentosGenericos: Site["depoimentos"] = [
   },
 ];
 
+/** Ordena as seções da demonstração conforme a sequência definida no modelo. */
+function ordenarSecoes(ordem: TipoSecao[]): Site["secoes"] {
+  const todas = criarSecoes();
+  const posicao = (tipo: TipoSecao) => {
+    const i = ordem.indexOf(tipo);
+    return i === -1 ? ordem.length + 1 : i;
+  };
+  return [...todas]
+    .sort((a, b) => posicao(a.tipo) - posicao(b.tipo))
+    .map((s) => ({ ...s, ativa: ordem.includes(s.tipo) || s.tipo === "links" }));
+}
+
 export function siteDoModelo(modeloId: string): Site {
   const modelo = modeloPorId(modeloId);
   const base = conteudoPorModelo["prestador-servicos"]!;
