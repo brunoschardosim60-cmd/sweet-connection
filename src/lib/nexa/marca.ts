@@ -1,9 +1,7 @@
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { brand } from "./brand";
 
-/**
- * White label: identidade da plataforma editável pelo proprietário.
- * Persistida no navegador — a marca padrão vem de `brand.ts`.
- */
 export interface Marca {
   nome: string;
   slogan: string;
@@ -12,9 +10,7 @@ export interface Marca {
   whatsappComercial: string;
   instagram: string;
   assinatura: string;
-  /** Exibe (ou não) a assinatura da plataforma no rodapé dos mini-sites. */
   mostrarAssinatura: boolean;
-  /** Logo própria (URL ou DataURL). Vazio usa o símbolo padrão. */
   logo: string;
 }
 
@@ -30,50 +26,85 @@ export const marcaPadrao: Marca = {
   logo: "",
 };
 
-const CHAVE = "nexa.marca.v1";
-
-const ler = (): Marca => {
-  if (typeof window === "undefined") return marcaPadrao;
-  try {
-    const bruto = window.localStorage.getItem(CHAVE);
-    return bruto ? { ...marcaPadrao, ...(JSON.parse(bruto) as Partial<Marca>) } : marcaPadrao;
-  } catch {
-    return marcaPadrao;
-  }
-};
-
-let cache: Marca | null = null;
+let cache: Marca = marcaPadrao;
+let ownerId: string | null = null;
+let carregando = false;
+let fila: Promise<void> = Promise.resolve();
 const ouvintes = new Set<() => void>();
+const notificar = () => ouvintes.forEach((fn) => fn());
+
+async function usuarioAtual() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error("Sua sessão expirou. Entre novamente.");
+  return data.user.id;
+}
+
+async function persistir(id: string, marca: Marca) {
+  const { error } = await supabase.from("platform_settings").upsert({
+    owner_id: id,
+    settings: marca as unknown as Json,
+  });
+  if (error) throw new Error(error.message);
+}
 
 export const marcaStore = {
   subscribe(fn: () => void) {
     ouvintes.add(fn);
     return () => ouvintes.delete(fn);
   },
-  /** Snapshot estável para useSyncExternalStore. */
-  get: (): Marca => (cache ??= ler()),
+  get: () => cache,
   servidor: () => marcaPadrao,
-  salvar(patch: Partial<Marca>) {
-    const nova = { ...marcaStore.get(), ...patch };
-    cache = nova;
+  async carregar() {
+    if (carregando) return;
+    carregando = true;
     try {
-      window.localStorage.setItem(CHAVE, JSON.stringify(nova));
-    } catch {
-      /* cota excedida */
+      const id = await usuarioAtual();
+      if (ownerId === id) return;
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("settings")
+        .eq("owner_id", id)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      ownerId = id;
+      cache = data?.settings
+        ? { ...marcaPadrao, ...(data.settings as unknown as Partial<Marca>) }
+        : marcaPadrao;
+      notificar();
+    } finally {
+      carregando = false;
     }
-    ouvintes.forEach((fn) => fn());
   },
-  restaurar() {
+  salvar(patch: Partial<Marca>) {
+    cache = { ...cache, ...patch };
+    const snapshot = cache;
+    notificar();
+    fila = fila
+      .catch(() => undefined)
+      .then(async () => {
+        const id = ownerId ?? (await usuarioAtual());
+        ownerId = id;
+        // Uses the newest cache when queued changes are eventually persisted.
+        await persistir(id, cache === snapshot ? snapshot : cache);
+      });
+    return fila;
+  },
+  async restaurar() {
+    const id = ownerId ?? (await usuarioAtual());
+    const { error } = await supabase.from("platform_settings").delete().eq("owner_id", id);
+    if (error) throw new Error(error.message);
     cache = marcaPadrao;
-    try {
-      window.localStorage.removeItem(CHAVE);
-    } catch {
-      /* ignorado */
-    }
-    ouvintes.forEach((fn) => fn());
+    ownerId = id;
+    notificar();
+  },
+  reset() {
+    cache = marcaPadrao;
+    ownerId = null;
+    carregando = false;
+    fila = Promise.resolve();
+    notificar();
   },
 };
 
-/** Domínio de publicação normalizado (sem protocolo e sem barra final). */
 export const hostMarca = (m: Marca) =>
   m.dominio.replace(/^https?:\/\//, "").replace(/\/+$/, "") || brand.dominio;

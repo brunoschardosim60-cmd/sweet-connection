@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
+import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { useMarca, useNexa } from "@/lib/nexa/hooks";
 import { hostMarca, marcaStore, type Marca } from "@/lib/nexa/marca";
 
@@ -28,7 +29,7 @@ function Configuracoes() {
       <div>
         <h1 className="font-display text-2xl font-bold">Configurações</h1>
         <p className="text-sm text-muted-foreground">
-          Marca própria (white label), dados da plataforma e gestão dos dados locais.
+          Marca própria (white label), dados da plataforma e gestão da sua conta.
         </p>
       </div>
 
@@ -37,8 +38,8 @@ function Configuracoes() {
           <div>
             <p className="font-semibold">Marca própria (white label)</p>
             <p className="text-xs text-muted-foreground">
-              Tudo o que o cliente vê — painel, site de apresentação e rodapé dos mini-sites —
-              passa a usar esta identidade.
+              Tudo o que o cliente vê — painel, site de apresentação e rodapé dos mini-sites — passa
+              a usar esta identidade.
             </p>
           </div>
           <div className="rounded-xl border border-border bg-secondary/60 px-3 py-2">
@@ -50,7 +51,7 @@ function Configuracoes() {
           <p className="mb-2 text-sm font-medium">Logotipo</p>
           <SeletorMidia
             valor={marca.logo}
-            onChange={(v) => marcaStore.salvar({ logo: v })}
+            onChange={(v) => void marcaStore.salvar({ logo: v }).catch(() => undefined)}
             rotulo="Logotipo da marca"
           />
         </div>
@@ -61,7 +62,11 @@ function Configuracoes() {
               {c.rotulo}
               <input
                 value={String(marca[c.chave] ?? "")}
-                onChange={(e) => marcaStore.salvar({ [c.chave]: e.target.value } as Partial<Marca>)}
+                onChange={(e) =>
+                  void marcaStore
+                    .salvar({ [c.chave]: e.target.value } as Partial<Marca>)
+                    .catch(() => undefined)
+                }
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-ring"
               />
               {c.dica && <span className="mt-1 block text-xs text-muted-foreground">{c.dica}</span>}
@@ -79,7 +84,9 @@ function Configuracoes() {
           <input
             type="checkbox"
             checked={marca.mostrarAssinatura}
-            onChange={(e) => marcaStore.salvar({ mostrarAssinatura: e.target.checked })}
+            onChange={(e) =>
+              void marcaStore.salvar({ mostrarAssinatura: e.target.checked }).catch(() => undefined)
+            }
             className="h-5 w-5 accent-lime"
           />
         </label>
@@ -87,9 +94,15 @@ function Configuracoes() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => {
-              marcaStore.restaurar();
-              toast.success("Marca padrão restaurada");
+            onClick={async () => {
+              try {
+                await marcaStore.restaurar();
+                toast.success("Marca padrão restaurada");
+              } catch (error) {
+                toast.error("Não foi possível restaurar a marca", {
+                  description: error instanceof Error ? error.message : undefined,
+                });
+              }
             }}
             className="rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
           >
@@ -114,32 +127,25 @@ function Configuracoes() {
       </div>
 
       <div className="surface space-y-4 p-6">
-        <p className="font-semibold">Dados locais</p>
+        <p className="font-semibold">Dados da conta</p>
         <p className="text-sm text-muted-foreground">
-          Nesta versão tudo é salvo no navegador. A arquitetura já está pronta para um banco de
-          dados futuro.
+          Clientes, mini-sites e formulários são armazenados no Supabase e isolados pela sua conta.
         </p>
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              void store.restaurarDemo();
-              toast.success("Dados de demonstração restaurados");
+          <BotaoRemover
+            rotulo="Apagar tudo"
+            descricao="Apagar permanentemente todos os clientes, mini-sites e envios desta conta?"
+            onConfirmar={() => {
+              void store
+                .limpar()
+                .then(() => toast.success("Dados da conta apagados"))
+                .catch((error: unknown) =>
+                  toast.error("Não foi possível apagar os dados", {
+                    description: error instanceof Error ? error.message : undefined,
+                  }),
+                );
             }}
-            className="rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-ink-foreground"
-          >
-            Restaurar dados de demonstração
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              void store.limpar();
-              toast.success("Dados locais apagados");
-            }}
-            className="rounded-full border border-border px-4 py-2.5 text-sm font-semibold"
-          >
-            Apagar tudo
-          </button>
+          />
         </div>
       </div>
 

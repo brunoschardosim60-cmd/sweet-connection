@@ -84,16 +84,16 @@ function NovoSite() {
     setSalvando(true);
     const site = criarSite(cliente, modeloId, slugFinal);
     try {
-      await store.adicionarSite(site);
-    } catch {
+      const salvo = await store.adicionarSite(site);
+      toast.success("Mini-site criado", { description: "Agora personalize no editor." });
+      void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
+    } catch (error) {
       setSalvando(false);
       toast.error("Não foi possível criar o mini-site", {
-        description: "Tente novamente em instantes.",
+        description: error instanceof Error ? error.message : "Tente novamente em instantes.",
       });
       return;
     }
-    toast.success("Mini-site criado", { description: "Agora personalize no editor." });
-    void navigate({ to: "/painel/editor/$id", params: { id: site.id } });
   };
 
   return (

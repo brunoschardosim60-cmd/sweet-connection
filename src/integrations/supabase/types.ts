@@ -1,155 +1,225 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+type SiteStatus = "rascunho" | "publicado" | "pausado";
+type SubmissionStatus = "novo" | "lido" | "arquivado";
+type EventType = "visita" | "clique" | "whatsapp" | "formulario";
+
+type Tabela<Row, Insert, Update = Partial<Insert>> = {
+  Row: Row;
+  Insert: Insert;
+  Update: Update;
+  Relationships: [];
+};
+
+type ProfileRow = {
+  id: string;
+  display_name: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ClientRow = {
+  id: string;
+  owner_id: string;
+  company: string;
+  segment: string;
+  contact_name: string;
+  phone: string;
+  email: string;
+  city: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MinisiteRow = {
+  id: string;
+  owner_id: string;
+  client_id: string;
+  slug: string;
+  status: SiteStatus;
+  draft_content: Json;
+  published_content: Json | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type SettingsRow = {
+  owner_id: string;
+  settings: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+type SubmissionRow = {
+  id: string;
+  minisite_id: string;
+  payload: Json;
+  origin: string;
+  status: SubmissionStatus;
+  fingerprint_hash: string | null;
+  created_at: string;
+};
+
+type MediaRow = {
+  id: string;
+  owner_id: string;
+  bucket: string;
+  object_path: string;
+  mime_type: string;
+  size_bytes: number;
+  created_at: string;
+};
+
+type AnalyticsRow = {
+  id: number;
+  minisite_id: string;
+  event_type: EventType;
+  target: string | null;
+  source: string | null;
+  visitor_hash: string | null;
+  session_hash: string | null;
+  occurred_at: string;
+};
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
+  __InternalSupabase: { PostgrestVersion: "14.15" };
   public: {
     Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
+      profiles: Tabela<
+        ProfileRow,
+        {
+          id: string;
+          display_name?: string;
+          role?: string;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      clients: Tabela<
+        ClientRow,
+        {
+          id?: string;
+          owner_id?: string;
+          company: string;
+          segment: string;
+          contact_name?: string;
+          phone?: string;
+          email?: string;
+          city?: string;
+          state?: string;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      minisites: Tabela<
+        MinisiteRow,
+        {
+          id?: string;
+          owner_id?: string;
+          client_id: string;
+          slug: string;
+          status?: SiteStatus;
+          draft_content: Json;
+          published_content?: Json | null;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      platform_settings: Tabela<
+        SettingsRow,
+        {
+          owner_id?: string;
+          settings?: Json;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      form_submissions: Tabela<
+        SubmissionRow,
+        {
+          id?: string;
+          minisite_id: string;
+          payload: Json;
+          origin?: string;
+          status?: SubmissionStatus;
+          fingerprint_hash?: string | null;
+          created_at?: string;
+        }
+      >;
+      media: Tabela<
+        MediaRow,
+        {
+          id?: string;
+          owner_id?: string;
+          bucket?: string;
+          object_path: string;
+          mime_type: string;
+          size_bytes: number;
+          created_at?: string;
+        }
+      >;
+      analytics_events: Tabela<
+        AnalyticsRow,
+        {
+          id?: never;
+          minisite_id: string;
+          event_type: EventType;
+          target?: string | null;
+          source?: string | null;
+          visitor_hash?: string | null;
+          session_hash?: string | null;
+          occurred_at?: string;
+        }
+      >;
+    };
+    Views: { [_ in never]: never };
     Functions: {
-      [_ in never]: never
-    }
+      clear_nexa_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      delete_minisite: { Args: { requested_id: string }; Returns: undefined };
+      get_published_minisite: { Args: { requested_slug: string }; Returns: Json };
+      publish_minisite: { Args: { requested_id: string }; Returns: MinisiteRow };
+      save_minisite_draft: {
+        Args: {
+          requested_slug: string;
+          site_content: Json;
+          client_content: Json;
+          requested_id?: string;
+        };
+        Returns: MinisiteRow;
+      };
+      set_minisite_status: {
+        Args: { requested_id: string; requested_status: SiteStatus };
+        Returns: MinisiteRow;
+      };
+      submit_minisite_form: {
+        Args: {
+          requested_slug: string;
+          submitted_payload: Json;
+          request_origin?: string;
+          fingerprint?: string;
+        };
+        Returns: string;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+      nexa_site_status: SiteStatus;
+      nexa_submission_status: SubmissionStatus;
+      nexa_event_type: EventType;
+    };
+    CompositeTypes: { [_ in never]: never };
+  };
+};
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      nexa_site_status: ["rascunho", "publicado", "pausado"],
+      nexa_submission_status: ["novo", "lido", "arquivado"],
+      nexa_event_type: ["visita", "clique", "whatsapp", "formulario"],
+    },
   },
-} as const
+} as const;

@@ -87,6 +87,7 @@ function Editor() {
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [autosave, setAutosave] = useState(true);
   const [previaMovel, setPreviaMovel] = useState(false);
+  const revisaoRef = useRef(0);
 
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
@@ -108,6 +109,7 @@ function Editor() {
   }, []);
 
   const aplicar = (fn: (s: Site) => Site) => {
+    revisaoRef.current += 1;
     setRascunho((atual) => {
       if (!atual) return atual;
       hist.registrar(structuredClone(atual));
@@ -118,22 +120,27 @@ function Editor() {
 
   const salvar = useCallback(
     async (patch?: Partial<Site>, silencioso = false) => {
-      setRascunho((atual) => {
-        if (!atual) return atual;
-        const proximo = { ...atual, ...patch };
-        setSalvando(true);
-        void store
-          .atualizarSite(atual.id, () => proximo)
-          .then(() => {
-            setSalvando(false);
-            setSujo(false);
-            setSalvoEm(new Date().toISOString());
-            if (!silencioso) toast.success("Alterações salvas");
-          });
-        return proximo;
-      });
+      if (!rascunho || salvando) return null;
+      const proximo = { ...rascunho, ...patch };
+      const revisaoSalva = revisaoRef.current;
+      setRascunho(proximo);
+      setSalvando(true);
+      try {
+        const salvo = await store.atualizarSite(rascunho.id, () => proximo);
+        if (revisaoRef.current === revisaoSalva) setSujo(false);
+        setSalvoEm(new Date().toISOString());
+        if (!silencioso) toast.success("Alterações salvas");
+        return salvo;
+      } catch (error) {
+        toast.error("Não foi possível salvar", {
+          description: error instanceof Error ? error.message : undefined,
+        });
+        return null;
+      } finally {
+        setSalvando(false);
+      }
     },
-    [store],
+    [rascunho, salvando, store],
   );
 
   /* autosave com atraso curto */
@@ -152,18 +159,32 @@ function Editor() {
   }, [sujo]);
 
   const publicar = async () => {
-    if (!rascunho) return;
+    if (!rascunho || salvando) return;
     const publicado = rascunho.status === "publicado";
     if (!publicado) versaoStore.registrar(rascunho, "publicacao");
-    await salvar({ status: publicado ? "rascunho" : "publicado" }, true);
-    toast[publicado ? "message" : "success"](
-      publicado ? "Mini-site despublicado" : "Mini-site publicado",
-      {
-        description: publicado
-          ? "Ele voltou para rascunho."
-          : `Disponível em /site/${rascunho.slug}`,
-      },
-    );
+    setSalvando(true);
+    try {
+      const salvo = publicado
+        ? await store.definirStatus(rascunho, "rascunho")
+        : await store.publicarSite(rascunho);
+      setRascunho(salvo);
+      setSujo(false);
+      setSalvoEm(new Date().toISOString());
+      toast[publicado ? "message" : "success"](
+        publicado ? "Mini-site despublicado" : "Mini-site publicado",
+        {
+          description: publicado
+            ? "Ele voltou para rascunho."
+            : `Disponível em /site/${salvo.slug}`,
+        },
+      );
+    } catch (error) {
+      toast.error(publicado ? "Não foi possível despublicar" : "Não foi possível publicar", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const importar = async (arquivo?: File | null) => {
@@ -389,9 +410,7 @@ function Editor() {
 
           <div className="mt-5 space-y-5 pb-24 lg:max-h-[calc(100dvh-160px)] lg:overflow-y-auto lg:pb-4 lg:pr-1">
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
-            {aba === "secoes" && (
-              <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />
-            )}
+            {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}

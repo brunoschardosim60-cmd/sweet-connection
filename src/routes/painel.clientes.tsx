@@ -24,7 +24,7 @@ import { hostMarca } from "@/lib/nexa/marca";
 import { caminhoSite, copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 
 import { segmentos, nomeSegmento } from "@/lib/nexa/segmentos";
-import { numero, tempoRelativo, uid } from "@/lib/nexa/utils";
+import { numero, tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Site } from "@/lib/nexa/types";
 
@@ -85,22 +85,32 @@ function Clientes() {
   };
 
   const duplicar = async (s: Site) => {
-    await store.adicionarSite({
-      ...s,
-      id: uid("site"),
-      slug: `${s.slug}-copia`,
-      status: "rascunho",
-      conteudo: { ...s.conteudo, nome: `${s.conteudo.nome} (cópia)` },
-      criadoEm: new Date().toISOString(),
-      atualizadoEm: new Date().toISOString(),
-    });
-    toast.success("Mini-site duplicado");
+    try {
+      const copia = duplicarImportacao(
+        s,
+        sites.map((site) => site.slug),
+      );
+      copia.conteudo.nome = `${s.conteudo.nome} (cópia)`;
+      await store.adicionarSite(copia);
+      toast.success("Mini-site duplicado");
+    } catch (error) {
+      toast.error("Não foi possível duplicar", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   };
 
   const alternar = async (s: Site) => {
     const novo = s.status === "publicado" ? "pausado" : "publicado";
-    await store.atualizarSite(s.id, { status: novo });
-    toast.success(novo === "publicado" ? "Mini-site publicado" : "Mini-site pausado");
+    try {
+      if (novo === "publicado") await store.publicarSite(s);
+      else await store.definirStatus(s, "pausado");
+      toast.success(novo === "publicado" ? "Mini-site publicado" : "Mini-site pausado");
+    } catch (error) {
+      toast.error("Não foi possível alterar o status", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   };
 
   /** Ações completas de um mini-site — mesmas em tabela e cards. */
@@ -484,10 +494,16 @@ function Clientes() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  void store.removerSite(excluir.id);
-                  setExcluir(null);
-                  toast.success("Mini-site excluído");
+                onClick={async () => {
+                  try {
+                    await store.removerSite(excluir.id);
+                    setExcluir(null);
+                    toast.success("Mini-site excluído");
+                  } catch (error) {
+                    toast.error("Não foi possível excluir", {
+                      description: error instanceof Error ? error.message : undefined,
+                    });
+                  }
                 }}
                 className="min-h-11 rounded-full bg-destructive px-4 text-sm font-semibold text-destructive-foreground"
               >

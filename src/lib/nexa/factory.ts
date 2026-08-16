@@ -21,8 +21,7 @@ export const secoesPadrao: { tipo: TipoSecao; titulo: string; ativa: boolean }[]
   { tipo: "rodape", titulo: "Rodapé", ativa: true },
 ];
 
-export const criarSecoes = (): Secao[] =>
-  secoesPadrao.map((s) => ({ id: uid("sec"), ...s }));
+export const criarSecoes = (): Secao[] => secoesPadrao.map((s) => ({ id: uid("sec"), ...s }));
 
 export const horariosPadrao = () =>
   diasSemana.map((dia, i) => ({
@@ -67,6 +66,17 @@ export function metricasPadrao(base = 120) {
   };
 }
 
+export function metricasVazias() {
+  return {
+    visitas: 0,
+    cliquesWhatsapp: 0,
+    solicitacoes: 0,
+    serie: [],
+    origens: [],
+    horarios: [],
+  };
+}
+
 export function criarSite(cliente: Cliente, modeloId: string, slug: string): Site {
   const modelo = modeloPorId(modeloId);
   const agora = new Date().toISOString();
@@ -96,9 +106,10 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       fonte: "moderna",
       raio: 16,
       botao: "solido",
-      tema: modelo.paleta.fundo.startsWith("#0") || modelo.paleta.fundo.startsWith("#1")
-        ? "escuro"
-        : "claro",
+      tema:
+        modelo.paleta.fundo.startsWith("#0") || modelo.paleta.fundo.startsWith("#1")
+          ? "escuro"
+          : "claro",
       animacoes: true,
       espacamento: "confortavel",
       layout: modelo.layout,
@@ -135,6 +146,6 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       googleMaps: "",
       whatsappApi: "",
     },
-    metricas: metricasPadrao(40),
+    metricas: metricasVazias(),
   };
 }

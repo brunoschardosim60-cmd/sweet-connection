@@ -6,7 +6,14 @@ import type { Site } from "./types";
 
 const mapaVazio: ReturnType<typeof analytics.tudo> = {};
 
-const vazio = { sites: [] as Site[], envios: [], pronto: false };
+const vazio = {
+  sites: [] as Site[],
+  envios: [],
+  pronto: false,
+  carregando: false,
+  erro: null,
+  ownerId: null,
+};
 
 export function useNexa() {
   const estado = useSyncExternalStore(
@@ -86,5 +93,9 @@ export function useDesempenho() {
 
 /** Identidade white label da plataforma (nome, logo, domínio, contatos). */
 export function useMarca() {
-  return useSyncExternalStore(marcaStore.subscribe, marcaStore.get, marcaStore.servidor);
+  const marca = useSyncExternalStore(marcaStore.subscribe, marcaStore.get, marcaStore.servidor);
+  useEffect(() => {
+    void marcaStore.carregar().catch(() => undefined);
+  }, []);
+  return marca;
 }

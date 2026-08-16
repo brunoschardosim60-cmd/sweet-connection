@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { useNexa } from "@/lib/nexa/hooks";
 import { useTema } from "@/lib/nexa/tema";
+import { marcaStore } from "@/lib/nexa/marca";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -56,7 +57,7 @@ function PainelLayout() {
   const { escuro, alternar } = useTema();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const noEditor = pathname.includes("/painel/editor/");
-  const { sites, pronto } = useNexa();
+  const { sites, pronto, erro, store } = useNexa();
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
 
@@ -108,6 +109,8 @@ function PainelLayout() {
       toast.error("Não foi possível sair. Tente novamente.");
       return;
     }
+    store.reset();
+    marcaStore.reset();
     await navigate({ to: "/login", replace: true });
   };
 
@@ -325,6 +328,11 @@ function PainelLayout() {
         )}
 
         <main className="min-w-0 flex-1 p-4 sm:p-6">
+          {erro && (
+            <p role="alert" className="mb-4 rounded-xl border border-destructive/40 p-3 text-sm">
+              Não foi possível carregar os dados: {erro}
+            </p>
+          )}
           <Outlet />
         </main>
       </div>
