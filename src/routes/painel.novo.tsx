@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
@@ -43,12 +43,21 @@ function NovoSite() {
   });
   const [modeloId, setModeloId] = useState(modelos[0]!.id);
   const [slug, setSlug] = useState("");
+  const [tocado, setTocado] = useState(false);
+  const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
     [cliente.segmento],
   );
-  const lista = sugeridos.length > 0 ? sugeridos : modelos;
+  const lista = filtro === "todos" || sugeridos.length === 0 ? modelos : sugeridos;
+
+  const erroEmpresa =
+    tocado && cliente.empresa.trim().length < 2 ? "Informe o nome da empresa." : undefined;
+  const erroTelefone =
+    tocado && cliente.telefone.replace(/\D/g, "").length < 10
+      ? "Informe um WhatsApp válido com DDD."
+      : undefined;
 
   const slugFinal = slug || slugify(cliente.empresa);
   const slugEmUso = sites.some((s) => s.slug === slugFinal);
@@ -71,10 +80,18 @@ function NovoSite() {
         : slugFinal.length > 2 && !slugEmUso;
 
   const criar = async () => {
-    if (!podeAvancar) return;
+    if (!podeAvancar || salvando) return;
     setSalvando(true);
     const site = criarSite(cliente, modeloId, slugFinal);
-    await store.adicionarSite(site);
+    try {
+      await store.adicionarSite(site);
+    } catch {
+      setSalvando(false);
+      toast.error("Não foi possível criar o mini-site", {
+        description: "Tente novamente em instantes.",
+      });
+      return;
+    }
     toast.success("Mini-site criado", { description: "Agora personalize no editor." });
     void navigate({ to: "/painel/editor/$id", params: { id: site.id } });
   };
@@ -96,23 +113,41 @@ function NovoSite() {
         </Link>
       </div>
 
-      <ol className="flex flex-wrap items-center gap-3">
-        {passos.map((p, i) => (
-          <li key={p} className="flex items-center gap-2">
-            <span
-              className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${
-                i <= passo ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              {i < passo ? <Check size={14} /> : i + 1}
-            </span>
-            <span className={i === passo ? "text-sm font-semibold" : "text-sm text-muted-foreground"}>
-              {p}
-            </span>
-            {i < passos.length - 1 && <span className="mx-1 h-px w-8 bg-border" />}
-          </li>
-        ))}
-      </ol>
+      <div>
+        <ol className="flex flex-wrap items-center gap-3">
+          {passos.map((p, i) => (
+            <li key={p} className="flex items-center gap-2">
+              <span
+                aria-current={i === passo ? "step" : undefined}
+                className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${
+                  i <= passo ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {i < passo ? <Check size={14} /> : i + 1}
+              </span>
+              <span
+                className={i === passo ? "text-sm font-semibold" : "text-sm text-muted-foreground"}
+              >
+                {p}
+              </span>
+              {i < passos.length - 1 && <span className="mx-1 h-px w-8 bg-border" />}
+            </li>
+          ))}
+        </ol>
+        <div
+          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={passos.length}
+          aria-valuenow={passo + 1}
+          aria-label={`Passo ${passo + 1} de ${passos.length}: ${passos[passo]}`}
+        >
+          <div
+            className="h-full rounded-full bg-ink transition-[width] duration-300"
+            style={{ width: `${((passo + 1) / passos.length) * 100}%` }}
+          />
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="surface p-5 sm:p-6">
@@ -123,6 +158,7 @@ function NovoSite() {
                 valor={cliente.empresa}
                 onChange={(v) => setCliente({ ...cliente, empresa: v })}
                 placeholder="Cantina Bella Massa"
+                erro={erroEmpresa}
               />
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Segmento</span>
@@ -151,6 +187,7 @@ function NovoSite() {
                 valor={cliente.telefone}
                 onChange={(v) => setCliente({ ...cliente, telefone: telefoneMask(v) })}
                 placeholder="(11) 98888-1111"
+                erro={erroTelefone}
               />
               <Campo
                 rotulo="E-mail"
@@ -183,35 +220,90 @@ function NovoSite() {
 
           {passo === 1 && (
             <div>
-              <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={15} /> Modelos recomendados para este segmento
               </p>
+              <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={() => setFiltro("recomendados")}
+                  aria-pressed={filtro === "recomendados"}
+                  className={`h-9 shrink-0 rounded-full border px-3.5 text-xs font-semibold ${
+                    filtro === "recomendados"
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border hover:bg-secondary"
+                  }`}
+                >
+                  Recomendados
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltro("todos")}
+                  aria-pressed={filtro === "todos"}
+                  className={`h-9 shrink-0 rounded-full border px-3.5 text-xs font-semibold ${
+                    filtro === "todos"
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border hover:bg-secondary"
+                  }`}
+                >
+                  Todos os modelos
+                </button>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {lista.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setModeloId(m.id)}
-                    className={`overflow-hidden rounded-2xl border text-left transition-all ${
-                      modeloId === m.id
-                        ? "border-ink ring-2 ring-lime"
-                        : "border-border hover:-translate-y-0.5"
-                    }`}
-                  >
-                    <img
-                      src={m.imagem}
-                      alt={`Modelo ${m.nome}`}
-                      loading="lazy"
-                      className="h-28 w-full object-cover"
-                    />
-                    <div className="p-3">
-                      <p className="text-sm font-semibold">{m.nome}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {m.descricao}
-                      </p>
+                {lista.map((m) => {
+                  const ativo = modeloId === m.id;
+                  return (
+                    <div
+                      key={m.id}
+                      className={`overflow-hidden rounded-2xl border transition-all ${
+                        ativo
+                          ? "border-ink ring-2 ring-lime"
+                          : "border-border hover:-translate-y-0.5"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setModeloId(m.id)}
+                        aria-pressed={ativo}
+                        className="block w-full text-left"
+                      >
+                        <span className="relative block">
+                          <img
+                            src={m.imagem}
+                            alt={`Modelo ${m.nome}`}
+                            loading="lazy"
+                            className="h-36 w-full object-cover"
+                          />
+                          {ativo && (
+                            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-lime text-ink">
+                              <Check size={15} />
+                            </span>
+                          )}
+                        </span>
+                        <span className="block p-3">
+                          <span className="block text-sm font-semibold">{m.nome}</span>
+                          <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
+                            {m.descricao}
+                          </span>
+                          <span className="mt-2 inline-block rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">
+                            {m.destaque}
+                          </span>
+                        </span>
+                      </button>
+                      <div className="border-t border-border p-2">
+                        <Link
+                          to="/demonstracao/$modelo"
+                          params={{ modelo: m.id }}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full text-xs font-semibold hover:bg-secondary"
+                        >
+                          <Eye size={14} /> Pré-visualizar
+                        </Link>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -220,14 +312,23 @@ function NovoSite() {
             <div className="max-w-md space-y-4">
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Endereço do mini-site</span>
-                <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+                <div
+                  className={`flex items-center gap-2 rounded-xl border bg-card px-3 ${
+                    slugEmUso ? "border-ember" : "border-border focus-within:border-ink"
+                  }`}
+                >
                   <span className="text-sm text-muted-foreground">/site/</span>
                   <input
                     value={slugFinal}
+                    aria-invalid={slugEmUso}
                     onChange={(e) => setSlug(slugify(e.target.value))}
                     className="h-11 w-full bg-transparent text-sm outline-none"
                   />
                 </div>
+                <span className="mt-1.5 block text-xs text-muted-foreground">
+                  Endereço final:{" "}
+                  <span className="font-medium text-foreground">/site/{slugFinal || "…"}</span>
+                </span>
               </label>
               {slugEmUso && (
                 <p className="text-sm text-ember">Este endereço já está sendo usado.</p>
@@ -251,8 +352,11 @@ function NovoSite() {
               <button
                 type="button"
                 disabled={!podeAvancar}
-                onClick={() => setPasso((p) => p + 1)}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
+                onClick={() => {
+                  setTocado(true);
+                  if (podeAvancar) setPasso((p) => p + 1);
+                }}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
               >
                 Continuar <ArrowRight size={15} />
               </button>
@@ -261,9 +365,10 @@ function NovoSite() {
                 type="button"
                 disabled={!podeAvancar || salvando}
                 onClick={() => void criar()}
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
               >
-                <Check size={15} /> Criar e editar
+                {salvando ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                {salvando ? "Criando…" : "Criar e editar"}
               </button>
             )}
           </div>
@@ -284,11 +389,13 @@ function Campo({
   valor,
   onChange,
   placeholder,
+  erro,
 }: {
   rotulo: string;
   valor: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  erro?: string | undefined;
 }) {
   return (
     <label className="block">
@@ -296,9 +403,13 @@ function Campo({
       <input
         value={valor}
         placeholder={placeholder}
+        aria-invalid={!!erro}
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-ink"
+        className={`h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none focus:border-ink ${
+          erro ? "border-ember" : "border-border"
+        }`}
       />
+      {erro && <span className="mt-1.5 block text-xs text-ember">{erro}</span>}
     </label>
   );
 }

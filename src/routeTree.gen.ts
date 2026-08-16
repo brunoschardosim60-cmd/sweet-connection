@@ -10,8 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcessoNegadoRouteImport } from './routes/acesso-negado'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
@@ -28,6 +32,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcessoNegadoRoute = AcessoNegadoRouteImport.update({
+  id: '/acesso-negado',
+  path: '/acesso-negado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ModelosRoute = ModelosRouteImport.update({
   id: '/modelos',
   path: '/modelos',
@@ -36,6 +55,11 @@ const ModelosRoute = ModelosRouteImport.update({
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
@@ -91,8 +115,12 @@ const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -106,7 +134,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -121,8 +153,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -138,8 +174,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/login'
     | '/modelos'
     | '/painel'
+    | '/recuperar-senha'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -153,7 +193,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/login'
     | '/modelos'
+    | '/recuperar-senha'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -167,8 +211,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/login'
     | '/modelos'
     | '/painel'
+    | '/recuperar-senha'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -183,8 +231,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcessoNegadoRoute: typeof AcessoNegadoRoute
+  CadastroRoute: typeof CadastroRoute
+  LoginRoute: typeof LoginRoute
   ModelosRoute: typeof ModelosRoute
   PainelRoute: typeof PainelRouteWithChildren
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
 }
@@ -196,6 +248,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acesso-negado': {
+      id: '/acesso-negado'
+      path: '/acesso-negado'
+      fullPath: '/acesso-negado'
+      preLoaderRoute: typeof AcessoNegadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modelos': {
@@ -210,6 +283,13 @@ declare module '@tanstack/react-router' {
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demonstracao/$modelo': {
@@ -312,8 +392,12 @@ const PainelRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcessoNegadoRoute: AcessoNegadoRoute,
+  CadastroRoute: CadastroRoute,
+  LoginRoute: LoginRoute,
   ModelosRoute: ModelosRoute,
   PainelRoute: PainelRouteWithChildren,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
 }
