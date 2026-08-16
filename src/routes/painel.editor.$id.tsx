@@ -1715,6 +1715,19 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             <option value="cor">Cor sólida</option>
           </select>
         </label>
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">Ícone de perfil</span>
+          <select
+            value={a.logoFormato ?? "redondo"}
+            onChange={(e) =>
+              set({ logoFormato: e.target.value as NonNullable<Site["aparencia"]["logoFormato"]> })
+            }
+            className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm"
+          >
+            <option value="redondo">Redondo</option>
+            <option value="quadrado">Quadrado</option>
+          </select>
+        </label>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
