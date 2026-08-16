@@ -269,7 +269,43 @@ function NovoSite() {
                   Todos os modelos
                 </button>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {meusModelos.length > 0 && (
+                <div className="mt-3">
+                  <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Meus modelos salvos (aplicam cores e formas por cima do modelo escolhido)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMeuModeloId(null)}
+                      aria-pressed={meuModeloId === null}
+                      className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold ${
+                        meuModeloId === null
+                          ? "border-ink bg-ink text-ink-foreground"
+                          : "border-border hover:bg-secondary"
+                      }`}
+                    >
+                      Nenhum
+                    </button>
+                    {meusModelos.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setMeuModeloId(m.id)}
+                        aria-pressed={meuModeloId === m.id}
+                        className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold ${
+                          meuModeloId === m.id
+                            ? "border-ink bg-ink text-ink-foreground"
+                            : "border-border hover:bg-secondary"
+                        }`}
+                      >
+                        {m.nome}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {lista.map((m) => {
                   const ativo = modeloId === m.id;
                   return (
