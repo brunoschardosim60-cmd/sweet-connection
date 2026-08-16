@@ -79,10 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Nexa — Mini-sites profissionais" },
-      { name: "description", content: "Plataforma brasileira para criar, editar e publicar mini-sites profissionais." },
+      {
+        name: "description",
+        content: "Plataforma brasileira para criar, editar e publicar mini-sites profissionais.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Nexa — Mini-sites profissionais" },
-      { property: "og:description", content: "Crie mini-sites profissionais para negócios brasileiros." },
+      {
+        property: "og:description",
+        content: "Crie mini-sites profissionais para negócios brasileiros.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },

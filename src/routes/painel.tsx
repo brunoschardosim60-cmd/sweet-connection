@@ -79,9 +79,7 @@ function PainelLayout() {
 
   if (noEditor) return <Outlet />;
 
-  const pendentes = pronto
-    ? sites.reduce((total, s) => total + s.metricas.solicitacoes, 0)
-    : 0;
+  const pendentes = pronto ? sites.reduce((total, s) => total + s.metricas.solicitacoes, 0) : 0;
 
   const ativoDe = (i: (typeof itens)[number]) =>
     i.exato ? pathname === i.to : pathname.startsWith(i.to);

@@ -40,7 +40,10 @@ export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
     meta: [
       { title: "Editor visual — Nexa" },
-      { name: "description", content: "Edite conteúdo, seções e aparência com prévia em tempo real." },
+      {
+        name: "description",
+        content: "Edite conteúdo, seções e aparência com prévia em tempo real.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Editor visual — Nexa" },
       { property: "og:description", content: "Personalize o mini-site e publique em um clique." },
@@ -97,12 +100,14 @@ function Editor() {
         if (!atual) return atual;
         const proximo = { ...atual, ...patch };
         setSalvando(true);
-        void store.atualizarSite(atual.id, () => proximo).then(() => {
-          setSalvando(false);
-          setSujo(false);
-          setSalvoEm(new Date().toISOString());
-          if (!silencioso) toast.success("Alterações salvas");
-        });
+        void store
+          .atualizarSite(atual.id, () => proximo)
+          .then(() => {
+            setSalvando(false);
+            setSujo(false);
+            setSalvoEm(new Date().toISOString());
+            if (!silencioso) toast.success("Alterações salvas");
+          });
         return proximo;
       });
     },
@@ -131,7 +136,11 @@ function Editor() {
     await salvar({ status: publicado ? "rascunho" : "publicado" }, true);
     toast[publicado ? "message" : "success"](
       publicado ? "Mini-site despublicado" : "Mini-site publicado",
-      { description: publicado ? "Ele voltou para rascunho." : `Disponível em /site/${rascunho.slug}` },
+      {
+        description: publicado
+          ? "Ele voltou para rascunho."
+          : `Disponível em /site/${rascunho.slug}`,
+      },
     );
   };
 
@@ -175,9 +184,17 @@ function Editor() {
     );
 
   const estado = salvando
-    ? { icone: <Loader2 size={12} className="animate-spin" />, texto: "salvando…", cor: "text-muted-foreground" }
+    ? {
+        icone: <Loader2 size={12} className="animate-spin" />,
+        texto: "salvando…",
+        cor: "text-muted-foreground",
+      }
     : sujo
-      ? { icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />, texto: "alterações não salvas", cor: "text-ember" }
+      ? {
+          icone: <span className="h-1.5 w-1.5 rounded-full bg-ember" />,
+          texto: "alterações não salvas",
+          cor: "text-ember",
+        }
       : {
           icone: <Check size={12} />,
           texto: salvoEm ? `salvo ${dataHora(salvoEm)}` : "tudo salvo",
@@ -402,7 +419,6 @@ function Editor() {
   );
 }
 
-
 /* ------------------------------ campos ------------------------------ */
 
 type Aplicar = (fn: (s: Site) => Site) => void;
@@ -524,7 +540,6 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           onChange={(v) => set({ capa: v })}
         />
       </Bloco>
-
 
       <Bloco titulo="Horários">
         <div className="space-y-2">
@@ -701,13 +716,7 @@ function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
 /* ------------------------------ itens ------------------------------ */
 
-function LinhaItem({
-  children,
-  onRemover,
-}: {
-  children: React.ReactNode;
-  onRemover: () => void;
-}) {
+function LinhaItem({ children, onRemover }: { children: React.ReactNode; onRemover: () => void }) {
   return (
     <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       {children}
@@ -757,7 +766,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   return (
     <>
       <BlocoLinksEditor site={site} aplicar={aplicar} />
-
 
       <Bloco titulo="Produtos">
         {site.produtos.map((p) => (
@@ -853,7 +861,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 disponível
               </label>
             </div>
-
           </LinhaItem>
         ))}
         <BotaoAdicionar
@@ -940,7 +947,13 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
               ...s,
               servicos: [
                 ...s.servicos,
-                { id: uid("srv"), nome: "Novo serviço", descricao: "", duracao: "30 min", preco: 0 },
+                {
+                  id: uid("srv"),
+                  nome: "Novo serviço",
+                  descricao: "",
+                  duracao: "30 min",
+                  preco: 0,
+                },
               ],
             }))
           }
@@ -949,7 +962,6 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
       <BlocoGaleria site={site} aplicar={aplicar} />
       <BlocoVideosEditor site={site} aplicar={aplicar} />
-
 
       <Bloco titulo="Depoimentos">
         {site.depoimentos.map((d) => (
@@ -1196,12 +1208,11 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const setInt = (patch: Partial<Site["integracoes"]>) =>
     aplicar((s) => ({ ...s, integracoes: { ...s.integracoes, ...patch } }));
 
-  const dominio =
-    site.integracoes.dominio?.trim()
-      ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : `https://${hostMarca(marcaStore.get())}`;
+  const dominio = site.integracoes.dominio?.trim()
+    ? `https://${site.integracoes.dominio.replace(/^https?:\/\//, "")}`
+    : typeof window !== "undefined"
+      ? window.location.origin
+      : `https://${hostMarca(marcaStore.get())}`;
   const url = `${dominio}/site/${site.slug}`;
 
   return (
@@ -1254,7 +1265,9 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             type="button"
             onClick={() => {
               void navigator.clipboard?.writeText(url);
-              toast.success("Link copiado", { description: "Cole na bio do Instagram ou no WhatsApp." });
+              toast.success("Link copiado", {
+                description: "Cole na bio do Instagram ou no WhatsApp.",
+              });
             }}
             className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
           >
@@ -1322,7 +1335,12 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           id: uid("lnk"),
           tipo,
           titulo: tiposLink.find((t) => t.id === tipo)?.rotulo ?? "Novo link",
-          valor: tipo === "whatsapp" ? s.conteudo.whatsapp : tipo === "instagram" ? s.conteudo.instagram : "",
+          valor:
+            tipo === "whatsapp"
+              ? s.conteudo.whatsapp
+              : tipo === "instagram"
+                ? s.conteudo.instagram
+                : "",
           ativo: true,
         },
       ],
@@ -1392,15 +1410,15 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </LinhaItem>
       ))}
       <div className="flex flex-wrap gap-1.5">
-        {(["whatsapp", "instagram", "facebook", "tiktok", "youtube", "personalizado"] as TipoLink[]).map(
-          (t) => (
-            <BotaoAdicionar
-              key={t}
-              rotulo={tiposLink.find((x) => x.id === t)?.rotulo ?? t}
-              onClick={() => adicionar(t)}
-            />
-          ),
-        )}
+        {(
+          ["whatsapp", "instagram", "facebook", "tiktok", "youtube", "personalizado"] as TipoLink[]
+        ).map((t) => (
+          <BotaoAdicionar
+            key={t}
+            rotulo={tiposLink.find((x) => x.id === t)?.rotulo ?? t}
+            onClick={() => adicionar(t)}
+          />
+        ))}
       </div>
     </Bloco>
   );
@@ -1436,7 +1454,10 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           }
           aplicar((s) => ({
             ...s,
-            galeria: [...s.galeria, { id: uid("mid"), url: novo, titulo: tipo === "video" ? "Vídeo" : "Foto", tipo }],
+            galeria: [
+              ...s.galeria,
+              { id: uid("mid"), url: novo, titulo: tipo === "video" ? "Vídeo" : "Foto", tipo },
+            ],
           }));
           setNovo("");
         }}
@@ -1608,8 +1629,6 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
     </Bloco>
   );
 }
-
-
 
 /** Indicador elegante de tamanho recomendado para slug, título e descrição. */
 function Medidor({

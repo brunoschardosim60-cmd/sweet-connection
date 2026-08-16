@@ -243,7 +243,8 @@ function Clientes() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary">
-            <Upload size={13} aria-hidden="true" /> <span className="hidden sm:inline">Importar JSON</span>
+            <Upload size={13} aria-hidden="true" />{" "}
+            <span className="hidden sm:inline">Importar JSON</span>
             <span className="sr-only sm:hidden">Importar JSON</span>
             <input
               type="file"
@@ -353,7 +354,9 @@ function Clientes() {
 
       {/* Celular: sempre cards, nunca tabela espremida. */}
       {lista.length > 0 && (
-        <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${visual === "tabela" ? "md:hidden" : ""}`}>
+        <div
+          className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${visual === "tabela" ? "md:hidden" : ""}`}
+        >
           {lista.map((s) => (
             <Cartao key={s.id} s={s} />
           ))}
@@ -366,13 +369,27 @@ function Clientes() {
             <caption className="sr-only">Mini-sites dos clientes</caption>
             <thead className="border-b border-border text-left text-xs uppercase text-muted-foreground">
               <tr>
-                <th scope="col" className="p-4 text-left">Empresa</th>
-                <th scope="col" className="p-4 text-left">Segmento</th>
-                <th scope="col" className="p-4 text-left">Endereço</th>
-                <th scope="col" className="p-4 text-left">Status</th>
-                <th scope="col" className="p-4 text-left">Visitas</th>
-                <th scope="col" className="p-4 text-left">Atualizado</th>
-                <th scope="col" className="p-4 text-right">Ações</th>
+                <th scope="col" className="p-4 text-left">
+                  Empresa
+                </th>
+                <th scope="col" className="p-4 text-left">
+                  Segmento
+                </th>
+                <th scope="col" className="p-4 text-left">
+                  Endereço
+                </th>
+                <th scope="col" className="p-4 text-left">
+                  Status
+                </th>
+                <th scope="col" className="p-4 text-left">
+                  Visitas
+                </th>
+                <th scope="col" className="p-4 text-left">
+                  Atualizado
+                </th>
+                <th scope="col" className="p-4 text-right">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
