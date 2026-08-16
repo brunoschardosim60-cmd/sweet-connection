@@ -196,4 +196,23 @@ export const modelos: Modelo[] = [
   },
 ];
 
-export const modeloPorId = (id: string) => modelos.find((m) => m.id === id) ?? modelos[0]!;
+/** Ponto de partida em branco: estrutura mínima para montar tudo do zero. */
+export const modeloPersonalizado: Modelo = {
+  id: "personalizado",
+  nome: "Personalizado (do zero)",
+  segmento: "servicos",
+  layout: "minimalista",
+  descricao:
+    "Comece com uma base limpa: apenas apresentação, links e rodapé. Você ativa e monta as demais seções do seu jeito.",
+  destaque: "Estrutura em branco",
+  paleta: { fundo: "#ffffff", texto: "#141414", primaria: "#111111", suave: "#f2f2f2" },
+  imagem: imagens.servicos,
+};
+
+/** Lista usada na criação e na edição (inclui o modelo em branco). */
+export const modelosCriacao: Modelo[] = [modeloPersonalizado, ...modelos];
+
+export const modeloPorId = (id: string) =>
+  id === modeloPersonalizado.id
+    ? modeloPersonalizado
+    : (modelos.find((m) => m.id === id) ?? modelos[0]!);
