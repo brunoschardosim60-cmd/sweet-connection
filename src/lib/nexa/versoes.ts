@@ -1,5 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { Site } from "./types";
-import { uid } from "./utils";
 
 export interface Versao {
   id: string;
@@ -10,73 +11,30 @@ export interface Versao {
   dados: Site;
 }
 
-const CHAVE = "nexa.versoes.v1";
-const MAXIMO = 20;
+type VersionRow = {
+  id: string;
+  minisite_id: string;
+  created_at: string;
+  label: string;
+  origin: Versao["origem"];
+  content: Json;
+};
 
-const temStorage = () => typeof window !== "undefined" && !!window.localStorage;
-
-function lerTudo(): Record<string, Versao[]> {
-  if (!temStorage()) return {};
-  try {
-    const bruto = window.localStorage.getItem(CHAVE);
-    return bruto ? (JSON.parse(bruto) as Record<string, Versao[]>) : {};
-  } catch {
-    return {};
-  }
-}
-
-let cache: Record<string, Versao[]> | null = null;
+let cache: Record<string, Versao[]> = {};
+const carregando = new Set<string>();
 const ouvintes = new Set<() => void>();
 const notificar = () => ouvintes.forEach((fn) => fn());
 
-function gravar(dados: Record<string, Versao[]>) {
-  cache = dados;
-  try {
-    window.localStorage.setItem(CHAVE, JSON.stringify(dados));
-  } catch {
-    /* cota — ignorado */
-  }
-  notificar();
+function paraVersao(row: VersionRow): Versao {
+  return {
+    id: row.id,
+    siteId: row.minisite_id,
+    criadoEm: row.created_at,
+    rotulo: row.label,
+    origem: row.origin,
+    dados: row.content as unknown as Site,
+  };
 }
-
-export const versaoStore = {
-  subscribe(fn: () => void) {
-    ouvintes.add(fn);
-    return () => ouvintes.delete(fn);
-  },
-  tudo(): Record<string, Versao[]> {
-    if (cache === null) cache = lerTudo();
-    return cache;
-  },
-  listar(siteId: string): Versao[] {
-    return versaoStore.tudo()[siteId] ?? [];
-  },
-  registrar(site: Site, origem: Versao["origem"], rotulo?: string) {
-    const tudo = { ...versaoStore.tudo() };
-    const anteriores = tudo[site.id] ?? [];
-    const versao: Versao = {
-      id: uid("ver"),
-      siteId: site.id,
-      criadoEm: new Date().toISOString(),
-      rotulo: rotulo ?? rotuloPadrao(origem),
-      origem,
-      dados: structuredClone(site),
-    };
-    tudo[site.id] = [versao, ...anteriores].slice(0, MAXIMO);
-    gravar(tudo);
-    return versao;
-  },
-  remover(siteId: string, versaoId: string) {
-    const tudo = { ...versaoStore.tudo() };
-    tudo[siteId] = (tudo[siteId] ?? []).filter((v) => v.id !== versaoId);
-    gravar(tudo);
-  },
-  limpar(siteId: string) {
-    const tudo = { ...versaoStore.tudo() };
-    delete tudo[siteId];
-    gravar(tudo);
-  },
-};
 
 function rotuloPadrao(origem: Versao["origem"]) {
   return origem === "publicacao"
@@ -85,5 +43,63 @@ function rotuloPadrao(origem: Versao["origem"]) {
       ? "Importação de JSON"
       : origem === "manual"
         ? "Ponto de restauração"
-        : "Salvamento automático";
+        : "Salvamento manual";
 }
+
+export const versaoStore = {
+  subscribe(fn: () => void) {
+    ouvintes.add(fn);
+    return () => ouvintes.delete(fn);
+  },
+  tudo: () => cache,
+  listar: (siteId: string) => cache[siteId] ?? [],
+  async carregar(siteId: string, forcar = false) {
+    if (carregando.has(siteId) || (!forcar && siteId in cache)) return;
+    carregando.add(siteId);
+    try {
+      const { data, error } = await supabase
+        .from("minisite_versions")
+        .select("id,minisite_id,created_at,label,origin,content")
+        .eq("minisite_id", siteId)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      cache = { ...cache, [siteId]: data.map((row) => paraVersao(row as VersionRow)) };
+      notificar();
+    } finally {
+      carregando.delete(siteId);
+    }
+  },
+  async registrar(site: Site, origem: Versao["origem"], rotulo?: string) {
+    const { data, error } = await supabase.rpc("save_minisite_version", {
+      requested_site_id: site.id,
+      requested_origin: origem,
+      requested_label: rotulo ?? rotuloPadrao(origem),
+      requested_content: site as unknown as Json,
+    });
+    if (error) throw new Error(error.message);
+    const versao = paraVersao(data as VersionRow);
+    cache = { ...cache, [site.id]: [versao, ...(cache[site.id] ?? [])].slice(0, 20) };
+    notificar();
+    return versao;
+  },
+  async remover(siteId: string, versaoId: string) {
+    const { error } = await supabase.from("minisite_versions").delete().eq("id", versaoId);
+    if (error) throw new Error(error.message);
+    cache = {
+      ...cache,
+      [siteId]: (cache[siteId] ?? []).filter((versao) => versao.id !== versaoId),
+    };
+    notificar();
+  },
+  async limpar(siteId: string) {
+    const { error } = await supabase.from("minisite_versions").delete().eq("minisite_id", siteId);
+    if (error) throw new Error(error.message);
+    cache = { ...cache, [siteId]: [] };
+    notificar();
+  },
+  reset() {
+    cache = {};
+    carregando.clear();
+    notificar();
+  },
+};

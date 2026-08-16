@@ -25,6 +25,8 @@ import { useNexa } from "@/lib/nexa/hooks";
 import { useTema } from "@/lib/nexa/tema";
 import { marcaStore } from "@/lib/nexa/marca";
 import { analytics } from "@/lib/nexa/analytics";
+import { midiaStore } from "@/lib/nexa/media";
+import { versaoStore } from "@/lib/nexa/versoes";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -113,6 +115,8 @@ function PainelLayout() {
     store.reset();
     marcaStore.reset();
     analytics.reset();
+    midiaStore.reset();
+    versaoStore.reset();
     await navigate({ to: "/login", replace: true });
   };
 

@@ -70,6 +70,17 @@ type MediaRow = {
   object_path: string;
   mime_type: string;
   size_bytes: number;
+  original_name: string;
+  created_at: string;
+};
+
+type VersionRow = {
+  id: string;
+  minisite_id: string;
+  owner_id: string;
+  origin: "manual" | "salvamento" | "publicacao" | "importacao";
+  label: string;
+  content: Json;
   created_at: string;
 };
 
@@ -159,6 +170,19 @@ export type Database = {
           object_path: string;
           mime_type: string;
           size_bytes: number;
+          original_name?: string;
+          created_at?: string;
+        }
+      >;
+      minisite_versions: Tabela<
+        VersionRow,
+        {
+          id?: string;
+          minisite_id: string;
+          owner_id?: string;
+          origin: VersionRow["origin"];
+          label: string;
+          content: Json;
           created_at?: string;
         }
       >;
@@ -200,6 +224,15 @@ export type Database = {
           requested_id?: string;
         };
         Returns: MinisiteRow;
+      };
+      save_minisite_version: {
+        Args: {
+          requested_site_id: string;
+          requested_origin: string;
+          requested_label: string;
+          requested_content: Json;
+        };
+        Returns: VersionRow;
       };
       set_minisite_status: {
         Args: { requested_id: string; requested_status: SiteStatus };

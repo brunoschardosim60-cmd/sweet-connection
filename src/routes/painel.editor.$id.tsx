@@ -161,7 +161,6 @@ function Editor() {
   const publicar = async () => {
     if (!rascunho || salvando) return;
     const publicado = rascunho.status === "publicado";
-    if (!publicado) versaoStore.registrar(rascunho, "publicacao");
     setSalvando(true);
     try {
       const salvo = publicado
@@ -170,6 +169,7 @@ function Editor() {
       setRascunho(salvo);
       setSujo(false);
       setSalvoEm(new Date().toISOString());
+      if (!publicado) void versaoStore.registrar(salvo, "publicacao").catch(() => undefined);
       toast[publicado ? "message" : "success"](
         publicado ? "Mini-site despublicado" : "Mini-site publicado",
         {
@@ -191,7 +191,7 @@ function Editor() {
     if (!arquivo || !rascunho) return;
     try {
       const importado = lerArquivo(await arquivo.text());
-      versaoStore.registrar(rascunho, "importacao", "Antes da importação");
+      await versaoStore.registrar(rascunho, "importacao", "Antes da importação");
       const mesclado = mesclarImportacao(rascunho, importado);
       setRascunho(mesclado);
       setSujo(true);
@@ -361,9 +361,9 @@ function Editor() {
           <button
             type="button"
             disabled={salvando}
-            onClick={() => {
-              versaoStore.registrar(rascunho, "salvamento");
-              void salvar();
+            onClick={async () => {
+              const salvo = await salvar();
+              if (salvo) void versaoStore.registrar(salvo, "salvamento").catch(() => undefined);
             }}
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -1681,6 +1681,14 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
     () => [] as ReturnType<typeof versaoStore.listar>,
   );
 
+  useEffect(() => {
+    void versaoStore.carregar(site.id).catch((error: unknown) =>
+      toast.error("Não foi possível carregar o histórico", {
+        description: error instanceof Error ? error.message : undefined,
+      }),
+    );
+  }, [site.id]);
+
   return (
     <Bloco titulo="Histórico de versões">
       <p className="text-xs text-muted-foreground">
@@ -1691,8 +1699,14 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
         <BotaoAdicionar
           rotulo="Criar ponto de restauração"
           onClick={() => {
-            versaoStore.registrar(site, "manual");
-            toast.success("Ponto de restauração criado");
+            void versaoStore
+              .registrar(site, "manual")
+              .then(() => toast.success("Ponto de restauração criado"))
+              .catch((error: unknown) =>
+                toast.error("Não foi possível criar o ponto", {
+                  description: error instanceof Error ? error.message : undefined,
+                }),
+              );
           }}
         />
         {versoes.length > 0 && (
@@ -1700,8 +1714,14 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
             rotulo="Limpar histórico"
             descricao="Apagar todas as versões salvas?"
             onConfirmar={() => {
-              versaoStore.limpar(site.id);
-              toast.message("Histórico limpo");
+              void versaoStore
+                .limpar(site.id)
+                .then(() => toast.message("Histórico limpo"))
+                .catch((error: unknown) =>
+                  toast.error("Não foi possível limpar", {
+                    description: error instanceof Error ? error.message : undefined,
+                  }),
+                );
             }}
           />
         )}
@@ -1734,7 +1754,13 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
                 <BotaoRemover
                   rotulo="Excluir"
                   descricao="Excluir esta versão?"
-                  onConfirmar={() => versaoStore.remover(site.id, v.id)}
+                  onConfirmar={() =>
+                    void versaoStore.remover(site.id, v.id).catch((error: unknown) =>
+                      toast.error("Não foi possível excluir", {
+                        description: error instanceof Error ? error.message : undefined,
+                      }),
+                    )
+                  }
                 />
               </div>
             </li>

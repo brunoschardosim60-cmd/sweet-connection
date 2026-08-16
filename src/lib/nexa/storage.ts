@@ -1,4 +1,5 @@
 import { supabaseRepository } from "./supabase-repository";
+import { midiaStore } from "./media";
 import type { EnvioFormulario, Site, StatusSite } from "./types";
 
 // Kept only for harmless interface preferences (filters/theme), never business data.
@@ -107,6 +108,7 @@ export const store = {
     definir({ sites: estado.sites.filter((site) => site.id !== id) });
   },
   async limpar() {
+    await midiaStore.removerTudo();
     await supabaseRepository.limparTudo();
     definir({ sites: [], envios: [] });
   },

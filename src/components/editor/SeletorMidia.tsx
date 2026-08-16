@@ -1,14 +1,26 @@
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ImagePlus, Link2, Trash2, Upload, Video } from "lucide-react";
 import { toast } from "sonner";
 import { biblioteca } from "@/lib/nexa/images";
 import { enviarArquivo, midiaStore, urlEmbed, type TipoMidia } from "@/lib/nexa/media";
 
 export function useMidias() {
-  return useSyncExternalStore(midiaStore.subscribe, midiaStore.get, midiaStore.getServer);
+  const midias = useSyncExternalStore(midiaStore.subscribe, midiaStore.get, midiaStore.getServer);
+  useEffect(() => {
+    void midiaStore.carregar().catch(() => undefined);
+  }, []);
+  return midias;
 }
 
-export function PreviaMidia({ url, tipo = "imagem", className = "" }: { url?: string; tipo?: TipoMidia; className?: string }) {
+export function PreviaMidia({
+  url,
+  tipo = "imagem",
+  className = "",
+}: {
+  url?: string;
+  tipo?: TipoMidia;
+  className?: string;
+}) {
   if (!url) return null;
   if (tipo === "video") {
     const embed = urlEmbed(url);
@@ -126,7 +138,12 @@ export function SeletorMidia({
                     onClick={() => onChange(b.url)}
                     className={`overflow-hidden rounded-lg border ${valor === b.url ? "border-ink ring-2 ring-lime" : "border-border"}`}
                   >
-                    <img src={b.url} alt={b.nome} loading="lazy" className="h-10 w-full object-cover" />
+                    <img
+                      src={b.url}
+                      alt={b.nome}
+                      loading="lazy"
+                      className="h-10 w-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -153,7 +170,13 @@ export function SeletorMidia({
                   <button
                     type="button"
                     aria-label={`Excluir ${m.nome}`}
-                    onClick={() => midiaStore.remover(m.id)}
+                    onClick={() =>
+                      void midiaStore.remover(m.id).catch((error: unknown) =>
+                        toast.error("Não foi possível excluir", {
+                          description: error instanceof Error ? error.message : undefined,
+                        }),
+                      )
+                    }
                     className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-background text-ember shadow"
                   >
                     <Trash2 size={9} />
@@ -167,7 +190,9 @@ export function SeletorMidia({
             <Link2 size={13} className="shrink-0 text-muted-foreground" />
             <input
               value={valor ?? ""}
-              placeholder={tipo === "video" ? "Link do YouTube, Vimeo ou .mp4" : "Cole a URL da imagem"}
+              placeholder={
+                tipo === "video" ? "Link do YouTube, Vimeo ou .mp4" : "Cole a URL da imagem"
+              }
               onChange={(e) => onChange(e.target.value)}
               className="h-9 w-full bg-transparent text-xs outline-none"
             />

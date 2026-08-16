@@ -1,4 +1,5 @@
-import { uid } from "./utils";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 export type TipoMidia = "imagem" | "video";
 
@@ -9,90 +10,145 @@ export interface Midia {
   url: string;
   tamanho: number;
   criadoEm: string;
+  caminho: string;
 }
 
-const CHAVE = "nexa.midias.v1";
-/** Limite prático para caber no localStorage sem estourar a cota. */
-export const LIMITE_BYTES = 4 * 1024 * 1024;
+const BUCKET = "nexa-media";
+export const LIMITE_BYTES = 10 * 1024 * 1024;
+const MIME_PERMITIDOS = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+]);
 
-const temStorage = () => typeof window !== "undefined" && !!window.localStorage;
-
-function ler(): Midia[] {
-  if (!temStorage()) return [];
-  try {
-    const bruto = window.localStorage.getItem(CHAVE);
-    return bruto ? (JSON.parse(bruto) as Midia[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-let cache: Midia[] | null = null;
+type MediaRow = Database["public"]["Tables"]["media"]["Row"];
+let cache: Midia[] = [];
+let carregando = false;
 const ouvintes = new Set<() => void>();
 const notificar = () => ouvintes.forEach((fn) => fn());
+
+function paraMidia(row: MediaRow): Midia {
+  const { data } = supabase.storage.from(row.bucket).getPublicUrl(row.object_path);
+  return {
+    id: row.id,
+    nome: row.original_name || row.object_path.split("/").pop() || "Mídia",
+    tipo: row.mime_type.startsWith("video/") ? "video" : "imagem",
+    url: data.publicUrl,
+    tamanho: row.size_bytes,
+    criadoEm: row.created_at,
+    caminho: row.object_path,
+  };
+}
 
 export const midiaStore = {
   subscribe(fn: () => void) {
     ouvintes.add(fn);
     return () => ouvintes.delete(fn);
   },
-  get(): Midia[] {
-    if (cache === null) cache = ler();
-    return cache;
-  },
-  getServer: (): Midia[] => [],
-  adicionar(midia: Midia) {
-    const proximo = [midia, ...midiaStore.get()];
-    cache = proximo;
+  get: () => cache,
+  getServer: () => [] as Midia[],
+  async carregar(forcar = false) {
+    if (carregando || (!forcar && cache.length > 0)) return;
+    carregando = true;
     try {
-      window.localStorage.setItem(CHAVE, JSON.stringify(proximo));
-    } catch {
-      cache = proximo.slice(1);
-      throw new Error("Espaço local esgotado. Remova mídias antigas antes de enviar outra.");
+      const { data, error } = await supabase
+        .from("media")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      cache = data.map(paraMidia);
+      notificar();
+    } finally {
+      carregando = false;
     }
+  },
+  adicionar(midia: Midia) {
+    cache = [midia, ...cache];
     notificar();
   },
-  remover(id: string) {
-    cache = midiaStore.get().filter((m) => m.id !== id);
-    try {
-      window.localStorage.setItem(CHAVE, JSON.stringify(cache));
-    } catch {
-      /* ignorado */
+  async remover(id: string) {
+    const midia = cache.find((item) => item.id === id);
+    if (!midia) return;
+    const storageResult = await supabase.storage.from(BUCKET).remove([midia.caminho]);
+    if (storageResult.error) throw new Error(storageResult.error.message);
+    const { error } = await supabase.from("media").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+    cache = cache.filter((item) => item.id !== id);
+    notificar();
+  },
+  async removerTudo() {
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente.");
+    const listed = await supabase.storage.from(BUCKET).list(auth.user.id, { limit: 1000 });
+    if (listed.error) throw new Error(listed.error.message);
+    const caminhos = listed.data.map((item) => `${auth.user!.id}/${item.name}`);
+    if (caminhos.length > 0) {
+      const { error } = await supabase.storage.from(BUCKET).remove(caminhos);
+      if (error) throw new Error(error.message);
     }
+    cache = [];
+    notificar();
+  },
+  reset() {
+    cache = [];
+    carregando = false;
     notificar();
   },
 };
 
-export function arquivoParaDataUrl(arquivo: File) {
-  return new Promise<string>((resolve, reject) => {
-    const leitor = new FileReader();
-    leitor.onload = () => resolve(String(leitor.result));
-    leitor.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
-    leitor.readAsDataURL(arquivo);
-  });
-}
-
-/** Envia um arquivo para a biblioteca local e devolve a mídia criada. */
 export async function enviarArquivo(arquivo: File): Promise<Midia> {
-  const tipo: TipoMidia = arquivo.type.startsWith("video") ? "video" : "imagem";
-  if (arquivo.size > LIMITE_BYTES)
+  if (!MIME_PERMITIDOS.has(arquivo.type)) {
+    throw new Error("Formato não permitido. Use JPG, PNG, WebP, GIF, MP4 ou WebM.");
+  }
+  if (arquivo.size < 1 || arquivo.size > LIMITE_BYTES) {
     throw new Error(
-      `Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)} MB). O limite é 4 MB.`,
+      `Arquivo muito grande (${(arquivo.size / 1024 / 1024).toFixed(1)} MB). O limite é 10 MB.`,
     );
-  const url = await arquivoParaDataUrl(arquivo);
-  const midia: Midia = {
-    id: uid("mid"),
-    nome: arquivo.name.replace(/\.[^.]+$/, ""),
-    tipo,
-    url,
-    tamanho: arquivo.size,
-    criadoEm: new Date().toISOString(),
-  };
+  }
+
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente.");
+
+  const extensao =
+    arquivo.name
+      .split(".")
+      .pop()
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "bin";
+  const caminho = `${auth.user.id}/${crypto.randomUUID()}.${extensao}`;
+  const upload = await supabase.storage.from(BUCKET).upload(caminho, arquivo, {
+    cacheControl: "31536000",
+    contentType: arquivo.type,
+    upsert: false,
+  });
+  if (upload.error) throw new Error(upload.error.message);
+
+  const created = await supabase
+    .from("media")
+    .insert({
+      owner_id: auth.user.id,
+      bucket: BUCKET,
+      object_path: caminho,
+      mime_type: arquivo.type,
+      size_bytes: arquivo.size,
+      original_name: arquivo.name.slice(0, 240),
+    })
+    .select("*")
+    .single();
+
+  if (created.error) {
+    await supabase.storage.from(BUCKET).remove([caminho]);
+    throw new Error(created.error.message);
+  }
+
+  const midia = paraMidia(created.data);
   midiaStore.adicionar(midia);
   return midia;
 }
 
-/** Converte links de YouTube/Vimeo em URL de incorporação. */
 export function urlEmbed(url: string): { tipo: "iframe" | "arquivo"; src: string } | null {
   if (!url) return null;
   const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/);
