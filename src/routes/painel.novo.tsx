@@ -63,15 +63,14 @@ function NovoSite() {
   const slugFinal = slug || slugify(cliente.empresa);
   const slugEmUso = sites.some((s) => s.slug === slugFinal);
 
-  const previa = useMemo(
-    () =>
-      criarSite(
-        { ...cliente, empresa: cliente.empresa || "Seu negócio" },
-        modeloId,
-        slugFinal || "previa",
-      ),
-    [cliente, modeloId, slugFinal],
-  );
+  const previa = useMemo(() => {
+    const base = criarSite(
+      { ...cliente, empresa: cliente.empresa || "Seu negócio" },
+      modeloId,
+      slugFinal || "previa",
+    );
+    return { ...base, aparencia: { ...base.aparencia, logoFormato } };
+  }, [cliente, logoFormato, modeloId, slugFinal]);
 
   const podeAvancar =
     passo === 0
