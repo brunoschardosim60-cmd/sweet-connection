@@ -608,7 +608,7 @@ const conteudoPorModelo: Record<
         pergunta: "Como acompanho meu processo?",
         resposta: "Enviamos atualizações por WhatsApp a cada movimentação relevante.",
       },
-     ],
+    ],
   },
 
   /* ---------------- demonstrações por segmento ---------------- */
@@ -889,7 +889,8 @@ const conteudoPorModelo: Record<
         id: "d1",
         nome: "Marcos (demonstração)",
         nota: 5,
-        comentario: "Mandaram o orçamento com fotos antes de mexer. Preço fechado e prazo cumprido.",
+        comentario:
+          "Mandaram o orçamento com fotos antes de mexer. Preço fechado e prazo cumprido.",
         data: "2026-06-09",
         destaque: true,
       },
@@ -1315,7 +1316,13 @@ export function siteDoModelo(modeloId: string): Site {
     },
     secoes: ordenarSecoes(c.secoes),
     links: [
-      { id: "l1", tipo: "whatsapp", titulo: c.cta ?? "Falar no WhatsApp", valor: c.whatsapp, ativo: true },
+      {
+        id: "l1",
+        tipo: "whatsapp",
+        titulo: c.cta ?? "Falar no WhatsApp",
+        valor: c.whatsapp,
+        ativo: true,
+      },
       { id: "l2", tipo: "instagram", titulo: `@${c.instagram}`, valor: c.instagram, ativo: true },
       { id: "l3", tipo: "localizacao", titulo: "Como chegar", valor: c.endereco, ativo: true },
     ],
