@@ -78,7 +78,7 @@ function CartaoAcesso({
               aria-pressed={usuario.plano === plano}
               disabled={ocupado || usuario.plano === plano}
               onClick={() => onPlano(plano)}
-              className={`min-h-9 rounded-full px-3 text-xs font-semibold disabled:cursor-default ${
+              className={`min-h-11 rounded-full px-3 text-xs font-semibold disabled:cursor-default ${
                 usuario.plano === plano
                   ? "bg-ink text-ink-foreground"
                   : "text-muted-foreground hover:bg-secondary disabled:opacity-60"
