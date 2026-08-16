@@ -465,12 +465,45 @@ function Texto({
   );
 }
 
-function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Bloco({
+  titulo,
+  id,
+  children,
+  acao,
+}: {
+  titulo: string;
+  id?: string;
+  children: React.ReactNode;
+  acao?: React.ReactNode;
+}) {
+  const [aberto, setAberto] = useState(true);
+  const conteudoId = id ? `${id}-conteudo` : undefined;
+
   return (
-    <div className="surface space-y-3 p-4">
-      <p className="text-sm font-semibold">{titulo}</p>
-      {children}
-    </div>
+    <section id={id} className="surface p-4">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          data-foco-bloco
+          onClick={() => setAberto((v) => !v)}
+          aria-expanded={aberto}
+          aria-controls={conteudoId}
+          className="-m-1 flex min-h-9 min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left text-sm font-semibold hover:bg-secondary/60"
+        >
+          <ChevronDown
+            size={15}
+            aria-hidden
+            className={`shrink-0 text-muted-foreground transition-transform ${aberto ? "" : "-rotate-90"}`}
+          />
+          <span className="min-w-0 truncate">{titulo}</span>
+          <span className="sr-only">{aberto ? " — recolher bloco" : " — expandir bloco"}</span>
+        </button>
+        {acao}
+      </div>
+      <div id={conteudoId} hidden={!aberto} className="mt-3 space-y-3">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -482,7 +515,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
-      <Bloco titulo="Identificação">
+      <Bloco titulo="Identificação" id="bloco-identificacao">
         <Texto
           rotulo="Nome exibido"
           valor={site.conteudo.nome}
@@ -510,7 +543,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </div>
       </Bloco>
 
-      <Bloco titulo="Contato">
+      <Bloco titulo="Contato" id="bloco-contato">
         <Texto
           rotulo="Telefone"
           valor={site.conteudo.telefone}
@@ -534,7 +567,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Logo e capa">
+      <Bloco titulo="Logo e capa" id="bloco-logo">
         <SeletorMidia
           rotulo="Logo"
           valor={site.conteudo.logo ?? ""}
@@ -547,7 +580,7 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Horários">
+      <Bloco titulo="Horários" id="bloco-horarios">
         <div className="space-y-2">
           {site.conteudo.horarios.map((h, i) => (
             <div key={h.dia} className="flex flex-wrap items-center gap-2">
@@ -628,7 +661,7 @@ function AbaSecoes({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     });
 
   return (
-    <Bloco titulo="Seções do mini-site">
+    <Bloco titulo="Seções do mini-site" id="bloco-secoes">
       <p className="text-xs text-muted-foreground">
         Ative, desative e arraste para reordenar. A prévia atualiza na hora.
       </p>
@@ -726,13 +759,7 @@ function LinhaItem({ children, onRemover }: { children: React.ReactNode; onRemov
   return (
     <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       {children}
-      <button
-        type="button"
-        onClick={onRemover}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-ember"
-      >
-        <Trash2 size={13} /> Remover
-      </button>
+      <BotaoRemover onConfirmar={onRemover} descricao="Remover este item?" />
     </div>
   );
 }
@@ -773,7 +800,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     <>
       <BlocoLinksEditor site={site} aplicar={aplicar} />
 
-      <Bloco titulo="Produtos">
+      <Bloco titulo="Produtos" id="bloco-produtos">
         {site.produtos.map((p) => (
           <LinhaItem
             key={p.id}
@@ -892,7 +919,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Serviços">
+      <Bloco titulo="Serviços" id="bloco-servicos">
         {site.servicos.map((sv) => (
           <LinhaItem
             key={sv.id}
@@ -969,7 +996,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
       <BlocoGaleria site={site} aplicar={aplicar} />
       <BlocoVideosEditor site={site} aplicar={aplicar} />
 
-      <Bloco titulo="Depoimentos">
+      <Bloco titulo="Depoimentos" id="bloco-depoimentos">
         {site.depoimentos.map((d) => (
           <LinhaItem
             key={d.id}
@@ -1022,7 +1049,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         />
       </Bloco>
 
-      <Bloco titulo="Perguntas frequentes">
+      <Bloco titulo="Perguntas frequentes" id="bloco-faq">
         {site.faq.map((f) => (
           <LinhaItem
             key={f.id}
@@ -1223,7 +1250,7 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
-      <Bloco titulo="Busca e compartilhamento">
+      <Bloco titulo="Busca e compartilhamento" id="bloco-seo">
         <div>
           <Texto rotulo="Título" valor={site.seo.titulo} onChange={(v) => set({ titulo: v })} />
           <Medidor
@@ -1353,7 +1380,7 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
     }));
 
   return (
-    <Bloco titulo="Links e redes sociais">
+    <Bloco titulo="Links e redes sociais" id="bloco-links">
       <p className="text-xs text-muted-foreground">
         Escolha o tipo para usar o ícone certo. WhatsApp abre a conversa com mensagem pronta e
         Instagram vai direto para o perfil.
@@ -1437,7 +1464,7 @@ function BlocoGaleria({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const [tipo, setTipo] = useState<"imagem" | "video">("imagem");
 
   return (
-    <Bloco titulo="Galeria">
+    <Bloco titulo="Galeria" id="bloco-galeria">
       <div className="flex gap-1.5">
         {(["imagem", "video"] as const).map((t) => (
           <button
@@ -1516,7 +1543,7 @@ function BlocoVideosEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) 
     }));
 
   return (
-    <Bloco titulo="Vídeos">
+    <Bloco titulo="Vídeos" id="bloco-videos">
       <p className="text-xs text-muted-foreground">
         Envie um arquivo ou cole um link do YouTube/Vimeo. Ative a seção “Vídeos” na aba Seções.
       </p>
