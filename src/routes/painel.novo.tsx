@@ -256,7 +256,9 @@ function NovoSite() {
                     <div
                       key={m.id}
                       className={`overflow-hidden rounded-2xl border transition-all ${
-                        ativo ? "border-ink ring-2 ring-lime" : "border-border hover:-translate-y-0.5"
+                        ativo
+                          ? "border-ink ring-2 ring-lime"
+                          : "border-border hover:-translate-y-0.5"
                       }`}
                     >
                       <button
@@ -324,7 +326,8 @@ function NovoSite() {
                   />
                 </div>
                 <span className="mt-1.5 block text-xs text-muted-foreground">
-                  Endereço final: <span className="font-medium text-foreground">/site/{slugFinal || "…"}</span>
+                  Endereço final:{" "}
+                  <span className="font-medium text-foreground">/site/{slugFinal || "…"}</span>
                 </span>
               </label>
               {slugEmUso && (
@@ -364,11 +367,7 @@ function NovoSite() {
                 onClick={() => void criar()}
                 className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-40"
               >
-                {salvando ? (
-                  <Loader2 size={15} className="animate-spin" />
-                ) : (
-                  <Check size={15} />
-                )}
+                {salvando ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
                 {salvando ? "Criando…" : "Criar e editar"}
               </button>
             )}

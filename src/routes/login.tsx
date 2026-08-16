@@ -68,7 +68,13 @@ function Login() {
           onChange={setEmail}
           erro={erroEmail}
         />
-        <CampoSenha id="login-senha" rotulo="Senha" valor={senha} onChange={setSenha} erro={erroSenha} />
+        <CampoSenha
+          id="login-senha"
+          rotulo="Senha"
+          valor={senha}
+          onChange={setSenha}
+          erro={erroSenha}
+        />
 
         <div className="flex justify-end">
           <Link to="/recuperar-senha" className="text-sm font-medium underline">

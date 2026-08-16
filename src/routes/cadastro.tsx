@@ -52,7 +52,9 @@ function Cadastro() {
     setEnviando(true);
     // O cadastro real ainda não está conectado — nenhuma conta é criada aqui.
     setEnviando(false);
-    setAviso("O cadastro ainda não está conectado ao servidor de contas. Nenhuma conta foi criada.");
+    setAviso(
+      "O cadastro ainda não está conectado ao servidor de contas. Nenhuma conta foi criada.",
+    );
   };
 
   return (

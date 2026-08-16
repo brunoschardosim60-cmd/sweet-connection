@@ -17,10 +17,7 @@ export const Route = createFileRoute("/acesso-negado")({
 
 function AcessoNegado() {
   return (
-    <AuthShell
-      titulo="Acesso não autorizado"
-      subtitulo="Esta área é restrita à sua conta Nexa."
-    >
+    <AuthShell titulo="Acesso não autorizado" subtitulo="Esta área é restrita à sua conta Nexa.">
       <div className="rounded-2xl border border-border bg-card p-5">
         <span className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground">
           <Lock size={19} />
