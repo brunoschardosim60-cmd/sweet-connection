@@ -42,7 +42,7 @@ import { versaoStore } from "@/lib/nexa/versoes";
 import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Site, TipoLink } from "@/lib/nexa/types";
+import type { CampoFormulario, Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
   head: () => ({
