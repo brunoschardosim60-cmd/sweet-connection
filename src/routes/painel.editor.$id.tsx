@@ -246,8 +246,8 @@ function Editor() {
         };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-3 py-3 backdrop-blur-xl sm:px-4">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
+      <header className="sticky top-0 z-30 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-3 py-3 backdrop-blur-xl sm:px-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             type="button"
@@ -382,10 +382,10 @@ function Editor() {
         </div>
       </header>
 
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[minmax(340px,400px)_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(340px,400px)_1fr]">
         <aside
-          className={`min-w-0 border-b border-border p-4 lg:block lg:border-b-0 lg:border-r ${
-            previaMovel ? "hidden" : "block"
+          className={`min-h-0 min-w-0 flex-col overflow-hidden border-b border-border p-4 lg:flex lg:border-b-0 lg:border-r ${
+            previaMovel ? "hidden" : "flex"
           }`}
         >
           <div
@@ -409,7 +409,7 @@ function Editor() {
             ))}
           </div>
 
-          <div className="mt-5 space-y-5 pb-24 lg:max-h-[calc(100dvh-160px)] lg:overflow-y-auto lg:pb-4 lg:pr-1">
+          <div className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-24 pr-1 lg:pb-4">
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
@@ -431,7 +431,7 @@ function Editor() {
 
         <section
           aria-label="Prévia do mini-site"
-          className={`min-w-0 flex-col items-center gap-4 overflow-x-hidden bg-secondary/40 p-4 sm:p-6 lg:flex ${
+          className={`min-h-0 min-w-0 flex-col items-center gap-4 overflow-hidden bg-secondary/40 p-4 sm:p-6 lg:flex ${
             previaMovel ? "flex" : "hidden"
           }`}
         >

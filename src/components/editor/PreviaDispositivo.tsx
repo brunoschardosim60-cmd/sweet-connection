@@ -59,7 +59,7 @@ export function MolduraPrevia({
 }) {
   if (dispositivo === "celular")
     return (
-      <PhoneFrame largura={240} altura={528} className="max-w-full">
+      <PhoneFrame largura={216} altura={475} className="max-h-full max-w-full">
         {children}
       </PhoneFrame>
     );
@@ -68,7 +68,7 @@ export function MolduraPrevia({
 
   return (
     <div
-      className={`h-[660px] max-w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] ${largura}`}
+      className={`h-full max-h-[660px] max-w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] ${largura}`}
     >
       {children}
     </div>
