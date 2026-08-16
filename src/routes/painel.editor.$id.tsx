@@ -1719,7 +1719,7 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
       <Bloco titulo="Modelo base">
         <div className="grid grid-cols-2 gap-2">
-          {modelos.map((m) => (
+          {modelosCriacao.map((m) => (
             <button
               key={m.id}
               type="button"
@@ -1736,7 +1736,7 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                   },
                 }))
               }
-              className={`rounded-lg border px-2.5 py-2 text-left text-xs font-medium ${
+              className={`min-h-11 rounded-lg border px-2.5 py-2 text-left text-xs font-medium ${
                 site.modeloId === m.id ? "border-ink ring-2 ring-lime" : "border-border"
               }`}
             >
@@ -1744,7 +1744,12 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             </button>
           ))}
         </div>
+        <p className="text-xs text-muted-foreground">
+          Trocar o modelo base ajusta cores e layout. O conteúdo já cadastrado permanece.
+        </p>
       </Bloco>
+
+      <MeusModelos site={site} aplicar={aplicar} />
 
       <Bloco titulo="Tipografia e formas">
         <label className="block">
