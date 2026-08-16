@@ -943,6 +943,53 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 }
               />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <EntradaSimples
+                valor={p.precoPromocional ? String(p.precoPromocional) : ""}
+                placeholder="Preço promocional"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id
+                        ? {
+                            ...x,
+                            precoPromocional: v.trim()
+                              ? Number(v.replace(",", ".")) || 0
+                              : undefined,
+                          }
+                        : x,
+                    ),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={p.variacoes.join(", ")}
+                placeholder="Variações (P, M, G)"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id
+                        ? {
+                            ...x,
+                            variacoes: v
+                              .split(",")
+                              .map((t) => t.trim())
+                              .filter(Boolean),
+                          }
+                        : x,
+                    ),
+                  }))
+                }
+              />
+            </div>
+            {p.precoPromocional && p.precoPromocional > 0 && p.precoPromocional < p.preco ? (
+              <p className="text-xs text-muted-foreground">
+                Promoção de {Math.round((1 - p.precoPromocional / p.preco) * 100)}% aparece no
+                mini-site.
+              </p>
+            ) : null}
             <SeletorMidia
               rotulo="Foto do produto"
               valor={p.imagem ?? ""}
