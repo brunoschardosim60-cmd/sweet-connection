@@ -21,13 +21,8 @@ vi.mock("@/integrations/supabase/client", () => {
   return { supabase: { from: (tabela: string) => consulta(tabela) } };
 });
 
-const {
-  carregarProjetosUsuario,
-  descreverEstadoProjetos,
-  mapearProjetos,
-  nomeDoProjeto,
-  type: _t,
-} = await import("@/lib/nexa/admin").then((m) => ({ ...m, type: null }));
+const { carregarProjetosUsuario, descreverEstadoProjetos, mapearProjetos, nomeDoProjeto } =
+  await import("@/lib/nexa/admin");
 
 const linha = (extra: Record<string, unknown> = {}) => ({
   id: "s1",
