@@ -3,13 +3,39 @@ import type { Json } from "@/integrations/supabase/types";
 import type { Site } from "./types";
 
 let fingerprintDaSessao: string | null = null;
+const CHAVE_FINGERPRINT = "nexa:public-session";
+
+function criarFingerprint() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 function fingerprint() {
   if (fingerprintDaSessao) return fingerprintDaSessao;
-  fingerprintDaSessao =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  if (typeof window !== "undefined") {
+    try {
+      const existente = window.sessionStorage.getItem(CHAVE_FINGERPRINT);
+      if (existente && existente.length <= 500) {
+        fingerprintDaSessao = existente;
+        return fingerprintDaSessao;
+      }
+    } catch {
+      // Browsers may disable sessionStorage; the in-memory fallback still works.
+    }
+  }
+
+  fingerprintDaSessao = criarFingerprint();
+
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.setItem(CHAVE_FINGERPRINT, fingerprintDaSessao);
+    } catch {
+      // Keep the generated value in memory when storage is unavailable.
+    }
+  }
+
   return fingerprintDaSessao;
 }
 

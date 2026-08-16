@@ -247,6 +247,10 @@ export type Database = {
         };
         Returns: string;
       };
+      update_nexa_profile: {
+        Args: { requested_display_name: string };
+        Returns: ProfileRow;
+      };
     };
     Enums: {
       nexa_site_status: SiteStatus;
