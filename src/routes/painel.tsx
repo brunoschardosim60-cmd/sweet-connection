@@ -216,38 +216,71 @@ function PainelLayout() {
             <Menu size={18} />
           </button>
 
-          <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 md:w-80">
-            <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span className="sr-only">Buscar clientes ou mini-sites</span>
-            <input
-              placeholder="Buscar clientes ou mini-sites"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") toast("Use a busca na página de Clientes");
-              }}
-              className="w-full bg-transparent text-sm outline-none"
-            />
-          </label>
+          <div className="relative min-w-0 md:w-80">
+            <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
+              <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="sr-only">Buscar clientes, mini-sites ou endereços</span>
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setBusca("");
+                }}
+                role="combobox"
+                aria-expanded={resultados.length > 0}
+                aria-controls="resultados-busca-painel"
+                placeholder="Buscar clientes, mini-sites ou /slug"
+                className="w-full bg-transparent text-sm outline-none"
+              />
+            </label>
+            {termo.length > 0 && (
+              <div
+                id="resultados-busca-painel"
+                role="listbox"
+                className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
+              >
+                {resultados.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    Nada encontrado para “{busca.trim()}”.
+                  </p>
+                ) : (
+                  resultados.map((s) => (
+                    <Link
+                      key={s.id}
+                      to="/painel/editor/$id"
+                      params={{ id: s.id }}
+                      role="option"
+                      aria-selected="false"
+                      onClick={() => setBusca("")}
+                      className="flex min-h-11 flex-col justify-center px-4 py-2 hover:bg-secondary"
+                    >
+                      <span className="truncate text-sm font-medium">
+                        {s.conteudo.nome || s.cliente.empresa || s.slug}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        /site/{s.slug} · {s.status}
+                      </span>
+                    </Link>
+                  ))
+                )}
+                <Link
+                  to="/painel/novo"
+                  onClick={() => setBusca("")}
+                  className="flex min-h-11 items-center gap-2 border-t border-border px-4 text-sm font-semibold hover:bg-secondary"
+                >
+                  <Plus size={14} /> Criar novo mini-site
+                </Link>
+              </div>
+            )}
+          </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
+            <Link
+              to="/painel/solicitacoes"
               aria-label={
                 pendentes > 0
-                  ? `Notificações: ${pendentes} solicitações recebidas`
-                  : "Notificações: nenhuma novidade"
-              }
-              onClick={() =>
-                toast(
-                  pendentes > 0
-                    ? `${pendentes} solicitações recebidas`
-                    : "Nenhuma novidade por enquanto",
-                  {
-                    description:
-                      pendentes > 0
-                        ? "Veja os detalhes em Estatísticas."
-                        : "Novos registros aparecerão aqui.",
-                  },
-                )
+                  ? `Solicitações: ${pendentes} recebidas`
+                  : "Solicitações: nenhuma novidade"
               }
               className="relative hidden h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary sm:grid"
             >
@@ -255,7 +288,7 @@ function PainelLayout() {
               {pendentes > 0 && (
                 <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" />
               )}
-            </button>
+            </Link>
             <button
               type="button"
               aria-label={escuro ? "Ativar tema claro" : "Ativar tema escuro"}
