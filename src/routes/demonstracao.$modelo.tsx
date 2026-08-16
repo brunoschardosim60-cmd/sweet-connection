@@ -92,7 +92,7 @@ function Demonstracao() {
               : undefined
           }
         >
-          <div className="h-full overflow-y-auto overflow-x-hidden">
+          <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
           </div>
         </div>
