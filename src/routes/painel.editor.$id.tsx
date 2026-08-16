@@ -430,7 +430,7 @@ function Editor() {
           <div
             role="tablist"
             aria-label="Seções do editor"
-            className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-1 flex flex-wrap gap-1.5 px-1 pb-1"
           >
             {abas.map((a) => (
               <button
