@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha } from "@/components/auth/CampoSenha";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/login")({
 const emailValido = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [tocado, setTocado] = useState(false);
@@ -33,15 +35,28 @@ function Login() {
   const erroEmail = tocado && !emailValido(email) ? "Informe um e-mail válido." : undefined;
   const erroSenha = tocado && senha.length === 0 ? "Informe sua senha." : undefined;
 
-  const enviar = (e: React.FormEvent) => {
+  const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     setTocado(true);
     setAviso(null);
     if (!emailValido(email) || senha.length === 0) return;
     setEnviando(true);
-    // A autenticação real ainda não está conectada — nenhuma sessão é criada aqui.
-    setEnviando(false);
-    setAviso("O login ainda não está conectado ao servidor de contas. Nenhuma sessão foi criada.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password: senha,
+    });
+
+    if (error) {
+      setEnviando(false);
+      setAviso(
+        error.message.toLowerCase().includes("email not confirmed")
+          ? "Este e-mail ainda aguarda confirmação no Supabase."
+          : "E-mail ou senha incorretos.",
+      );
+      return;
+    }
+
+    await navigate({ to: "/painel", replace: true });
   };
 
   return (

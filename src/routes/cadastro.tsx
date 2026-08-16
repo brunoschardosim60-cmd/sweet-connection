@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha, senhaValida } from "@/components/auth/CampoSenha";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/cadastro")({
 const emailValido = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 
 function Cadastro() {
+  const navigate = useNavigate();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -44,17 +46,37 @@ function Cadastro() {
   };
   const valido = Object.values(erros).every((e) => !e);
 
-  const enviar = (e: React.FormEvent) => {
+  const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     setTocado(true);
     setAviso(null);
     if (!valido) return;
     setEnviando(true);
-    // O cadastro real ainda não está conectado — nenhuma conta é criada aqui.
-    setEnviando(false);
-    setAviso(
-      "O cadastro ainda não está conectado ao servidor de contas. Nenhuma conta foi criada.",
-    );
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password: senha,
+      options: { data: { display_name: nome.trim() } },
+    });
+
+    if (error) {
+      setEnviando(false);
+      setAviso(
+        error.message.toLowerCase().includes("already registered")
+          ? "Já existe uma conta com este e-mail."
+          : `Não foi possível criar a conta: ${error.message}`,
+      );
+      return;
+    }
+
+    if (!data.session) {
+      setEnviando(false);
+      setAviso(
+        "A conta foi criada, mas o Supabase ainda exige confirmação por e-mail. Desative essa exigência nas configurações de Auth para acesso imediato.",
+      );
+      return;
+    }
+
+    await navigate({ to: "/painel", replace: true });
   };
 
   return (

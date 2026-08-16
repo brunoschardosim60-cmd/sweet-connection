@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha, senhaValida } from "@/components/auth/CampoSenha";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/recuperar-senha")({
   head: () => ({
@@ -31,24 +32,50 @@ function RecuperarSenha() {
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
-  const solicitar = (e: React.FormEvent) => {
+  useEffect(() => {
+    const veioDaRecuperacao =
+      window.location.hash.includes("type=recovery") ||
+      new URLSearchParams(window.location.search).has("code");
+    if (veioDaRecuperacao) setEtapa("redefinir");
+
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setEtapa("redefinir");
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  const solicitar = async (e: React.FormEvent) => {
     e.preventDefault();
     setTocado(true);
     setAviso(null);
     if (!emailOk) return;
     setEnviando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/recuperar-senha`,
+    });
     setEnviando(false);
     setAviso(
-      "A recuperação de senha ainda não está conectada ao servidor de contas. Nenhum e-mail foi enviado.",
+      error
+        ? `Não foi possível enviar o link: ${error.message}`
+        : "Se houver uma conta com este e-mail, o link de redefinição será enviado.",
     );
   };
 
-  const redefinir = (e: React.FormEvent) => {
+  const redefinir = async (e: React.FormEvent) => {
     e.preventDefault();
     setTocado(true);
     setAviso(null);
     if (!senhaValida(senha) || senha !== confirmacao) return;
-    setAviso("A redefinição ainda não está conectada ao servidor de contas. Nada foi alterado.");
+    setEnviando(true);
+    const { error } = await supabase.auth.updateUser({ password: senha });
+    setEnviando(false);
+    if (error) {
+      setAviso(
+        "O link de redefinição é inválido ou expirou. Solicite um novo link e tente novamente.",
+      );
+      return;
+    }
+    setEtapa("redefinida");
   };
 
   if (etapa === "redefinida") {
@@ -145,9 +172,10 @@ function RecuperarSenha() {
           <Aviso texto={aviso} />
           <button
             type="submit"
-            className="h-12 w-full rounded-full bg-ink text-sm font-semibold text-ink-foreground"
+            disabled={enviando}
+            className="h-12 w-full rounded-full bg-ink text-sm font-semibold text-ink-foreground disabled:opacity-60"
           >
-            Salvar nova senha
+            {enviando ? "Salvando…" : "Salvar nova senha"}
           </button>
         </form>
       )}

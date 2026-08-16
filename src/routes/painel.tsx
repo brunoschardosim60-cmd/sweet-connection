@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Bell,
@@ -16,11 +16,15 @@ import {
   BarChart3,
   Globe,
   LayoutDashboard,
+  Loader2,
+  LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { useNexa } from "@/lib/nexa/hooks";
 import { useTema } from "@/lib/nexa/tema";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -45,6 +49,8 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
 ];
 
 function PainelLayout() {
+  const navigate = useNavigate();
+  const { user, carregando: carregandoSessao } = useAuthSession();
   const [recolhida, setRecolhida] = useState(false);
   const [menuMovel, setMenuMovel] = useState(false);
   const { escuro, alternar } = useTema();
@@ -53,6 +59,12 @@ function PainelLayout() {
   const { sites, pronto } = useNexa();
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!carregandoSessao && !user) {
+      void navigate({ to: "/login", replace: true });
+    }
+  }, [carregandoSessao, navigate, user]);
 
   /* Escape fecha o menu móvel, foco entra no drawer e o scroll de fundo trava. */
   useEffect(() => {
@@ -77,7 +89,27 @@ function PainelLayout() {
     setMenuMovel(false);
   }, [pathname]);
 
+  if (carregandoSessao) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-background" role="status">
+        <Loader2 className="animate-spin" aria-hidden="true" />
+        <span className="sr-only">Verificando acesso…</span>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   if (noEditor) return <Outlet />;
+
+  const sair = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Não foi possível sair. Tente novamente.");
+      return;
+    }
+    await navigate({ to: "/login", replace: true });
+  };
 
   const pendentes = pronto ? sites.reduce((total, s) => total + s.metricas.solicitacoes, 0) : 0;
 
@@ -136,6 +168,15 @@ function PainelLayout() {
           <Globe size={17} className="shrink-0" />
           {!recolhida && "Ver landing page"}
         </Link>
+        <button
+          type="button"
+          onClick={() => void sair()}
+          title={recolhida ? "Sair" : undefined}
+          className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+        >
+          <LogOut size={17} className="shrink-0" />
+          {!recolhida && "Sair"}
+        </button>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -271,6 +312,14 @@ function PainelLayout() {
                 <Globe size={17} className="shrink-0" />
                 Ver landing page
               </Link>
+              <button
+                type="button"
+                onClick={() => void sair()}
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+              >
+                <LogOut size={17} className="shrink-0" />
+                Sair
+              </button>
             </div>
           </div>
         )}
