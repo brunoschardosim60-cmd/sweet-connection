@@ -74,6 +74,7 @@ function Editor() {
   const [salvando, setSalvando] = useState(false);
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [autosave, setAutosave] = useState(true);
+  const [previaMovel, setPreviaMovel] = useState(false);
 
   useEffect(() => {
     if (original && !rascunho) setRascunho(structuredClone(original));
