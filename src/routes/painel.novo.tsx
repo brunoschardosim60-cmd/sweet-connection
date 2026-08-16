@@ -96,23 +96,41 @@ function NovoSite() {
         </Link>
       </div>
 
-      <ol className="flex flex-wrap items-center gap-3">
-        {passos.map((p, i) => (
-          <li key={p} className="flex items-center gap-2">
-            <span
-              className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${
-                i <= passo ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              {i < passo ? <Check size={14} /> : i + 1}
-            </span>
-            <span className={i === passo ? "text-sm font-semibold" : "text-sm text-muted-foreground"}>
-              {p}
-            </span>
-            {i < passos.length - 1 && <span className="mx-1 h-px w-8 bg-border" />}
-          </li>
-        ))}
-      </ol>
+      <div>
+        <ol className="flex flex-wrap items-center gap-3">
+          {passos.map((p, i) => (
+            <li key={p} className="flex items-center gap-2">
+              <span
+                aria-current={i === passo ? "step" : undefined}
+                className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${
+                  i <= passo ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {i < passo ? <Check size={14} /> : i + 1}
+              </span>
+              <span
+                className={i === passo ? "text-sm font-semibold" : "text-sm text-muted-foreground"}
+              >
+                {p}
+              </span>
+              {i < passos.length - 1 && <span className="mx-1 h-px w-8 bg-border" />}
+            </li>
+          ))}
+        </ol>
+        <div
+          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={passos.length}
+          aria-valuenow={passo + 1}
+          aria-label={`Passo ${passo + 1} de ${passos.length}: ${passos[passo]}`}
+        >
+          <div
+            className="h-full rounded-full bg-ink transition-[width] duration-300"
+            style={{ width: `${((passo + 1) / passos.length) * 100}%` }}
+          />
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="surface p-5 sm:p-6">
