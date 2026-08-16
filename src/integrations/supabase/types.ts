@@ -310,20 +310,26 @@ export type Database = {
       user_roles: {
         Row: {
           created_at: string
+          granted_by: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          granted_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          granted_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -358,8 +364,26 @@ export type Database = {
         Returns: boolean
       }
       nexa_admin_overview: { Args: never; Returns: Json }
+      nexa_admin_series: {
+        Args: { requested_days?: number }
+        Returns: {
+          dia: string
+          sites: number
+          solicitacoes: number
+          usuarios: number
+          visitas: number
+        }[]
+      }
       nexa_admin_set_plan: {
         Args: { requested_plan: string; requested_user_id: string }
+        Returns: undefined
+      }
+      nexa_admin_set_role: {
+        Args: {
+          requested_enabled: boolean
+          requested_role: string
+          requested_user_id: string
+        }
         Returns: undefined
       }
       nexa_admin_users: {
@@ -371,6 +395,7 @@ export type Database = {
           email: string
           is_admin: boolean
           last_active_at: string
+          papeis: Json
           plano: string
           sites: number
           sites_publicados: number
