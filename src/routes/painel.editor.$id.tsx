@@ -1683,6 +1683,74 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
 /* ------------------------------ aparência ------------------------------ */
 
+/** Modelos próprios salvos neste navegador a partir da aparência atual. */
+function MeusModelos({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const meus = useSyncExternalStore(
+    modelosUsuarioStore.subscribe,
+    modelosUsuarioStore.get,
+    modelosUsuarioStore.getServer,
+  );
+  const [nome, setNome] = useState("");
+
+  return (
+    <Bloco titulo="Meus modelos">
+      <div className="flex flex-wrap gap-2">
+        <input
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Nome do meu modelo"
+          aria-label="Nome do meu modelo"
+          className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-card px-3 text-sm"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            modelosUsuarioStore.salvar(nome || site.conteudo.nome || "Meu modelo", site.aparencia);
+            setNome("");
+            toast.success("Modelo salvo", {
+              description: "Disponível para aplicar em outros projetos neste navegador.",
+            });
+          }}
+          className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground"
+        >
+          Salvar visual atual
+        </button>
+      </div>
+
+      {meus.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Salve a combinação de cores, fonte e formas deste projeto para reutilizar como padrão nos
+          próximos mini-sites.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {meus.map((m) => (
+            <li key={m.id} className="flex items-center gap-2 rounded-xl border border-border p-2">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.nome}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  aplicar((s) => ({ ...s, aparencia: { ...s.aparencia, ...m.aparencia } }))
+                }
+                className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              >
+                Aplicar
+              </button>
+              <button
+                type="button"
+                onClick={() => modelosUsuarioStore.remover(m.id)}
+                className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              >
+                Remover
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Bloco>
+  );
+}
+
 function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const set = (patch: Partial<Site["aparencia"]>) =>
     aplicar((s) => ({ ...s, aparencia: { ...s.aparencia, ...patch } }));
