@@ -1128,13 +1128,23 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
               {c.itens.map((i) => (
                 <li key={i}>
-                  <button
-                    type="button"
-                    onClick={() => toast("Recurso disponível em breve")}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {i}
-                  </button>
+                  {i === "Termos de uso" ? (
+                    <Link to="/termos" className="transition-colors hover:text-foreground">
+                      {i}
+                    </Link>
+                  ) : i === "Privacidade" ? (
+                    <Link to="/privacidade" className="transition-colors hover:text-foreground">
+                      {i}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toast("Recurso disponível em breve")}
+                      className="transition-colors hover:text-foreground"
+                    >
+                      {i}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

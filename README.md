@@ -13,6 +13,7 @@ métricas são isolados por conta com Row Level Security (RLS).
 - Formulários e métricas públicos gravados por RPC com validação e limites básicos contra abuso.
 - Biblioteca de mídia no Supabase Storage, limitada a tipos permitidos e 10 MB por arquivo.
 - Exportação, importação validada, duplicação com slug único e histórico de versões.
+- Termos de uso e política de privacidade públicos, vinculados ao cadastro e ao rodapé.
 - Google Analytics, Pixel da Meta e domínio personalizado continuam marcados como recursos futuros.
 - As imagens de demonstração presentes no repositório são usadas apenas nos modelos e na biblioteca
   de imagens do sistema. O banco remoto não recebe clientes ou métricas fictícias automaticamente.
@@ -67,6 +68,14 @@ npm audit
 
 O build gera um worker compatível com Cloudflare em `.output`. Para publicar, autentique o Wrangler
 na conta de destino e use o artefato gerado pelo Nitro.
+
+Antes de abrir o produto para clientes:
+
+1. substitua os contatos demonstrativos em `src/lib/nexa/brand.ts` pelos dados comerciais reais;
+2. configure `VITE_PUBLIC_SITE_URL` com a origem HTTPS definitiva;
+3. autorize essa origem e `/recuperar-senha` no Supabase Auth;
+4. publique o worker em uma conta de hospedagem e faça o teste final no domínio real;
+5. revise os documentos legais com o responsável jurídico do negócio.
 
 ## Sincronização com a Lovable
 

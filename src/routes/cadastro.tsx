@@ -13,6 +13,7 @@ export const Route = createFileRoute("/cadastro")({
         name: "description",
         content: "Crie sua conta Nexa e comece a publicar mini-sites para pequenos negócios.",
       },
+      { name: "robots", content: "noindex" },
       { property: "og:title", content: "Criar conta na Nexa" },
       { property: "og:description", content: "Crie sua conta Nexa em poucos segundos." },
       { property: "og:type", content: "website" },
@@ -55,7 +56,13 @@ function Cadastro() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password: senha,
-      options: { data: { display_name: nome.trim() } },
+      options: {
+        data: {
+          display_name: nome.trim(),
+          terms_version: "2026-08-16",
+          terms_accepted_at: new Date().toISOString(),
+        },
+      },
     });
 
     if (error) {
@@ -131,19 +138,43 @@ function Cadastro() {
         />
 
         <div>
-          <label className="flex items-start gap-2.5 text-sm">
+          <div className="flex items-start gap-2.5 text-sm">
             <input
+              id="cad-termos"
               type="checkbox"
               checked={termos}
               onChange={(e) => setTermos(e.target.checked)}
+              aria-invalid={tocado && !!erros.termos}
+              aria-describedby={tocado && erros.termos ? "cad-termos-erro" : undefined}
               className="mt-0.5 h-4 w-4 rounded border-border"
             />
-            <span className="text-muted-foreground">
-              Li e aceito os <span className="text-foreground underline">termos de uso</span> e a{" "}
-              <span className="text-foreground underline">política de privacidade</span>.
-            </span>
-          </label>
-          {tocado && erros.termos && <p className="mt-1.5 text-xs text-ember">{erros.termos}</p>}
+            <p className="text-muted-foreground">
+              <label htmlFor="cad-termos" className="cursor-pointer">
+                Li e aceito os
+              </label>{" "}
+              <Link
+                to="/termos"
+                target="_blank"
+                className="text-foreground underline underline-offset-2"
+              >
+                termos de uso
+              </Link>{" "}
+              e a{" "}
+              <Link
+                to="/privacidade"
+                target="_blank"
+                className="text-foreground underline underline-offset-2"
+              >
+                política de privacidade
+              </Link>
+              .
+            </p>
+          </div>
+          {tocado && erros.termos && (
+            <p id="cad-termos-erro" className="mt-1.5 text-xs text-ember">
+              {erros.termos}
+            </p>
+          )}
         </div>
 
         {aviso && (

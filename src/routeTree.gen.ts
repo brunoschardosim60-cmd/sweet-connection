@@ -15,7 +15,9 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
@@ -57,9 +59,19 @@ const PainelRoute = PainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
@@ -120,7 +132,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -138,7 +152,9 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -158,7 +174,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/painel': typeof PainelRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/termos': typeof TermosRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -179,7 +197,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/modelos'
     | '/painel'
+    | '/privacidade'
     | '/recuperar-senha'
+    | '/termos'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -197,7 +217,9 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/modelos'
+    | '/privacidade'
     | '/recuperar-senha'
+    | '/termos'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -216,7 +238,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/modelos'
     | '/painel'
+    | '/privacidade'
     | '/recuperar-senha'
+    | '/termos'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -236,7 +260,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ModelosRoute: typeof ModelosRoute
   PainelRoute: typeof PainelRouteWithChildren
+  PrivacidadeRoute: typeof PrivacidadeRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  TermosRoute: typeof TermosRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
 }
@@ -285,11 +311,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recuperar-senha': {
       id: '/recuperar-senha'
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demonstracao/$modelo': {
@@ -397,7 +437,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ModelosRoute: ModelosRoute,
   PainelRoute: PainelRouteWithChildren,
+  PrivacidadeRoute: PrivacidadeRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  TermosRoute: TermosRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
 }

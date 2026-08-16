@@ -10,6 +10,7 @@ export const Route = createFileRoute("/recuperar-senha")({
     meta: [
       { title: "Recuperar senha — Nexa" },
       { name: "description", content: "Redefina a senha da sua conta Nexa." },
+      { name: "robots", content: "noindex" },
       { property: "og:title", content: "Recuperar senha — Nexa" },
       { property: "og:description", content: "Redefina a senha da sua conta Nexa." },
       { property: "og:type", content: "website" },

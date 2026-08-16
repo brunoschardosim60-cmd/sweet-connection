@@ -13,6 +13,7 @@ export const Route = createFileRoute("/login")({
         name: "description",
         content: "Acesse sua conta Nexa para criar e editar os mini-sites dos seus clientes.",
       },
+      { name: "robots", content: "noindex" },
       { property: "og:title", content: "Entrar na Nexa" },
       { property: "og:description", content: "Acesse sua conta Nexa." },
       { property: "og:type", content: "website" },
