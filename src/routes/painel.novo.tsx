@@ -158,6 +158,7 @@ function NovoSite() {
                 valor={cliente.empresa}
                 onChange={(v) => setCliente({ ...cliente, empresa: v })}
                 placeholder="Cantina Bella Massa"
+                erro={erroEmpresa}
               />
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Segmento</span>
@@ -186,6 +187,7 @@ function NovoSite() {
                 valor={cliente.telefone}
                 onChange={(v) => setCliente({ ...cliente, telefone: telefoneMask(v) })}
                 placeholder="(11) 98888-1111"
+                erro={erroTelefone}
               />
               <Campo
                 rotulo="E-mail"
