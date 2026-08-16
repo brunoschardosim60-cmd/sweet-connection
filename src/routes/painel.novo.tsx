@@ -201,35 +201,88 @@ function NovoSite() {
 
           {passo === 1 && (
             <div>
-              <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={15} /> Modelos recomendados para este segmento
               </p>
+              <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={() => setFiltro("recomendados")}
+                  aria-pressed={filtro === "recomendados"}
+                  className={`h-9 shrink-0 rounded-full border px-3.5 text-xs font-semibold ${
+                    filtro === "recomendados"
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border hover:bg-secondary"
+                  }`}
+                >
+                  Recomendados
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltro("todos")}
+                  aria-pressed={filtro === "todos"}
+                  className={`h-9 shrink-0 rounded-full border px-3.5 text-xs font-semibold ${
+                    filtro === "todos"
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border hover:bg-secondary"
+                  }`}
+                >
+                  Todos os modelos
+                </button>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {lista.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setModeloId(m.id)}
-                    className={`overflow-hidden rounded-2xl border text-left transition-all ${
-                      modeloId === m.id
-                        ? "border-ink ring-2 ring-lime"
-                        : "border-border hover:-translate-y-0.5"
-                    }`}
-                  >
-                    <img
-                      src={m.imagem}
-                      alt={`Modelo ${m.nome}`}
-                      loading="lazy"
-                      className="h-28 w-full object-cover"
-                    />
-                    <div className="p-3">
-                      <p className="text-sm font-semibold">{m.nome}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {m.descricao}
-                      </p>
+                {lista.map((m) => {
+                  const ativo = modeloId === m.id;
+                  return (
+                    <div
+                      key={m.id}
+                      className={`overflow-hidden rounded-2xl border transition-all ${
+                        ativo ? "border-ink ring-2 ring-lime" : "border-border hover:-translate-y-0.5"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setModeloId(m.id)}
+                        aria-pressed={ativo}
+                        className="block w-full text-left"
+                      >
+                        <span className="relative block">
+                          <img
+                            src={m.imagem}
+                            alt={`Modelo ${m.nome}`}
+                            loading="lazy"
+                            className="h-36 w-full object-cover"
+                          />
+                          {ativo && (
+                            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-lime text-ink">
+                              <Check size={15} />
+                            </span>
+                          )}
+                        </span>
+                        <span className="block p-3">
+                          <span className="block text-sm font-semibold">{m.nome}</span>
+                          <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
+                            {m.descricao}
+                          </span>
+                          <span className="mt-2 inline-block rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">
+                            {m.destaque}
+                          </span>
+                        </span>
+                      </button>
+                      <div className="border-t border-border p-2">
+                        <Link
+                          to="/demonstracao/$modelo"
+                          params={{ modelo: m.id }}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full text-xs font-semibold hover:bg-secondary"
+                        >
+                          <Eye size={14} /> Pré-visualizar
+                        </Link>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
