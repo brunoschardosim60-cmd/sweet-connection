@@ -62,7 +62,8 @@ function PainelLayout() {
   const { escuro, alternar } = useTema();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const noEditor = pathname.includes("/painel/editor/");
-  const { sites, pronto, erro, store } = useNexa();
+  const { sites, envios, pronto, erro, store } = useNexa();
+  const [busca, setBusca] = useState("");
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
 
