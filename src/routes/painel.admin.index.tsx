@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   BarChart3,
+  ChevronDown,
   Crown,
+  ExternalLink,
   Download,
   Globe,
   Inbox,
@@ -20,7 +22,9 @@ import {
   filtrarUsuarios,
   somarSerie,
   useAdminDados,
+  carregarProjetosUsuario,
   useIsAdmin,
+  type AdminProjeto,
   type AdminUsuario,
   type Periodo,
 } from "@/lib/nexa/admin";
