@@ -309,19 +309,5 @@ export async function carregarProjetosUsuario(userId: string): Promise<AdminProj
     );
   if (erroEnvios) throw new Error(mensagemErroAdmin(erroEnvios));
 
-  const porSite = new Map<string, number>();
-  for (const e of envios ?? []) {
-    porSite.set(e.minisite_id, (porSite.get(e.minisite_id) ?? 0) + 1);
-  }
-
-  return sites.map((s) => ({
-    id: s.id,
-    slug: s.slug,
-    nome: nomeDoConteudo(s.draft_content, s.published_content, s.slug),
-    status: s.status,
-    criado_em: s.created_at,
-    atualizado_em: s.updated_at,
-    publicado_em: s.published_at,
-    solicitacoes: porSite.get(s.id) ?? 0,
-  }));
+  return mapearProjetos(sites as unknown as LinhaMinisite[], envios ?? []);
 }
