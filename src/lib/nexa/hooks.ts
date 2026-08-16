@@ -88,7 +88,11 @@ export function useHydrated() {
 
 /** Contador local de visitas e cliques dos mini-sites publicados. */
 export function useDesempenho() {
-  return useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
+  const desempenho = useSyncExternalStore(analytics.subscribe, analytics.tudo, () => mapaVazio);
+  useEffect(() => {
+    void analytics.carregar().catch(() => undefined);
+  }, []);
+  return desempenho;
 }
 
 /** Identidade white label da plataforma (nome, logo, domínio, contatos). */

@@ -1,8 +1,4 @@
-/**
- * Contador local de desempenho dos mini-sites publicados.
- * Registra visitas e cliques (WhatsApp, links, produtos) no localStorage
- * do navegador. Serve como métrica real, ao lado dos dados simulados.
- */
+import { supabase } from "@/integrations/supabase/client";
 
 export interface RegistroDia {
   dia: string;
@@ -14,106 +10,82 @@ export interface DesempenhoSite {
   visitas: number;
   cliques: number;
   cliquesWhatsapp: number;
+  formularios: number;
   porLink: Record<string, number>;
   dias: RegistroDia[];
   ultimaVisita?: string;
 }
 
-const CHAVE = "nexa.analytics.v1";
+type Mapa = Record<string, DesempenhoSite>;
 
 const vazio = (): DesempenhoSite => ({
   visitas: 0,
   cliques: 0,
   cliquesWhatsapp: 0,
+  formularios: 0,
   porLink: {},
   dias: [],
 });
 
-type Mapa = Record<string, DesempenhoSite>;
-
-const temStorage = () => typeof window !== "undefined" && !!window.localStorage;
-
-function lerTudo(): Mapa {
-  if (!temStorage()) return {};
-  try {
-    return JSON.parse(window.localStorage.getItem(CHAVE) ?? "{}") as Mapa;
-  } catch {
-    return {};
-  }
-}
-
-function gravarTudo(mapa: Mapa) {
-  if (!temStorage()) return;
-  try {
-    window.localStorage.setItem(CHAVE, JSON.stringify(mapa));
-  } catch {
-    /* cota excedida — ignorado */
-  }
-}
-
+let cache: Mapa = {};
+let carregando = false;
 const ouvintes = new Set<() => void>();
-
-/** Snapshot estável (exigido por useSyncExternalStore). */
-let cache: Mapa | null = null;
-const snapshot = (): Mapa => (cache ??= lerTudo());
-const notificar = () => {
-  cache = null;
-  ouvintes.forEach((fn) => fn());
-};
-
-const hoje = () => new Date().toISOString().slice(0, 10);
-
-function atualizar(siteId: string, fn: (d: DesempenhoSite) => DesempenhoSite) {
-  const mapa = lerTudo();
-  const atual = mapa[siteId] ?? vazio();
-  mapa[siteId] = fn({ ...atual, porLink: { ...atual.porLink }, dias: [...atual.dias] });
-  gravarTudo(mapa);
-  notificar();
-}
-
-function somarDia(dias: RegistroDia[], campo: "visitas" | "cliques") {
-  const d = hoje();
-  const idx = dias.findIndex((x) => x.dia === d);
-  if (idx === -1) return [...dias, { dia: d, visitas: 0, cliques: 0, [campo]: 1 } as RegistroDia].slice(-60);
-  const copia = [...dias];
-  copia[idx] = { ...copia[idx]!, [campo]: (copia[idx]![campo] ?? 0) + 1 };
-  return copia;
-}
+const notificar = () => ouvintes.forEach((fn) => fn());
 
 export const analytics = {
   subscribe(fn: () => void) {
     ouvintes.add(fn);
     return () => ouvintes.delete(fn);
   },
-  tudo: snapshot,
-  doSite(siteId: string): DesempenhoSite {
-    return snapshot()[siteId] ?? vazio();
+  tudo: () => cache,
+  doSite(siteId: string) {
+    return cache[siteId] ?? vazio();
   },
-  registrarVisita(siteId: string) {
-    atualizar(siteId, (d) => ({
-      ...d,
-      visitas: d.visitas + 1,
-      ultimaVisita: new Date().toISOString(),
-      dias: somarDia(d.dias, "visitas"),
-    }));
-  },
-  registrarClique(siteId: string, rotulo: string, whatsapp = false) {
-    atualizar(siteId, (d) => ({
-      ...d,
-      cliques: d.cliques + 1,
-      cliquesWhatsapp: d.cliquesWhatsapp + (whatsapp ? 1 : 0),
-      porLink: { ...d.porLink, [rotulo]: (d.porLink[rotulo] ?? 0) + 1 },
-      dias: somarDia(d.dias, "cliques"),
-    }));
-  },
-  limpar(siteId?: string) {
-    if (!siteId) {
-      gravarTudo({});
-    } else {
-      const mapa = lerTudo();
-      delete mapa[siteId];
-      gravarTudo(mapa);
+  async carregar(forcar = false) {
+    if (carregando || (!forcar && Object.keys(cache).length > 0)) return;
+    carregando = true;
+    try {
+      const { data, error } = await supabase
+        .from("analytics_events")
+        .select("minisite_id,event_type,target,occurred_at")
+        .order("occurred_at", { ascending: true });
+      if (error) throw new Error(error.message);
+
+      const mapa: Mapa = {};
+      for (const evento of data) {
+        const atual = (mapa[evento.minisite_id] ??= vazio());
+        const dia = evento.occurred_at.slice(0, 10);
+        let registro = atual.dias.find((item) => item.dia === dia);
+        if (!registro) {
+          registro = { dia, visitas: 0, cliques: 0 };
+          atual.dias.push(registro);
+        }
+
+        if (evento.event_type === "visita") {
+          atual.visitas += 1;
+          atual.ultimaVisita = evento.occurred_at;
+          registro.visitas += 1;
+        } else if (evento.event_type === "formulario") {
+          atual.formularios += 1;
+        } else {
+          atual.cliques += 1;
+          registro.cliques += 1;
+          if (evento.event_type === "whatsapp") atual.cliquesWhatsapp += 1;
+          const alvo = evento.target || "Outro link";
+          atual.porLink[alvo] = (atual.porLink[alvo] ?? 0) + 1;
+        }
+      }
+
+      for (const item of Object.values(mapa)) item.dias = item.dias.slice(-60);
+      cache = mapa;
+      notificar();
+    } finally {
+      carregando = false;
     }
+  },
+  reset() {
+    cache = {};
+    carregando = false;
     notificar();
   },
 };

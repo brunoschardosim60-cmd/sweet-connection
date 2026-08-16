@@ -83,7 +83,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "description",
         content: "Plataforma brasileira para criar, editar e publicar mini-sites profissionais.",
       },
-      { name: "author", content: "Lovable" },
       { property: "og:title", content: "Nexa — Mini-sites profissionais" },
       {
         property: "og:description",
@@ -91,7 +90,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

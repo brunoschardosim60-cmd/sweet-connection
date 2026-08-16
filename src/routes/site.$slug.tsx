@@ -1,52 +1,53 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { MiniSite } from "@/components/minisite/MiniSite";
-import { useNexa } from "@/lib/nexa/hooks";
-import { Skeleton } from "@/components/ui/skeleton";
+import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 
 export const Route = createFileRoute("/site/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Mini-site publicado — Nexa" },
-      { name: "description", content: "Página profissional criada com a plataforma Nexa." },
-      { property: "og:title", content: "Mini-site publicado — Nexa" },
-      { property: "og:description", content: "Página profissional criada com a plataforma Nexa." },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const site = await buscarMinisitePublicado(params.slug);
+    if (!site) throw notFound();
+    return site;
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return {
+        meta: [
+          { title: "Mini-site não encontrado — Nexa" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
+    }
+
+    const titulo = loaderData.seo.titulo || loaderData.conteudo.nome;
+    const descricao = loaderData.seo.descricao || loaderData.conteudo.descricao;
+    const imagem = loaderData.seo.imagem || loaderData.conteudo.capa;
+    const dominio = loaderData.integracoes.dominio?.trim().replace(/^https?:\/\//, "");
+    const canonical = dominio
+      ? `https://${dominio.replace(/\/+$/, "")}/site/${loaderData.slug}`
+      : `/site/${loaderData.slug}`;
+
+    return {
+      meta: [
+        { title: titulo },
+        { name: "description", content: descricao },
+        { property: "og:title", content: titulo },
+        { property: "og:description", content: descricao },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical },
+        ...(imagem ? [{ property: "og:image", content: imagem }] : []),
+        { name: "twitter:card", content: imagem ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: titulo },
+        { name: "twitter:description", content: descricao },
+        ...(imagem ? [{ name: "twitter:image", content: imagem }] : []),
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
   component: SitePublico,
 });
 
 function SitePublico() {
-  const { slug } = Route.useParams();
-  const { sites, pronto } = useNexa();
-  const site = sites.find((s) => s.slug === slug);
-
-  if (!pronto)
-    return (
-      <div className="mx-auto max-w-lg space-y-4 p-6">
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-6 w-2/3" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-      </div>
-    );
-
-  if (!site)
-    return (
-      <div className="grid min-h-screen place-items-center bg-background px-5 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Página não encontrada</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Este endereço ainda não foi publicado.
-          </p>
-          <Link
-            to="/painel"
-            className="mt-6 inline-block rounded-full bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground"
-          >
-            Ir para o painel
-          </Link>
-        </div>
-      </div>
-    );
-
+  const site = Route.useLoaderData();
   return (
     <div className="min-h-screen">
       <MiniSite site={site} rastrear />

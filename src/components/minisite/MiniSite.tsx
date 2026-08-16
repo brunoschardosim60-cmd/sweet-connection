@@ -15,16 +15,16 @@ import {
   Star,
   Youtube,
 } from "lucide-react";
-import { analytics } from "@/lib/nexa/analytics";
 import { whatsappLink } from "@/lib/nexa/brand";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
+import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
-
 /** Contexto de rastreio: ativo apenas no mini-site publicado. */
 const RastreioCtx = createContext<(rotulo: string, whatsapp?: boolean) => void>(() => {});
+const PublicacaoCtx = createContext(false);
 export const useRastreio = () => useContext(RastreioCtx);
 
 const fontes: Record<Site["aparencia"]["fonte"], string> = {
@@ -55,7 +55,13 @@ const iconesLink = {
 
 function hexToRgba(hex: string, alpha: number) {
   const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   const n = parseInt(full.slice(0, 6) || "000000", 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
@@ -85,14 +91,19 @@ export function MiniSite({
   }, [site.conteudo.horarios]);
 
   useEffect(() => {
-    if (rastrear) analytics.registrarVisita(site.id);
-  }, [rastrear, site.id]);
+    if (rastrear) void registrarEventoPublicado(site.slug, "visita").catch(() => undefined);
+  }, [rastrear, site.slug]);
 
   const registrar = useMemo(
-    () => (rotulo: string, whatsapp = false) => {
-      if (rastrear) analytics.registrarClique(site.id, rotulo, whatsapp);
-    },
-    [rastrear, site.id],
+    () =>
+      (rotulo: string, whatsapp = false) => {
+        if (rastrear) {
+          void registrarEventoPublicado(site.slug, whatsapp ? "whatsapp" : "clique", rotulo).catch(
+            () => undefined,
+          );
+        }
+      },
+    [rastrear, site.slug],
   );
 
   const gap = espacos[a.espacamento];
@@ -111,21 +122,26 @@ export function MiniSite({
   const secoesOrdenadas = ativas.filter((s) => s.tipo !== "apresentacao" && s.tipo !== "rodape");
 
   return (
-    <RastreioCtx.Provider value={registrar}>
-    <div style={style} className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed">
-      <Capa site={site} aberto={aberto} compacto={compacto} />
-      <div
-        className="mx-auto w-full max-w-[680px] px-5 pb-28"
-        style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
-      >
-        {secoesOrdenadas.map((s) => (
-          <Secao key={s.id} tipo={s.tipo} titulo={s.titulo} site={site} />
-        ))}
-      </div>
-      {tem("rodape") && <Rodape site={site} />}
-      {botaoFlutuante && <BotaoWhatsapp site={site} />}
-    </div>
-    </RastreioCtx.Provider>
+    <PublicacaoCtx.Provider value={rastrear}>
+      <RastreioCtx.Provider value={registrar}>
+        <div
+          style={style}
+          className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed"
+        >
+          <Capa site={site} aberto={aberto} compacto={compacto} />
+          <div
+            className="mx-auto w-full max-w-[680px] px-5 pb-28"
+            style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
+          >
+            {secoesOrdenadas.map((s) => (
+              <Secao key={s.id} tipo={s.tipo} titulo={s.titulo} site={site} />
+            ))}
+          </div>
+          {tem("rodape") && <Rodape site={site} />}
+          {botaoFlutuante && <BotaoWhatsapp site={site} />}
+        </div>
+      </RastreioCtx.Provider>
+    </PublicacaoCtx.Provider>
   );
 }
 
@@ -248,7 +264,15 @@ function Titulo({ children, site }: { children: React.ReactNode; site: Site }) {
   );
 }
 
-function Cartao({ children, site, className = "" }: { children: React.ReactNode; site: Site; className?: string }) {
+function Cartao({
+  children,
+  site,
+  className = "",
+}: {
+  children: React.ReactNode;
+  site: Site;
+  className?: string;
+}) {
   return (
     <div
       className={`overflow-hidden ${className}`}
@@ -301,7 +325,12 @@ function Botao({
       </a>
     );
   return (
-    <button type="button" onClick={onClick} className={cls} style={{ ...estilos, borderRadius: radius }}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cls}
+      style={{ ...estilos, borderRadius: radius }}
+    >
       {children}
     </button>
   );
@@ -309,7 +338,13 @@ function Botao({
 
 function contraste(hex: string) {
   const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   const n = parseInt(full.slice(0, 6) || "000000", 16);
   const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
   return lum > 0.6 ? "#101010" : "#ffffff";
@@ -374,7 +409,6 @@ function urlLink(l: LinkItem) {
   }
 }
 
-
 function BlocoLinks({ site }: { site: Site }) {
   const registrar = useRastreio();
   const links = site.links.filter((l) => l.ativo);
@@ -432,7 +466,11 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       <div className="mb-4 flex flex-col gap-3">
         <div
           className="flex items-center gap-2 px-3 py-2"
-          style={{ background: "var(--ms-surface)", border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          style={{
+            background: "var(--ms-surface)",
+            border: "1px solid var(--ms-border)",
+            borderRadius: "var(--ms-radius)",
+          }}
         >
           <Search size={15} className="opacity-60" />
           <input
@@ -473,7 +511,9 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 src={p.imagem}
                 alt={p.nome}
                 loading="lazy"
-                className={catalogo ? "h-32 w-full object-cover" : "h-24 w-24 shrink-0 object-cover"}
+                className={
+                  catalogo ? "h-32 w-full object-cover" : "h-24 w-24 shrink-0 object-cover"
+                }
               />
             )}
             <div className="min-w-0 flex-1 p-3">
@@ -482,7 +522,10 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 {p.destaque && (
                   <span
                     className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
-                    style={{ background: hexToRgba(site.aparencia.corPrimaria, 0.2), color: site.aparencia.corPrimaria }}
+                    style={{
+                      background: hexToRgba(site.aparencia.corPrimaria, 0.2),
+                      color: site.aparencia.corPrimaria,
+                    }}
                   >
                     destaque
                   </span>
@@ -496,7 +539,10 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 {p.precoPromocional ? (
                   <>
                     <span className="text-xs line-through opacity-50">{moeda(p.preco)}</span>
-                    <span className="text-sm font-bold" style={{ color: site.aparencia.corPrimaria }}>
+                    <span
+                      className="text-sm font-bold"
+                      style={{ color: site.aparencia.corPrimaria }}
+                    >
                       {moeda(p.precoPromocional)}
                     </span>
                   </>
@@ -594,11 +640,15 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
                 </span>
               </>
             ) : (
-              <img src={g.url} alt={g.titulo} loading="lazy" className="h-full w-full object-cover" />
+              <img
+                src={g.url}
+                alt={g.titulo}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
             )}
           </button>
         ))}
-
       </div>
       {ampliada && (
         <button
@@ -611,7 +661,6 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
           ) : (
             <img src={ampliada} alt="Foto ampliada" className="max-h-[80vh] w-auto rounded-lg" />
           )}
-
         </button>
       )}
     </section>
@@ -639,7 +688,12 @@ function BlocoVideos({ site, titulo }: { site: Site; titulo: string }) {
                     className="h-full w-full"
                   />
                 ) : embed ? (
-                  <video src={embed.src} controls playsInline className="h-full w-full object-cover" />
+                  <video
+                    src={embed.src}
+                    controls
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="grid h-full place-items-center">
                     <Play size={22} style={{ color: site.aparencia.corPrimaria }} />
@@ -660,7 +714,6 @@ function BlocoVideos({ site, titulo }: { site: Site; titulo: string }) {
   );
 }
 
-
 function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
   if (site.depoimentos.length === 0) return null;
   return (
@@ -671,7 +724,11 @@ function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
           <div
             key={d.id}
             className="w-64 shrink-0 snap-start p-4"
-            style={{ background: "var(--ms-surface)", border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+            style={{
+              background: "var(--ms-surface)",
+              border: "1px solid var(--ms-border)",
+              borderRadius: "var(--ms-radius)",
+            }}
           >
             <div className="flex gap-0.5">
               {Array.from({ length: d.nota }).map((_, i) => (
@@ -698,9 +755,16 @@ function BlocoEquipe({ site, titulo }: { site: Site; titulo: string }) {
             <div className="p-4 text-center">
               <div
                 className="mx-auto grid h-12 w-12 place-items-center rounded-full text-sm font-bold"
-                style={{ background: hexToRgba(site.aparencia.corPrimaria, 0.2), color: site.aparencia.corPrimaria }}
+                style={{
+                  background: hexToRgba(site.aparencia.corPrimaria, 0.2),
+                  color: site.aparencia.corPrimaria,
+                }}
               >
-                {m.nome.split(" ").slice(0, 2).map((p) => p[0]).join("")}
+                {m.nome
+                  .split(" ")
+                  .slice(0, 2)
+                  .map((p) => p[0])
+                  .join("")}
               </div>
               <p className="mt-2 text-sm font-semibold">{m.nome}</p>
               <p className="text-xs opacity-65">{m.funcao}</p>
@@ -737,7 +801,8 @@ function BlocoCupons({ site, titulo }: { site: Site; titulo: string }) {
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-sm font-semibold">
-                  <BadgePercent size={15} style={{ color: site.aparencia.corPrimaria }} /> {c.titulo}
+                  <BadgePercent size={15} style={{ color: site.aparencia.corPrimaria }} />{" "}
+                  {c.titulo}
                 </p>
                 <p className="mt-1 text-xs opacity-70">{c.descricao}</p>
                 <p className="mt-1 text-[11px] opacity-60">Expira em {dias} dias</p>
@@ -809,7 +874,9 @@ function BlocoHorarios({ site, titulo }: { site: Site; titulo: string }) {
               <span className="flex items-center gap-2 opacity-80">
                 <Clock size={13} /> {h.dia}
               </span>
-              <span className="font-medium">{h.fechado ? "Fechado" : `${h.abre} – ${h.fecha}`}</span>
+              <span className="font-medium">
+                {h.fechado ? "Fechado" : `${h.abre} – ${h.fecha}`}
+              </span>
             </li>
           ))}
         </ul>
@@ -833,7 +900,9 @@ function BlocoFaq({ site, titulo }: { site: Site; titulo: string }) {
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium"
             >
               {f.pergunta}
-              <span style={{ color: site.aparencia.corPrimaria }}>{aberta === f.id ? "–" : "+"}</span>
+              <span style={{ color: site.aparencia.corPrimaria }}>
+                {aberta === f.id ? "–" : "+"}
+              </span>
             </button>
             {aberta === f.id && <p className="px-4 pb-4 text-sm opacity-75">{f.resposta}</p>}
           </Cartao>
@@ -845,23 +914,65 @@ function BlocoFaq({ site, titulo }: { site: Site; titulo: string }) {
 
 function BlocoFormulario({ site }: { site: Site }) {
   const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const publicado = useContext(PublicacaoCtx);
   return (
     <section>
       <Titulo site={site}>{site.formulario.titulo}</Titulo>
       <Cartao site={site}>
         <form
           className="flex flex-col gap-3 p-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            setEnviado(true);
+            if (enviando) return;
+            if (!publicado) {
+              setErro("O envio fica disponível no mini-site publicado.");
+              return;
+            }
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+            if (String(formData.get("website") ?? "").trim()) {
+              setErro("Não foi possível enviar sua mensagem.");
+              return;
+            }
+            const dados = Object.fromEntries(
+              site.formulario.campos.map((campo) => [
+                campo.id,
+                String(formData.get(campo.id) ?? "")
+                  .trim()
+                  .slice(0, 2000),
+              ]),
+            );
+            setErro(null);
+            setEnviando(true);
+            try {
+              await enviarFormularioPublicado(site.slug, dados);
+              form.reset();
+              setEnviado(true);
+            } catch (error) {
+              setErro(error instanceof Error ? error.message : "Não foi possível enviar.");
+            } finally {
+              setEnviando(false);
+            }
           }}
         >
+          <input
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="hidden"
+          />
           {site.formulario.campos.map((c) =>
             c.tipo === "textarea" ? (
               <textarea
                 key={c.id}
+                name={c.id}
                 required={c.obrigatorio}
+                aria-label={c.rotulo}
                 placeholder={c.rotulo}
+                maxLength={2000}
                 rows={3}
                 className="w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
                 style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
@@ -869,12 +980,21 @@ function BlocoFormulario({ site }: { site: Site }) {
             ) : (
               <input
                 key={c.id}
+                name={c.id}
                 required={c.obrigatorio}
+                aria-label={c.rotulo}
+                type={c.tipo === "email" ? "email" : c.tipo === "data" ? "date" : "text"}
                 placeholder={c.rotulo}
+                maxLength={2000}
                 className="w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
                 style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
               />
             ),
+          )}
+          {erro && (
+            <p role="alert" className="text-sm font-medium">
+              {erro}
+            </p>
           )}
           {enviado ? (
             <p className="text-sm font-medium" style={{ color: site.aparencia.corPrimaria }}>
@@ -883,6 +1003,7 @@ function BlocoFormulario({ site }: { site: Site }) {
           ) : (
             <button
               type="submit"
+              disabled={enviando}
               className="px-4 py-3 text-sm font-semibold"
               style={{
                 background: site.aparencia.corPrimaria,
@@ -890,7 +1011,7 @@ function BlocoFormulario({ site }: { site: Site }) {
                 borderRadius: "var(--ms-radius)",
               }}
             >
-              Enviar
+              {enviando ? "Enviando…" : "Enviar"}
             </button>
           )}
         </form>

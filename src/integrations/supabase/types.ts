@@ -182,6 +182,16 @@ export type Database = {
       delete_minisite: { Args: { requested_id: string }; Returns: undefined };
       get_published_minisite: { Args: { requested_slug: string }; Returns: Json };
       publish_minisite: { Args: { requested_id: string }; Returns: MinisiteRow };
+      record_minisite_event: {
+        Args: {
+          requested_slug: string;
+          requested_event: EventType;
+          requested_target?: string;
+          request_source?: string;
+          session_fingerprint?: string;
+        };
+        Returns: undefined;
+      };
       save_minisite_draft: {
         Args: {
           requested_slug: string;
