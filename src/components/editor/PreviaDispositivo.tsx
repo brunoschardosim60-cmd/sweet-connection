@@ -58,48 +58,34 @@ export function MolduraPrevia({
   dispositivo: Dispositivo;
   children: ReactNode;
 }) {
-  return (
-    <div
-      style={{ containerType: "size" }}
-      className="flex min-h-0 w-full flex-1 items-center justify-center"
-    >
-      <Moldura dispositivo={dispositivo}>{children}</Moldura>
-    </div>
-  );
-}
-
-function Moldura({ dispositivo, children }: { dispositivo: Dispositivo; children: ReactNode }) {
   if (dispositivo === "celular") {
     const disp = dimensoesDispositivo.celular;
     return (
-      <PhoneFrame
-        largura={larguraCssPrevia(disp)}
-        proporcao={disp.largura / disp.altura}
-        className="max-h-full max-w-full"
-      >
-        {children}
-      </PhoneFrame>
+      <PalcoEscalado dispositivo={disp}>
+        <PhoneFrame largura={disp.largura} altura={disp.altura} className="h-full w-full">
+          {children}
+        </PhoneFrame>
+      </PalcoEscalado>
     );
   }
 
   if (dispositivo === "tablet") {
     const disp = dimensoesDispositivo.tablet;
     return (
-      <div
-        style={{
-          width: larguraCssPrevia(disp),
-          aspectRatio: `${disp.largura} / ${disp.altura}`,
-        }}
-        className="max-h-full max-w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
-      >
-        {children}
-      </div>
+      <PalcoEscalado dispositivo={disp}>
+        <div className="h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          {children}
+        </div>
+      </PalcoEscalado>
     );
   }
 
   return (
-    <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-      {children}
+    <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+      <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+        {children}
+      </div>
     </div>
   );
 }
+
