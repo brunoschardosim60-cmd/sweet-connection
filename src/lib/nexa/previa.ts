@@ -37,3 +37,26 @@ export function escalaPrevia(disponivel: Caixa, dispositivo: Caixa): number {
     disponivel.altura / dispositivo.altura,
   );
 }
+
+/** Inverte largura e altura (orientação horizontal). */
+export function deitar(caixa: Caixa): Caixa {
+  return { largura: caixa.altura, altura: caixa.largura };
+}
+
+/** Área segura simulada (notch / barra inferior) de cada dispositivo, em px. */
+export const areaSegura = {
+  celular: { topo: 44, base: 34, lado: 0 },
+  tablet: { topo: 24, base: 20, lado: 0 },
+} as const;
+
+/** Padding CSS de área segura conforme a orientação. */
+export function paddingAreaSegura(
+  tipo: keyof typeof areaSegura,
+  horizontal: boolean,
+): { paddingTop: number; paddingBottom: number; paddingLeft: number; paddingRight: number } {
+  const a = areaSegura[tipo];
+  if (horizontal) {
+    return { paddingTop: a.lado, paddingBottom: a.lado, paddingLeft: a.topo, paddingRight: a.base };
+  }
+  return { paddingTop: a.topo, paddingBottom: a.base, paddingLeft: a.lado, paddingRight: a.lado };
+}
