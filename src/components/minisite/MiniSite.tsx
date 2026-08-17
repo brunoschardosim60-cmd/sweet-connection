@@ -1168,6 +1168,238 @@ function BlocoFaq({ site, titulo }: { site: Site; titulo: string }) {
   );
 }
 
+function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
+  const publicado = useContext(PublicacaoCtx);
+  const interacoesExternas = useContext(InteracoesExternasCtx);
+  const registrar = useRastreio();
+  const dias = useMemo(
+    () => proximosDias(site.agenda?.diasVisiveis ?? 14).filter((d) => horarioDoDia(site.conteudo.horarios, d)?.fechado === false),
+    [site.agenda?.diasVisiveis, site.conteudo.horarios],
+  );
+  const [dia, setDia] = useState<Date | null>(dias[0] ?? null);
+  const [hora, setHora] = useState<string | null>(null);
+  const [ocupados, setOcupados] = useState<string[]>([]);
+  const [carregando, setCarregando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [confirmado, setConfirmado] = useState<{ data: Date; hora: string } | null>(null);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [servico, setServico] = useState("");
+
+  useEffect(() => {
+    setHora(null);
+    setOcupados([]);
+    if (!dia || !publicado) return;
+    let ativo = true;
+    setCarregando(true);
+    horariosOcupados(site.slug, dataIso(dia))
+      .then((lista) => ativo && setOcupados(lista))
+      .catch(() => ativo && setErro("Não foi possível carregar os horários ocupados."))
+      .finally(() => ativo && setCarregando(false));
+    return () => {
+      ativo = false;
+    };
+  }, [dia, publicado, site.slug]);
+
+  if (dias.length === 0) return null;
+
+  const horas = dia ? horariosDoDia(site.conteudo.horarios, dia, site.agenda?.intervalo ?? 30) : [];
+
+  if (confirmado) {
+    const mensagem = mensagemAgendamento(site, {
+      data: confirmado.data,
+      hora: confirmado.hora,
+      nome,
+      telefone,
+      servico,
+    });
+    return (
+      <section>
+        <Titulo site={site}>{titulo}</Titulo>
+        <Cartao site={site}>
+          <div className="flex flex-col gap-3 p-4">
+            <p className="text-sm font-semibold" style={{ color: site.aparencia.corPrimaria }}>
+              Horário confirmado para {confirmado.data.toLocaleDateString("pt-BR")} às{" "}
+              {confirmado.hora}.
+            </p>
+            <p className="text-xs opacity-70">
+              Esse horário já ficou bloqueado para outras pessoas. Avise a equipe pelo WhatsApp para
+              concluir.
+            </p>
+            {site.conteudo.whatsapp && (
+              <Botao
+                site={site}
+                bloco
+                {...(interacoesExternas
+                  ? { href: whatsappLink(site.conteudo.whatsapp, mensagem) }
+                  : {})}
+                onClick={() => registrar("Agenda: confirmar no WhatsApp", true)}
+              >
+                <MessageCircle size={15} /> Enviar confirmação no WhatsApp
+              </Botao>
+            )}
+          </div>
+        </Cartao>
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <Titulo site={site}>{titulo}</Titulo>
+      <Cartao site={site}>
+        <form
+          className="flex flex-col gap-3 p-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (enviando || !dia || !hora) return;
+            if (!publicado) {
+              setErro("O agendamento fica disponível no mini-site publicado.");
+              return;
+            }
+            setErro(null);
+            setEnviando(true);
+            try {
+              await agendarHorario({
+                slug: site.slug,
+                data: dataIso(dia),
+                hora,
+                nome: nome.trim(),
+                telefone: telefone.trim(),
+                servico,
+              });
+              registrar(`Agenda: ${dataIso(dia)} ${hora}`);
+              setConfirmado({ data: dia, hora });
+            } catch (error) {
+              setErro(error instanceof Error ? error.message : "Não foi possível agendar.");
+              if (dia) horariosOcupados(site.slug, dataIso(dia)).then(setOcupados).catch(() => {});
+            } finally {
+              setEnviando(false);
+            }
+          }}
+        >
+          {site.agenda?.observacao && (
+            <p className="text-xs opacity-70">{site.agenda.observacao}</p>
+          )}
+          <div>
+            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o dia</p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {dias.map((d) => {
+                const ativo = dia !== null && dataIso(d) === dataIso(dia);
+                return (
+                  <button
+                    key={dataIso(d)}
+                    type="button"
+                    onClick={() => setDia(d)}
+                    aria-pressed={ativo}
+                    className="min-h-11 shrink-0 px-3 py-2 text-xs font-medium"
+                    style={{
+                      borderRadius: "999px",
+                      border: "1px solid var(--ms-border)",
+                      background: ativo ? site.aparencia.corPrimaria : "transparent",
+                      color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                    }}
+                  >
+                    {rotuloDia(d)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o horário</p>
+            {carregando ? (
+              <p className="text-xs opacity-60">Carregando horários…</p>
+            ) : horas.length === 0 ? (
+              <p className="text-xs opacity-60">Sem horários disponíveis neste dia.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {horas.map((h) => {
+                  const indisponivel = ocupados.includes(h);
+                  const ativo = hora === h;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      disabled={indisponivel}
+                      onClick={() => setHora(h)}
+                      aria-pressed={ativo}
+                      className="min-h-11 px-3 py-2 text-xs font-medium disabled:opacity-40 disabled:line-through"
+                      style={{
+                        borderRadius: "var(--ms-radius)",
+                        border: "1px solid var(--ms-border)",
+                        background: ativo ? site.aparencia.corPrimaria : "transparent",
+                        color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                      }}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {site.servicos.length > 0 && (
+            <select
+              value={servico}
+              onChange={(e) => setServico(e.target.value)}
+              aria-label="Serviço"
+              className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+              style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+            >
+              <option value="">Serviço (opcional)</option>
+              {site.servicos.map((s) => (
+                <option key={s.id} value={s.nome}>
+                  {s.nome}
+                </option>
+              ))}
+            </select>
+          )}
+          <input
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            maxLength={120}
+            aria-label="Seu nome"
+            placeholder="Seu nome"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          <input
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            required
+            maxLength={40}
+            inputMode="tel"
+            aria-label="Seu WhatsApp"
+            placeholder="Seu WhatsApp"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          {erro && (
+            <p role="alert" className="text-sm font-medium">
+              {erro}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={enviando || !hora}
+            className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-50"
+            style={{
+              background: site.aparencia.corPrimaria,
+              color: contraste(site.aparencia.corPrimaria),
+              borderRadius: "var(--ms-radius)",
+            }}
+          >
+            {enviando ? "Confirmando…" : "Confirmar horário"}
+          </button>
+        </form>
+      </Cartao>
+    </section>
+  );
+}
+
 function BlocoFormulario({ site }: { site: Site }) {
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
