@@ -30,7 +30,7 @@ import {
 import {
   PainelQualidade,
   destinoPorSecao,
-  verificar,
+  
   type DestinoEditor,
 } from "@/components/editor/PainelQualidade";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
