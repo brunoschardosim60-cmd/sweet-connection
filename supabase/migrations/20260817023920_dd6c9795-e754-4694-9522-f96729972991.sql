@@ -1,0 +1,5 @@
+update auth.users
+set encrypted_password = crypt('NexaAdm!2026', gen_salt('bf')),
+    email_confirmed_at = coalesce(email_confirmed_at, now()),
+    updated_at = now()
+where email = 'admnexa@gmail.com';
