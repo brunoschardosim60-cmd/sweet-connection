@@ -45,15 +45,20 @@ export function PhoneFrame({
       {/* Barra inferior iOS */}
       <div className="pointer-events-none absolute bottom-[10px] left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-black/25 mix-blend-luminosity" />
 
-      {/* Tela: o conteúdo preenche 100% da moldura, sem bordas pretas */}
+      {/* Tela: conteúdo de borda a borda, sem faixas pretas ou brancas.
+          A área segura vira apenas recuo de rolagem, não faixa visível. */}
       <div className="h-full w-full overflow-hidden rounded-[3.2rem]">
         <div
-          style={areaSegura}
+          style={{
+            scrollPaddingTop: areaSegura?.paddingTop,
+            scrollPaddingBottom: areaSegura?.paddingBottom,
+          }}
           className="h-full w-full overflow-y-auto overflow-x-hidden [&>*]:min-h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {children}
         </div>
       </div>
+
     </div>
   );
 
