@@ -125,7 +125,7 @@ export async function agendarHorario(entrada: {
     requested_telefone: entrada.telefone,
     requested_servico: entrada.servico ?? "",
     requested_observacao: entrada.observacao ?? "",
-    requested_chave: entrada.chave ?? undefined,
+    ...(entrada.chave ? { requested_chave: entrada.chave } : {}),
   });
   if (error) {
     const chave = Object.keys(mensagensDeErro).find((k) => error.message.includes(k));
