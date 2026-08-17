@@ -4,7 +4,9 @@ import { useState } from "react";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modelos } from "@/lib/nexa/modelos";
-import { dimensoesDispositivo, larguraCssPrevia } from "@/lib/nexa/previa";
+import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
+import { dimensoesDispositivo } from "@/lib/nexa/previa";
+
 
 export const Route = createFileRoute("/demonstracao/$modelo")({
   loader: ({ params }) => {
@@ -72,29 +74,30 @@ function Demonstracao() {
 
       <main
         className={`flex min-h-0 flex-1 justify-center overflow-hidden ${desktop ? "p-0" : "items-center p-3 sm:p-5"}`}
-        style={desktop ? undefined : { containerType: "size" }}
       >
-        <div
-          data-dispositivo={disp}
-          className={
-            desktop
-              ? "h-full w-full overflow-hidden bg-background"
-              : "max-h-full max-w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
-          }
-          style={
-            dispositivo
-              ? {
-                  aspectRatio: `${dispositivo.largura} / ${dispositivo.altura}`,
-                  width: larguraCssPrevia(dispositivo),
-                }
-              : undefined
-          }
-        >
-          <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+        {dispositivo ? (
+          <PalcoEscalado dispositivo={dispositivo}>
+            <div
+              data-dispositivo={disp}
+              className="h-full w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
+            >
+              <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+              </div>
+            </div>
+          </PalcoEscalado>
+        ) : (
+          <div
+            data-dispositivo={disp}
+            className="h-full w-full overflow-hidden bg-background"
+          >
+            <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+            </div>
           </div>
-        </div>
+        )}
       </main>
+
     </div>
   );
 }
