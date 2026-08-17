@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { dimensoesDispositivo, larguraCssPrevia } from "@/lib/nexa/previa";
 
 export type Dispositivo = "celular" | "tablet" | "desktop";
 
