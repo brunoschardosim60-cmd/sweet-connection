@@ -490,31 +490,6 @@ function Editor() {
   );
 }
 
-/** Indicador de qualidade sempre visível, recalculado a cada alteração. */
-function ResumoQualidade({ site, onIr }: { site: Site; onIr: (d: DestinoEditor) => void }) {
-  const itens = verificar(site);
-  const ok = itens.filter((i) => i.situacao === "ok").length;
-  const total = itens.length;
-  const pct = total ? Math.round((ok / total) * 100) : 0;
-  return (
-    <button
-      type="button"
-      onClick={() => onIr({ aba: "qualidade", bloco: "bloco-qualidade" })}
-      className="mb-3 flex min-h-11 w-full items-center gap-3 rounded-xl border border-border bg-card px-3 text-left"
-    >
-      <span className="text-xs font-semibold">Qualidade</span>
-      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
-        <span
-          className="block h-full rounded-full bg-lime transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </span>
-      <span className="text-xs tabular-nums text-muted-foreground">
-        {ok}/{total}
-      </span>
-    </button>
-  );
-}
 
 /* ------------------------------ campos ------------------------------ */
 
