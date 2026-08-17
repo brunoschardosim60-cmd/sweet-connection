@@ -190,6 +190,25 @@ export interface Integracoes {
   dominio: string;
   googleMaps: string;
   whatsappApi: string;
+  /** ID do Google Tag Manager (GTM-XXXXXX), carregado só no mini-site publicado. */
+  googleTagManager?: string;
+}
+
+/** Configuração do carrinho simples enviado pelo WhatsApp. */
+export interface Comercio {
+  carrinho: boolean;
+  taxaEntrega: number;
+  pedidoMinimo: number;
+}
+
+/** Configuração da agenda de horários do mini-site. */
+export interface Agenda {
+  ativa: boolean;
+  /** Intervalo entre horários, em minutos. */
+  intervalo: number;
+  /** Quantidade de dias exibidos para escolha. */
+  diasVisiveis: number;
+  observacao: string;
 }
 
 export interface Seo {
