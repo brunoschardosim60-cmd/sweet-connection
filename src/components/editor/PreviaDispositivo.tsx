@@ -57,18 +57,37 @@ export function MolduraPrevia({
   dispositivo: Dispositivo;
   children: ReactNode;
 }) {
-  if (dispositivo === "celular")
+  if (dispositivo === "celular") {
+    const disp = dimensoesDispositivo.celular;
     return (
-      <PhoneFrame largura={216} altura={475} className="max-h-full max-w-full">
+      <PhoneFrame
+        largura={larguraCssPrevia(disp)}
+        proporcao={disp.largura / disp.altura}
+        className="max-h-full max-w-full"
+      >
         {children}
       </PhoneFrame>
     );
+  }
 
-  const largura = dispositivo === "tablet" ? "w-[720px]" : "w-full max-w-4xl";
+  if (dispositivo === "tablet") {
+    const disp = dimensoesDispositivo.tablet;
+    return (
+      <div
+        style={{
+          width: larguraCssPrevia(disp),
+          aspectRatio: `${disp.largura} / ${disp.altura}`,
+        }}
+        className="max-h-full max-w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
+      >
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`h-full max-h-[660px] max-w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] ${largura}`}
+      className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
     >
       {children}
     </div>
