@@ -64,7 +64,8 @@ describe("atalhos das seções para o editor", () => {
       "faq",
     ];
 
-    expect(Object.keys(destinoPorSecao).sort()).toEqual([...tipos].sort());
+    expect(Object.keys(destinoPorSecao).sort()).toEqual([...tipos, "livre"].sort());
+    expect(destinoPorSecao.livre).toEqual({ aba: "secoes", bloco: "bloco-secoes" });
     for (const tipo of tipos) {
       expect(["conteudo", "itens"]).toContain(destinoPorSecao[tipo].aba);
       expect(destinoPorSecao[tipo].bloco).toMatch(/^bloco-/);

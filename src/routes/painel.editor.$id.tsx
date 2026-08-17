@@ -30,6 +30,7 @@ import {
 import {
   PainelQualidade,
   destinoPorSecao,
+  verificar,
   type DestinoEditor,
 } from "@/components/editor/PainelQualidade";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
@@ -428,10 +429,11 @@ function Editor() {
             previaMovel ? "hidden" : "flex"
           }`}
         >
+          <ResumoQualidade site={rascunho} onIr={irPara} />
           <div
             role="tablist"
             aria-label="Seções do editor"
-            className="-mx-1 flex flex-wrap gap-1.5 px-1 pb-1"
+            className="grid grid-cols-4 gap-1.5 pb-1"
           >
             {abas.map((a) => (
               <button
@@ -440,7 +442,7 @@ function Editor() {
                 role="tab"
                 aria-selected={aba === a.id}
                 onClick={() => setAba(a.id)}
-                className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-medium ${
+                className={`min-h-11 truncate rounded-full px-2 py-2 text-xs font-medium sm:text-sm ${
                   aba === a.id ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
                 }`}
               >
@@ -485,6 +487,32 @@ function Editor() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** Indicador de qualidade sempre visível, recalculado a cada alteração. */
+function ResumoQualidade({ site, onIr }: { site: Site; onIr: (d: DestinoEditor) => void }) {
+  const itens = verificar(site);
+  const ok = itens.filter((i) => i.situacao === "ok").length;
+  const total = itens.length;
+  const pct = total ? Math.round((ok / total) * 100) : 0;
+  return (
+    <button
+      type="button"
+      onClick={() => onIr({ aba: "qualidade", bloco: "bloco-qualidade" })}
+      className="mb-3 flex min-h-11 w-full items-center gap-3 rounded-xl border border-border bg-card px-3 text-left"
+    >
+      <span className="text-xs font-semibold">Qualidade</span>
+      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+        <span
+          className="block h-full rounded-full bg-lime transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </span>
+      <span className="text-xs tabular-nums text-muted-foreground">
+        {ok}/{total}
+      </span>
+    </button>
   );
 }
 
@@ -766,7 +794,7 @@ function AbaSecoes({
           const aberta = expandida === sec.id;
           const tituloEditavel = sec.tipo !== "apresentacao" && sec.tipo !== "rodape";
           const tituloAtual = sec.tipo === "formulario" ? site.formulario.titulo : sec.titulo;
-          const vazio = !secaoTemConteudo(site, sec.tipo);
+          const vazio = !secaoTemConteudo(site, sec.tipo, sec.conteudo);
           const compartilhaItens = ["produtos", "cardapio", "promocao", "cupom"].includes(sec.tipo);
           return (
             <li
@@ -886,7 +914,21 @@ function AbaSecoes({
                       : "Os dados do rodapé são editados em Conteúdo."}
                   </p>
                 )}
-                {sec.ativa && vazio && (
+                {sec.tipo === "livre" && (
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                      Texto do bloco
+                    </span>
+                    <textarea
+                      value={sec.conteudo ?? ""}
+                      rows={5}
+                      placeholder="Escreva o texto deste bloco. Deixe uma linha em branco para separar parágrafos."
+                      onChange={(e) => atualizar(sec.id, { conteudo: e.target.value })}
+                      className="w-full min-w-0 rounded-lg border border-border bg-background p-2.5 text-sm outline-none focus:border-ink"
+                    />
+                  </label>
+                )}
+                {sec.ativa && vazio && sec.tipo !== "livre" && (
                   <p className="rounded-lg bg-secondary px-2.5 py-2 text-xs text-muted-foreground">
                     Esta seção está ativa, mas ainda não possui itens. Use o botão abaixo para
                     adicionar conteúdo.
@@ -903,19 +945,55 @@ function AbaSecoes({
                   <span className="rounded-full bg-secondary px-2 py-1 text-[11px] text-muted-foreground">
                     {sec.ativa ? "Visível no site" : "Oculta no site"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => onIr(destinoPorSecao[sec.tipo])}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
-                  >
-                    Editar conteúdo desta seção
-                  </button>
+                  {sec.tipo !== "livre" && (
+                    <button
+                      type="button"
+                      onClick={() => onIr(destinoPorSecao[sec.tipo])}
+                      className="inline-flex min-h-9 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+                    >
+                      Editar conteúdo desta seção
+                    </button>
+                  )}
+                  {sec.tipo === "livre" && (
+                    <BotaoRemover
+                      rotulo="Remover bloco"
+                      descricao="Remover este bloco livre e o texto dele?"
+                      onConfirmar={() =>
+                        aplicar((s) => ({
+                          ...s,
+                          secoes: s.secoes.filter((item) => item.id !== sec.id),
+                        }))
+                      }
+                    />
+                  )}
                 </div>
               </div>
             </li>
           );
         })}
       </ul>
+      <BotaoAdicionar
+        rotulo="Adicionar bloco livre de texto"
+        onClick={() => {
+          const novo = {
+            id: uid("sec"),
+            tipo: "livre" as const,
+            titulo: "Novo bloco",
+            ativa: true,
+            conteudo: "",
+          };
+          aplicar((s) => {
+            const rodape = s.secoes.findIndex((x) => x.tipo === "rodape");
+            const secoes = [...s.secoes];
+            secoes.splice(rodape >= 0 ? rodape : secoes.length, 0, novo);
+            return { ...s, secoes };
+          });
+          setExpandida(novo.id);
+        }}
+      />
+      <p className="text-xs text-muted-foreground">
+        Blocos livres aceitam qualquer texto e podem ser reordenados, renomeados e removidos.
+      </p>
     </Bloco>
   );
 }
@@ -1816,6 +1894,20 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         <p className="text-xs text-muted-foreground">
           Trocar o modelo base ajusta cores e layout. O conteúdo já cadastrado permanece.
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            const base = modelosCriacao.find((m) => m.id === site.modeloId);
+            const nome = `${base?.nome ?? site.conteudo.nome} (minha versão)`;
+            modelosUsuarioStore.salvar(nome, site.aparencia);
+            toast.success("Modelo duplicado", {
+              description: `“${nome}” salvo em Meus modelos. Ajuste as opções abaixo para personalizar.`,
+            });
+          }}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary"
+        >
+          Duplicar e personalizar este modelo
+        </button>
       </Bloco>
 
       <MeusModelos site={site} aplicar={aplicar} />
@@ -1881,6 +1973,21 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           >
             <option value="imagem">Imagem</option>
             <option value="cor">Cor sólida</option>
+            <option value="gradiente">Gradiente</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">Altura da capa</span>
+          <select
+            value={a.capaAltura ?? "media"}
+            onChange={(e) =>
+              set({ capaAltura: e.target.value as NonNullable<Site["aparencia"]["capaAltura"]> })
+            }
+            className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm"
+          >
+            <option value="baixa">Baixa</option>
+            <option value="media">Média</option>
+            <option value="alta">Alta</option>
           </select>
         </label>
         <label className="block">
@@ -2282,6 +2389,13 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
         Cada publicação e cada salvamento manual cria um ponto de restauração. Restaurar substitui o
         rascunho atual — publique novamente para valer no ar.
       </p>
+      <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3">
+        <p className="text-xs font-semibold">Rascunho atual (ao vivo)</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {site.conteudo.nome || "Sem nome"} · {site.secoes.filter((x) => x.ativa).length} seções
+          ativas · atualizado em {dataHora(site.atualizadoEm)}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         <BotaoAdicionar
           rotulo="Criar ponto de restauração"

@@ -152,6 +152,7 @@ export function MiniSite({
                   titulo={s.titulo}
                   site={site}
                   modoEdicao={modoEdicao}
+                  conteudo={s.conteudo}
                 />
               ))}
             </div>
@@ -170,7 +171,16 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
   const { conteudo, aparencia: a } = site;
   const layout = a.layout;
   const imersivo = layout === "imersivo" || layout === "urbano";
-  const alturaCapa = compacto ? "h-40" : imersivo ? "h-[380px]" : "h-52";
+  const alturaEscolhida = a.capaAltura ?? "media";
+  const alturaCapa = compacto
+    ? "h-40"
+    : alturaEscolhida === "baixa"
+      ? "h-36"
+      : alturaEscolhida === "alta"
+        ? "h-[380px]"
+        : imersivo
+          ? "h-[380px]"
+          : "h-52";
 
   const iniciais = conteudo.nome
     .split(" ")
@@ -186,6 +196,13 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
             src={conteudo.capa}
             alt={`Capa de ${conteudo.nome}`}
             className="h-full w-full object-cover"
+          />
+        ) : a.capaTipo === "gradiente" ? (
+          <div
+            className="h-full w-full"
+            style={{
+              background: `linear-gradient(135deg, ${a.corPrimaria}, ${hexToRgba(a.corPrimaria, 0.25)})`,
+            }}
           />
         ) : (
           <div className="h-full w-full" style={{ background: a.corPrimaria, opacity: 0.85 }} />
@@ -383,13 +400,15 @@ function Secao({
   titulo,
   site,
   modoEdicao,
+  conteudo,
 }: {
   tipo: string;
   titulo: string;
   site: Site;
   modoEdicao: boolean;
+  conteudo?: string | undefined;
 }) {
-  if (modoEdicao && !secaoTemConteudo(site, tipo)) {
+  if (modoEdicao && !secaoTemConteudo(site, tipo, conteudo)) {
     return <SecaoVazia site={site} titulo={titulo} />;
   }
 
@@ -420,9 +439,28 @@ function Secao({
       return <BlocoFaq site={site} titulo={titulo} />;
     case "formulario":
       return <BlocoFormulario site={site} />;
+    case "livre":
+      return <BlocoLivre site={site} titulo={titulo} conteudo={conteudo ?? ""} />;
     default:
       return null;
   }
+}
+
+function BlocoLivre({ site, titulo, conteudo }: { site: Site; titulo: string; conteudo: string }) {
+  const paragrafos = conteudo.split(/\n{2,}/).filter((p) => p.trim());
+  if (!paragrafos.length) return null;
+  return (
+    <section>
+      {titulo.trim() && <Titulo site={site}>{titulo}</Titulo>}
+      <div className="space-y-3 text-[15px] opacity-90">
+        {paragrafos.map((p, i) => (
+          <p key={i} className="whitespace-pre-line">
+            {p}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function SecaoVazia({ site, titulo }: { site: Site; titulo: string }) {
