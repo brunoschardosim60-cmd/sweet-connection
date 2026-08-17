@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
 
