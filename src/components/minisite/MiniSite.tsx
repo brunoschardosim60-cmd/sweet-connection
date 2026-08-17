@@ -801,11 +801,9 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                   <Botao
                     site={site}
                     bloco
-                    href={
-                      interacoesExternas
-                        ? whatsappLink(site.conteudo.whatsapp, mensagem)
-                        : undefined
-                    }
+                    {...(interacoesExternas
+                      ? { href: whatsappLink(site.conteudo.whatsapp, mensagem) }
+                      : {})}
                     onClick={() => registrar("Carrinho: enviar pedido", true)}
                   >
                     <MessageCircle size={15} /> Enviar pedido pelo WhatsApp
