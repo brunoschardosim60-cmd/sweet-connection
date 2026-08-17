@@ -173,7 +173,17 @@ export const secoesPadrao: { tipo: TipoSecao; titulo: string; ativa: boolean }[]
   { tipo: "rodape", titulo: "Rodapé", ativa: true },
 ];
 
+/** Base em branco do modelo personalizado: só o essencial fica ativo. */
+const ATIVAS_PERSONALIZADO: TipoSecao[] = ["apresentacao", "links", "rodape"];
+
 export const criarSecoes = (modeloId?: string): Secao[] => {
+  if (modeloId === "personalizado") {
+    return secoesPadrao.map((secao) => ({
+      id: uid("sec"),
+      ...secao,
+      ativa: ATIVAS_PERSONALIZADO.includes(secao.tipo),
+    }));
+  }
   const preset = modeloId ? presetsModelo[modeloId] : undefined;
   if (!preset) return secoesPadrao.map((secao) => ({ id: uid("sec"), ...secao }));
 
@@ -257,6 +267,7 @@ export function metricasVazias() {
 export function criarSite(cliente: Cliente, modeloId: string, slug: string): Site {
   const modelo = modeloPorId(modeloId);
   const preset = presetsModelo[modelo.id] ?? presetsModelo["prestador-servicos"]!;
+  const emBranco = modelo.id === "personalizado";
   const agora = new Date().toISOString();
   return {
     id: uid("site"),
@@ -269,7 +280,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     conteudo: {
       nome: cliente.empresa,
       descricao: "",
-      capa: modelo.imagem,
+      ...(emBranco ? {} : { capa: modelo.imagem }),
       telefone: cliente.telefone,
       whatsapp: cliente.telefone,
       email: cliente.email,
@@ -291,7 +302,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       animacoes: true,
       espacamento: "confortavel",
       layout: modelo.layout,
-      capaTipo: "imagem",
+      capaTipo: emBranco ? "cor" : "imagem",
     },
     secoes: criarSecoes(modelo.id),
     links: cliente.telefone

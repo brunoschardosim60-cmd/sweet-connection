@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
-import { modelos } from "@/lib/nexa/modelos";
+import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos";
+import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
 import type { Cliente, SegmentoId } from "@/lib/nexa/types";
@@ -42,6 +43,12 @@ function NovoSite() {
     estado: "SP",
   });
   const [modeloId, setModeloId] = useState(modelos[0]!.id);
+  const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
+  const meusModelos = useSyncExternalStore(
+    modelosUsuarioStore.subscribe,
+    modelosUsuarioStore.get,
+    modelosUsuarioStore.getServer,
+  );
   const [slug, setSlug] = useState("");
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
@@ -51,7 +58,13 @@ function NovoSite() {
     () => modelos.filter((m) => m.segmento === cliente.segmento),
     [cliente.segmento],
   );
-  const lista = filtro === "todos" || sugeridos.length === 0 ? modelos : sugeridos;
+  const lista =
+    filtro === "todos" || sugeridos.length === 0
+      ? modelosCriacao
+      : [modeloPersonalizado, ...sugeridos];
+
+  /** Aparência salva pelo usuário, aplicada por cima do modelo escolhido. */
+  const meuModelo = meusModelos.find((m) => m.id === meuModeloId);
 
   const erroEmpresa =
     tocado && cliente.empresa.trim().length < 2 ? "Informe o nome da empresa." : undefined;
@@ -69,8 +82,11 @@ function NovoSite() {
       modeloId,
       slugFinal || "previa",
     );
-    return { ...base, aparencia: { ...base.aparencia, logoFormato } };
-  }, [cliente, logoFormato, modeloId, slugFinal]);
+    return {
+      ...base,
+      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+    };
+  }, [cliente, logoFormato, meuModelo, modeloId, slugFinal]);
 
   const podeAvancar =
     passo === 0
@@ -83,7 +99,10 @@ function NovoSite() {
     if (!podeAvancar || salvando) return;
     setSalvando(true);
     const base = criarSite(cliente, modeloId, slugFinal);
-    const site = { ...base, aparencia: { ...base.aparencia, logoFormato } };
+    const site = {
+      ...base,
+      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+    };
     try {
       const salvo = await store.adicionarSite(site);
       toast.success("Mini-site criado", { description: "Agora personalize no editor." });
@@ -250,7 +269,43 @@ function NovoSite() {
                   Todos os modelos
                 </button>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {meusModelos.length > 0 && (
+                <div className="mt-3">
+                  <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Meus modelos salvos (aplicam cores e formas por cima do modelo escolhido)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMeuModeloId(null)}
+                      aria-pressed={meuModeloId === null}
+                      className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold ${
+                        meuModeloId === null
+                          ? "border-ink bg-ink text-ink-foreground"
+                          : "border-border hover:bg-secondary"
+                      }`}
+                    >
+                      Nenhum
+                    </button>
+                    {meusModelos.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setMeuModeloId(m.id)}
+                        aria-pressed={meuModeloId === m.id}
+                        className={`min-h-11 rounded-full border px-3.5 text-xs font-semibold ${
+                          meuModeloId === m.id
+                            ? "border-ink bg-ink text-ink-foreground"
+                            : "border-border hover:bg-secondary"
+                        }`}
+                      >
+                        {m.nome}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {lista.map((m) => {
                   const ativo = modeloId === m.id;
                   return (
