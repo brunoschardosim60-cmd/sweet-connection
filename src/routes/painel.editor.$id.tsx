@@ -2283,17 +2283,27 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </div>
       </Bloco>
 
-      <Bloco titulo="Integrações futuras">
+      <Bloco titulo="Rastreamento e anúncios">
+        <p className="text-xs text-muted-foreground">
+          Estes códigos são carregados apenas no mini-site publicado, nunca no editor.
+        </p>
         <Texto
-          rotulo="Google Analytics (em breve)"
+          rotulo="Google Analytics"
           valor={site.integracoes.googleAnalytics}
           onChange={(v) => setInt({ googleAnalytics: v })}
           placeholder="G-XXXXXXX"
         />
         <Texto
-          rotulo="Meta Pixel (em breve)"
+          rotulo="Meta Pixel (Facebook/Instagram)"
           valor={site.integracoes.metaPixel}
           onChange={(v) => setInt({ metaPixel: v })}
+          placeholder="123456789012345"
+        />
+        <Texto
+          rotulo="Google Tag Manager"
+          valor={site.integracoes.googleTagManager ?? ""}
+          onChange={(v) => setInt({ googleTagManager: v })}
+          placeholder="GTM-XXXXXXX"
         />
         <Texto
           rotulo="Domínio próprio (em breve)"
