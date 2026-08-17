@@ -964,9 +964,178 @@ function AbaSecoes({
           setExpandida(novo.id);
         }}
       />
+      {!site.secoes.some((s) => s.tipo === "agenda") && (
+        <BotaoAdicionar
+          rotulo="Adicionar agenda de horários"
+          onClick={() => {
+            const novo = {
+              id: uid("sec"),
+              tipo: "agenda" as const,
+              titulo: "Agende seu horário",
+              ativa: true,
+            };
+            aplicar((s) => {
+              const rodape = s.secoes.findIndex((x) => x.tipo === "rodape");
+              const secoes = [...s.secoes];
+              secoes.splice(rodape >= 0 ? rodape : secoes.length, 0, novo);
+              return {
+                ...s,
+                secoes,
+                agenda: s.agenda ?? {
+                  ativa: true,
+                  intervalo: 30,
+                  diasVisiveis: 14,
+                  observacao: "",
+                },
+              };
+            });
+            setExpandida(novo.id);
+          }}
+        />
+      )}
       <p className="text-xs text-muted-foreground">
-        Blocos livres aceitam qualquer texto e podem ser reordenados, renomeados e removidos.
+        Blocos livres aceitam qualquer texto e podem ser reordenados, renomeados e removidos. A
+        agenda usa os horários de funcionamento e bloqueia horários já reservados.
       </p>
+
+      {site.secoes.some((s) => s.tipo === "agenda") && (
+        <div className="mt-2 flex flex-col gap-3 rounded-xl border border-border p-3">
+          <p className="text-sm font-semibold">Configuração da agenda</p>
+          <label className="flex items-center justify-between gap-3 text-sm">
+            Intervalo entre horários
+            <select
+              value={site.agenda?.intervalo ?? 30}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  agenda: {
+                    ativa: true,
+                    diasVisiveis: s.agenda?.diasVisiveis ?? 14,
+                    observacao: s.agenda?.observacao ?? "",
+                    intervalo: Number(e.target.value),
+                  },
+                }))
+              }
+              className="min-h-11 rounded-lg border border-border bg-background px-2 text-sm"
+            >
+              {[15, 20, 30, 45, 60].map((m) => (
+                <option key={m} value={m}>
+                  {m} minutos
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center justify-between gap-3 text-sm">
+            Dias disponíveis
+            <input
+              type="number"
+              min={1}
+              max={60}
+              value={site.agenda?.diasVisiveis ?? 14}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  agenda: {
+                    ativa: true,
+                    intervalo: s.agenda?.intervalo ?? 30,
+                    observacao: s.agenda?.observacao ?? "",
+                    diasVisiveis: Math.min(60, Math.max(1, Number(e.target.value) || 1)),
+                  },
+                }))
+              }
+              className="min-h-11 w-24 rounded-lg border border-border bg-background px-2 text-sm"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Aviso para o cliente
+            <input
+              value={site.agenda?.observacao ?? ""}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  agenda: {
+                    ativa: true,
+                    intervalo: s.agenda?.intervalo ?? 30,
+                    diasVisiveis: s.agenda?.diasVisiveis ?? 14,
+                    observacao: e.target.value.slice(0, 200),
+                  },
+                }))
+              }
+              placeholder="Chegue 10 minutos antes do horário."
+              className="min-h-11 rounded-lg border border-border bg-background px-2.5 text-sm"
+            />
+          </label>
+        </div>
+      )}
+
+      <div className="mt-2 flex flex-col gap-3 rounded-xl border border-border p-3">
+        <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+          Carrinho de pedidos pelo WhatsApp
+          <input
+            type="checkbox"
+            checked={site.comercio?.carrinho === true}
+            onChange={(e) =>
+              aplicar((s) => ({
+                ...s,
+                comercio: {
+                  taxaEntrega: s.comercio?.taxaEntrega ?? 0,
+                  pedidoMinimo: s.comercio?.pedidoMinimo ?? 0,
+                  carrinho: e.target.checked,
+                },
+              }))
+            }
+            className="h-5 w-5"
+          />
+        </label>
+        <p className="text-xs text-muted-foreground">
+          Com o carrinho ligado, o visitante escolhe vários itens e envia o resumo do pedido com o
+          total já calculado.
+        </p>
+        {site.comercio?.carrinho && (
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex flex-col gap-1 text-xs">
+              Taxa de entrega (R$)
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={site.comercio?.taxaEntrega ?? 0}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    comercio: {
+                      carrinho: true,
+                      pedidoMinimo: s.comercio?.pedidoMinimo ?? 0,
+                      taxaEntrega: Math.max(0, Number(e.target.value) || 0),
+                    },
+                  }))
+                }
+                className="min-h-11 rounded-lg border border-border bg-background px-2.5 text-sm"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs">
+              Pedido mínimo (R$)
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={site.comercio?.pedidoMinimo ?? 0}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    comercio: {
+                      carrinho: true,
+                      taxaEntrega: s.comercio?.taxaEntrega ?? 0,
+                      pedidoMinimo: Math.max(0, Number(e.target.value) || 0),
+                    },
+                  }))
+                }
+                className="min-h-11 rounded-lg border border-border bg-background px-2.5 text-sm"
+              />
+            </label>
+          </div>
+        )}
+      </div>
     </Bloco>
   );
 }
