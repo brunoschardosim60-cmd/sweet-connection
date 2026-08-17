@@ -35,6 +35,7 @@ export type TipoSecao =
   | "cupom"
   | "localizacao"
   | "horarios"
+  | "agenda"
   | "faq"
   | "formulario"
   | "livre"
