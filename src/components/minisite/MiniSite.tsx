@@ -16,6 +16,16 @@ import {
   Youtube,
 } from "lucide-react";
 import { whatsappLink } from "@/lib/nexa/brand";
+import {
+  agendarHorario,
+  dataIso,
+  horarioDoDia,
+  horariosDoDia,
+  horariosOcupados,
+  mensagemAgendamento,
+  proximosDias,
+  rotuloDia,
+} from "@/lib/nexa/agenda";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
@@ -439,6 +449,8 @@ function Secao({
       return <BlocoFaq site={site} titulo={titulo} />;
     case "formulario":
       return <BlocoFormulario site={site} />;
+    case "agenda":
+      return <BlocoAgenda site={site} titulo={titulo} />;
     case "livre":
       return <BlocoLivre site={site} titulo={titulo} conteudo={conteudo ?? ""} />;
     default:
@@ -544,10 +556,75 @@ function BlocoLinks({ site, titulo }: { site: Site; titulo: string }) {
   );
 }
 
+function ContadorItem({
+  site,
+  quantidade,
+  onAlterar,
+  rotulo,
+}: {
+  site: Site;
+  quantidade: number;
+  onAlterar: (delta: number) => void;
+  rotulo: string;
+}) {
+  if (quantidade === 0) {
+    return (
+      <Botao site={site} bloco onClick={() => onAlterar(1)}>
+        Adicionar ao pedido
+      </Botao>
+    );
+  }
+  const estilo: React.CSSProperties = {
+    border: "1px solid var(--ms-border)",
+    borderRadius: "var(--ms-radius)",
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        aria-label={`Remover uma unidade de ${rotulo}`}
+        onClick={() => onAlterar(-1)}
+        className="flex h-11 w-11 items-center justify-center text-lg font-bold"
+        style={estilo}
+      >
+        −
+      </button>
+      <span className="min-w-8 text-center text-sm font-semibold" aria-live="polite">
+        {quantidade}
+      </span>
+      <button
+        type="button"
+        aria-label={`Adicionar uma unidade de ${rotulo}`}
+        onClick={() => onAlterar(1)}
+        className="flex h-11 w-11 items-center justify-center text-lg font-bold"
+        style={{
+          ...estilo,
+          background: site.aparencia.corPrimaria,
+          color: contraste(site.aparencia.corPrimaria),
+          border: "none",
+        }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   const registrar = useRastreio();
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState("Todos");
+  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const usarCarrinho = site.comercio?.carrinho === true;
+  const alterarQuantidade = (id: string, delta: number) =>
+    setCarrinho((atual) => {
+      const proximo = Math.max(0, (atual[id] ?? 0) + delta);
+      const copia = { ...atual };
+      if (proximo === 0) delete copia[id];
+      else copia[id] = proximo;
+      return copia;
+    });
   const categorias = useMemo(
     () => ["Todos", ...Array.from(new Set(site.produtos.map((p) => p.categoria).filter(Boolean)))],
     [site.produtos],
@@ -652,7 +729,16 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 )}
               </div>
               <div className="mt-3">
-                {p.disponivel ? (
+                {!p.disponivel ? (
+                  <span className="text-xs opacity-60">Indisponível no momento</span>
+                ) : usarCarrinho ? (
+                  <ContadorItem
+                    site={site}
+                    quantidade={carrinho[p.id] ?? 0}
+                    onAlterar={(delta) => alterarQuantidade(p.id, delta)}
+                    rotulo={p.nome}
+                  />
+                ) : (
                   <Botao
                     site={site}
                     bloco
@@ -664,8 +750,6 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                   >
                     <MessageCircle size={15} /> Pedir pelo WhatsApp
                   </Botao>
-                ) : (
-                  <span className="text-xs opacity-60">Indisponível no momento</span>
                 )}
               </div>
             </div>
@@ -673,6 +757,79 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
         ))}
       </div>
       {lista.length === 0 && <p className="text-sm opacity-60">Nenhum item encontrado.</p>}
+      {usarCarrinho &&
+        (() => {
+          const itens = site.produtos
+            .filter((p) => (carrinho[p.id] ?? 0) > 0)
+            .map((p) => ({
+              nome: p.nome,
+              quantidade: carrinho[p.id] ?? 0,
+              preco: p.precoPromocional ?? p.preco,
+            }));
+          if (itens.length === 0) return null;
+          const subtotal = itens.reduce((t, i) => t + i.preco * i.quantidade, 0);
+          const entrega = site.comercio?.taxaEntrega ?? 0;
+          const minimo = site.comercio?.pedidoMinimo ?? 0;
+          const abaixoDoMinimo = minimo > 0 && subtotal < minimo;
+          const total = subtotal + entrega;
+          const mensagem = [
+            `Olá! Quero fazer um pedido pelo site ${site.conteudo.nome}:`,
+            ...itens.map((i) => `• ${i.quantidade}x ${i.nome} — ${moeda(i.preco * i.quantidade)}`),
+            `Subtotal: ${moeda(subtotal)}`,
+            entrega > 0 ? `Entrega: ${moeda(entrega)}` : "",
+            `Total: ${moeda(total)}`,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          return (
+            <Cartao site={site} className="mt-4">
+              <div className="flex flex-col gap-2 p-4">
+                <h3 className="text-sm font-semibold">Seu pedido</h3>
+                {itens.map((i) => (
+                  <div key={i.nome} className="flex justify-between gap-3 text-xs">
+                    <span className="min-w-0 truncate opacity-80">
+                      {i.quantidade}x {i.nome}
+                    </span>
+                    <span className="shrink-0 font-medium">{moeda(i.preco * i.quantidade)}</span>
+                  </div>
+                ))}
+                {entrega > 0 && (
+                  <div className="flex justify-between text-xs opacity-80">
+                    <span>Entrega</span>
+                    <span>{moeda(entrega)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 text-sm font-bold">
+                  <span>Total</span>
+                  <span style={{ color: site.aparencia.corPrimaria }}>{moeda(total)}</span>
+                </div>
+                {abaixoDoMinimo ? (
+                  <p className="text-xs opacity-70">
+                    Pedido mínimo de {moeda(minimo)} para enviar pelo WhatsApp.
+                  </p>
+                ) : (
+                  <Botao
+                    site={site}
+                    bloco
+                    {...(interacoesExternas
+                      ? { href: whatsappLink(site.conteudo.whatsapp, mensagem) }
+                      : {})}
+                    onClick={() => registrar("Carrinho: enviar pedido", true)}
+                  >
+                    <MessageCircle size={15} /> Enviar pedido pelo WhatsApp
+                  </Botao>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setCarrinho({})}
+                  className="min-h-11 text-xs underline opacity-70"
+                >
+                  Limpar pedido
+                </button>
+              </div>
+            </Cartao>
+          );
+        })()}
     </section>
   );
 }
@@ -1017,6 +1174,244 @@ function BlocoFaq({ site, titulo }: { site: Site; titulo: string }) {
           </Cartao>
         ))}
       </div>
+    </section>
+  );
+}
+
+function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
+  const publicado = useContext(PublicacaoCtx);
+  const interacoesExternas = useContext(InteracoesExternasCtx);
+  const registrar = useRastreio();
+  const dias = useMemo(
+    () =>
+      proximosDias(site.agenda?.diasVisiveis ?? 14).filter(
+        (d) => horarioDoDia(site.conteudo.horarios, d)?.fechado === false,
+      ),
+    [site.agenda?.diasVisiveis, site.conteudo.horarios],
+  );
+  const [dia, setDia] = useState<Date | null>(dias[0] ?? null);
+  const [hora, setHora] = useState<string | null>(null);
+  const [ocupados, setOcupados] = useState<string[]>([]);
+  const [carregando, setCarregando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [confirmado, setConfirmado] = useState<{ data: Date; hora: string } | null>(null);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [servico, setServico] = useState("");
+
+  useEffect(() => {
+    setHora(null);
+    setOcupados([]);
+    if (!dia || !publicado) return;
+    let ativo = true;
+    setCarregando(true);
+    horariosOcupados(site.slug, dataIso(dia))
+      .then((lista) => ativo && setOcupados(lista))
+      .catch(() => ativo && setErro("Não foi possível carregar os horários ocupados."))
+      .finally(() => ativo && setCarregando(false));
+    return () => {
+      ativo = false;
+    };
+  }, [dia, publicado, site.slug]);
+
+  if (dias.length === 0) return null;
+
+  const horas = dia ? horariosDoDia(site.conteudo.horarios, dia, site.agenda?.intervalo ?? 30) : [];
+
+  if (confirmado) {
+    const mensagem = mensagemAgendamento(site, {
+      data: confirmado.data,
+      hora: confirmado.hora,
+      nome,
+      telefone,
+      servico,
+    });
+    return (
+      <section>
+        <Titulo site={site}>{titulo}</Titulo>
+        <Cartao site={site}>
+          <div className="flex flex-col gap-3 p-4">
+            <p className="text-sm font-semibold" style={{ color: site.aparencia.corPrimaria }}>
+              Horário confirmado para {confirmado.data.toLocaleDateString("pt-BR")} às{" "}
+              {confirmado.hora}.
+            </p>
+            <p className="text-xs opacity-70">
+              Esse horário já ficou bloqueado para outras pessoas. Avise a equipe pelo WhatsApp para
+              concluir.
+            </p>
+            {site.conteudo.whatsapp && (
+              <Botao
+                site={site}
+                bloco
+                {...(interacoesExternas
+                  ? { href: whatsappLink(site.conteudo.whatsapp, mensagem) }
+                  : {})}
+                onClick={() => registrar("Agenda: confirmar no WhatsApp", true)}
+              >
+                <MessageCircle size={15} /> Enviar confirmação no WhatsApp
+              </Botao>
+            )}
+          </div>
+        </Cartao>
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <Titulo site={site}>{titulo}</Titulo>
+      <Cartao site={site}>
+        <form
+          className="flex flex-col gap-3 p-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (enviando || !dia || !hora) return;
+            if (!publicado) {
+              setErro("O agendamento fica disponível no mini-site publicado.");
+              return;
+            }
+            setErro(null);
+            setEnviando(true);
+            try {
+              await agendarHorario({
+                slug: site.slug,
+                data: dataIso(dia),
+                hora,
+                nome: nome.trim(),
+                telefone: telefone.trim(),
+                servico,
+              });
+              registrar(`Agenda: ${dataIso(dia)} ${hora}`);
+              setConfirmado({ data: dia, hora });
+            } catch (error) {
+              setErro(error instanceof Error ? error.message : "Não foi possível agendar.");
+              if (dia)
+                horariosOcupados(site.slug, dataIso(dia))
+                  .then(setOcupados)
+                  .catch(() => {});
+            } finally {
+              setEnviando(false);
+            }
+          }}
+        >
+          {site.agenda?.observacao && (
+            <p className="text-xs opacity-70">{site.agenda.observacao}</p>
+          )}
+          <div>
+            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o dia</p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {dias.map((d) => {
+                const ativo = dia !== null && dataIso(d) === dataIso(dia);
+                return (
+                  <button
+                    key={dataIso(d)}
+                    type="button"
+                    onClick={() => setDia(d)}
+                    aria-pressed={ativo}
+                    className="min-h-11 shrink-0 px-3 py-2 text-xs font-medium"
+                    style={{
+                      borderRadius: "999px",
+                      border: "1px solid var(--ms-border)",
+                      background: ativo ? site.aparencia.corPrimaria : "transparent",
+                      color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                    }}
+                  >
+                    {rotuloDia(d)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o horário</p>
+            {carregando ? (
+              <p className="text-xs opacity-60">Carregando horários…</p>
+            ) : horas.length === 0 ? (
+              <p className="text-xs opacity-60">Sem horários disponíveis neste dia.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {horas.map((h) => {
+                  const indisponivel = ocupados.includes(h);
+                  const ativo = hora === h;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      disabled={indisponivel}
+                      onClick={() => setHora(h)}
+                      aria-pressed={ativo}
+                      className="min-h-11 px-3 py-2 text-xs font-medium disabled:opacity-40 disabled:line-through"
+                      style={{
+                        borderRadius: "var(--ms-radius)",
+                        border: "1px solid var(--ms-border)",
+                        background: ativo ? site.aparencia.corPrimaria : "transparent",
+                        color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                      }}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {site.servicos.length > 0 && (
+            <select
+              value={servico}
+              onChange={(e) => setServico(e.target.value)}
+              aria-label="Serviço"
+              className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+              style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+            >
+              <option value="">Serviço (opcional)</option>
+              {site.servicos.map((s) => (
+                <option key={s.id} value={s.nome}>
+                  {s.nome}
+                </option>
+              ))}
+            </select>
+          )}
+          <input
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            maxLength={120}
+            aria-label="Seu nome"
+            placeholder="Seu nome"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          <input
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            required
+            maxLength={40}
+            inputMode="tel"
+            aria-label="Seu WhatsApp"
+            placeholder="Seu WhatsApp"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none placeholder:opacity-50"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          {erro && (
+            <p role="alert" className="text-sm font-medium">
+              {erro}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={enviando || !hora}
+            className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-50"
+            style={{
+              background: site.aparencia.corPrimaria,
+              color: contraste(site.aparencia.corPrimaria),
+              borderRadius: "var(--ms-radius)",
+            }}
+          >
+            {enviando ? "Confirmando…" : "Confirmar horário"}
+          </button>
+        </form>
+      </Cartao>
     </section>
   );
 }

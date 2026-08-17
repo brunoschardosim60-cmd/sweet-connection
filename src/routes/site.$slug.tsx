@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
 
@@ -38,7 +39,10 @@ export const Route = createFileRoute("/site/$slug")({
         { name: "twitter:description", content: descricao },
         ...(imagem ? [{ name: "twitter:image", content: imagem }] : []),
       ],
-      links: [{ rel: "canonical", href: canonical }],
+      links: [
+        { rel: "canonical", href: canonical },
+        { rel: "manifest", href: `/api/public/manifest/${loaderData.slug}` },
+      ],
     };
   },
   component: SitePublico,
@@ -68,6 +72,7 @@ function SitePublico() {
   const site = Route.useLoaderData();
   return (
     <div className="min-h-screen">
+      <Rastreadores site={site} />
       <MiniSite site={site} rastrear />
     </div>
   );

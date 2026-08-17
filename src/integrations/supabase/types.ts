@@ -44,6 +44,53 @@ export type Database = {
         }
         Relationships: []
       }
+      agendamentos: {
+        Row: {
+          created_at: string
+          data: string
+          hora: string
+          id: string
+          minisite_id: string
+          nome: string
+          observacao: string
+          servico: string
+          status: string
+          telefone: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          hora: string
+          id?: string
+          minisite_id: string
+          nome?: string
+          observacao?: string
+          servico?: string
+          status?: string
+          telefone?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          hora?: string
+          id?: string
+          minisite_id?: string
+          nome?: string
+          observacao?: string
+          servico?: string
+          status?: string
+          telefone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           event_type: Database["public"]["Enums"]["nexa_event_type"]
@@ -449,6 +496,24 @@ export type Database = {
           solicitacoes: number
           user_id: string
         }[]
+      }
+      nexa_agenda_ocupados: {
+        Args: { requested_data: string; requested_slug: string }
+        Returns: {
+          hora: string
+        }[]
+      }
+      nexa_agendar: {
+        Args: {
+          requested_data: string
+          requested_hora: string
+          requested_nome: string
+          requested_observacao?: string
+          requested_servico?: string
+          requested_slug: string
+          requested_telefone: string
+        }
+        Returns: Json
       }
       publish_minisite: {
         Args: { requested_id: string }

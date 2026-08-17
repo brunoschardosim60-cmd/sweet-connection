@@ -28,6 +28,7 @@ export const destinoPorSecao: Record<TipoSecao, DestinoEditor> = {
   cupom: { aba: "itens", bloco: "bloco-cupons" },
   localizacao: { aba: "conteudo", bloco: "bloco-contato" },
   horarios: { aba: "conteudo", bloco: "bloco-horarios" },
+  agenda: { aba: "itens", bloco: "bloco-servicos" },
   faq: { aba: "itens", bloco: "bloco-faq" },
   formulario: { aba: "itens", bloco: "bloco-formulario" },
   livre: { aba: "secoes", bloco: "bloco-secoes" },

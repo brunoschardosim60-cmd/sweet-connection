@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { otimizarImagem } from "./otimizar-imagem";
 
 export type TipoMidia = "imagem" | "video";
 
@@ -104,7 +105,9 @@ export const midiaStore = {
   },
 };
 
-export async function enviarArquivo(arquivo: File): Promise<Midia> {
+export async function enviarArquivo(original: File): Promise<Midia> {
+  // Fotos são redimensionadas e convertidas para WebP antes do envio.
+  const arquivo = await otimizarImagem(original);
   if (!MIME_PERMITIDOS.has(arquivo.type)) {
     throw new Error("Formato não permitido. Use JPG, PNG, WebP, GIF, MP4 ou WebM.");
   }
