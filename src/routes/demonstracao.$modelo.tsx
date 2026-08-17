@@ -27,14 +27,10 @@ export const Route = createFileRoute("/demonstracao/$modelo")({
   component: Demonstracao,
 });
 
-const dispositivos = dimensoesDispositivo;
-
 function Demonstracao() {
   const { modelo } = Route.useParams();
-  const [disp, setDisp] = useState<keyof typeof dispositivos>("celular");
+  const [disp, setDisp] = useState<Dispositivo>("celular");
   const site = siteDoModelo(modelo);
-  const dispositivo = dispositivos[disp];
-  const desktop = disp === "computador";
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sand">
@@ -43,25 +39,7 @@ function Demonstracao() {
           <ArrowLeft size={16} /> <span className="truncate">Voltar aos modelos</span>
         </Link>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="flex rounded-full border border-border p-1">
-            {(
-              [
-                ["celular", Smartphone],
-                ["tablet", Tablet],
-                ["computador", Monitor],
-              ] as const
-            ).map(([k, Icone]) => (
-              <button
-                key={k}
-                type="button"
-                aria-label={k}
-                onClick={() => setDisp(k)}
-                className={`grid h-11 w-11 place-items-center rounded-full ${disp === k ? "bg-ink text-ink-foreground" : ""}`}
-              >
-                <Icone size={15} />
-              </button>
-            ))}
-          </div>
+          <SeletorDispositivo valor={disp} onChange={setDisp} />
           <Link
             to="/painel/novo"
             search={{ modelo }}
@@ -73,30 +51,14 @@ function Demonstracao() {
       </header>
 
       <main
-        className={`flex min-h-0 flex-1 justify-center overflow-hidden ${desktop ? "p-0" : "items-center p-3 sm:p-5"}`}
+        data-dispositivo={disp}
+        className="flex min-h-0 flex-1 justify-center overflow-hidden p-3 sm:p-5"
       >
-        {dispositivo ? (
-          <PalcoEscalado dispositivo={dispositivo}>
-            <div
-              data-dispositivo={disp}
-              className="h-full w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
-            >
-              <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
-              </div>
-            </div>
-          </PalcoEscalado>
-        ) : (
-          <div
-            data-dispositivo={disp}
-            className="h-full w-full overflow-hidden bg-background"
-          >
-            <div className="h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
-            </div>
-          </div>
-        )}
+        <MolduraPrevia dispositivo={disp}>
+          <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+        </MolduraPrevia>
       </main>
+
 
     </div>
   );
