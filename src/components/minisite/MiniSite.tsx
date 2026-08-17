@@ -654,7 +654,16 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                 )}
               </div>
               <div className="mt-3">
-                {p.disponivel ? (
+                {!p.disponivel ? (
+                  <span className="text-xs opacity-60">Indisponível no momento</span>
+                ) : usarCarrinho ? (
+                  <ContadorItem
+                    site={site}
+                    quantidade={carrinho[p.id] ?? 0}
+                    onAlterar={(delta) => alterarQuantidade(p.id, delta)}
+                    rotulo={p.nome}
+                  />
+                ) : (
                   <Botao
                     site={site}
                     bloco
@@ -666,8 +675,6 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                   >
                     <MessageCircle size={15} /> Pedir pelo WhatsApp
                   </Botao>
-                ) : (
-                  <span className="text-xs opacity-60">Indisponível no momento</span>
                 )}
               </div>
             </div>
