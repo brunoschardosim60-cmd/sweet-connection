@@ -16,10 +16,7 @@ const suporta = (tipo: string) => {
  * suporta) antes do upload, reduzindo bastante o peso sem perder qualidade
  * visível. Formatos não suportados (GIF, vídeo) passam intactos.
  */
-export async function otimizarImagem(
-  arquivo: File,
-  larguraMaxima = LARGURA_MAXIMA,
-): Promise<File> {
+export async function otimizarImagem(arquivo: File, larguraMaxima = LARGURA_MAXIMA): Promise<File> {
   if (typeof document === "undefined" || !OTIMIZAVEIS.has(arquivo.type)) return arquivo;
 
   // WebP é aceito por todos os navegadores atuais e pelo bucket de mídia.
@@ -46,9 +43,7 @@ export async function otimizarImagem(
     if (!ctx) return arquivo;
     ctx.drawImage(img, 0, 0, largura, altura);
 
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, destino, 0.82),
-    );
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, destino, 0.82));
     if (!blob || blob.size >= arquivo.size) return arquivo;
 
     const nome = `${arquivo.name.replace(/\.[^.]+$/, "")}.webp`;

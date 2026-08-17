@@ -1183,7 +1183,10 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
   const interacoesExternas = useContext(InteracoesExternasCtx);
   const registrar = useRastreio();
   const dias = useMemo(
-    () => proximosDias(site.agenda?.diasVisiveis ?? 14).filter((d) => horarioDoDia(site.conteudo.horarios, d)?.fechado === false),
+    () =>
+      proximosDias(site.agenda?.diasVisiveis ?? 14).filter(
+        (d) => horarioDoDia(site.conteudo.horarios, d)?.fechado === false,
+      ),
     [site.agenda?.diasVisiveis, site.conteudo.horarios],
   );
   const [dia, setDia] = useState<Date | null>(dias[0] ?? null);
@@ -1283,7 +1286,10 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
               setConfirmado({ data: dia, hora });
             } catch (error) {
               setErro(error instanceof Error ? error.message : "Não foi possível agendar.");
-              if (dia) horariosOcupados(site.slug, dataIso(dia)).then(setOcupados).catch(() => {});
+              if (dia)
+                horariosOcupados(site.slug, dataIso(dia))
+                  .then(setOcupados)
+                  .catch(() => {});
             } finally {
               setEnviando(false);
             }

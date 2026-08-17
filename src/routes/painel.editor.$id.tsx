@@ -1984,7 +1984,8 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         </p>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {paletasProntas.map((p) => {
-            const ativa = a.corPrimaria === p.valores.corPrimaria && a.corFundo === p.valores.corFundo;
+            const ativa =
+              a.corPrimaria === p.valores.corPrimaria && a.corFundo === p.valores.corFundo;
             return (
               <button
                 key={p.id}
