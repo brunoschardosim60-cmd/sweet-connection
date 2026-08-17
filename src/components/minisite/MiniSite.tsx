@@ -446,15 +446,7 @@ function Secao({
   }
 }
 
-function BlocoLivre({
-  site,
-  titulo,
-  conteudo,
-}: {
-  site: Site;
-  titulo: string;
-  conteudo: string;
-}) {
+function BlocoLivre({ site, titulo, conteudo }: { site: Site; titulo: string; conteudo: string }) {
   const paragrafos = conteudo.split(/\n{2,}/).filter((p) => p.trim());
   if (!paragrafos.length) return null;
   return (
