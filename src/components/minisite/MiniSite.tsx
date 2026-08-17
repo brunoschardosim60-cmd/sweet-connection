@@ -16,6 +16,16 @@ import {
   Youtube,
 } from "lucide-react";
 import { whatsappLink } from "@/lib/nexa/brand";
+import {
+  agendarHorario,
+  dataIso,
+  horarioDoDia,
+  horariosDoDia,
+  horariosOcupados,
+  mensagemAgendamento,
+  proximosDias,
+  rotuloDia,
+} from "@/lib/nexa/agenda";
 import { useMarca } from "@/lib/nexa/hooks";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
