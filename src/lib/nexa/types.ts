@@ -275,6 +275,10 @@ export interface Site {
   seo: Seo;
   integracoes: Integracoes;
   metricas: Metricas;
+  /** Carrinho simples pelo WhatsApp (opcional; desligado por padrão). */
+  comercio?: Comercio;
+  /** Agenda com bloqueio de horário (opcional; desligada por padrão). */
+  agenda?: Agenda;
 }
 
 export interface Modelo {
