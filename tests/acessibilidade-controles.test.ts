@@ -62,6 +62,7 @@ describe("atalhos das seções para o editor", () => {
       "depoimentos",
       "equipe",
       "faq",
+      "agenda",
     ];
 
     expect(Object.keys(destinoPorSecao).sort()).toEqual([...tipos, "livre"].sort());
