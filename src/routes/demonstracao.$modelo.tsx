@@ -24,11 +24,7 @@ export const Route = createFileRoute("/demonstracao/$modelo")({
   component: Demonstracao,
 });
 
-const dispositivos = {
-  celular: { largura: 390, altura: 844 },
-  tablet: { largura: 768, altura: 1024 },
-  computador: null,
-} as const;
+const dispositivos = dimensoesDispositivo;
 
 function Demonstracao() {
   const { modelo } = Route.useParams();
