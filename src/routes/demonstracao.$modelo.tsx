@@ -1,11 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Monitor, Smartphone, Tablet } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modelos } from "@/lib/nexa/modelos";
-import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
-import { dimensoesDispositivo } from "@/lib/nexa/previa";
+import {
+  MolduraPrevia,
+  SeletorDispositivo,
+  type Dispositivo,
+} from "@/components/editor/PreviaDispositivo";
+
 
 
 export const Route = createFileRoute("/demonstracao/$modelo")({
