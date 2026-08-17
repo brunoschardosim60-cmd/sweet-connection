@@ -46,6 +46,7 @@ export type Database = {
       }
       agendamentos: {
         Row: {
+          chave_idempotencia: string | null
           created_at: string
           data: string
           hora: string
@@ -56,8 +57,11 @@ export type Database = {
           servico: string
           status: string
           telefone: string
+          token: string
+          updated_at: string
         }
         Insert: {
+          chave_idempotencia?: string | null
           created_at?: string
           data: string
           hora: string
@@ -68,8 +72,11 @@ export type Database = {
           servico?: string
           status?: string
           telefone?: string
+          token?: string
+          updated_at?: string
         }
         Update: {
+          chave_idempotencia?: string | null
           created_at?: string
           data?: string
           hora?: string
@@ -80,6 +87,8 @@ export type Database = {
           servico?: string
           status?: string
           telefone?: string
+          token?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -503,8 +512,13 @@ export type Database = {
           hora: string
         }[]
       }
+      nexa_agendamento_por_token: {
+        Args: { requested_token: string }
+        Returns: Json
+      }
       nexa_agendar: {
         Args: {
+          requested_chave?: string
           requested_data: string
           requested_hora: string
           requested_nome: string
@@ -514,6 +528,10 @@ export type Database = {
           requested_telefone: string
         }
         Returns: Json
+      }
+      nexa_cancelar_agendamento: {
+        Args: { requested_token: string }
+        Returns: boolean
       }
       publish_minisite: {
         Args: { requested_id: string }
