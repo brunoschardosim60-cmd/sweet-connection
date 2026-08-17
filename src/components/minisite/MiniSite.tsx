@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgePercent,
   Clock,
@@ -628,6 +628,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       else copia[id] = proximo;
       return copia;
     });
+  };
   const categorias = useMemo(
     () => ["Todos", ...Array.from(new Set(site.produtos.map((p) => p.categoria).filter(Boolean)))],
     [site.produtos],
