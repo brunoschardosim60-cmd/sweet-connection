@@ -98,9 +98,7 @@ function Moldura({ dispositivo, children }: { dispositivo: Dispositivo; children
   }
 
   return (
-    <div
-      className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
-    >
+    <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
       {children}
     </div>
   );

@@ -30,7 +30,6 @@ import {
 import {
   PainelQualidade,
   destinoPorSecao,
-  
   type DestinoEditor,
 } from "@/components/editor/PainelQualidade";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
@@ -429,7 +428,6 @@ function Editor() {
             previaMovel ? "hidden" : "flex"
           }`}
         >
-          
           <div
             role="tablist"
             aria-label="Seções do editor"
@@ -489,7 +487,6 @@ function Editor() {
     </div>
   );
 }
-
 
 /* ------------------------------ campos ------------------------------ */
 
