@@ -86,7 +86,9 @@ function BotaoControle({
       disabled={desabilitado}
       onClick={onClick}
       className={`grid h-7 w-7 place-items-center rounded-full transition-colors disabled:opacity-30 ${
-        ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+        ativo
+          ? "bg-ink text-ink-foreground"
+          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
       }`}
     >
       {children}
@@ -143,7 +145,6 @@ export function MolduraPrevia({
           aria-label="Controles da prévia"
           className="absolute bottom-3 right-3 z-20 flex shrink-0 items-center gap-0.5 rounded-full border border-border/80 bg-background/90 p-0.5 shadow-md backdrop-blur-md"
         >
-
           <BotaoControle
             rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
             ativo={horizontal}
@@ -188,11 +189,7 @@ export function MolduraPrevia({
       {caixa && seguro ? (
         <PalcoEscalado dispositivo={caixa} zoom={zoom}>
           {dispositivo === "celular" ? (
-            <PhoneFrame
-              largura={caixa.largura}
-              altura={caixa.altura}
-              areaSegura={seguro}
-            >
+            <PhoneFrame largura={caixa.largura} altura={caixa.altura} areaSegura={seguro}>
               {children}
             </PhoneFrame>
           ) : (

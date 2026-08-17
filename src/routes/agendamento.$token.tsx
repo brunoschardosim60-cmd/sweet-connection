@@ -69,7 +69,11 @@ function PaginaAgendamento() {
                 cancelado ? "bg-secondary text-muted-foreground" : "bg-lime text-ink"
               }`}
             >
-              {cancelado ? <CircleX size={13} aria-hidden /> : <CalendarCheck size={13} aria-hidden />}
+              {cancelado ? (
+                <CircleX size={13} aria-hidden />
+              ) : (
+                <CalendarCheck size={13} aria-hidden />
+              )}
               {cancelado ? "Agendamento cancelado" : "Horário confirmado"}
             </span>
             <h1 className="mt-3 text-xl font-semibold">{resumo.negocio}</h1>
