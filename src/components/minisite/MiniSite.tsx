@@ -546,10 +546,75 @@ function BlocoLinks({ site, titulo }: { site: Site; titulo: string }) {
   );
 }
 
+function ContadorItem({
+  site,
+  quantidade,
+  onAlterar,
+  rotulo,
+}: {
+  site: Site;
+  quantidade: number;
+  onAlterar: (delta: number) => void;
+  rotulo: string;
+}) {
+  if (quantidade === 0) {
+    return (
+      <Botao site={site} bloco onClick={() => onAlterar(1)}>
+        Adicionar ao pedido
+      </Botao>
+    );
+  }
+  const estilo: React.CSSProperties = {
+    border: "1px solid var(--ms-border)",
+    borderRadius: "var(--ms-radius)",
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        aria-label={`Remover uma unidade de ${rotulo}`}
+        onClick={() => onAlterar(-1)}
+        className="flex h-11 w-11 items-center justify-center text-lg font-bold"
+        style={estilo}
+      >
+        −
+      </button>
+      <span className="min-w-8 text-center text-sm font-semibold" aria-live="polite">
+        {quantidade}
+      </span>
+      <button
+        type="button"
+        aria-label={`Adicionar uma unidade de ${rotulo}`}
+        onClick={() => onAlterar(1)}
+        className="flex h-11 w-11 items-center justify-center text-lg font-bold"
+        style={{
+          ...estilo,
+          background: site.aparencia.corPrimaria,
+          color: contraste(site.aparencia.corPrimaria),
+          border: "none",
+        }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   const registrar = useRastreio();
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState("Todos");
+  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const usarCarrinho = site.comercio?.carrinho === true;
+  const alterarQuantidade = (id: string, delta: number) =>
+    setCarrinho((atual) => {
+      const proximo = Math.max(0, (atual[id] ?? 0) + delta);
+      const copia = { ...atual };
+      if (proximo === 0) delete copia[id];
+      else copia[id] = proximo;
+      return copia;
+    });
   const categorias = useMemo(
     () => ["Todos", ...Array.from(new Set(site.produtos.map((p) => p.categoria).filter(Boolean)))],
     [site.produtos],
