@@ -13,6 +13,7 @@ export const grupoDeSecao = (tipo: string): string =>
 export function secoesSemDuplicadas<T extends { tipo: string }>(secoes: T[]): T[] {
   const vistos = new Set<string>();
   return secoes.filter((s) => {
+    if (s.tipo === "livre") return true;
     const grupo = grupoDeSecao(s.tipo);
     if (vistos.has(grupo)) return false;
     vistos.add(grupo);
@@ -21,8 +22,10 @@ export function secoesSemDuplicadas<T extends { tipo: string }>(secoes: T[]): T[
 }
 
 /** Indica se uma seção baseada em itens já tem algo para renderizar. */
-export function secaoTemConteudo(site: Site, tipo: string): boolean {
+export function secaoTemConteudo(site: Site, tipo: string, conteudo?: string): boolean {
   switch (grupoDeSecao(tipo)) {
+    case "livre":
+      return (conteudo ?? "").trim().length > 0;
     case "links":
       return site.links.some((item) => item.ativo);
     case "produtos":

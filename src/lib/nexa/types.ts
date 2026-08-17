@@ -37,6 +37,7 @@ export type TipoSecao =
   | "horarios"
   | "faq"
   | "formulario"
+  | "livre"
   | "rodape";
 
 export type TipoLink =
@@ -56,6 +57,8 @@ export interface Secao {
   tipo: TipoSecao;
   titulo: string;
   ativa: boolean;
+  /** Texto livre exibido em seções do tipo "livre" (blocos criados pelo usuário). */
+  conteudo?: string;
 }
 
 export interface LinkItem {
@@ -173,7 +176,9 @@ export interface Aparencia {
   animacoes: boolean;
   espacamento: "compacto" | "confortavel" | "amplo";
   layout: LayoutModelo;
-  capaTipo: "imagem" | "cor";
+  capaTipo: "imagem" | "cor" | "gradiente";
+  /** Altura da capa do mini-site. Padrão: media. */
+  capaAltura?: "baixa" | "media" | "alta";
   /** Formato do ícone de perfil do mini-site. Padrão: redondo. */
   logoFormato?: "redondo" | "quadrado";
 }

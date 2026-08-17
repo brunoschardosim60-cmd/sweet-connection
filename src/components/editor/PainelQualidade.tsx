@@ -30,6 +30,7 @@ export const destinoPorSecao: Record<TipoSecao, DestinoEditor> = {
   horarios: { aba: "conteudo", bloco: "bloco-horarios" },
   faq: { aba: "itens", bloco: "bloco-faq" },
   formulario: { aba: "itens", bloco: "bloco-formulario" },
+  livre: { aba: "secoes", bloco: "bloco-secoes" },
   rodape: { aba: "conteudo", bloco: "bloco-contato" },
 };
 
@@ -122,6 +123,17 @@ export function verificar(site: Site): Verificacao[] {
   });
 
   for (const sec of ativas) {
+    if (sec.tipo === "livre") {
+      const texto = (sec.conteudo ?? "").trim();
+      add({
+        id: `secao-${sec.id}`,
+        titulo: `Texto do bloco “${sec.titulo}”`,
+        detalhe: texto ? `${texto.length} caracteres.` : "Bloco livre ainda sem texto.",
+        situacao: texto.length > 0 ? "ok" : "atencao",
+        destino: { aba: "secoes", bloco: "bloco-secoes" },
+      });
+      continue;
+    }
     const total = contagemDaSecao(site, sec.tipo);
     if (total === null) continue;
     add({
