@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modelos } from "@/lib/nexa/modelos";
+import { dimensoesDispositivo, larguraCssPrevia } from "@/lib/nexa/previa";
 
 export const Route = createFileRoute("/demonstracao/$modelo")({
   loader: ({ params }) => {
@@ -24,11 +25,7 @@ export const Route = createFileRoute("/demonstracao/$modelo")({
   component: Demonstracao,
 });
 
-const dispositivos = {
-  celular: { largura: 390, altura: 844 },
-  tablet: { largura: 768, altura: 1024 },
-  computador: null,
-} as const;
+const dispositivos = dimensoesDispositivo;
 
 function Demonstracao() {
   const { modelo } = Route.useParams();
@@ -88,7 +85,7 @@ function Demonstracao() {
             dispositivo
               ? {
                   aspectRatio: `${dispositivo.largura} / ${dispositivo.altura}`,
-                  width: `min(100%, ${dispositivo.largura}px, calc(100cqh * ${dispositivo.largura / dispositivo.altura}))`,
+                  width: larguraCssPrevia(dispositivo),
                 }
               : undefined
           }

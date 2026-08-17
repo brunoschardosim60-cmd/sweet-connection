@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /** Moldura de celular usada nas demonstrações e no editor. */
 export function PhoneFrame({
@@ -6,16 +6,25 @@ export function PhoneFrame({
   className = "",
   largura = 300,
   altura = 620,
+  proporcao,
 }: {
   children: ReactNode;
   className?: string;
-  largura?: number;
-  altura?: number;
+  /** Largura em px ou qualquer valor CSS (ex.: `min(100%, 216px)`). */
+  largura?: number | string;
+  /** Altura em px ou valor CSS. Ignorada quando `proporcao` é informada. */
+  altura?: number | string;
+  /** Proporção largura/altura; quando definida, a altura acompanha a largura. */
+  proporcao?: number;
 }) {
+  const style: CSSProperties = proporcao
+    ? { width: largura, aspectRatio: String(proporcao) }
+    : { width: largura, height: altura };
+
   return (
     <div
       className={`relative shrink-0 rounded-[2.6rem] border border-ink/15 bg-ink p-2.5 shadow-[var(--shadow-phone)] ${className}`}
-      style={{ width: largura, height: altura }}
+      style={style}
     >
       <div className="absolute left-1/2 top-3.5 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-ink" />
       <div className="h-full w-full overflow-hidden rounded-[2.1rem] bg-background">
