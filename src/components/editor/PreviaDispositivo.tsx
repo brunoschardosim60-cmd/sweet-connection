@@ -58,6 +58,17 @@ export function MolduraPrevia({
   dispositivo: Dispositivo;
   children: ReactNode;
 }) {
+  return (
+    <div
+      style={{ containerType: "size" }}
+      className="flex min-h-0 w-full flex-1 items-center justify-center"
+    >
+      <Moldura dispositivo={dispositivo}>{children}</Moldura>
+    </div>
+  );
+}
+
+function Moldura({ dispositivo, children }: { dispositivo: Dispositivo; children: ReactNode }) {
   if (dispositivo === "celular") {
     const disp = dimensoesDispositivo.celular;
     return (
