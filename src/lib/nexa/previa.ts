@@ -27,3 +27,13 @@ export function larguraCssPrevia(dispositivo: Caixa): string {
   const proporcao = dispositivo.largura / dispositivo.altura;
   return `min(100%, ${dispositivo.largura}px, calc(100cqh * ${proporcao}))`;
 }
+
+/** Fator de escala para caber o dispositivo inteiro no espaço disponível (nunca amplia). */
+export function escalaPrevia(disponivel: Caixa, dispositivo: Caixa): number {
+  if (disponivel.largura <= 0 || disponivel.altura <= 0) return 1;
+  return Math.min(
+    1,
+    disponivel.largura / dispositivo.largura,
+    disponivel.altura / dispositivo.altura,
+  );
+}
