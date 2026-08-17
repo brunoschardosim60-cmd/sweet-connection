@@ -1808,6 +1808,45 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
+      <Bloco titulo="Paletas prontas">
+        <p className="text-xs text-muted-foreground">
+          Aplique um conjunto de cores, fonte e botões em um clique. Você pode ajustar tudo depois.
+        </p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {paletasProntas.map((p) => {
+            const ativa = a.corPrimaria === p.valores.corPrimaria && a.corFundo === p.valores.corFundo;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  set({ ...p.valores });
+                  toast.success(`Paleta ${p.nome} aplicada`);
+                }}
+                aria-pressed={ativa}
+                className={`flex min-h-11 items-center gap-3 rounded-xl border p-2.5 text-left transition-colors ${
+                  ativa ? "border-ink bg-secondary" : "border-border hover:bg-secondary"
+                }`}
+              >
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border"
+                  style={{ background: p.valores.corFundo }}
+                >
+                  <span
+                    className="h-4 w-4 rounded-full"
+                    style={{ background: p.valores.corPrimaria }}
+                  />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">{p.nome}</span>
+                  <span className="block text-[11px] text-muted-foreground">{p.descricao}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </Bloco>
+
       <Bloco titulo="Cores">
         {(
           [
