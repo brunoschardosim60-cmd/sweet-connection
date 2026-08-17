@@ -85,7 +85,7 @@ function Demonstracao() {
             dispositivo
               ? {
                   aspectRatio: `${dispositivo.largura} / ${dispositivo.altura}`,
-                  width: `min(100%, ${dispositivo.largura}px, calc(100cqh * ${dispositivo.largura / dispositivo.altura}))`,
+                  width: larguraCssPrevia(dispositivo),
                 }
               : undefined
           }
