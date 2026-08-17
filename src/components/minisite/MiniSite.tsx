@@ -406,7 +406,7 @@ function Secao({
   titulo: string;
   site: Site;
   modoEdicao: boolean;
-  conteudo?: string;
+  conteudo?: string | undefined;
 }) {
   if (modoEdicao && !secaoTemConteudo(site, tipo, conteudo)) {
     return <SecaoVazia site={site} titulo={titulo} />;
