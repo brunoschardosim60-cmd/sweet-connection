@@ -2389,6 +2389,13 @@ function AbaVersoes({ site, onRestaurar }: { site: Site; onRestaurar: (s: Site) 
         Cada publicação e cada salvamento manual cria um ponto de restauração. Restaurar substitui o
         rascunho atual — publique novamente para valer no ar.
       </p>
+      <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3">
+        <p className="text-xs font-semibold">Rascunho atual (ao vivo)</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {site.conteudo.nome || "Sem nome"} · {site.secoes.filter((x) => x.ativa).length} seções
+          ativas · atualizado em {dataHora(site.atualizadoEm)}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         <BotaoAdicionar
           rotulo="Criar ponto de restauração"
