@@ -429,7 +429,7 @@ function Editor() {
             previaMovel ? "hidden" : "flex"
           }`}
         >
-          <ResumoQualidade site={rascunho} onIr={irPara} />
+          
           <div
             role="tablist"
             aria-label="Seções do editor"
