@@ -71,6 +71,7 @@ function SitePublico() {
   const site = Route.useLoaderData();
   return (
     <div className="min-h-screen">
+      <Rastreadores site={site} />
       <MiniSite site={site} rastrear />
     </div>
   );
