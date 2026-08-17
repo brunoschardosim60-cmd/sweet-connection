@@ -7,6 +7,7 @@ export function PhoneFrame({
   largura = 300,
   altura = 620,
   proporcao,
+  areaSegura,
 }: {
   children: ReactNode;
   className?: string;
@@ -16,6 +17,11 @@ export function PhoneFrame({
   altura?: number | string;
   /** Proporção largura/altura; quando definida, a altura acompanha a largura. */
   proporcao?: number;
+  /** Recuos de área segura (notch/barra inferior) aplicados ao conteúdo. */
+  areaSegura?: Pick<
+    CSSProperties,
+    "paddingTop" | "paddingBottom" | "paddingLeft" | "paddingRight"
+  >;
 }) {
   const style: CSSProperties = proporcao
     ? { width: largura, aspectRatio: String(proporcao) }
@@ -28,10 +34,14 @@ export function PhoneFrame({
     >
       <div className="absolute left-1/2 top-3.5 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-ink" />
       <div className="h-full w-full overflow-hidden rounded-[2.1rem] bg-background">
-        <div className="h-full w-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          style={areaSegura}
+          className="h-full w-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {children}
         </div>
       </div>
     </div>
   );
 }
+
