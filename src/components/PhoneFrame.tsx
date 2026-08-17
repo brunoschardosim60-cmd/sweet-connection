@@ -96,12 +96,12 @@ export function PhoneFrame({
       <div
         className={`h-full w-full overflow-hidden bg-black ${
           modelo === "iphone-dynamic"
-            ? "rounded-[2.15rem]"
+            ? "rounded-[2.7rem]"
             : modelo === "iphone-notch"
-              ? "rounded-[1.9rem]"
+              ? "rounded-[2.5rem]"
               : modelo === "android-punch"
-                ? "rounded-[1.75rem]"
-                : "rounded-[1.6rem]"
+                ? "rounded-[2.1rem]"
+                : "rounded-[2rem]"
         }`}
       >
         <div
