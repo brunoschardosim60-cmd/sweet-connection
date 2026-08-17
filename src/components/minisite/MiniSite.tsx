@@ -747,6 +747,81 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
         ))}
       </div>
       {lista.length === 0 && <p className="text-sm opacity-60">Nenhum item encontrado.</p>}
+      {usarCarrinho &&
+        (() => {
+          const itens = site.produtos
+            .filter((p) => (carrinho[p.id] ?? 0) > 0)
+            .map((p) => ({
+              nome: p.nome,
+              quantidade: carrinho[p.id] ?? 0,
+              preco: p.precoPromocional ?? p.preco,
+            }));
+          if (itens.length === 0) return null;
+          const subtotal = itens.reduce((t, i) => t + i.preco * i.quantidade, 0);
+          const entrega = site.comercio?.taxaEntrega ?? 0;
+          const minimo = site.comercio?.pedidoMinimo ?? 0;
+          const abaixoDoMinimo = minimo > 0 && subtotal < minimo;
+          const total = subtotal + entrega;
+          const mensagem = [
+            `Olá! Quero fazer um pedido pelo site ${site.conteudo.nome}:`,
+            ...itens.map((i) => `• ${i.quantidade}x ${i.nome} — ${moeda(i.preco * i.quantidade)}`),
+            `Subtotal: ${moeda(subtotal)}`,
+            entrega > 0 ? `Entrega: ${moeda(entrega)}` : "",
+            `Total: ${moeda(total)}`,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          return (
+            <Cartao site={site} className="mt-4">
+              <div className="flex flex-col gap-2 p-4">
+                <h3 className="text-sm font-semibold">Seu pedido</h3>
+                {itens.map((i) => (
+                  <div key={i.nome} className="flex justify-between gap-3 text-xs">
+                    <span className="min-w-0 truncate opacity-80">
+                      {i.quantidade}x {i.nome}
+                    </span>
+                    <span className="shrink-0 font-medium">{moeda(i.preco * i.quantidade)}</span>
+                  </div>
+                ))}
+                {entrega > 0 && (
+                  <div className="flex justify-between text-xs opacity-80">
+                    <span>Entrega</span>
+                    <span>{moeda(entrega)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 text-sm font-bold">
+                  <span>Total</span>
+                  <span style={{ color: site.aparencia.corPrimaria }}>{moeda(total)}</span>
+                </div>
+                {abaixoDoMinimo ? (
+                  <p className="text-xs opacity-70">
+                    Pedido mínimo de {moeda(minimo)} para enviar pelo WhatsApp.
+                  </p>
+                ) : (
+                  <Botao
+                    site={site}
+                    bloco
+                    href={
+                      interacoesExternas
+                        ? whatsappLink(site.conteudo.whatsapp, mensagem)
+                        : undefined
+                    }
+                    onClick={() => registrar("Carrinho: enviar pedido", true)}
+                  >
+                    <MessageCircle size={15} /> Enviar pedido pelo WhatsApp
+                  </Botao>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setCarrinho({})}
+                  className="min-h-11 text-xs underline opacity-70"
+                >
+                  Limpar pedido
+                </button>
+              </div>
+            </Cartao>
+          );
+        })()}
     </section>
   );
 }
