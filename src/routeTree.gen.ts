@@ -18,6 +18,7 @@ import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
@@ -76,6 +77,11 @@ const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendamentoTokenRoute = AgendamentoTokenRouteImport.update({
+  id: '/agendamento/$token',
+  path: '/agendamento/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -311,6 +323,7 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   TermosRoute: typeof TermosRoute
+  AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
   ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/termos'
       fullPath: '/termos'
       preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agendamento/$token': {
+      id: '/agendamento/$token'
+      path: '/agendamento/$token'
+      fullPath: '/agendamento/$token'
+      preLoaderRoute: typeof AgendamentoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demonstracao/$modelo': {
@@ -523,6 +543,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   TermosRoute: TermosRoute,
+  AgendamentoTokenRoute: AgendamentoTokenRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
   ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
