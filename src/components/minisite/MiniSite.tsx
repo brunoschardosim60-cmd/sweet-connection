@@ -439,6 +439,8 @@ function Secao({
       return <BlocoFaq site={site} titulo={titulo} />;
     case "formulario":
       return <BlocoFormulario site={site} />;
+    case "agenda":
+      return <BlocoAgenda site={site} titulo={titulo} />;
     case "livre":
       return <BlocoLivre site={site} titulo={titulo} conteudo={conteudo ?? ""} />;
     default:
