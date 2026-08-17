@@ -51,7 +51,7 @@ export async function otimizarImagem(
     );
     if (!blob || blob.size >= arquivo.size) return arquivo;
 
-    const nome = `${arquivo.name.replace(/\.[^.]+$/, "")}.${destino === "image/avif" ? "avif" : "webp"}`;
+    const nome = `${arquivo.name.replace(/\.[^.]+$/, "")}.webp`;
     return new File([blob], nome, { type: destino, lastModified: Date.now() });
   } catch {
     return arquivo;
