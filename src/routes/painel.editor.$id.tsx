@@ -38,6 +38,7 @@ import { NotaEstrelas } from "@/components/editor/NotaEstrelas";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelosCriacao } from "@/lib/nexa/modelos";
+import { paletasProntas } from "@/lib/nexa/paletas";
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
 import { versaoStore } from "@/lib/nexa/versoes";
