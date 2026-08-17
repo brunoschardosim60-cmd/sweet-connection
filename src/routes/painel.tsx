@@ -1,6 +1,7 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  CalendarDays,
   Bell,
   Image as ImageIcon,
   Inbox,
