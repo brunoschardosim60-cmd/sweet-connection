@@ -1247,9 +1247,19 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
               {confirmado.hora}.
             </p>
             <p className="text-xs opacity-70">
-              Esse horário já ficou bloqueado para outras pessoas. Avise a equipe pelo WhatsApp para
-              concluir.
+              Esse horário já ficou bloqueado para outras pessoas.
             </p>
+            {confirmado.token && (
+              <a
+                href={`/agendamento/${confirmado.token}`}
+                target="_blank"
+                rel="noreferrer"
+                className="min-h-11 text-xs font-semibold underline"
+                style={{ color: site.aparencia.corPrimaria }}
+              >
+                Ver comprovante e cancelar, se precisar
+              </a>
+            )}
             {site.conteudo.whatsapp && (
               <Botao
                 site={site}
