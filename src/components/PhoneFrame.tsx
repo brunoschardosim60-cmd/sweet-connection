@@ -30,7 +30,7 @@ export function PhoneFrame({
 
   return (
     <div
-      className={`relative shrink-0 select-none rounded-[3.2rem] bg-[#121413] p-[12px] shadow-[var(--shadow-phone)] ${className}`}
+      className={`relative shrink-0 select-none overflow-hidden rounded-[3.2rem] bg-background shadow-[var(--shadow-phone)] ${className}`}
       style={style}
     >
       {/* Botões físicos laterais discretos */}
@@ -39,14 +39,14 @@ export function PhoneFrame({
       <div className="absolute -right-[3px] top-32 h-12 w-[3px] rounded-r-sm bg-[#2a2c2b]" />
 
       {/* Dynamic Island */}
-      <div className="pointer-events-none absolute left-1/2 top-[18px] z-20 flex h-4 w-20 -translate-x-1/2 items-center justify-end rounded-full bg-black/85 px-2">
+      <div className="pointer-events-none absolute left-1/2 top-[10px] z-20 flex h-4 w-20 -translate-x-1/2 items-center justify-end rounded-full bg-black/85 px-2">
         <span className="h-2 w-2 rounded-full bg-[#0a0d14]" />
       </div>
       {/* Barra inferior iOS */}
-      <div className="pointer-events-none absolute bottom-[18px] left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-black/25 mix-blend-luminosity" />
+      <div className="pointer-events-none absolute bottom-[10px] left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-black/25 mix-blend-luminosity" />
 
-      {/* Tela: o conteúdo preenche 100% da altura, sem faixas pretas no topo/rodapé */}
-      <div className="h-full w-full overflow-hidden rounded-[2.5rem]">
+      {/* Tela: o conteúdo preenche 100% da moldura, sem bordas pretas */}
+      <div className="h-full w-full overflow-hidden rounded-[3.2rem]">
         <div
           style={areaSegura}
           className="h-full w-full overflow-y-auto overflow-x-hidden [&>*]:min-h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -56,4 +56,5 @@ export function PhoneFrame({
       </div>
     </div>
   );
+
 }
