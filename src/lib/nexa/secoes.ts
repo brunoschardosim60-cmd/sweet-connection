@@ -46,6 +46,8 @@ export function secaoTemConteudo(site: Site, tipo: string, conteudo?: string): b
       return site.faq.length > 0;
     case "formulario":
       return site.formulario.campos.length > 0;
+    case "agenda":
+      return site.conteudo.horarios.some((h) => !h.fechado);
     default:
       return true;
   }
