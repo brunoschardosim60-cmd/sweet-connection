@@ -1,6 +1,7 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  CalendarDays,
   Bell,
   Image as ImageIcon,
   Inbox,
@@ -52,6 +53,7 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel", rotulo: "Visão geral", icone: LayoutDashboard, exato: true },
   { to: "/painel/clientes", rotulo: "Clientes", icone: Users },
   { to: "/painel/solicitacoes", rotulo: "Solicitações", icone: Inbox },
+  { to: "/painel/agenda", rotulo: "Agenda", icone: CalendarDays },
   { to: "/painel/modelos", rotulo: "Modelos", icone: LayoutGrid },
   { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },

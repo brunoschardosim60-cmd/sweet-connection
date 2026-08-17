@@ -18,8 +18,10 @@ import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
+import { Route as PainelAgendaRouteImport } from './routes/painel.agenda'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
 import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configuracoes'
 import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
@@ -78,6 +80,11 @@ const TermosRoute = TermosRouteImport.update({
   path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendamentoTokenRoute = AgendamentoTokenRouteImport.update({
+  id: '/agendamento/$token',
+  path: '/agendamento/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
   id: '/demonstracao/$modelo',
   path: '/demonstracao/$modelo',
@@ -86,6 +93,11 @@ const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
 const PainelIndexRoute = PainelIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelAgendaRoute = PainelAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
   getParentRoute: () => PainelRoute,
 } as any)
 const PainelClientesRoute = PainelClientesRouteImport.update({
@@ -159,7 +171,9 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -183,7 +197,9 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -209,7 +225,9 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/termos': typeof TermosRoute
+  '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
@@ -236,7 +254,9 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -260,7 +280,9 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -285,7 +307,9 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/recuperar-senha'
     | '/termos'
+    | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
@@ -311,6 +335,7 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   TermosRoute: typeof TermosRoute
+  AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
   ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
@@ -381,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agendamento/$token': {
+      id: '/agendamento/$token'
+      path: '/agendamento/$token'
+      fullPath: '/agendamento/$token'
+      preLoaderRoute: typeof AgendamentoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demonstracao/$modelo': {
       id: '/demonstracao/$modelo'
       path: '/demonstracao/$modelo'
@@ -393,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/painel/'
       preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/agenda': {
+      id: '/painel/agenda'
+      path: '/agenda'
+      fullPath: '/painel/agenda'
+      preLoaderRoute: typeof PainelAgendaRouteImport
       parentRoute: typeof PainelRoute
     }
     '/painel/clientes': {
@@ -483,6 +522,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelRouteChildren {
+  PainelAgendaRoute: typeof PainelAgendaRoute
   PainelClientesRoute: typeof PainelClientesRoute
   PainelConfiguracoesRoute: typeof PainelConfiguracoesRoute
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
@@ -497,6 +537,7 @@ interface PainelRouteChildren {
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
+  PainelAgendaRoute: PainelAgendaRoute,
   PainelClientesRoute: PainelClientesRoute,
   PainelConfiguracoesRoute: PainelConfiguracoesRoute,
   PainelEstatisticasRoute: PainelEstatisticasRoute,
@@ -523,6 +564,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   TermosRoute: TermosRoute,
+  AgendamentoTokenRoute: AgendamentoTokenRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
   ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,

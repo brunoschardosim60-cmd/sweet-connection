@@ -92,6 +92,21 @@ const mensagensDeErro: Record<string, string> = {
   minisite_indisponivel: "Este mini-site não está publicado.",
 };
 
+export type AgendamentoConfirmado = {
+  id: string;
+  token: string;
+  data: string;
+  hora: string;
+  repetido: boolean;
+};
+
+/** Chave estável por tentativa: cliques repetidos reaproveitam o mesmo agendamento. */
+export function novaChaveIdempotencia(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export async function agendarHorario(entrada: {
   slug: string;
   data: string;
@@ -100,8 +115,9 @@ export async function agendarHorario(entrada: {
   telefone: string;
   servico?: string;
   observacao?: string;
-}) {
-  const { error } = await supabase.rpc("nexa_agendar", {
+  chave?: string;
+}): Promise<AgendamentoConfirmado> {
+  const { data, error } = await supabase.rpc("nexa_agendar", {
     requested_slug: entrada.slug,
     requested_data: entrada.data,
     requested_hora: entrada.hora,
@@ -109,6 +125,7 @@ export async function agendarHorario(entrada: {
     requested_telefone: entrada.telefone,
     requested_servico: entrada.servico ?? "",
     requested_observacao: entrada.observacao ?? "",
+    ...(entrada.chave ? { requested_chave: entrada.chave } : {}),
   });
   if (error) {
     const chave = Object.keys(mensagensDeErro).find((k) => error.message.includes(k));
@@ -116,6 +133,45 @@ export async function agendarHorario(entrada: {
       chave ? mensagensDeErro[chave]! : "Não foi possível confirmar o agendamento agora.",
     );
   }
+  const retorno = (data ?? {}) as Partial<AgendamentoConfirmado>;
+  return {
+    id: String(retorno.id ?? ""),
+    token: String(retorno.token ?? ""),
+    data: String(retorno.data ?? entrada.data),
+    hora: String(retorno.hora ?? entrada.hora),
+    repetido: retorno.repetido === true,
+  };
+}
+
+export type ResumoAgendamento = {
+  id: string;
+  data: string;
+  hora: string;
+  servico: string;
+  nome: string;
+  telefone: string;
+  status: string;
+  slug: string;
+  negocio: string;
+  whatsapp: string;
+};
+
+/** Resumo público de um agendamento a partir do código recebido pelo cliente. */
+export async function buscarAgendamento(token: string): Promise<ResumoAgendamento | null> {
+  const { data, error } = await supabase.rpc("nexa_agendamento_por_token", {
+    requested_token: token,
+  });
+  if (error) throw new Error("Não foi possível carregar o agendamento.");
+  return (data as ResumoAgendamento | null) ?? null;
+}
+
+/** Cancelamento feito pelo próprio cliente com o código do agendamento. */
+export async function cancelarAgendamento(token: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("nexa_cancelar_agendamento", {
+    requested_token: token,
+  });
+  if (error) throw new Error("Não foi possível cancelar o agendamento.");
+  return data === true;
 }
 
 /** Mensagem automática enviada ao WhatsApp do negócio após confirmar. */

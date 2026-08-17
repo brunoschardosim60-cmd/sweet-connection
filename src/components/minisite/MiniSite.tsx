@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgePercent,
   Clock,
@@ -23,10 +23,12 @@ import {
   horariosDoDia,
   horariosOcupados,
   mensagemAgendamento,
+  novaChaveIdempotencia,
   proximosDias,
   rotuloDia,
 } from "@/lib/nexa/agenda";
 import { useMarca } from "@/lib/nexa/hooks";
+import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
@@ -617,7 +619,8 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   const [cat, setCat] = useState("Todos");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const usarCarrinho = site.comercio?.carrinho === true;
-  const alterarQuantidade = (id: string, delta: number) =>
+  const alterarQuantidade = (id: string, delta: number) => {
+    if (delta > 0) eventoMarketing("add_to_cart", { item_id: id, quantidade: delta });
     setCarrinho((atual) => {
       const proximo = Math.max(0, (atual[id] ?? 0) + delta);
       const copia = { ...atual };
@@ -625,6 +628,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       else copia[id] = proximo;
       return copia;
     });
+  };
   const categorias = useMemo(
     () => ["Todos", ...Array.from(new Set(site.produtos.map((p) => p.categoria).filter(Boolean)))],
     [site.produtos],
@@ -814,7 +818,10 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                     {...(interacoesExternas
                       ? { href: whatsappLink(site.conteudo.whatsapp, mensagem) }
                       : {})}
-                    onClick={() => registrar("Carrinho: enviar pedido", true)}
+                    onClick={() => {
+                      eventoMarketing("iniciar_checkout", { value: total, currency: "BRL" });
+                      registrar("Carrinho: enviar pedido", true);
+                    }}
                   >
                     <MessageCircle size={15} /> Enviar pedido pelo WhatsApp
                   </Botao>
@@ -1195,7 +1202,10 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [confirmado, setConfirmado] = useState<{ data: Date; hora: string } | null>(null);
+  const [confirmado, setConfirmado] = useState<{ data: Date; hora: string; token: string } | null>(
+    null,
+  );
+  const chaveEnvio = useRef(novaChaveIdempotencia());
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [servico, setServico] = useState("");
@@ -1237,9 +1247,19 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
               {confirmado.hora}.
             </p>
             <p className="text-xs opacity-70">
-              Esse horário já ficou bloqueado para outras pessoas. Avise a equipe pelo WhatsApp para
-              concluir.
+              Esse horário já ficou bloqueado para outras pessoas.
             </p>
+            {confirmado.token && (
+              <a
+                href={`/agendamento/${confirmado.token}`}
+                target="_blank"
+                rel="noreferrer"
+                className="min-h-11 text-xs font-semibold underline"
+                style={{ color: site.aparencia.corPrimaria }}
+              >
+                Ver comprovante e cancelar, se precisar
+              </a>
+            )}
             {site.conteudo.whatsapp && (
               <Botao
                 site={site}
@@ -1274,16 +1294,24 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
             setErro(null);
             setEnviando(true);
             try {
-              await agendarHorario({
+              const reserva = await agendarHorario({
                 slug: site.slug,
                 data: dataIso(dia),
                 hora,
                 nome: nome.trim(),
                 telefone: telefone.trim(),
                 servico,
+                chave: chaveEnvio.current,
               });
               registrar(`Agenda: ${dataIso(dia)} ${hora}`);
-              setConfirmado({ data: dia, hora });
+              if (!reserva.repetido) {
+                eventoMarketing("agendamento_confirmado", {
+                  data: reserva.data,
+                  hora: reserva.hora,
+                  servico: servico || "",
+                });
+              }
+              setConfirmado({ data: dia, hora, token: reserva.token });
             } catch (error) {
               setErro(error instanceof Error ? error.message : "Não foi possível agendar.");
               if (dia)

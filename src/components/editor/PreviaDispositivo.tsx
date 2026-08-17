@@ -9,7 +9,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { PhoneFrame, type ModeloCelular } from "@/components/PhoneFrame";
+import { PhoneFrame } from "@/components/PhoneFrame";
 import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
 import { deitar, dimensoesDispositivo, paddingAreaSegura } from "@/lib/nexa/previa";
 
@@ -20,13 +20,6 @@ export const dispositivos: { id: Dispositivo; rotulo: string; icone: typeof Moni
   { id: "celular", rotulo: "Celular", icone: Smartphone },
   { id: "tablet", rotulo: "Tablet", icone: Tablet },
   { id: "desktop", rotulo: "Desktop", icone: Monitor },
-];
-
-export const modelosCelular: { id: ModeloCelular; rotulo: string; rotuloCurto: string }[] = [
-  { id: "iphone-dynamic", rotulo: "iPhone (Dynamic Island)", rotuloCurto: "Dynamic" },
-  { id: "iphone-notch", rotulo: "iPhone (Notch clássico)", rotuloCurto: "Notch" },
-  { id: "android-punch", rotulo: "Android (Furo na tela)", rotuloCurto: "Android" },
-  { id: "minimalista", rotulo: "Minimalista (Sem notch)", rotuloCurto: "Minimal" },
 ];
 
 const ZOOM_MIN = 0.5;
@@ -93,7 +86,9 @@ function BotaoControle({
       disabled={desabilitado}
       onClick={onClick}
       className={`grid h-7 w-7 place-items-center rounded-full transition-colors disabled:opacity-30 ${
-        ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+        ativo
+          ? "bg-ink text-ink-foreground"
+          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
       }`}
     >
       {children}
@@ -109,18 +104,15 @@ export function MolduraPrevia({
   dispositivo,
   children,
   controles = true,
-  modeloInicial = "iphone-dynamic",
 }: {
   dispositivo: Dispositivo;
   children: ReactNode;
   controles?: boolean;
-  modeloInicial?: ModeloCelular;
 }) {
   const areaRef = useRef<HTMLDivElement>(null);
   const [orientacao, setOrientacao] = useState<Orientacao>("vertical");
   const [zoom, setZoom] = useState(1);
   const [telaCheia, setTelaCheia] = useState(false);
-  const [modeloCelular, setModeloCelular] = useState<ModeloCelular>(modeloInicial);
 
   useEffect(() => {
     const aoMudar = () => setTelaCheia(document.fullscreenElement === areaRef.current);
@@ -153,31 +145,6 @@ export function MolduraPrevia({
           aria-label="Controles da prévia"
           className="absolute bottom-3 right-3 z-20 flex shrink-0 items-center gap-0.5 rounded-full border border-border/80 bg-background/90 p-0.5 shadow-md backdrop-blur-md"
         >
-          {/* Seletor de modelo de celular */}
-          {dispositivo === "celular" && (
-            <div
-              role="group"
-              aria-label="Modelo de celular"
-              className="mr-1 flex items-center gap-0.5 border-r border-border/60 pr-1.5"
-            >
-              {modelosCelular.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  title={`Modelo ${m.rotulo}`}
-                  onClick={() => setModeloCelular(m.id)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors ${
-                    modeloCelular === m.id
-                      ? "bg-ink text-ink-foreground shadow-xs"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
-                >
-                  {m.rotuloCurto}
-                </button>
-              ))}
-            </div>
-          )}
-
           <BotaoControle
             rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
             ativo={horizontal}
@@ -222,12 +189,7 @@ export function MolduraPrevia({
       {caixa && seguro ? (
         <PalcoEscalado dispositivo={caixa} zoom={zoom}>
           {dispositivo === "celular" ? (
-            <PhoneFrame
-              largura={caixa.largura}
-              altura={caixa.altura}
-              areaSegura={seguro}
-              modelo={modeloCelular}
-            >
+            <PhoneFrame largura={caixa.largura} altura={caixa.altura} areaSegura={seguro}>
               {children}
             </PhoneFrame>
           ) : (
