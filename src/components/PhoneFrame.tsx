@@ -18,10 +18,7 @@ export function PhoneFrame({
   /** Proporção largura/altura; quando definida, a altura acompanha a largura. */
   proporcao?: number;
   /** Recuos de área segura (notch/barra inferior) aplicados ao conteúdo. */
-  areaSegura?: Pick<
-    CSSProperties,
-    "paddingTop" | "paddingBottom" | "paddingLeft" | "paddingRight"
-  >;
+  areaSegura?: Pick<CSSProperties, "paddingTop" | "paddingBottom" | "paddingLeft" | "paddingRight">;
 }) {
   const style: CSSProperties = proporcao
     ? { width: largura, aspectRatio: String(proporcao) }
@@ -44,4 +41,3 @@ export function PhoneFrame({
     </div>
   );
 }
-

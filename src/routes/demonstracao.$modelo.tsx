@@ -10,8 +10,6 @@ import {
   type Dispositivo,
 } from "@/components/editor/PreviaDispositivo";
 
-
-
 export const Route = createFileRoute("/demonstracao/$modelo")({
   loader: ({ params }) => {
     const modelo = modelos.find((m) => m.id === params.modelo);
@@ -62,8 +60,6 @@ function Demonstracao() {
           <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
         </MolduraPrevia>
       </main>
-
-
     </div>
   );
 }
