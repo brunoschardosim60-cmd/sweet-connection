@@ -1,8 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
 
-export type ModeloCelular = "iphone-dynamic" | "iphone-notch" | "android-punch" | "minimalista";
-
-/** Moldura de celular usada nas demonstrações e no editor. */
+/**
+ * Moldura de celular padrão usada nas demonstrações e no editor.
+ * Modelo único (iPhone com Dynamic Island), sem bordas claras e sem faixas pretas:
+ * o conteúdo ocupa a tela inteira e a área segura é apenas um recuo interno do conteúdo.
+ */
 export function PhoneFrame({
   children,
   className = "",
@@ -10,7 +12,6 @@ export function PhoneFrame({
   altura = 620,
   proporcao,
   areaSegura,
-  modelo = "iphone-dynamic",
 }: {
   children: ReactNode;
   className?: string;
@@ -22,8 +23,6 @@ export function PhoneFrame({
   proporcao?: number;
   /** Recuos de área segura (notch/barra inferior) aplicados ao conteúdo. */
   areaSegura?: Pick<CSSProperties, "paddingTop" | "paddingBottom" | "paddingLeft" | "paddingRight">;
-  /** Modelo de dispositivo móvel. */
-  modelo?: ModeloCelular;
 }) {
   const style: CSSProperties = proporcao
     ? { width: largura, aspectRatio: String(proporcao) }
@@ -31,82 +30,26 @@ export function PhoneFrame({
 
   return (
     <div
-      className={`relative shrink-0 select-none bg-[#121413] shadow-[var(--shadow-phone)] ${
-        modelo === "iphone-dynamic"
-          ? "rounded-[3.4rem] p-[14px] ring-1 ring-white/15"
-          : modelo === "iphone-notch"
-            ? "rounded-[3.1rem] p-[14px] ring-1 ring-white/15"
-            : modelo === "android-punch"
-              ? "rounded-[2.6rem] p-[10px] ring-1 ring-white/15"
-              : "rounded-[2.4rem] p-[7px] ring-1 ring-white/15"
-      } ${className}`}
+      className={`relative shrink-0 select-none rounded-[3.2rem] bg-[#121413] p-[12px] shadow-[var(--shadow-phone)] ${className}`}
       style={style}
     >
-      {/* Botões físicos laterais discretos para os modelos iPhone/Android */}
-      {modelo !== "minimalista" && (
-        <>
-          {/* Botão de volume / ação (lado esquerdo) */}
-          <div className="absolute -left-[3px] top-20 h-8 w-[3px] rounded-l-sm bg-white/20" />
-          <div className="absolute -left-[3px] top-32 h-10 w-[3px] rounded-l-sm bg-white/20" />
-          <div className="absolute -left-[3px] top-44 h-10 w-[3px] rounded-l-sm bg-white/20" />
-          {/* Botão de energia (lado direito) */}
-          <div className="absolute -right-[3px] top-28 h-12 w-[3px] rounded-r-sm bg-white/20" />
-        </>
-      )}
+      {/* Botões físicos laterais discretos */}
+      <div className="absolute -left-[3px] top-24 h-9 w-[3px] rounded-l-sm bg-[#2a2c2b]" />
+      <div className="absolute -left-[3px] top-36 h-11 w-[3px] rounded-l-sm bg-[#2a2c2b]" />
+      <div className="absolute -right-[3px] top-32 h-12 w-[3px] rounded-r-sm bg-[#2a2c2b]" />
 
-      {/* Detalhes do Notch / Câmera superior */}
-      {modelo === "iphone-dynamic" && (
-        <>
-          {/* Dynamic Island */}
-          <div className="pointer-events-none absolute left-1/2 top-3 z-20 flex h-4 w-20 -translate-x-1/2 items-center justify-end rounded-full bg-black px-2 ring-1 ring-white/10 shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-[#0a0d14] ring-1 ring-white/20" />
-          </div>
-          {/* Barra inferior iOS */}
-          <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-white/30" />
-        </>
-      )}
+      {/* Dynamic Island */}
+      <div className="pointer-events-none absolute left-1/2 top-[18px] z-20 flex h-4 w-20 -translate-x-1/2 items-center justify-end rounded-full bg-black/85 px-2">
+        <span className="h-2 w-2 rounded-full bg-[#0a0d14]" />
+      </div>
+      {/* Barra inferior iOS */}
+      <div className="pointer-events-none absolute bottom-[18px] left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-black/25 mix-blend-luminosity" />
 
-      {modelo === "iphone-notch" && (
-        <>
-          {/* Notch clássico */}
-          <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex h-5 w-28 -translate-x-1/2 items-center justify-center rounded-b-xl bg-black">
-            <span className="mr-2 h-1 w-10 rounded-full bg-white/15" />
-            <span className="h-2 w-2 rounded-full bg-[#0a0d14] ring-1 ring-white/20" />
-          </div>
-          {/* Barra inferior iOS */}
-          <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-white/30" />
-        </>
-      )}
-
-      {modelo === "android-punch" && (
-        <>
-          {/* Alto-falante superior */}
-          <div className="pointer-events-none absolute left-1/2 top-1 z-20 h-[2px] w-10 -translate-x-1/2 rounded-full bg-white/20" />
-          {/* Câmera em furo (hole-punch) */}
-          <div className="pointer-events-none absolute left-1/2 top-3.5 z-20 h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-black ring-2 ring-[#242624]" />
-          {/* Indicador inferior Android */}
-          <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-20 h-0.5 w-16 -translate-x-1/2 rounded-full bg-white/30" />
-        </>
-      )}
-
-      {/* 
-        Tela interna: Fundo OLED preto absoluto (#000000) e overflow-hidden rigoroso.
-        Isso elimina completamente os pequenos pontos/vazamentos brancos nas bordas arredondadas.
-      */}
-      <div
-        className={`h-full w-full overflow-hidden bg-black ${
-          modelo === "iphone-dynamic"
-            ? "rounded-[2.7rem]"
-            : modelo === "iphone-notch"
-              ? "rounded-[2.5rem]"
-              : modelo === "android-punch"
-                ? "rounded-[2.1rem]"
-                : "rounded-[2rem]"
-        }`}
-      >
+      {/* Tela: o conteúdo preenche 100% da altura, sem faixas pretas no topo/rodapé */}
+      <div className="h-full w-full overflow-hidden rounded-[2.5rem]">
         <div
           style={areaSegura}
-          className="h-full w-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="h-full w-full overflow-y-auto overflow-x-hidden [&>*]:min-h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {children}
         </div>
