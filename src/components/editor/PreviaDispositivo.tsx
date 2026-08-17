@@ -52,11 +52,11 @@ export function SeletorDispositivo({
             aria-label={`Prévia ${d.rotulo.toLowerCase()}`}
             aria-pressed={ativo}
             onClick={() => onChange(d.id)}
-            className={`grid h-11 w-11 place-items-center rounded-full ${
+            className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
               ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
             }`}
           >
-            <Icone size={15} aria-hidden />
+            <Icone size={14} aria-hidden />
           </button>
         );
       })}
@@ -85,8 +85,8 @@ function BotaoControle({
       aria-pressed={ativo}
       disabled={desabilitado}
       onClick={onClick}
-      className={`grid h-11 w-11 place-items-center rounded-full disabled:opacity-40 ${
-        ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
+      className={`grid h-7 w-7 place-items-center rounded-full transition-colors disabled:opacity-30 ${
+        ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
       }`}
     >
       {children}
@@ -134,14 +134,14 @@ export function MolduraPrevia({
   return (
     <div
       ref={areaRef}
-      className="flex min-h-0 w-full flex-1 flex-col items-center gap-3 bg-secondary/40 data-[cheia=true]:bg-background data-[cheia=true]:p-4"
+      className="relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden bg-secondary/40 data-[cheia=true]:bg-background data-[cheia=true]:p-4"
       data-cheia={telaCheia}
     >
       {controles && (
         <div
           role="group"
           aria-label="Controles da prévia"
-          className="flex shrink-0 flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-background p-0.5"
+          className="absolute bottom-3 right-3 z-20 flex shrink-0 items-center gap-0.5 rounded-full border border-border/80 bg-background/90 p-0.5 shadow-md backdrop-blur-md"
         >
           <BotaoControle
             rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
@@ -149,18 +149,18 @@ export function MolduraPrevia({
             desabilitado={desktop}
             onClick={() => setOrientacao(horizontal ? "vertical" : "horizontal")}
           >
-            <RotateCcw size={15} aria-hidden />
+            <RotateCcw size={13} aria-hidden />
           </BotaoControle>
           <BotaoControle
             rotulo="Diminuir zoom"
             desabilitado={zoom <= ZOOM_MIN}
             onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 10) / 10))}
           >
-            <ZoomOut size={15} aria-hidden />
+            <ZoomOut size={13} aria-hidden />
           </BotaoControle>
           <span
             aria-live="polite"
-            className="min-w-12 text-center text-xs font-semibold tabular-nums text-muted-foreground"
+            className="min-w-9 text-center text-[10px] font-semibold tabular-nums text-muted-foreground select-none"
           >
             {Math.round(zoom * 100)}%
           </span>
@@ -169,17 +169,17 @@ export function MolduraPrevia({
             desabilitado={zoom >= ZOOM_MAX}
             onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 10) / 10))}
           >
-            <ZoomIn size={15} aria-hidden />
+            <ZoomIn size={13} aria-hidden />
           </BotaoControle>
           <BotaoControle rotulo="Zoom padrão" onClick={() => setZoom(1)}>
-            <span className="text-xs font-semibold">1x</span>
+            <span className="text-[10px] font-semibold">1x</span>
           </BotaoControle>
           <BotaoControle
             rotulo={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
             ativo={telaCheia}
             onClick={alternarTelaCheia}
           >
-            {telaCheia ? <Minimize2 size={15} aria-hidden /> : <Maximize2 size={15} aria-hidden />}
+            {telaCheia ? <Minimize2 size={13} aria-hidden /> : <Maximize2 size={13} aria-hidden />}
           </BotaoControle>
         </div>
       )}
