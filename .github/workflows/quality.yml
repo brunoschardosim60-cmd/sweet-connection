@@ -35,7 +35,7 @@ jobs:
         run: npm run build
 
       - name: Rodar testes
-        run: npm run test -- --run
+        run: npm run test
 
       - name: Auditar dependências
         continue-on-error: true
