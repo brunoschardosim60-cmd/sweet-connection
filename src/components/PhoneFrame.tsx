@@ -33,12 +33,12 @@ export function PhoneFrame({
     <div
       className={`relative shrink-0 select-none bg-[#121413] shadow-[var(--shadow-phone)] ${
         modelo === "iphone-dynamic"
-          ? "rounded-[2.6rem] p-[9px] ring-1 ring-white/15"
+          ? "rounded-[3.4rem] p-[14px] ring-1 ring-white/15"
           : modelo === "iphone-notch"
-            ? "rounded-[2.4rem] p-[10px] ring-1 ring-white/15"
+            ? "rounded-[3.1rem] p-[14px] ring-1 ring-white/15"
             : modelo === "android-punch"
-              ? "rounded-[2.2rem] p-[8px] ring-1 ring-white/15"
-              : "rounded-[2rem] p-[6px] ring-1 ring-white/15"
+              ? "rounded-[2.6rem] p-[10px] ring-1 ring-white/15"
+              : "rounded-[2.4rem] p-[7px] ring-1 ring-white/15"
       } ${className}`}
       style={style}
     >
@@ -96,12 +96,12 @@ export function PhoneFrame({
       <div
         className={`h-full w-full overflow-hidden bg-black ${
           modelo === "iphone-dynamic"
-            ? "rounded-[2.15rem]"
+            ? "rounded-[2.7rem]"
             : modelo === "iphone-notch"
-              ? "rounded-[1.9rem]"
+              ? "rounded-[2.5rem]"
               : modelo === "android-punch"
-                ? "rounded-[1.75rem]"
-                : "rounded-[1.6rem]"
+                ? "rounded-[2.1rem]"
+                : "rounded-[2rem]"
         }`}
       >
         <div
