@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { otimizarImagem } from "./otimizar-imagem";
 
 export type TipoMidia = "imagem" | "video";
 
