@@ -75,19 +75,20 @@ function Demonstracao() {
 
       <main
         className={`flex min-h-0 flex-1 justify-center overflow-hidden ${desktop ? "p-0" : "items-center p-3 sm:p-5"}`}
+        style={desktop ? undefined : { containerType: "size" }}
       >
         <div
           data-dispositivo={disp}
           className={
             desktop
               ? "h-full w-full overflow-hidden bg-background"
-              : "max-w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
+              : "max-h-full max-w-full overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-lift)]"
           }
           style={
             dispositivo
               ? {
                   aspectRatio: `${dispositivo.largura} / ${dispositivo.altura}`,
-                  width: `min(100%, ${dispositivo.largura}px, calc((100dvh - 6.5rem) * ${dispositivo.largura / dispositivo.altura}))`,
+                  width: `min(100%, ${dispositivo.largura}px, calc(100cqh * ${dispositivo.largura / dispositivo.altura}))`,
                 }
               : undefined
           }
