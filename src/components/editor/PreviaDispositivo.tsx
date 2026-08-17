@@ -1,17 +1,29 @@
-import type { ReactNode } from "react";
-import { Monitor, Smartphone, Tablet } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Maximize2,
+  Minimize2,
+  Monitor,
+  RotateCcw,
+  Smartphone,
+  Tablet,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
-import { dimensoesDispositivo } from "@/lib/nexa/previa";
-
+import { deitar, dimensoesDispositivo, paddingAreaSegura } from "@/lib/nexa/previa";
 
 export type Dispositivo = "celular" | "tablet" | "desktop";
+export type Orientacao = "vertical" | "horizontal";
 
 export const dispositivos: { id: Dispositivo; rotulo: string; icone: typeof Monitor }[] = [
   { id: "celular", rotulo: "Celular", icone: Smartphone },
   { id: "tablet", rotulo: "Tablet", icone: Tablet },
   { id: "desktop", rotulo: "Desktop", icone: Monitor },
 ];
+
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 2;
 
 /** Alternador de prévia por dispositivo. */
 export function SeletorDispositivo({
@@ -52,42 +64,148 @@ export function SeletorDispositivo({
   );
 }
 
-/** Moldura da prévia conforme o dispositivo escolhido, sem estourar a largura. */
-export function MolduraPrevia({
-  dispositivo,
+function BotaoControle({
+  rotulo,
+  onClick,
+  ativo = false,
+  desabilitado = false,
   children,
 }: {
-  dispositivo: Dispositivo;
+  rotulo: string;
+  onClick: () => void;
+  ativo?: boolean;
+  desabilitado?: boolean;
   children: ReactNode;
 }) {
-  if (dispositivo === "celular") {
-    const disp = dimensoesDispositivo.celular;
-    return (
-      <PalcoEscalado dispositivo={disp}>
-        <PhoneFrame largura={disp.largura} altura={disp.altura} className="h-full w-full">
-          {children}
-        </PhoneFrame>
-      </PalcoEscalado>
-    );
-  }
-
-  if (dispositivo === "tablet") {
-    const disp = dimensoesDispositivo.tablet;
-    return (
-      <PalcoEscalado dispositivo={disp}>
-        <div className="h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-          {children}
-        </div>
-      </PalcoEscalado>
-    );
-  }
-
   return (
-    <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-      <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-        {children}
-      </div>
-    </div>
+    <button
+      type="button"
+      title={rotulo}
+      aria-label={rotulo}
+      aria-pressed={ativo}
+      disabled={desabilitado}
+      onClick={onClick}
+      className={`grid h-11 w-11 place-items-center rounded-full disabled:opacity-40 ${
+        ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
+/**
+ * Moldura da prévia com controles de orientação, zoom e tela cheia.
+ * O conteúdo é renderizado no tamanho real do dispositivo e apenas escalado.
+ */
+export function MolduraPrevia({
+  dispositivo,
+  children,
+  controles = true,
+}: {
+  dispositivo: Dispositivo;
+  children: ReactNode;
+  controles?: boolean;
+}) {
+  const areaRef = useRef<HTMLDivElement>(null);
+  const [orientacao, setOrientacao] = useState<Orientacao>("vertical");
+  const [zoom, setZoom] = useState(1);
+  const [telaCheia, setTelaCheia] = useState(false);
+
+  useEffect(() => {
+    const aoMudar = () => setTelaCheia(document.fullscreenElement === areaRef.current);
+    document.addEventListener("fullscreenchange", aoMudar);
+    return () => document.removeEventListener("fullscreenchange", aoMudar);
+  }, []);
+
+  const alternarTelaCheia = useCallback(() => {
+    const el = areaRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void el.requestFullscreen?.();
+  }, []);
+
+  const horizontal = orientacao === "horizontal";
+  const desktop = dispositivo === "desktop";
+  const base = desktop ? null : dimensoesDispositivo[dispositivo];
+  const caixa = base ? (horizontal ? deitar(base) : base) : null;
+  const seguro = base ? paddingAreaSegura(dispositivo as "celular" | "tablet", horizontal) : null;
+
+  return (
+    <div
+      ref={areaRef}
+      className="flex min-h-0 w-full flex-1 flex-col items-center gap-3 bg-secondary/40 data-[cheia=true]:bg-background data-[cheia=true]:p-4"
+      data-cheia={telaCheia}
+    >
+      {controles && (
+        <div
+          role="group"
+          aria-label="Controles da prévia"
+          className="flex shrink-0 flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-background p-0.5"
+        >
+          <BotaoControle
+            rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
+            ativo={horizontal}
+            desabilitado={desktop}
+            onClick={() => setOrientacao(horizontal ? "vertical" : "horizontal")}
+          >
+            <RotateCcw size={15} aria-hidden />
+          </BotaoControle>
+          <BotaoControle
+            rotulo="Diminuir zoom"
+            desabilitado={zoom <= ZOOM_MIN}
+            onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 10) / 10))}
+          >
+            <ZoomOut size={15} aria-hidden />
+          </BotaoControle>
+          <span
+            aria-live="polite"
+            className="min-w-12 text-center text-xs font-semibold tabular-nums text-muted-foreground"
+          >
+            {Math.round(zoom * 100)}%
+          </span>
+          <BotaoControle
+            rotulo="Aumentar zoom"
+            desabilitado={zoom >= ZOOM_MAX}
+            onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 10) / 10))}
+          >
+            <ZoomIn size={15} aria-hidden />
+          </BotaoControle>
+          <BotaoControle rotulo="Zoom padrão" onClick={() => setZoom(1)}>
+            <span className="text-xs font-semibold">1x</span>
+          </BotaoControle>
+          <BotaoControle
+            rotulo={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
+            ativo={telaCheia}
+            onClick={alternarTelaCheia}
+          >
+            {telaCheia ? <Minimize2 size={15} aria-hidden /> : <Maximize2 size={15} aria-hidden />}
+          </BotaoControle>
+        </div>
+      )}
+
+      {caixa && seguro ? (
+        <PalcoEscalado dispositivo={caixa} zoom={zoom}>
+          {dispositivo === "celular" ? (
+            <PhoneFrame largura={caixa.largura} altura={caixa.altura} areaSegura={seguro}>
+              {children}
+            </PhoneFrame>
+          ) : (
+            <div
+              style={seguro}
+              className="h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
+            >
+              {children}
+            </div>
+          )}
+        </PalcoEscalado>
+      ) : (
+        <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+          <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
