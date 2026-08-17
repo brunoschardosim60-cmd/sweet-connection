@@ -22,7 +22,8 @@ export async function otimizarImagem(
 ): Promise<File> {
   if (typeof document === "undefined" || !OTIMIZAVEIS.has(arquivo.type)) return arquivo;
 
-  const destino = suporta("image/avif") ? "image/avif" : suporta("image/webp") ? "image/webp" : "";
+  // WebP é aceito por todos os navegadores atuais e pelo bucket de mídia.
+  const destino = suporta("image/webp") ? "image/webp" : "";
   if (!destino) return arquivo;
 
   const url = URL.createObjectURL(arquivo);
