@@ -18,11 +18,7 @@ export interface Caixa {
  */
 export function calcularPrevia(disponivel: Caixa, dispositivo: Caixa): Caixa {
   const proporcao = dispositivo.largura / dispositivo.altura;
-  const largura = Math.min(
-    disponivel.largura,
-    dispositivo.largura,
-    disponivel.altura * proporcao,
-  );
+  const largura = Math.min(disponivel.largura, dispositivo.largura, disponivel.altura * proporcao);
   return { largura, altura: largura / proporcao };
 }
 
