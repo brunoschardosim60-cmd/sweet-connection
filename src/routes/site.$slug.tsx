@@ -38,7 +38,10 @@ export const Route = createFileRoute("/site/$slug")({
         { name: "twitter:description", content: descricao },
         ...(imagem ? [{ name: "twitter:image", content: imagem }] : []),
       ],
-      links: [{ rel: "canonical", href: canonical }],
+      links: [
+        { rel: "canonical", href: canonical },
+        { rel: "manifest", href: `/api/public/manifest/${loaderData.slug}` },
+      ],
     };
   },
   component: SitePublico,

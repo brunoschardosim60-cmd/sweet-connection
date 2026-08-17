@@ -31,6 +31,7 @@ import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
+import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -142,6 +143,11 @@ const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
   path: '/editor/$id',
   getParentRoute: () => PainelRoute,
 } as any)
+const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
+  id: '/api/public/manifest/$slug',
+  path: '/api/public/manifest/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin': typeof PainelAdminIndexRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin/'
+    | '/api/public/manifest/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin'
+    | '/api/public/manifest/$slug'
   id:
     | '__root__'
     | '/'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin/'
+    | '/api/public/manifest/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   SiteSlugRoute: typeof SiteSlugRoute
+  ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelEditorIdRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/api/public/manifest/$slug': {
+      id: '/api/public/manifest/$slug'
+      path: '/api/public/manifest/$slug'
+      fullPath: '/api/public/manifest/$slug'
+      preLoaderRoute: typeof ApiPublicManifestSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -505,6 +525,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   SiteSlugRoute: SiteSlugRoute,
+  ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
