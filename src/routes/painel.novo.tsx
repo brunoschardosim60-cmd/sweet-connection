@@ -12,7 +12,37 @@ import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
 import type { Cliente, SegmentoId } from "@/lib/nexa/types";
 
+interface NovoBusca {
+  empresa?: string;
+  whatsapp?: string;
+  email?: string;
+  cidade?: string;
+  estado?: string;
+  endereco?: string;
+  cor?: string;
+  logo?: string;
+  nicho?: string;
+  /** ID direto de modelo (passado por outras rotas via search={{ modelo: m.id }}). */
+  modelo?: string;
+}
+
 export const Route = createFileRoute("/painel/novo")({
+  validateSearch: (search: Record<string, unknown>): NovoBusca => {
+    const str = (v: unknown): string | undefined =>
+      typeof v === "string" && v.length > 0 ? v : undefined;
+    return {
+      empresa: str(search["empresa"]) ?? str(search["name"]) ?? str(search["nome"]),
+      whatsapp: str(search["whatsapp"]) ?? str(search["phone"]) ?? str(search["telefone"]),
+      email: str(search["email"]),
+      cidade: str(search["cidade"]),
+      estado: str(search["estado"]),
+      endereco: str(search["endereco"]) ?? str(search["address"]),
+      cor: str(search["cor"]) ?? str(search["color"]),
+      logo: str(search["logo"]),
+      nicho: str(search["nicho"]) ?? str(search["segmento"]),
+      modelo: str(search["modelo"]),
+    } as NovoBusca;
+  },
   head: () => ({
     meta: [
       { title: "Novo mini-site — Nexa" },
@@ -25,24 +55,244 @@ export const Route = createFileRoute("/painel/novo")({
   component: NovoSite,
 });
 
+const mapearNichoParaSegmento = (nicho: string | undefined): { segmento: SegmentoId; modeloId: string } => {
+  const nichoParam = (nicho || "").toLowerCase().trim();
+  if (!nichoParam) {
+    return { segmento: "alimentacao" as SegmentoId, modeloId: modelos[0]!.id };
+  }
+
+  const validSegmentIds: SegmentoId[] = [
+    "alimentacao",
+    "beleza",
+    "comercio",
+    "servicos",
+    "saude",
+    "eventos",
+    "imoveis",
+    "transporte",
+    "profissionais",
+  ];
+  if (validSegmentIds.includes(nichoParam as SegmentoId)) {
+    const segId = nichoParam as SegmentoId;
+    const defaultModel = modelos.find((m) => m.segmento === segId)?.id || modelos[0]!.id;
+    return { segmento: segId, modeloId: defaultModel };
+  }
+
+  // Mapeamento por palavras-chave
+  let segmento: SegmentoId = "servicos";
+  let modeloId = "prestador-servicos";
+
+  if (nichoParam.includes("hamburguer") || nichoParam.includes("burguer")) {
+    segmento = "alimentacao";
+    modeloId = "hamburgueria-urbana";
+  } else if (nichoParam.includes("pizza")) {
+    segmento = "alimentacao";
+    modeloId = "pizzaria";
+  } else if (nichoParam.includes("doce") || nichoParam.includes("confeitaria") || nichoParam.includes("bolo")) {
+    segmento = "alimentacao";
+    modeloId = "doceria";
+  } else if (
+    nichoParam.includes("restaurante") ||
+    nichoParam.includes("comida") ||
+    nichoParam.includes("alimenta") ||
+    nichoParam.includes("gourmet") ||
+    nichoParam.includes("cafe")
+  ) {
+    segmento = "alimentacao";
+    modeloId = "restaurante-moderno";
+  } else if (nichoParam.includes("barbearia") || nichoParam.includes("barbeiro")) {
+    segmento = "beleza";
+    modeloId = "barbearia-premium";
+  } else if (
+    nichoParam.includes("salao") ||
+    nichoParam.includes("beleza") ||
+    nichoParam.includes("estetica") ||
+    nichoParam.includes("cabeleire") ||
+    nichoParam.includes("unha") ||
+    nichoParam.includes("manicure")
+  ) {
+    segmento = "beleza";
+    modeloId = "salao-beleza";
+  } else if (
+    nichoParam.includes("roupa") ||
+    nichoParam.includes("vestu") ||
+    nichoParam.includes("moda") ||
+    nichoParam.includes("loja") ||
+    nichoParam.includes("boutique")
+  ) {
+    segmento = "comercio";
+    modeloId = "loja-roupas";
+  } else if (
+    nichoParam.includes("cosmetico") ||
+    nichoParam.includes("perfume") ||
+    nichoParam.includes("maquiagem")
+  ) {
+    segmento = "comercio";
+    modeloId = "cosmeticos";
+  } else if (nichoParam.includes("dentista") || nichoParam.includes("odonto")) {
+    segmento = "saude";
+    modeloId = "odontologia";
+  } else if (
+    nichoParam.includes("clinica") ||
+    nichoParam.includes("medico") ||
+    nichoParam.includes("saude") ||
+    nichoParam.includes("consultorio") ||
+    nichoParam.includes("hospital")
+  ) {
+    segmento = "saude";
+    modeloId = "clinica";
+  } else if (
+    nichoParam.includes("personal") ||
+    nichoParam.includes("treino") ||
+    nichoParam.includes("fitness") ||
+    nichoParam.includes("academia")
+  ) {
+    segmento = "profissionais";
+    modeloId = "personal-trainer";
+  } else if (nichoParam.includes("foto") || nichoParam.includes("video") || nichoParam.includes("camera")) {
+    segmento = "profissionais";
+    modeloId = "fotografo";
+  } else if (
+    nichoParam.includes("advogado") ||
+    nichoParam.includes("advocacia") ||
+    nichoParam.includes("juridico") ||
+    nichoParam.includes("direito")
+  ) {
+    segmento = "profissionais";
+    modeloId = "advocacia";
+  } else if (
+    nichoParam.includes("corretor") ||
+    nichoParam.includes("imobili") ||
+    nichoParam.includes("imovel") ||
+    nichoParam.includes("apartamento")
+  ) {
+    segmento = "imoveis";
+    modeloId = "corretor";
+  } else if (
+    nichoParam.includes("transporte") ||
+    nichoParam.includes("frete") ||
+    nichoParam.includes("transportadora") ||
+    nichoParam.includes("mudanca")
+  ) {
+    segmento = "transporte";
+    modeloId = "transportadora";
+  } else if (
+    nichoParam.includes("evento") ||
+    nichoParam.includes("festa") ||
+    nichoParam.includes("buffet") ||
+    nichoParam.includes("casamento")
+  ) {
+    segmento = "eventos";
+    modeloId = "eventos-festas";
+  } else if (
+    nichoParam.includes("pet") ||
+    nichoParam.includes("cachorro") ||
+    nichoParam.includes("gato") ||
+    nichoParam.includes("animal") ||
+    nichoParam.includes("veteri") ||
+    nichoParam.includes("tosa")
+  ) {
+    segmento = "servicos";
+    modeloId = "petshop";
+  } else if (
+    nichoParam.includes("mecanic") ||
+    nichoParam.includes("oficina") ||
+    nichoParam.includes("carro") ||
+    nichoParam.includes("veiculo")
+  ) {
+    segmento = "servicos";
+    modeloId = "mecanica";
+  } else {
+    if (nichoParam.includes("aliment") || nichoParam.includes("comid")) {
+      segmento = "alimentacao";
+      modeloId = "restaurante-moderno";
+    } else if (nichoParam.includes("servi")) {
+      segmento = "servicos";
+      modeloId = "prestador-servicos";
+    } else if (nichoParam.includes("comerc") || nichoParam.includes("venda")) {
+      segmento = "comercio";
+      modeloId = "loja-roupas";
+    } else if (nichoParam.includes("profissi") || nichoParam.includes("consult")) {
+      segmento = "profissionais";
+      modeloId = "personal-trainer";
+    }
+  }
+
+  return { segmento, modeloId };
+};
+
+const extrairCidadeEstado = (
+  enderecoParam: string | undefined,
+  cidadeParam: string | undefined,
+  estadoParam: string | undefined
+): { cidade: string; estado: string } => {
+  let cidade = (cidadeParam || "").trim();
+  let estado = (estadoParam || "SP").trim().toUpperCase();
+
+  if (!estados.includes(estado)) {
+    estado = "SP";
+  }
+
+  const end = (enderecoParam || "").trim();
+  if (!end) return { cidade, estado };
+
+  const match = end.match(/(?:,|\s|-)\s*([A-Za-z]{2})\s*$/);
+  if (match) {
+    const parsedUF = (match[1] ?? "").toUpperCase();
+    if (parsedUF && estados.includes(parsedUF)) {
+      estado = parsedUF;
+      const parts = end.substring(0, match.index ?? end.length).split(/(?:,|\s-|-)\s*/);
+      if (parts.length > 0) {
+        const lastPart = (parts[parts.length - 1] ?? "").trim();
+        if (lastPart) {
+          cidade = lastPart;
+        }
+      }
+    }
+  } else if (!cidade) {
+    cidade = end;
+  }
+
+  return { cidade, estado };
+};
+
+const formatarCorHex = (cor: string | undefined): string | undefined => {
+  if (!cor) return undefined;
+  const c = cor.trim();
+  if (/^[0-9a-fA-F]{3,8}$/.test(c)) {
+    return `#${c}`;
+  }
+  return c;
+};
+
 const passos = ["Cliente", "Modelo", "Endereço"];
 
 function NovoSite() {
   const { sites, store } = useNexa();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+
+  const nichoInfo = useMemo(() => mapearNichoParaSegmento(search.nicho), [search.nicho]);
+  const localizacaoInfo = useMemo(
+    () => extrairCidadeEstado(search.endereco, search.cidade, search.estado),
+    [search.endereco, search.cidade, search.estado]
+  );
+  const corInicial = useMemo(() => formatarCorHex(search.cor), [search.cor]);
+
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
 
-  const [cliente, setCliente] = useState<Cliente>({
-    empresa: "",
-    segmento: "alimentacao",
+  const [cliente, setCliente] = useState<Cliente>(() => ({
+    empresa: search.empresa || "",
+    segmento: nichoInfo.segmento,
     responsavel: "",
-    telefone: "",
-    email: "",
-    cidade: "",
-    estado: "SP",
-  });
-  const [modeloId, setModeloId] = useState(modelos[0]!.id);
+    telefone: search.whatsapp ? telefoneMask(search.whatsapp) : "",
+    email: search.email || "",
+    cidade: localizacaoInfo.cidade,
+    estado: localizacaoInfo.estado,
+  }));
+
+  const [modeloId, setModeloId] = useState(() => search.modelo ?? nichoInfo.modeloId);
   const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
   const meusModelos = useSyncExternalStore(
     modelosUsuarioStore.subscribe,
@@ -53,6 +303,10 @@ function NovoSite() {
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
   const [logoFormato, setLogoFormato] = useState<"redondo" | "quadrado">("redondo");
+
+  const [corPersonalizada, setCorPersonalizada] = useState<string | null>(() => corInicial || null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(() => search.logo || null);
+  const [enderecoPersonalizado, setEnderecoPersonalizado] = useState<string | null>(() => search.endereco || null);
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
@@ -84,9 +338,19 @@ function NovoSite() {
     );
     return {
       ...base,
-      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+      conteudo: {
+        ...base.conteudo,
+        ...(logoUrl ? { logo: logoUrl } : {}),
+        ...(enderecoPersonalizado ? { endereco: enderecoPersonalizado } : {}),
+      },
+      aparencia: {
+        ...base.aparencia,
+        ...(corPersonalizada ? { corPrimaria: corPersonalizada } : {}),
+        ...(meuModelo?.aparencia ?? {}),
+        logoFormato,
+      },
     };
-  }, [cliente, logoFormato, meuModelo, modeloId, slugFinal]);
+  }, [cliente, logoFormato, meuModelo, modeloId, slugFinal, logoUrl, corPersonalizada, enderecoPersonalizado]);
 
   const podeAvancar =
     passo === 0
@@ -101,7 +365,17 @@ function NovoSite() {
     const base = criarSite(cliente, modeloId, slugFinal);
     const site = {
       ...base,
-      aparencia: { ...base.aparencia, ...(meuModelo?.aparencia ?? {}), logoFormato },
+      conteudo: {
+        ...base.conteudo,
+        ...(logoUrl ? { logo: logoUrl } : {}),
+        ...(enderecoPersonalizado ? { endereco: enderecoPersonalizado } : {}),
+      },
+      aparencia: {
+        ...base.aparencia,
+        ...(corPersonalizada ? { corPrimaria: corPersonalizada } : {}),
+        ...(meuModelo?.aparencia ?? {}),
+        logoFormato,
+      },
     };
     try {
       const salvo = await store.adicionarSite(site);
