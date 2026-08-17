@@ -4,7 +4,9 @@ import { useState } from "react";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modelos } from "@/lib/nexa/modelos";
-import { dimensoesDispositivo, larguraCssPrevia } from "@/lib/nexa/previa";
+import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
+import { dimensoesDispositivo } from "@/lib/nexa/previa";
+
 
 export const Route = createFileRoute("/demonstracao/$modelo")({
   loader: ({ params }) => {
