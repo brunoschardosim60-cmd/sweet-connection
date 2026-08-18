@@ -92,8 +92,8 @@ export function RevisaoIA({
       faq: secoes.includes("faq") ? faq : [],
       seo: {
         ...plano.seo,
-        titulo: seoTitulo.trim() || plano.seo?.titulo,
-        descricao: seoDescricao.trim() || plano.seo?.descricao,
+        ...(seoTitulo.trim() ? { titulo: seoTitulo.trim() } : {}),
+        ...(seoDescricao.trim() ? { descricao: seoDescricao.trim() } : {}),
       },
     });
 
