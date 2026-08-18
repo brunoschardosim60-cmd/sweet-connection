@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { criarSite } from "@/lib/nexa/factory";
 import { gerarPlanoSite } from "@/lib/nexa/ia.functions";
 import { aplicarPlanoIA } from "@/lib/nexa/ia-aplicar";
+import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa/ia-tipos";
+import { RevisaoIA } from "@/components/painel/RevisaoIA";
 import { enviarArquivo } from "@/lib/nexa/media";
 import type { Cliente, Site } from "@/lib/nexa/types";
 
@@ -29,6 +31,10 @@ export function CriacaoIA({
   const [imagens, setImagens] = useState<string[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [criando, setCriando] = useState(false);
+  const [estilo, setEstilo] = useState<EstiloIA>("automatico");
+  const [tema, setTema] = useState<TemaIA>("automatico");
+  const [plano, setPlano] = useState<PlanoIA | null>(null);
 
   const enviar = async (arquivos: FileList | null) => {
     if (!arquivos?.length) return;
@@ -48,7 +54,7 @@ export function CriacaoIA({
     }
   };
 
-  const criar = async () => {
+  const revisar = async () => {
     if (desabilitado) {
       toast.error(desabilitado);
       return;
@@ -59,25 +65,38 @@ export function CriacaoIA({
     }
     setGerando(true);
     try {
-      const plano = await gerar({
+      const sugestao = await gerar({
         data: {
           empresa: cliente.empresa,
           nicho: descricao.trim(),
           cidade: cliente.cidade,
           estado: cliente.estado,
           imagens,
+          estilo,
+          tema,
         },
       });
-      const base = criarSite(
-        { ...cliente, segmento: plano.segmento ?? cliente.segmento },
-        plano.modeloId,
-        slug,
-      );
-      await onCriar(aplicarPlanoIA(base, plano, imagens));
+      setPlano(sugestao);
     } catch (e) {
-      toast.error("Não foi possível gerar o mini-site", { description: (e as Error).message });
+      toast.error("Não foi possível gerar a sugestão", { description: (e as Error).message });
     } finally {
       setGerando(false);
+    }
+  };
+
+  const criarAprovado = async (aprovado: PlanoIA) => {
+    setCriando(true);
+    try {
+      const base = criarSite(
+        { ...cliente, segmento: aprovado.segmento ?? cliente.segmento },
+        aprovado.modeloId,
+        slug,
+      );
+      await onCriar(aplicarPlanoIA(base, aprovado, imagens, { estilo, tema }));
+    } catch (e) {
+      toast.error("Não foi possível criar o mini-site", { description: (e as Error).message });
+    } finally {
+      setCriando(false);
     }
   };
 
@@ -147,16 +166,76 @@ export function CriacaoIA({
         </ul>
       )}
 
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div>
+          <span className="mb-1.5 block text-sm font-medium">Estilo visual</span>
+          <div className="flex flex-wrap gap-2">
+            {(["automatico", ...Object.keys(ESTILOS_IA)] as EstiloIA[]).map((op) => (
+              <button
+                key={op}
+                type="button"
+                aria-pressed={estilo === op}
+                onClick={() => setEstilo(op)}
+                title={op === "automatico" ? "A IA decide" : ESTILOS_IA[op as keyof typeof ESTILOS_IA].descricao}
+                className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
+                  estilo === op
+                    ? "border-ink bg-ink text-ink-foreground"
+                    : "border-border bg-card text-muted-foreground"
+                }`}
+              >
+                {op === "automatico" ? "Automático" : ESTILOS_IA[op as keyof typeof ESTILOS_IA].rotulo}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium">Paleta</span>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["automatico", "Automática"],
+                ["claro", "Clara"],
+                ["escuro", "Escura"],
+              ] as [TemaIA, string][]
+            ).map(([valor, rotulo]) => (
+              <button
+                key={valor}
+                type="button"
+                aria-pressed={tema === valor}
+                onClick={() => setTema(valor)}
+                className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
+                  tema === valor
+                    ? "border-ink bg-ink text-ink-foreground"
+                    : "border-border bg-card text-muted-foreground"
+                }`}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <button
         type="button"
-        onClick={() => void criar()}
+        onClick={() => void revisar()}
         disabled={gerando}
         className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-70 sm:w-auto"
       >
         {gerando ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-        {gerando ? "Gerando mini-site…" : "Gerar mini-site com IA"}
+        {gerando ? "Gerando sugestão…" : plano ? "Gerar nova sugestão" : "Gerar sugestão com IA"}
       </button>
       {desabilitado && <p className="mt-2 text-xs text-muted-foreground">{desabilitado}</p>}
+
+      {plano && (
+        <RevisaoIA
+          plano={plano}
+          criando={criando}
+          onAprovar={(aprovado) => void criarAprovado(aprovado)}
+          onRegerar={() => void revisar()}
+          onCancelar={() => setPlano(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,42 @@
-import type { SegmentoId, TipoFormulario, TipoSecao } from "./types";
+import type { Aparencia, SegmentoId, TipoFormulario, TipoSecao } from "./types";
+
+/** Estilos visuais que a pessoa pode escolher na criação automática. */
+export type EstiloIA = "automatico" | "minimalista" | "moderno" | "elegante" | "vibrante";
+
+/** Preferência de tema informada na criação automática. */
+export type TemaIA = "automatico" | "claro" | "escuro";
+
+export interface PreferenciasIA {
+  estilo: EstiloIA;
+  tema: TemaIA;
+}
+
+/** Ajustes de aparência aplicados por estilo (mantêm a identidade do modelo). */
+export const ESTILOS_IA: Record<
+  Exclude<EstiloIA, "automatico">,
+  { rotulo: string; descricao: string; aparencia: Partial<Aparencia> }
+> = {
+  minimalista: {
+    rotulo: "Minimalista",
+    descricao: "Poucos elementos, muito respiro",
+    aparencia: { fonte: "moderna", botao: "contorno", espacamento: "amplo", raio: 12 },
+  },
+  moderno: {
+    rotulo: "Moderno",
+    descricao: "Cards, cantos suaves e contraste",
+    aparencia: { fonte: "moderna", botao: "pill", espacamento: "confortavel", raio: 20 },
+  },
+  elegante: {
+    rotulo: "Elegante",
+    descricao: "Tipografia serifada e sóbria",
+    aparencia: { fonte: "elegante", botao: "solido", espacamento: "amplo", raio: 8 },
+  },
+  vibrante: {
+    rotulo: "Vibrante",
+    descricao: "Cores fortes e blocos cheios",
+    aparencia: { fonte: "editorial", botao: "solido", espacamento: "compacto", raio: 24 },
+  },
+};
 
 /** Plano de conteúdo devolvido pela IA para montar o mini-site. */
 export interface PlanoIA {

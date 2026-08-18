@@ -1,5 +1,5 @@
 import { uid } from "./utils";
-import type { PlanoIA } from "./ia-tipos";
+import { ESTILOS_IA, type PlanoIA, type PreferenciasIA } from "./ia-tipos";
 import type { Site, TipoSecao } from "./types";
 
 const hex = (valor?: string) =>
@@ -11,7 +11,16 @@ const limitar = <T>(lista: T[] | undefined, max: number): T[] => (lista ?? []).s
  * Aplica o plano gerado pela IA sobre um site base criado pelo factory.
  * Função pura: não toca em rede, storage nem Supabase.
  */
-export function aplicarPlanoIA(base: Site, plano: PlanoIA, imagens: string[] = []): Site {
+export function aplicarPlanoIA(
+  base: Site,
+  plano: PlanoIA,
+  imagens: string[] = [],
+  preferencias?: PreferenciasIA,
+): Site {
+  const estilo =
+    preferencias && preferencias.estilo !== "automatico" ? ESTILOS_IA[preferencias.estilo] : undefined;
+  const temaEscolhido =
+    preferencias && preferencias.tema !== "automatico" ? preferencias.tema : undefined;
   const fotos = imagens.filter(Boolean);
   const [capa, ...restantes] = fotos;
 
@@ -87,8 +96,9 @@ export function aplicarPlanoIA(base: Site, plano: PlanoIA, imagens: string[] = [
       corPrimaria: hex(plano.cores?.primaria) ?? base.aparencia.corPrimaria,
       corFundo: hex(plano.cores?.fundo) ?? base.aparencia.corFundo,
       corTexto: hex(plano.cores?.texto) ?? base.aparencia.corTexto,
-      tema: plano.tema ?? base.aparencia.tema,
+      tema: temaEscolhido ?? plano.tema ?? base.aparencia.tema,
       capaTipo: capa ? "imagem" : base.aparencia.capaTipo,
+      ...(estilo?.aparencia ?? {}),
     },
     secoes,
     produtos: produtos.length ? produtos : base.produtos,

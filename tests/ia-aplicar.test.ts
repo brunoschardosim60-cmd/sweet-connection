@@ -56,3 +56,23 @@ describe("aplicarPlanoIA", () => {
     expect(outro.aparencia.corPrimaria).toBe(base.aparencia.corPrimaria);
   });
 });
+
+describe("preferências de estilo e paleta", () => {
+  const base = criarSite(cliente, "barbearia-premium", "barbearia-nova");
+  const plano = { descricao: "x", segmento: "beleza", modeloId: "barbearia-premium" } as const;
+
+  it("aplica tema escolhido e ajustes do estilo", () => {
+    const site = aplicarPlanoIA(base, { ...plano, tema: "claro" }, [], {
+      estilo: "elegante",
+      tema: "escuro",
+    });
+    expect(site.aparencia.tema).toBe("escuro");
+    expect(site.aparencia.fonte).toBe("elegante");
+  });
+
+  it("mantém a identidade quando tudo é automático", () => {
+    const site = aplicarPlanoIA(base, plano, [], { estilo: "automatico", tema: "automatico" });
+    expect(site.aparencia.fonte).toBe(base.aparencia.fonte);
+    expect(site.aparencia.tema).toBe(base.aparencia.tema);
+  });
+});
