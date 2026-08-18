@@ -1,5 +1,5 @@
 import { modelos } from "./modelos";
-import type { PlanoIA } from "./ia-tipos";
+import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "./ia-tipos";
 
 export interface EntradaPlano {
   empresa: string;
@@ -8,6 +8,10 @@ export interface EntradaPlano {
   estado?: string;
   /** URLs públicas das imagens enviadas (usadas como referência visual). */
   imagens?: string[];
+  /** Estilo visual pedido pela pessoa. */
+  estilo?: EstiloIA;
+  /** Tema pedido pela pessoa (claro/escuro). */
+  tema?: TemaIA;
 }
 
 const MODELO = "google/gemini-2.5-flash";
@@ -38,6 +42,12 @@ export async function gerarPlano(entrada: EntradaPlano): Promise<PlanoIA> {
         `Negócio: ${entrada.empresa}`,
         `Descrição/nicho informado: ${entrada.nicho}`,
         entrada.cidade ? `Cidade: ${entrada.cidade} - ${entrada.estado ?? ""}` : "",
+        entrada.estilo && entrada.estilo !== "automatico"
+          ? `Estilo visual desejado: ${ESTILOS_IA[entrada.estilo].rotulo} (${ESTILOS_IA[entrada.estilo].descricao}).`
+          : "",
+        entrada.tema && entrada.tema !== "automatico"
+          ? `Tema obrigatório: ${entrada.tema}. Escolha cores com bom contraste para esse tema.`
+          : "",
         "Gere o plano do mini-site em português do Brasil.",
       ]
         .filter(Boolean)
