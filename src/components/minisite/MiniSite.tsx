@@ -992,7 +992,10 @@ function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
   return (
     <section>
       <Titulo site={site}>{titulo}</Titulo>
-      <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+      <div
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarColor: `${hexToRgba(site.aparencia.corPrimaria, 0.35)} transparent` }}
+      >
         {site.depoimentos.map((d) => (
           <div
             key={d.id}
