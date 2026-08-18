@@ -3,6 +3,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { CriacaoIA } from "@/components/painel/CriacaoIA";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
@@ -359,6 +360,12 @@ function NovoSite() {
         ? !!modeloId
         : slugFinal.length > 2 && !slugEmUso;
 
+  const criarComSite = async (site: Site) => {
+    const salvo = await store.adicionarSite(site);
+    toast.success("Mini-site gerado", { description: "Revise o conteúdo no editor." });
+    void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
+  };
+
   const criar = async () => {
     if (!podeAvancar || salvando) return;
     setSalvando(true);
@@ -445,6 +452,19 @@ function NovoSite() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="surface p-5 sm:p-6">
+          {passo === 0 && (
+            <div className="mb-5">
+              <CriacaoIA
+                cliente={cliente}
+                slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                {...(podeAvancar
+                  ? {}
+                  : { desabilitado: "Preencha nome da empresa e WhatsApp para gerar com IA." })}
+                onCriar={criarComSite}
+              />
+            </div>
+          )}
+
           {passo === 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
               <Campo
