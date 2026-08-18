@@ -992,14 +992,17 @@ function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
   return (
     <section>
       <Titulo site={site}>{titulo}</Titulo>
-      <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+      <div
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarColor: `${hexToRgba(site.aparencia.corPrimaria, 0.35)} transparent` }}
+      >
         {site.depoimentos.map((d) => (
           <div
             key={d.id}
             className="w-64 shrink-0 snap-start p-4"
             style={{
-              background: "var(--ms-surface)",
-              border: "1px solid var(--ms-border)",
+              background: hexToRgba(site.aparencia.corPrimaria, 0.06),
+              border: `1px solid ${hexToRgba(site.aparencia.corPrimaria, 0.16)}`,
               borderRadius: "var(--ms-radius)",
             }}
           >
@@ -1026,19 +1029,29 @@ function BlocoEquipe({ site, titulo }: { site: Site; titulo: string }) {
         {site.equipe.map((m) => (
           <Cartao key={m.id} site={site}>
             <div className="p-4 text-center">
-              <div
-                className="mx-auto grid h-12 w-12 place-items-center rounded-full text-sm font-bold"
-                style={{
-                  background: hexToRgba(site.aparencia.corPrimaria, 0.2),
-                  color: site.aparencia.corPrimaria,
-                }}
-              >
-                {m.nome
-                  .split(" ")
-                  .slice(0, 2)
-                  .map((p) => p[0])
-                  .join("")}
-              </div>
+              {m.foto ? (
+                <img
+                  src={m.foto}
+                  alt={m.nome}
+                  loading="lazy"
+                  className="mx-auto h-12 w-12 rounded-full object-cover"
+                  style={{ border: `1px solid ${hexToRgba(site.aparencia.corPrimaria, 0.35)}` }}
+                />
+              ) : (
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full text-sm font-bold"
+                  style={{
+                    background: hexToRgba(site.aparencia.corPrimaria, 0.2),
+                    color: site.aparencia.corPrimaria,
+                  }}
+                >
+                  {m.nome
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((p) => p[0])
+                    .join("")}
+                </div>
+              )}
               <p className="mt-2 text-sm font-semibold">{m.nome}</p>
               <p className="text-xs opacity-65">{m.funcao}</p>
             </div>
