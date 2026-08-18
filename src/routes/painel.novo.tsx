@@ -3,6 +3,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { CriacaoIA } from "@/components/painel/CriacaoIA";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
@@ -10,7 +11,7 @@ import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
-import type { Cliente, SegmentoId } from "@/lib/nexa/types";
+import type { Cliente, SegmentoId, Site } from "@/lib/nexa/types";
 
 interface NovoBusca {
   empresa?: string;
@@ -55,7 +56,9 @@ export const Route = createFileRoute("/painel/novo")({
   component: NovoSite,
 });
 
-const mapearNichoParaSegmento = (nicho: string | undefined): { segmento: SegmentoId; modeloId: string } => {
+const mapearNichoParaSegmento = (
+  nicho: string | undefined,
+): { segmento: SegmentoId; modeloId: string } => {
   const nichoParam = (nicho || "").toLowerCase().trim();
   if (!nichoParam) {
     return { segmento: "alimentacao" as SegmentoId, modeloId: modelos[0]!.id };
@@ -88,7 +91,11 @@ const mapearNichoParaSegmento = (nicho: string | undefined): { segmento: Segment
   } else if (nichoParam.includes("pizza")) {
     segmento = "alimentacao";
     modeloId = "pizzaria";
-  } else if (nichoParam.includes("doce") || nichoParam.includes("confeitaria") || nichoParam.includes("bolo")) {
+  } else if (
+    nichoParam.includes("doce") ||
+    nichoParam.includes("confeitaria") ||
+    nichoParam.includes("bolo")
+  ) {
     segmento = "alimentacao";
     modeloId = "doceria";
   } else if (
@@ -149,7 +156,11 @@ const mapearNichoParaSegmento = (nicho: string | undefined): { segmento: Segment
   ) {
     segmento = "profissionais";
     modeloId = "personal-trainer";
-  } else if (nichoParam.includes("foto") || nichoParam.includes("video") || nichoParam.includes("camera")) {
+  } else if (
+    nichoParam.includes("foto") ||
+    nichoParam.includes("video") ||
+    nichoParam.includes("camera")
+  ) {
     segmento = "profissionais";
     modeloId = "fotografo";
   } else if (
@@ -224,7 +235,7 @@ const mapearNichoParaSegmento = (nicho: string | undefined): { segmento: Segment
 const extrairCidadeEstado = (
   enderecoParam: string | undefined,
   cidadeParam: string | undefined,
-  estadoParam: string | undefined
+  estadoParam: string | undefined,
 ): { cidade: string; estado: string } => {
   let cidade = (cidadeParam || "").trim();
   let estado = (estadoParam || "SP").trim().toUpperCase();
@@ -275,7 +286,7 @@ function NovoSite() {
   const nichoInfo = useMemo(() => mapearNichoParaSegmento(search.nicho), [search.nicho]);
   const localizacaoInfo = useMemo(
     () => extrairCidadeEstado(search.endereco, search.cidade, search.estado),
-    [search.endereco, search.cidade, search.estado]
+    [search.endereco, search.cidade, search.estado],
   );
   const corInicial = useMemo(() => formatarCorHex(search.cor), [search.cor]);
 
@@ -306,7 +317,9 @@ function NovoSite() {
 
   const [corPersonalizada, setCorPersonalizada] = useState<string | null>(() => corInicial || null);
   const [logoUrl, setLogoUrl] = useState<string | null>(() => search.logo || null);
-  const [enderecoPersonalizado, setEnderecoPersonalizado] = useState<string | null>(() => search.endereco || null);
+  const [enderecoPersonalizado, setEnderecoPersonalizado] = useState<string | null>(
+    () => search.endereco || null,
+  );
 
   const sugeridos = useMemo(
     () => modelos.filter((m) => m.segmento === cliente.segmento),
@@ -350,7 +363,16 @@ function NovoSite() {
         logoFormato,
       },
     };
-  }, [cliente, logoFormato, meuModelo, modeloId, slugFinal, logoUrl, corPersonalizada, enderecoPersonalizado]);
+  }, [
+    cliente,
+    logoFormato,
+    meuModelo,
+    modeloId,
+    slugFinal,
+    logoUrl,
+    corPersonalizada,
+    enderecoPersonalizado,
+  ]);
 
   const podeAvancar =
     passo === 0
@@ -358,6 +380,12 @@ function NovoSite() {
       : passo === 1
         ? !!modeloId
         : slugFinal.length > 2 && !slugEmUso;
+
+  const criarComSite = async (site: Site) => {
+    const salvo = await store.adicionarSite(site);
+    toast.success("Mini-site gerado", { description: "Revise o conteúdo no editor." });
+    void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
+  };
 
   const criar = async () => {
     if (!podeAvancar || salvando) return;
@@ -445,6 +473,19 @@ function NovoSite() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="surface p-5 sm:p-6">
+          {passo === 0 && (
+            <div className="mb-5">
+              <CriacaoIA
+                cliente={cliente}
+                slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                {...(podeAvancar
+                  ? {}
+                  : { desabilitado: "Preencha nome da empresa e WhatsApp para gerar com IA." })}
+                onCriar={criarComSite}
+              />
+            </div>
+          )}
+
           {passo === 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
               <Campo
