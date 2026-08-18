@@ -1001,8 +1001,8 @@ function BlocoDepoimentos({ site, titulo }: { site: Site; titulo: string }) {
             key={d.id}
             className="w-64 shrink-0 snap-start p-4"
             style={{
-              background: "var(--ms-surface)",
-              border: "1px solid var(--ms-border)",
+              background: hexToRgba(site.aparencia.corPrimaria, 0.06),
+              border: `1px solid ${hexToRgba(site.aparencia.corPrimaria, 0.16)}`,
               borderRadius: "var(--ms-radius)",
             }}
           >
