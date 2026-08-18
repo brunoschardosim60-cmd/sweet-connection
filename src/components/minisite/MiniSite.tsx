@@ -1026,19 +1026,29 @@ function BlocoEquipe({ site, titulo }: { site: Site; titulo: string }) {
         {site.equipe.map((m) => (
           <Cartao key={m.id} site={site}>
             <div className="p-4 text-center">
-              <div
-                className="mx-auto grid h-12 w-12 place-items-center rounded-full text-sm font-bold"
-                style={{
-                  background: hexToRgba(site.aparencia.corPrimaria, 0.2),
-                  color: site.aparencia.corPrimaria,
-                }}
-              >
-                {m.nome
-                  .split(" ")
-                  .slice(0, 2)
-                  .map((p) => p[0])
-                  .join("")}
-              </div>
+              {m.foto ? (
+                <img
+                  src={m.foto}
+                  alt={m.nome}
+                  loading="lazy"
+                  className="mx-auto h-12 w-12 rounded-full object-cover"
+                  style={{ border: `1px solid ${hexToRgba(site.aparencia.corPrimaria, 0.35)}` }}
+                />
+              ) : (
+                <div
+                  className="mx-auto grid h-12 w-12 place-items-center rounded-full text-sm font-bold"
+                  style={{
+                    background: hexToRgba(site.aparencia.corPrimaria, 0.2),
+                    color: site.aparencia.corPrimaria,
+                  }}
+                >
+                  {m.nome
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((p) => p[0])
+                    .join("")}
+                </div>
+              )}
               <p className="mt-2 text-sm font-semibold">{m.nome}</p>
               <p className="text-xs opacity-65">{m.funcao}</p>
             </div>
