@@ -68,7 +68,11 @@ export function CriacaoIA({
           imagens,
         },
       });
-      const base = criarSite({ ...cliente, segmento: plano.segmento ?? cliente.segmento }, plano.modeloId, slug);
+      const base = criarSite(
+        { ...cliente, segmento: plano.segmento ?? cliente.segmento },
+        plano.modeloId,
+        slug,
+      );
       await onCriar(aplicarPlanoIA(base, plano, imagens));
     } catch (e) {
       toast.error("Não foi possível gerar o mini-site", { description: (e as Error).message });

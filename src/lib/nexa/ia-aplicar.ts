@@ -2,7 +2,8 @@ import { uid } from "./utils";
 import type { PlanoIA } from "./ia-tipos";
 import type { Site, TipoSecao } from "./types";
 
-const hex = (valor?: string) => (valor && /^#[0-9a-fA-F]{6}$/.test(valor.trim()) ? valor.trim() : undefined);
+const hex = (valor?: string) =>
+  valor && /^#[0-9a-fA-F]{6}$/.test(valor.trim()) ? valor.trim() : undefined;
 
 const limitar = <T>(lista: T[] | undefined, max: number): T[] => (lista ?? []).slice(0, max);
 

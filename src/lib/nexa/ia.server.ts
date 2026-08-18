@@ -81,7 +81,8 @@ export async function gerarPlano(entrada: EntradaPlano): Promise<PlanoIA> {
   });
 
   if (!resposta.ok) {
-    if (resposta.status === 429) throw new Error("Muitas gerações seguidas. Tente novamente em instantes.");
+    if (resposta.status === 429)
+      throw new Error("Muitas gerações seguidas. Tente novamente em instantes.");
     if (resposta.status === 402) throw new Error("Créditos de IA esgotados no workspace.");
     throw new Error(`Falha na geração (${resposta.status}).`);
   }
