@@ -43,7 +43,7 @@ function CartaoAcesso({
 }: {
   usuario: AdminUsuario;
   ocupado: boolean;
-  onPlano: (plano: PlanoNexa) => void;
+  onPlano: (plano: string) => void;
 }) {
   return (
     <article className="rounded-2xl border border-border bg-card p-4">
@@ -71,20 +71,22 @@ function CartaoAcesso({
           </p>
         </div>
         <div className="flex rounded-full border border-border p-1" role="group" aria-label="Plano">
-          {(["free", "pro"] as const).map((plano) => (
+          {["none", "essential", "professional", "catalog"].map((plano) => (
             <button
               key={plano}
               type="button"
-              aria-pressed={usuario.plano === plano}
-              disabled={ocupado || usuario.plano === plano}
+              disabled={ocupado}
               onClick={() => onPlano(plano)}
-              className={`min-h-11 rounded-full px-3 text-xs font-semibold disabled:cursor-default ${
-                usuario.plano === plano
-                  ? "bg-ink text-ink-foreground"
-                  : "text-muted-foreground hover:bg-secondary disabled:opacity-60"
-              }`}
+              className={`min-h-11 rounded-full px-3 text-xs font-semibold disabled:cursor-default ${"text-muted-foreground hover:bg-secondary disabled:opacity-60"}`}
             >
-              {plano === "pro" ? "Pro" : "Gratuito"}
+              {
+                {
+                  none: "Sem plano",
+                  essential: "Essencial",
+                  professional: "Profissional",
+                  catalog: "Catálogo",
+                }[plano]
+              }
             </button>
           ))}
         </div>
@@ -95,7 +97,7 @@ function CartaoAcesso({
 
 function PainelAcessos() {
   const { admin, carregando: checando } = useIsAdmin();
-  const { usuarios, auditoria, carregando, erro, definirPlano } = useAdminDados(30);
+  const { usuarios, auditoria, carregando, erro, definirAssinatura } = useAdminDados(30);
   const [busca, setBusca] = useState("");
   const [plano, setPlano] = useState<"todos" | PlanoNexa>("todos");
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -105,10 +107,10 @@ function PainelAcessos() {
     [busca, plano, usuarios],
   );
 
-  const alterarPlano = async (usuario: AdminUsuario, proximo: PlanoNexa) => {
+  const alterarPlano = async (usuario: AdminUsuario, proximo: string) => {
     setOcupado(usuario.user_id);
     try {
-      await definirPlano(usuario.user_id, proximo);
+      await definirAssinatura(usuario.user_id, proximo, proximo === "none" ? "inactive" : "active");
       toast.success(`Plano de ${usuario.email ?? "usuário"} atualizado.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível alterar o plano.");
@@ -164,7 +166,8 @@ function PainelAcessos() {
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">Planos e auditoria</h1>
           <p className="text-sm text-muted-foreground">
-            O administrador é fixo; aqui são alterados somente os planos Free e Pro.
+            Defina o acesso comercial de cada conta. Sem plano, a pessoa só pode manter um rascunho
+            e não publica.
           </p>
         </div>
         <button

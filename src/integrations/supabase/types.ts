@@ -538,6 +538,10 @@ export type Database = {
         Args: { requested_plan: string; requested_user_id: string }
         Returns: undefined
       }
+      nexa_admin_set_subscription: {
+        Args: { requested_status: string; requested_tier: string; requested_user_id: string }
+        Returns: undefined
+      }
       nexa_consume_ai_generation: {
         Args: { requested_user_id: string }
         Returns: {

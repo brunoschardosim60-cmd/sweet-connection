@@ -212,6 +212,18 @@ export function useAdminDados(periodo: Periodo = 30) {
     },
     [carregar],
   );
+  const definirAssinatura = useCallback(
+    async (userId: string, tier: string, status: string) => {
+      const { error } = await supabase.rpc("nexa_admin_set_subscription", {
+        requested_user_id: userId,
+        requested_tier: tier,
+        requested_status: status,
+      });
+      if (error) throw new Error(mensagemErroAdmin(error));
+      await carregar();
+    },
+    [carregar],
+  );
 
   return {
     resumo,
@@ -223,6 +235,7 @@ export function useAdminDados(periodo: Periodo = 30) {
     erro,
     recarregar: carregar,
     definirPlano,
+    definirAssinatura,
   };
 }
 
