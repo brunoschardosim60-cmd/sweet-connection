@@ -509,14 +509,14 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
         <Reveal delay={visiveis.length * 40}>
           <article className="group relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)]">
             <div className="relative grid h-52 place-items-center overflow-hidden bg-ink text-ink-foreground">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)]" />
-              <span className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)] transition-transform duration-500 group-hover:scale-105" />
+              <span className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink transition-transform duration-500 group-hover:scale-105">
                 <Sparkles size={28} />
               </span>
               <Link
                 to="/painel/novo"
                 search={{ modo: "ia" }}
-                className="absolute inset-0 grid place-items-center bg-ink/70 text-xs font-bold opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 text-xs font-bold opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100"
               >
                 <span className="rounded-full bg-lime px-4 py-2 text-ink">Criar com IA</span>
               </Link>
@@ -531,13 +531,15 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
               <p className="mt-2 text-sm text-muted-foreground">
                 Descreva o negócio e envie fotos. A IA sugere modelo, cores, textos e seções.
               </p>
-              <Link
-                to="/painel/novo"
-                search={{ modo: "ia" }}
-                className="mt-4 inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-xs font-bold text-ink-foreground"
-              >
-                Criar com IA
-              </Link>
+              <div className="mt-4 flex gap-1.5" aria-label="Paleta do modelo">
+                {["#111312", "#f3fff2", "#b8ff3c", "#dfffb1"].map((cor) => (
+                  <span
+                    key={cor}
+                    className="h-4 w-4 rounded-full border border-border"
+                    style={{ background: cor }}
+                  />
+                ))}
+              </div>
             </div>
           </article>
         </Reveal>
