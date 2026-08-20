@@ -25,6 +25,8 @@ interface NovoBusca {
   nicho?: string;
   /** ID direto de modelo (passado por outras rotas via search={{ modelo: m.id }}). */
   modelo?: string;
+  /** Abre o assistente de criação automática depois do cadastro do cliente. */
+  modo?: "ia";
 }
 
 export const Route = createFileRoute("/painel/novo")({
@@ -42,6 +44,7 @@ export const Route = createFileRoute("/painel/novo")({
       logo: str(search["logo"]),
       nicho: str(search["nicho"]) ?? str(search["segmento"]),
       modelo: str(search["modelo"]),
+      modo: search["modo"] === "ia" ? "ia" : undefined,
     } as NovoBusca;
   },
   head: () => ({
@@ -304,7 +307,9 @@ function NovoSite() {
   }));
 
   const [modeloId, setModeloId] = useState(() => search.modelo ?? nichoInfo.modeloId);
-  const [modoCriacao, setModoCriacao] = useState<"modelo" | "ia">("modelo");
+  const [modoCriacao, setModoCriacao] = useState<"modelo" | "ia">(() =>
+    search.modo === "ia" ? "ia" : "modelo",
+  );
   const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
   const meusModelos = useSyncExternalStore(
     modelosUsuarioStore.subscribe,
