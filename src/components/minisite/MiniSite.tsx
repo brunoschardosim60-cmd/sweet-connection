@@ -717,21 +717,23 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
               {p.variacoes.length > 0 && (
                 <p className="mt-1 text-[11px] opacity-60">{p.variacoes.join(" · ")}</p>
               )}
-              <div className="mt-2 flex items-center gap-2">
-                {p.precoPromocional ? (
-                  <>
-                    <span className="text-xs line-through opacity-50">{moeda(p.preco)}</span>
-                    <span
-                      className="text-sm font-bold"
-                      style={{ color: site.aparencia.corPrimaria }}
-                    >
-                      {moeda(p.precoPromocional)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-sm font-bold">{moeda(p.preco)}</span>
-                )}
-              </div>
+              {(p.precoPromocional || p.preco > 0) && (
+                <div className="mt-2 flex items-center gap-2">
+                  {p.precoPromocional ? (
+                    <>
+                      <span className="text-xs line-through opacity-50">{moeda(p.preco)}</span>
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: site.aparencia.corPrimaria }}
+                      >
+                        {moeda(p.precoPromocional)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-bold">{moeda(p.preco)}</span>
+                  )}
+                </div>
+              )}
               <div className="mt-3">
                 {!p.disponivel ? (
                   <span className="text-xs opacity-60">Indisponível no momento</span>
@@ -748,7 +750,9 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
                     bloco
                     href={whatsappLink(
                       site.conteudo.whatsapp,
-                      `Olá! Tenho interesse no produto ${p.nome}, no valor de ${moeda(p.precoPromocional ?? p.preco)}.`,
+                      p.precoPromocional || p.preco > 0
+                        ? `Olá! Tenho interesse no produto ${p.nome}, no valor de ${moeda(p.precoPromocional ?? p.preco)}.`
+                        : `Olá! Tenho interesse no produto ${p.nome}.`,
                     )}
                     onClick={() => registrar(`Produto: ${p.nome}`, true)}
                   >

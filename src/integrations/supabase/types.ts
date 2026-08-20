@@ -141,6 +141,33 @@ export type Database = {
           },
         ]
       }
+      ai_generation_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          owner_id: string
+          plan: Json
+          request_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          owner_id?: string
+          plan: Json
+          request_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          owner_id?: string
+          plan?: Json
+          request_hash?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string

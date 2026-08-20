@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { criarSite } from "@/lib/nexa/factory";
 import { gerarPlanoSite } from "@/lib/nexa/ia.functions";
 import { aplicarPlanoIA } from "@/lib/nexa/ia-aplicar";
+import { buscarPlanoEmCache, guardarPlanoEmCache } from "@/lib/nexa/ia-cache";
 import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa/ia-tipos";
 import { RevisaoIA } from "@/components/painel/RevisaoIA";
 import { enviarArquivo } from "@/lib/nexa/media";
@@ -65,17 +66,25 @@ export function CriacaoIA({
     }
     setGerando(true);
     try {
-      const sugestao = await gerar({
-        data: {
-          empresa: cliente.empresa,
-          nicho: descricao.trim(),
-          cidade: cliente.cidade,
-          estado: cliente.estado,
-          imagens,
-          estilo,
-          tema,
-        },
-      });
+      const entrada = {
+        empresa: cliente.empresa,
+        nicho: descricao.trim(),
+        cidade: cliente.cidade,
+        estado: cliente.estado,
+        imagens,
+        estilo,
+        tema,
+      };
+      const emCache = await buscarPlanoEmCache(entrada);
+      if (emCache) {
+        setPlano(emCache);
+        toast.message("Sugestão recuperada do cache", {
+          description: "Nenhum crédito de IA foi consumido.",
+        });
+        return;
+      }
+      const sugestao = await gerar({ data: entrada });
+      void guardarPlanoEmCache(entrada, sugestao);
       setPlano(sugestao);
     } catch (e) {
       toast.error("Não foi possível gerar a sugestão", { description: (e as Error).message });
@@ -109,7 +118,7 @@ export function CriacaoIA({
         <div>
           <h2 className="font-display text-base font-bold">Criação automática com IA</h2>
           <p className="text-xs text-muted-foreground">
-            Descreva o nicho e envie fotos: a IA escolhe o modelo, as cores e escreve o conteúdo.
+            Descreva o negócio e envie fotos: a IA cria do zero a estrutura, as cores e o conteúdo.
           </p>
         </div>
       </div>
