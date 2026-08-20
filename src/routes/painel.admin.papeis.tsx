@@ -36,18 +36,30 @@ const dataHora = (valor?: string | null) =>
       })
     : "—";
 
+const PLANOS = [
+  { id: "none", rotulo: "Sem plano", nota: "Apenas 1 rascunho" },
+  { id: "essential", rotulo: "Essencial", nota: "Publicação básica" },
+  { id: "professional", rotulo: "Profissional", nota: "Serviços e agenda" },
+  { id: "catalog", rotulo: "Catálogo", nota: "Catálogo e pedidos" },
+] as const;
+
 function CartaoAcesso({
   usuario,
+  tier,
+  ativo,
   ocupado,
   onPlano,
 }: {
   usuario: AdminUsuario;
+  tier: string;
+  ativo: boolean;
   ocupado: boolean;
   onPlano: (plano: string) => void;
 }) {
+  const atual = PLANOS.find((p) => p.id === tier) ?? PLANOS[0];
   return (
-    <article className="rounded-2xl border border-border bg-card p-4">
-      <header className="flex flex-wrap items-start justify-between gap-2">
+    <article className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-sm font-semibold">
             {usuario.display_name?.trim() || usuario.email || usuario.user_id}
@@ -56,44 +68,74 @@ function CartaoAcesso({
             {usuario.email ?? "E-mail indisponível"}
           </p>
         </div>
-        {usuario.is_admin && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-1 text-[11px] font-semibold text-ink-foreground">
-            <ShieldCheck size={12} aria-hidden="true" /> Administrador fixo
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          {usuario.is_admin && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-1 text-[11px] font-semibold text-ink-foreground">
+              <ShieldCheck size={12} aria-hidden="true" /> Admin
+            </span>
+          )}
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+              ativo
+                ? "bg-lime text-ink"
+                : "border border-border bg-secondary text-muted-foreground"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${ativo ? "bg-ink" : "bg-muted-foreground"}`}
+              aria-hidden="true"
+            />
+            {ativo ? "Ativo" : "Inativo"}
           </span>
-        )}
+        </div>
       </header>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
-        <div>
-          <p className="text-xs font-semibold">Plano comercial</p>
-          <p className="text-[11px] text-muted-foreground">
-            Última alteração: {dataHora(usuario.plan_updated_at)}
-          </p>
+      <div className="mt-3 rounded-xl border border-border p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold">
+              Plano comercial: <span className="font-bold">{atual.rotulo}</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Última alteração: {dataHora(usuario.plan_updated_at)}
+            </p>
+          </div>
         </div>
-        <div className="flex rounded-full border border-border p-1" role="group" aria-label="Plano">
-          {["none", "essential", "professional", "catalog"].map((plano) => (
-            <button
-              key={plano}
-              type="button"
-              disabled={ocupado}
-              onClick={() => onPlano(plano)}
-              className={`min-h-11 rounded-full px-3 text-xs font-semibold disabled:cursor-default ${"text-muted-foreground hover:bg-secondary disabled:opacity-60"}`}
-            >
-              {
-                {
-                  none: "Sem plano",
-                  essential: "Essencial",
-                  professional: "Profissional",
-                  catalog: "Catálogo",
-                }[plano]
-              }
-            </button>
-          ))}
+        <div
+          className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4"
+          role="group"
+          aria-label={`Plano de ${usuario.email ?? usuario.user_id}`}
+        >
+          {PLANOS.map((plano) => {
+            const selecionado = plano.id === tier;
+            return (
+              <button
+                key={plano.id}
+                type="button"
+                aria-pressed={selecionado}
+                disabled={ocupado}
+                onClick={() => onPlano(plano.id)}
+                className={`min-h-11 rounded-xl border px-2 py-2 text-left text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-60 ${
+                  selecionado
+                    ? "border-ink bg-ink text-ink-foreground"
+                    : "border-border hover:bg-secondary"
+                }`}
+              >
+                <span className="block truncate">{plano.rotulo}</span>
+                <span
+                  className={`block truncate text-[10px] font-medium ${selecionado ? "opacity-70" : "text-muted-foreground"}`}
+                >
+                  {plano.nota}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </article>
   );
 }
+
 
 function PainelAcessos() {
   const { admin, carregando: checando } = useIsAdmin();
