@@ -168,6 +168,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generation_daily_usage: {
+        Row: {
+          generations: number
+          owner_id: string
+          updated_at: string
+          usage_date: string
+        }
+        Insert: {
+          generations?: number
+          owner_id: string
+          updated_at?: string
+          usage_date?: string
+        }
+        Update: {
+          generations?: number
+          owner_id?: string
+          updated_at?: string
+          usage_date?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string
@@ -515,6 +536,18 @@ export type Database = {
       }
       nexa_admin_set_plan: {
         Args: { requested_plan: string; requested_user_id: string }
+        Returns: undefined
+      }
+      nexa_consume_ai_generation: {
+        Args: { requested_user_id: string }
+        Returns: {
+          allowed: boolean
+          daily_limit: number | null
+          used: number
+        }[]
+      }
+      nexa_refund_ai_generation: {
+        Args: { requested_user_id: string }
         Returns: undefined
       }
       nexa_admin_users: {

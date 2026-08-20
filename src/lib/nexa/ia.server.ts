@@ -1,4 +1,5 @@
 import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "./ia-tipos";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export interface EntradaPlano {
   empresa: string;
@@ -153,44 +154,74 @@ async function gerarComGeminiDireto(chave: string, entrada: EntradaPlano): Promi
 }
 
 /** Gera o plano de conteúdo do mini-site a partir da descrição do negócio. */
-export async function gerarPlano(entrada: EntradaPlano): Promise<PlanoIA> {
-  const chaveGemini = process.env["GEMINI_API_KEY"];
-  if (chaveGemini) return gerarComGeminiDireto(chaveGemini, entrada);
+async function reservarGeracao(accessToken: string) {
+  const { data: auth, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+  if (authError || !auth.user)
+    throw new Error("Sua sessão expirou. Entre novamente para usar a IA.");
 
-  const chave = process.env["LOVABLE_API_KEY"];
-  if (!chave) throw new Error("Serviço de IA indisponível: configure GEMINI_API_KEY na Vercel.");
-
-  const conteudo: unknown[] = [
-    { type: "text", text: briefingEmTexto(entrada) },
-    ...urlsDeReferencia(entrada).map((url) => ({ type: "image_url", image_url: { url } })),
-  ];
-
-  const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODELO_LOVABLE,
-      messages: [
-        {
-          role: "system",
-          content: instrucoesDoPlano(),
-        },
-        { role: "user", content: conteudo },
-      ],
-    }),
+  const { data, error } = await supabaseAdmin.rpc("nexa_consume_ai_generation", {
+    requested_user_id: auth.user.id,
   });
+  if (error) throw new Error("Não foi possível verificar seu limite de IA.");
 
-  if (!resposta.ok) {
-    if (resposta.status === 429)
-      throw new Error("Muitas gerações seguidas. Tente novamente em instantes.");
-    if (resposta.status === 402) throw new Error("Créditos de IA esgotados no workspace.");
-    throw new Error(`Falha na geração (${resposta.status}).`);
+  const resultado = Array.isArray(data) ? data[0] : data;
+  if (!resultado?.allowed) {
+    throw new Error(
+      `Você atingiu o limite diário de ${resultado?.daily_limit ?? 5} gerações de IA. Tente amanhã ou mude para o plano Pro.`,
+    );
   }
+  return auth.user.id;
+}
 
-  const json = (await resposta.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const texto = json.choices?.[0]?.message?.content;
-  if (!texto) throw new Error("A IA não devolveu conteúdo.");
-  return extrairJson(texto);
+async function devolverGeracao(ownerId: string) {
+  await supabaseAdmin.rpc("nexa_refund_ai_generation", { requested_user_id: ownerId });
+}
+
+/** Gera um plano somente para uma sessão Supabase autenticada e com saldo diário. */
+export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Promise<PlanoIA> {
+  const ownerId = await reservarGeracao(accessToken);
+  try {
+    const chaveGemini = process.env["GEMINI_API_KEY"];
+    if (chaveGemini) return gerarComGeminiDireto(chaveGemini, entrada);
+
+    const chave = process.env["LOVABLE_API_KEY"];
+    if (!chave) throw new Error("Serviço de IA indisponível: configure GEMINI_API_KEY na Vercel.");
+
+    const conteudo: unknown[] = [
+      { type: "text", text: briefingEmTexto(entrada) },
+      ...urlsDeReferencia(entrada).map((url) => ({ type: "image_url", image_url: { url } })),
+    ];
+
+    const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODELO_LOVABLE,
+        messages: [
+          {
+            role: "system",
+            content: instrucoesDoPlano(),
+          },
+          { role: "user", content: conteudo },
+        ],
+      }),
+    });
+
+    if (!resposta.ok) {
+      if (resposta.status === 429)
+        throw new Error("Muitas gerações seguidas. Tente novamente em instantes.");
+      if (resposta.status === 402) throw new Error("Créditos de IA esgotados no workspace.");
+      throw new Error(`Falha na geração (${resposta.status}).`);
+    }
+
+    const json = (await resposta.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
+    const texto = json.choices?.[0]?.message?.content;
+    if (!texto) throw new Error("A IA não devolveu conteúdo.");
+    return extrairJson(texto);
+  } catch (error) {
+    await devolverGeracao(ownerId);
+    throw error;
+  }
 }

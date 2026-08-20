@@ -10,6 +10,7 @@ import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa
 import { RevisaoIA } from "@/components/painel/RevisaoIA";
 import { enviarArquivo } from "@/lib/nexa/media";
 import { uid } from "@/lib/nexa/utils";
+import { supabase } from "@/integrations/supabase/client";
 import type { Cliente, ItemVideo, MembroEquipe, Site } from "@/lib/nexa/types";
 
 /**
@@ -169,7 +170,11 @@ export function CriacaoIA({
         });
         return;
       }
-      const sugestao = await gerar({ data: entrada });
+      const { data: sessao } = await supabase.auth.getSession();
+      if (!sessao.session?.access_token) {
+        throw new Error("Entre na sua conta para usar a criação com IA.");
+      }
+      const sugestao = await gerar({ data: { entrada, accessToken: sessao.session.access_token } });
       void guardarPlanoEmCache(entrada, sugestao);
       setPlano(sugestao);
     } catch (e) {
