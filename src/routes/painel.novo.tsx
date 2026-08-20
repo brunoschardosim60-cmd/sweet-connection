@@ -306,7 +306,9 @@ function NovoSite() {
     estado: localizacaoInfo.estado,
   }));
 
-  const [modeloId, setModeloId] = useState(() => search.modelo ?? nichoInfo.modeloId);
+  const [modeloId, setModeloId] = useState(() =>
+    search.modo === "ia" ? modeloPersonalizado.id : (search.modelo ?? nichoInfo.modeloId),
+  );
   const [modoCriacao, setModoCriacao] = useState<"modelo" | "ia">(() =>
     search.modo === "ia" ? "ia" : "modelo",
   );
@@ -352,7 +354,7 @@ function NovoSite() {
   const previa = useMemo(() => {
     const base = criarSite(
       { ...cliente, empresa: cliente.empresa || "Seu negócio" },
-      modeloId,
+      modoCriacao === "ia" ? modeloPersonalizado.id : modeloId,
       slugFinal || "previa",
     );
     return {
@@ -373,6 +375,7 @@ function NovoSite() {
     cliente,
     logoFormato,
     meuModelo,
+    modoCriacao,
     modeloId,
     slugFinal,
     logoUrl,
@@ -546,7 +549,37 @@ function NovoSite() {
             </div>
           )}
 
-          {passo === 1 && (
+          {passo === 1 && modoCriacao === "ia" && (
+            <div className="max-w-3xl">
+              <div className="mb-5 rounded-2xl border border-ink/20 bg-secondary/50 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
+                    <Wand2 size={18} />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-lg font-bold">Criar do zero com IA</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Nenhum modelo foi escolhido. A IA monta a estrutura, os textos, as cores e as
+                      seções a partir da sua descrição e das fotos.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <CriacaoIA
+                cliente={cliente}
+                slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                {...(cliente.empresa.trim().length > 1 &&
+                cliente.telefone.replace(/\D/g, "").length >= 10
+                  ? {}
+                  : {
+                      desabilitado: "Volte ao passo Cliente e informe nome da empresa e WhatsApp.",
+                    })}
+                onCriar={criarComSite}
+              />
+            </div>
+          )}
+
+          {passo === 1 && modoCriacao === "modelo" && (
             <div>
               <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={15} /> Modelos recomendados para este segmento
@@ -614,17 +647,11 @@ function NovoSite() {
                 </div>
               )}
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                <div
-                  className={`overflow-hidden rounded-2xl border transition-all ${
-                    modoCriacao === "ia"
-                      ? "border-ink ring-2 ring-lime"
-                      : "border-border hover:-translate-y-0.5"
-                  }`}
-                >
+                <div className="overflow-hidden rounded-2xl border border-border transition-all hover:-translate-y-0.5">
                   <button
                     type="button"
                     onClick={() => setModoCriacao("ia")}
-                    aria-pressed={modoCriacao === "ia"}
+                    aria-pressed={false}
                     className="block w-full text-left"
                   >
                     <span className="relative grid h-36 place-items-center overflow-hidden bg-ink text-ink-foreground">
@@ -632,11 +659,6 @@ function NovoSite() {
                       <span className="relative grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
                         <Wand2 size={22} />
                       </span>
-                      {modoCriacao === "ia" && (
-                        <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-lime text-ink">
-                          <Check size={15} />
-                        </span>
-                      )}
                     </span>
                     <span className="block p-3">
                       <span className="block text-sm font-semibold">Criação automática com IA</span>
@@ -711,22 +733,6 @@ function NovoSite() {
                   );
                 })}
               </div>
-              {modoCriacao === "ia" && (
-                <div className="mt-5">
-                  <CriacaoIA
-                    cliente={cliente}
-                    slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
-                    {...(cliente.empresa.trim().length > 1 &&
-                    cliente.telefone.replace(/\D/g, "").length >= 10
-                      ? {}
-                      : {
-                          desabilitado:
-                            "Volte ao passo Cliente e informe nome da empresa e WhatsApp.",
-                        })}
-                    onCriar={criarComSite}
-                  />
-                </div>
-              )}
             </div>
           )}
 
@@ -809,7 +815,15 @@ function NovoSite() {
             >
               <ArrowLeft size={15} /> Voltar
             </button>
-            {passo < 2 ? (
+            {passo === 1 && modoCriacao === "ia" ? (
+              <button
+                type="button"
+                onClick={() => setModoCriacao("modelo")}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-5 text-sm font-semibold hover:bg-secondary"
+              >
+                Escolher um modelo manualmente
+              </button>
+            ) : passo < 2 ? (
               <button
                 type="button"
                 disabled={!podeAvancar}

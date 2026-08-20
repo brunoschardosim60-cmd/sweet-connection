@@ -42,7 +42,6 @@ export const ESTILOS_IA: Record<
 export interface PlanoIA {
   descricao: string;
   segmento: SegmentoId;
-  modeloId: string;
   cores?: { primaria?: string; fundo?: string; texto?: string };
   tema?: "claro" | "escuro";
   secoes?: TipoSecao[];

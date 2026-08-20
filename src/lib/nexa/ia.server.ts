@@ -1,4 +1,3 @@
-import { modelos } from "./modelos";
 import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "./ia-tipos";
 
 export interface EntradaPlano {
@@ -15,8 +14,6 @@ export interface EntradaPlano {
 }
 
 const MODELO = "google/gemini-2.5-flash";
-
-const listaModelos = () => modelos.map((m) => `${m.id} (${m.segmento})`).join(", ");
 
 function extrairJson(texto: string): PlanoIA {
   const limpo = texto
@@ -71,7 +68,6 @@ export async function gerarPlano(entrada: EntradaPlano): Promise<PlanoIA> {
             "Responda SOMENTE com JSON válido, sem comentários nem markdown.",
             "Formato:",
             '{"descricao":string(1-2 frases),"segmento":"alimentacao|beleza|comercio|servicos|saude|eventos|imoveis|transporte|profissionais",',
-            `"modeloId": um destes ids: ${listaModelos()},`,
             '"cores":{"primaria":"#RRGGBB","fundo":"#RRGGBB","texto":"#RRGGBB"},"tema":"claro|escuro",',
             '"secoes":["apresentacao","links","produtos","servicos","cardapio","galeria","depoimentos","equipe","promocao","cupom","localizacao","horarios","faq","formulario","rodape"],',
             '"servicos":[{"nome":string,"descricao":string,"duracao":string,"preco":number}],',
@@ -81,6 +77,7 @@ export async function gerarPlano(entrada: EntradaPlano): Promise<PlanoIA> {
             '"galeria":[{"titulo":string}],',
             '"formulario":{"tipo":"orcamento|contato|reserva|agendamento|cotacao","titulo":string},',
             '"seo":{"titulo":string,"descricao":string,"palavras":string}}',
+            "Não escolha nem reutilize um modelo pronto: monte o conteúdo e as seções a partir do negócio informado.",
             "Use as imagens enviadas como referência do estilo e do que o negócio vende.",
             "Preços realistas em reais; no máximo 6 itens por lista.",
           ].join(" "),

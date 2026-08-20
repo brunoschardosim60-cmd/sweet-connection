@@ -89,7 +89,7 @@ export function CriacaoIA({
     try {
       const base = criarSite(
         { ...cliente, segmento: aprovado.segmento ?? cliente.segmento },
-        aprovado.modeloId,
+        "personalizado",
         slug,
       );
       await onCriar(aplicarPlanoIA(base, aprovado, imagens, { estilo, tema }));
@@ -176,14 +176,20 @@ export function CriacaoIA({
                 type="button"
                 aria-pressed={estilo === op}
                 onClick={() => setEstilo(op)}
-                title={op === "automatico" ? "A IA decide" : ESTILOS_IA[op as keyof typeof ESTILOS_IA].descricao}
+                title={
+                  op === "automatico"
+                    ? "A IA decide"
+                    : ESTILOS_IA[op as keyof typeof ESTILOS_IA].descricao
+                }
                 className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
                   estilo === op
                     ? "border-ink bg-ink text-ink-foreground"
                     : "border-border bg-card text-muted-foreground"
                 }`}
               >
-                {op === "automatico" ? "Automático" : ESTILOS_IA[op as keyof typeof ESTILOS_IA].rotulo}
+                {op === "automatico"
+                  ? "Automático"
+                  : ESTILOS_IA[op as keyof typeof ESTILOS_IA].rotulo}
               </button>
             ))}
           </div>
