@@ -297,6 +297,7 @@ export type Database = {
           client_id: string
           created_at: string
           draft_content: Json
+          expires_at: string | null
           id: string
           owner_id: string
           published_at: string | null
@@ -309,6 +310,7 @@ export type Database = {
           client_id: string
           created_at?: string
           draft_content: Json
+          expires_at?: string | null
           id?: string
           owner_id?: string
           published_at?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           client_id?: string
           created_at?: string
           draft_content?: Json
+          expires_at?: string | null
           id?: string
           owner_id?: string
           published_at?: string | null
@@ -539,6 +542,7 @@ export type Database = {
           client_id: string
           created_at: string
           draft_content: Json
+          expires_at: string | null
           id: string
           owner_id: string
           published_at: string | null
@@ -575,6 +579,7 @@ export type Database = {
           client_id: string
           created_at: string
           draft_content: Json
+          expires_at: string | null
           id: string
           owner_id: string
           published_at: string | null
@@ -622,6 +627,7 @@ export type Database = {
           client_id: string
           created_at: string
           draft_content: Json
+          expires_at: string | null
           id: string
           owner_id: string
           published_at: string | null

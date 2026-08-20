@@ -46,6 +46,13 @@ import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { grupoDeSecao, secaoTemConteudo } from "@/lib/nexa/secoes";
+import {
+  dataDoCampo,
+  dataParaExpiracao,
+  expiraEmDias,
+  siteExpirado,
+  textoDaExpiracao,
+} from "@/lib/nexa/publicacao";
 import type { CampoFormulario, Site, TipoLink } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/editor/$id")({
@@ -579,6 +586,66 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
+      <Bloco titulo="Publicação e validade" id="bloco-validade">
+        <p className="text-sm text-muted-foreground">
+          Defina por quanto tempo este mini-site ficará acessível ao público. Depois do prazo, o
+          endereço deixa de abrir automaticamente.
+        </p>
+        <label className="mt-1 flex min-h-11 items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            checked={!site.expiraEm}
+            onChange={(e) =>
+              aplicar((s) => ({
+                ...s,
+                expiraEm: e.target.checked ? null : expiraEmDias(365),
+              }))
+            }
+          />
+          Manter publicado sem prazo
+        </label>
+        {site.expiraEm && (
+          <>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">Publicar até</span>
+              <input
+                type="date"
+                value={dataDoCampo(site.expiraEm)}
+                min={dataDoCampo(expiraEmDias(1))}
+                onChange={(e) => {
+                  const expiraEm = dataParaExpiracao(e.target.value);
+                  if (expiraEm) aplicar((s) => ({ ...s, expiraEm }));
+                }}
+                className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-ink"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2" aria-label="Atalhos de prazo">
+              {[
+                { dias: 30, rotulo: "30 dias" },
+                { dias: 90, rotulo: "3 meses" },
+                { dias: 365, rotulo: "1 ano" },
+              ].map((opcao) => (
+                <button
+                  key={opcao.dias}
+                  type="button"
+                  onClick={() => aplicar((s) => ({ ...s, expiraEm: expiraEmDias(opcao.dias) }))}
+                  className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+                >
+                  {opcao.rotulo}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        <p
+          className={`text-xs ${siteExpirado(site.expiraEm) ? "text-ember" : "text-muted-foreground"}`}
+        >
+          {siteExpirado(site.expiraEm)
+            ? "O prazo expirou: este mini-site não está mais acessível ao público."
+            : textoDaExpiracao(site.expiraEm)}
+        </p>
+      </Bloco>
+
       <Bloco titulo="Identificação" id="bloco-identificacao">
         <Texto
           rotulo="Nome exibido"

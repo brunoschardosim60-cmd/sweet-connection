@@ -257,6 +257,8 @@ export interface Site {
   modeloId: string;
   criadoEm: string;
   atualizadoEm: string;
+  /** Data/hora limite da publicação. Nulo significa que não expira. */
+  expiraEm?: string | null;
   cliente: Cliente;
   conteudo: Conteudo;
   aparencia: Aparencia;

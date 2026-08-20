@@ -24,6 +24,7 @@ function linhaParaSite(row: MinisiteRow): Site {
     status: row.status,
     criadoEm: row.created_at,
     atualizadoEm: row.updated_at,
+    expiraEm: row.expires_at,
   };
 }
 

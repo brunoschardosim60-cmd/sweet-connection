@@ -276,6 +276,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     modeloId: modelo.id,
     criadoEm: agora,
     atualizadoEm: agora,
+    expiraEm: null,
     cliente,
     conteudo: {
       nome: cliente.empresa,

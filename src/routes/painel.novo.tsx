@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { CriacaoIA } from "@/components/painel/CriacaoIA";
@@ -304,6 +304,7 @@ function NovoSite() {
   }));
 
   const [modeloId, setModeloId] = useState(() => search.modelo ?? nichoInfo.modeloId);
+  const [modoCriacao, setModoCriacao] = useState<"modelo" | "ia">("modelo");
   const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
   const meusModelos = useSyncExternalStore(
     modelosUsuarioStore.subscribe,
@@ -378,7 +379,7 @@ function NovoSite() {
     passo === 0
       ? cliente.empresa.trim().length > 1 && cliente.telefone.replace(/\D/g, "").length >= 10
       : passo === 1
-        ? !!modeloId
+        ? modoCriacao === "modelo" && !!modeloId
         : slugFinal.length > 2 && !slugEmUso;
 
   const criarComSite = async (site: Site) => {
@@ -473,19 +474,6 @@ function NovoSite() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div className="surface p-5 sm:p-6">
-          {passo === 0 && (
-            <div className="mb-5">
-              <CriacaoIA
-                cliente={cliente}
-                slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
-                {...(podeAvancar
-                  ? {}
-                  : { desabilitado: "Preencha nome da empresa e WhatsApp para gerar com IA." })}
-                onCriar={criarComSite}
-              />
-            </div>
-          )}
-
           {passo === 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
               <Campo
@@ -621,8 +609,47 @@ function NovoSite() {
                 </div>
               )}
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div
+                  className={`overflow-hidden rounded-2xl border transition-all ${
+                    modoCriacao === "ia"
+                      ? "border-ink ring-2 ring-lime"
+                      : "border-border hover:-translate-y-0.5"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setModoCriacao("ia")}
+                    aria-pressed={modoCriacao === "ia"}
+                    className="block w-full text-left"
+                  >
+                    <span className="relative grid h-36 place-items-center overflow-hidden bg-ink text-ink-foreground">
+                      <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)]" />
+                      <span className="relative grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
+                        <Wand2 size={22} />
+                      </span>
+                      {modoCriacao === "ia" && (
+                        <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-lime text-ink">
+                          <Check size={15} />
+                        </span>
+                      )}
+                    </span>
+                    <span className="block p-3">
+                      <span className="block text-sm font-semibold">Criação automática com IA</span>
+                      <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
+                        Descreva o negócio e envie fotos. A IA sugere modelo, cores, textos e
+                        seções.
+                      </span>
+                      <span className="mt-2 inline-block rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">
+                        IA + fotos
+                      </span>
+                    </span>
+                  </button>
+                  <div className="border-t border-border p-2 text-center text-xs text-muted-foreground">
+                    Gera uma sugestão para você revisar
+                  </div>
+                </div>
                 {lista.map((m) => {
-                  const ativo = modeloId === m.id;
+                  const ativo = modoCriacao === "modelo" && modeloId === m.id;
                   return (
                     <div
                       key={m.id}
@@ -634,7 +661,10 @@ function NovoSite() {
                     >
                       <button
                         type="button"
-                        onClick={() => setModeloId(m.id)}
+                        onClick={() => {
+                          setModoCriacao("modelo");
+                          setModeloId(m.id);
+                        }}
                         aria-pressed={ativo}
                         className="block w-full text-left"
                       >
@@ -676,6 +706,22 @@ function NovoSite() {
                   );
                 })}
               </div>
+              {modoCriacao === "ia" && (
+                <div className="mt-5">
+                  <CriacaoIA
+                    cliente={cliente}
+                    slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                    {...(cliente.empresa.trim().length > 1 &&
+                    cliente.telefone.replace(/\D/g, "").length >= 10
+                      ? {}
+                      : {
+                          desabilitado:
+                            "Volte ao passo Cliente e informe nome da empresa e WhatsApp.",
+                        })}
+                    onCriar={criarComSite}
+                  />
+                </div>
+              )}
             </div>
           )}
 
