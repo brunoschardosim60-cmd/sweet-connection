@@ -100,47 +100,6 @@ export type Database = {
           },
         ]
       }
-      analytics_events: {
-        Row: {
-          event_type: Database["public"]["Enums"]["nexa_event_type"]
-          id: number
-          minisite_id: string
-          occurred_at: string
-          session_hash: string | null
-          source: string | null
-          target: string | null
-          visitor_hash: string | null
-        }
-        Insert: {
-          event_type: Database["public"]["Enums"]["nexa_event_type"]
-          id?: never
-          minisite_id: string
-          occurred_at?: string
-          session_hash?: string | null
-          source?: string | null
-          target?: string | null
-          visitor_hash?: string | null
-        }
-        Update: {
-          event_type?: Database["public"]["Enums"]["nexa_event_type"]
-          id?: never
-          minisite_id?: string
-          occurred_at?: string
-          session_hash?: string | null
-          source?: string | null
-          target?: string | null
-          visitor_hash?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "analytics_events_minisite_id_fkey"
-            columns: ["minisite_id"]
-            isOneToOne: false
-            referencedRelation: "minisites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ai_generation_cache: {
         Row: {
           created_at: string
@@ -188,6 +147,68 @@ export type Database = {
           usage_date?: string
         }
         Relationships: []
+      }
+      ai_generation_weekly_usage: {
+        Row: {
+          generations: number
+          owner_id: string
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          generations?: number
+          owner_id: string
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          generations?: number
+          owner_id?: string
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          event_type: Database["public"]["Enums"]["nexa_event_type"]
+          id: number
+          minisite_id: string
+          occurred_at: string
+          session_hash: string | null
+          source: string | null
+          target: string | null
+          visitor_hash: string | null
+        }
+        Insert: {
+          event_type: Database["public"]["Enums"]["nexa_event_type"]
+          id?: never
+          minisite_id: string
+          occurred_at?: string
+          session_hash?: string | null
+          source?: string | null
+          target?: string | null
+          visitor_hash?: string | null
+        }
+        Update: {
+          event_type?: Database["public"]["Enums"]["nexa_event_type"]
+          id?: never
+          minisite_id?: string
+          occurred_at?: string
+          session_hash?: string | null
+          source?: string | null
+          target?: string | null
+          visitor_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -515,6 +536,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      nexa_admin_ai_usage: {
+        Args: { requested_days?: number }
+        Returns: {
+          email: string
+          generations_30d: number
+          generations_7d: number
+          last_generation_at: string
+          subscription_status: string
+          tier: string
+          user_id: string
+        }[]
+      }
       nexa_admin_audit: {
         Args: { requested_limit?: number }
         Returns: {
@@ -545,31 +578,11 @@ export type Database = {
         Returns: undefined
       }
       nexa_admin_set_subscription: {
-        Args: { requested_status: string; requested_tier: string; requested_user_id: string }
-        Returns: undefined
-      }
-      nexa_consume_ai_generation: {
-        Args: { requested_user_id: string }
-        Returns: {
-          allowed: boolean
-          daily_limit: number | null
-          used: number
-        }[]
-      }
-      nexa_admin_ai_usage: {
-        Args: { requested_days?: number }
-        Returns: {
-          email: string | null
-          generations_30d: number
-          generations_7d: number
-          last_generation_at: string | null
-          subscription_status: string
-          tier: string
-          user_id: string
-        }[]
-      }
-      nexa_refund_ai_generation: {
-        Args: { requested_user_id: string }
+        Args: {
+          requested_status: string
+          requested_tier: string
+          requested_user_id: string
+        }
         Returns: undefined
       }
       nexa_admin_users: {
@@ -617,6 +630,22 @@ export type Database = {
       nexa_cancelar_agendamento: {
         Args: { requested_token: string }
         Returns: boolean
+      }
+      nexa_consume_ai_generation: {
+        Args: { requested_user_id: string }
+        Returns: {
+          allowed: boolean
+          daily_limit: number
+          used: number
+        }[]
+      }
+      nexa_plan_allows_publish: {
+        Args: { requested_user_id: string }
+        Returns: boolean
+      }
+      nexa_refund_ai_generation: {
+        Args: { requested_user_id: string }
+        Returns: undefined
       }
       publish_minisite: {
         Args: { requested_id: string }
@@ -747,6 +776,8 @@ export type Database = {
           plan_changed_by: string | null
           plan_updated_at: string
           role: string
+          subscription_status: string
+          subscription_tier: string
           updated_at: string
         }
         SetofOptions: {
@@ -769,6 +800,8 @@ export type Database = {
           plan_changed_by: string | null
           plan_updated_at: string
           role: string
+          subscription_status: string
+          subscription_tier: string
           updated_at: string
         }
         SetofOptions: {

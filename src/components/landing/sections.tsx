@@ -936,22 +936,24 @@ export function Planos() {
           </p>
         </Reveal>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <div className="mt-10 grid items-stretch gap-5 md:grid-cols-3">
           {planos.map((p, i) => (
-            <Reveal key={p.nome} delay={i * 80}>
+            <Reveal key={p.nome} delay={i * 80} className="h-full">
               <div
-                className={`flex h-full flex-col rounded-3xl border p-7 ${
+                className={`relative flex h-full flex-col rounded-3xl border p-6 transition-shadow sm:p-7 ${
                   p.destaque
-                    ? "border-ink bg-ink text-ink-foreground shadow-[var(--shadow-lift)]"
-                    : "border-border bg-card"
+                    ? "border-ink bg-ink text-ink-foreground shadow-[var(--shadow-lift)] md:-mt-3 md:pb-9"
+                    : "border-border bg-card hover:shadow-[var(--shadow-lift)]"
                 }`}
               >
-                {p.destaque && (
-                  <span className="mb-4 w-fit rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink">
-                    Mais escolhido
-                  </span>
-                )}
-                <h3 className="font-display text-2xl font-bold">{p.nome}</h3>
+                <div className="flex min-h-7 items-start justify-between gap-3">
+                  <h3 className="font-display text-2xl font-bold">{p.nome}</h3>
+                  {p.destaque && (
+                    <span className="shrink-0 rounded-full bg-lime px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
+                      Mais escolhido
+                    </span>
+                  )}
+                </div>
                 <p
                   className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
                 >
@@ -961,21 +963,28 @@ export function Planos() {
                   {p.preco}
                   <span className="text-base font-medium opacity-60">/mês</span>
                 </p>
-                <ul className="mt-6 flex-1 space-y-2.5 text-sm">
-                  {p.itens.map((it) => (
-                    <li key={it} className="flex items-start gap-2">
-                      <Check
-                        size={16}
-                        className={p.destaque ? "mt-0.5 text-lime" : "mt-0.5 text-ink"}
-                      />
-                      {it}
-                    </li>
-                  ))}
-                </ul>
+                <div
+                  className={`mt-6 border-t pt-5 ${p.destaque ? "border-ink-foreground/15" : "border-border"}`}
+                >
+                  <ul className="space-y-2.5 text-sm">
+                    {p.itens.map((it) => (
+                      <li key={it} className="flex items-start gap-2">
+                        <Check
+                          size={16}
+                          aria-hidden="true"
+                          className={
+                            p.destaque ? "mt-0.5 shrink-0 text-lime" : "mt-0.5 shrink-0 text-ink"
+                          }
+                        />
+                        <span className="min-w-0">{it}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <button
                   type="button"
                   onClick={() => setModal(p.nome)}
-                  className={`mt-7 rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${
+                  className={`mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
                     p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
                   }`}
                 >
