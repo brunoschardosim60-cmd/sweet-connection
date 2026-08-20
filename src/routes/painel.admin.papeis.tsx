@@ -261,15 +261,23 @@ function PainelAcessos() {
         </select>
       </div>
 
-      <div className="space-y-3">
-        {lista.map((usuario) => (
-          <CartaoAcesso
-            key={usuario.user_id}
-            usuario={usuario}
-            ocupado={ocupado === usuario.user_id}
-            onPlano={(proximo) => void alterarPlano(usuario, proximo)}
-          />
-        ))}
+      <div className="grid gap-3 lg:grid-cols-2">
+        {lista.map((usuario) => {
+          const assinatura = assinaturas.get(usuario.user_id);
+          return (
+            <CartaoAcesso
+              key={usuario.user_id}
+              usuario={usuario}
+              tier={assinatura?.tier ?? "none"}
+              ativo={
+                assinatura?.subscription_status === "active" && (assinatura?.tier ?? "none") !== "none"
+              }
+              ocupado={ocupado === usuario.user_id}
+              onPlano={(proximo) => void alterarPlano(usuario, proximo)}
+            />
+          );
+        })}
+
         {lista.length === 0 && (
           <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             Nenhuma conta encontrada com esses filtros.
