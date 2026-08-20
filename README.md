@@ -42,11 +42,19 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 VITE_PUBLIC_SITE_URL=https://seu-host-de-producao.com
+GEMINI_API_KEY=sua_chave_do_google_ai_studio
+# Opcional: padrão gemini-2.5-flash
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 `VITE_PUBLIC_SITE_URL` permite que o SSR gere canonical e Open Graph absolutos. A mesma origem deve
 estar autorizada no Supabase em **Authentication → URL Configuration**, incluindo
 `/recuperar-senha` nos Redirect URLs.
+
+`GEMINI_API_KEY` é usada somente no servidor para a criação automática com IA. Na Vercel, cadastre
+essa variável em **Settings → Environment Variables** para Production, Preview e Development e faça
+um novo deploy. Nunca use o prefixo `VITE_`, nunca coloque a chave no GitHub e não a envie pelo chat.
+Sem ela, o projeto mantém provisoriamente o gateway antigo da Lovable como fallback.
 
 ## Banco externo
 
@@ -84,6 +92,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 VITE_PUBLIC_SITE_URL=https://seu-projeto.vercel.app
+GEMINI_API_KEY=sua_chave_do_google_ai_studio
 ```
 
 Não configure `service_role` na Vercel. Depois do primeiro deploy, inclua a URL `.vercel.app` em

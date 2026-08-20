@@ -3,7 +3,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { EntradaPlano } from "./ia.server";
 import type { PlanoIA } from "./ia-tipos";
 
-const VERSAO_DO_PROMPT = "nexa-ai-v3";
+const VERSAO_DO_PROMPT = "nexa-ai-v4";
 const DURACAO_CACHE_DIAS = 30;
 
 function entradaNormalizada(entrada: EntradaPlano) {
@@ -13,6 +13,7 @@ function entradaNormalizada(entrada: EntradaPlano) {
     nicho: entrada.nicho.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR"),
     cidade: entrada.cidade?.trim().toLocaleLowerCase("pt-BR") ?? "",
     estado: entrada.estado?.trim().toUpperCase() ?? "",
+    logo: entrada.logo ?? "",
     imagens: [...(entrada.imagens ?? [])].slice(0, 4),
     estilo: entrada.estilo ?? "automatico",
     tema: entrada.tema ?? "automatico",

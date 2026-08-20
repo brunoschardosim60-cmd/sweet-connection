@@ -16,9 +16,12 @@ export function aplicarPlanoIA(
   plano: PlanoIA,
   imagens: string[] = [],
   preferencias?: PreferenciasIA,
+  logo?: string,
 ): Site {
   const estilo =
-    preferencias && preferencias.estilo !== "automatico" ? ESTILOS_IA[preferencias.estilo] : undefined;
+    preferencias && preferencias.estilo !== "automatico"
+      ? ESTILOS_IA[preferencias.estilo]
+      : undefined;
   const temaEscolhido =
     preferencias && preferencias.tema !== "automatico" ? preferencias.tema : undefined;
   const fotos = imagens.filter(Boolean);
@@ -89,6 +92,7 @@ export function aplicarPlanoIA(
     conteudo: {
       ...base.conteudo,
       descricao: plano.descricao || base.conteudo.descricao,
+      ...(logo ? { logo } : {}),
       ...(capa ? { capa } : {}),
     },
     aparencia: {

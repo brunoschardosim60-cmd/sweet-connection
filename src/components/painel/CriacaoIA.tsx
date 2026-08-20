@@ -27,9 +27,11 @@ export function CriacaoIA({
   onCriar: (site: Site) => Promise<void>;
 }) {
   const entrada = useRef<HTMLInputElement>(null);
+  const entradaLogo = useRef<HTMLInputElement>(null);
   const gerar = useServerFn(gerarPlanoSite);
   const [descricao, setDescricao] = useState("");
   const [imagens, setImagens] = useState<string[]>([]);
+  const [logo, setLogo] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [gerando, setGerando] = useState(false);
   const [criando, setCriando] = useState(false);
@@ -55,6 +57,19 @@ export function CriacaoIA({
     }
   };
 
+  const enviarLogo = async (arquivo: File | null) => {
+    if (!arquivo) return;
+    setEnviando(true);
+    try {
+      setLogo((await enviarArquivo(arquivo)).url);
+    } catch (e) {
+      toast.error("Falha no envio da logo", { description: (e as Error).message });
+    } finally {
+      setEnviando(false);
+      if (entradaLogo.current) entradaLogo.current.value = "";
+    }
+  };
+
   const revisar = async () => {
     if (desabilitado) {
       toast.error(desabilitado);
@@ -71,6 +86,7 @@ export function CriacaoIA({
         nicho: descricao.trim(),
         cidade: cliente.cidade,
         estado: cliente.estado,
+        ...(logo ? { logo } : {}),
         imagens,
         estilo,
         tema,
@@ -101,7 +117,11 @@ export function CriacaoIA({
         "personalizado",
         slug,
       );
-      await onCriar(aplicarPlanoIA(base, aprovado, imagens, { estilo, tema }));
+      await onCriar(
+        logo
+          ? aplicarPlanoIA(base, aprovado, imagens, { estilo, tema }, logo)
+          : aplicarPlanoIA(base, aprovado, imagens, { estilo, tema }),
+      );
     } catch (e) {
       toast.error("Não foi possível criar o mini-site", { description: (e as Error).message });
     } finally {
@@ -136,6 +156,13 @@ export function CriacaoIA({
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
+          ref={entradaLogo}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) => void enviarLogo(e.target.files?.[0] ?? null)}
+        />
+        <input
           ref={entrada}
           type="file"
           accept="image/*"
@@ -151,6 +178,15 @@ export function CriacaoIA({
         >
           {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
           Enviar fotos
+        </button>
+        <button
+          type="button"
+          onClick={() => entradaLogo.current?.click()}
+          disabled={enviando}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+        >
+          {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+          Enviar logo
         </button>
         <span className="text-xs text-muted-foreground">
           {imagens.length ? `${imagens.length} foto(s) — a 1ª vira capa` : "Opcional (até 6)"}
@@ -173,6 +209,24 @@ export function CriacaoIA({
             </li>
           ))}
         </ul>
+      )}
+
+      {logo && (
+        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <img
+            src={logo}
+            alt="Logo enviada"
+            className="h-10 w-10 rounded-lg border border-border object-contain"
+          />
+          <span>Logo enviada — a IA usa como referência visual.</span>
+          <button
+            type="button"
+            onClick={() => setLogo(null)}
+            className="min-h-8 rounded-full px-2 font-semibold text-foreground hover:bg-secondary"
+          >
+            Remover
+          </button>
+        </div>
       )}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
