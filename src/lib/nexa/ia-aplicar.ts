@@ -1,11 +1,20 @@
 import { uid } from "./utils";
 import { ESTILOS_IA, type PlanoIA, type PreferenciasIA } from "./ia-tipos";
-import type { Site, TipoSecao } from "./types";
+import type { ItemVideo, MembroEquipe, Site, TipoSecao } from "./types";
 
 const hex = (valor?: string) =>
   valor && /^#[0-9a-fA-F]{6}$/.test(valor.trim()) ? valor.trim() : undefined;
 
 const limitar = <T>(lista: T[] | undefined, max: number): T[] => (lista ?? []).slice(0, max);
+
+/** Arquivos classificados no assistente de criação; não são conteúdo inventado pela IA. */
+export interface MidiasDaCriacaoIA {
+  capa?: string;
+  produtos?: string[];
+  galeria?: string[];
+  equipe?: MembroEquipe[];
+  videos?: ItemVideo[];
+}
 
 /**
  * Aplica o plano gerado pela IA sobre um site base criado pelo factory.
@@ -17,6 +26,7 @@ export function aplicarPlanoIA(
   imagens: string[] = [],
   preferencias?: PreferenciasIA,
   logo?: string,
+  midias?: MidiasDaCriacaoIA,
 ): Site {
   const estilo =
     preferencias && preferencias.estilo !== "automatico"
@@ -25,7 +35,9 @@ export function aplicarPlanoIA(
   const temaEscolhido =
     preferencias && preferencias.tema !== "automatico" ? preferencias.tema : undefined;
   const fotos = imagens.filter(Boolean);
-  const [capa, ...restantes] = fotos;
+  const [capaLegada, ...restantes] = fotos;
+  const capa = midias?.capa ?? capaLegada;
+  const fotosProdutos = midias?.produtos ?? restantes;
 
   const produtos = limitar(plano.produtos, 8).map((p, i) => ({
     id: uid("prod"),
@@ -34,7 +46,7 @@ export function aplicarPlanoIA(
     preco: typeof p.preco === "number" ? p.preco : 0,
     categoria: p.categoria ?? "Geral",
     variacoes: [] as string[],
-    ...(restantes[i] ? { imagem: restantes[i] } : {}),
+    ...(fotosProdutos[i] ? { imagem: fotosProdutos[i] } : {}),
     disponivel: true,
     destaque: i === 0,
   }));
@@ -45,12 +57,13 @@ export function aplicarPlanoIA(
     descricao: s.descricao ?? "",
     duracao: s.duracao ?? "",
     preco: typeof s.preco === "number" ? s.preco : 0,
-    ...(restantes[i] ? { imagem: restantes[i] } : {}),
+    ...(fotosProdutos[i] ? { imagem: fotosProdutos[i] } : {}),
   }));
 
   const usadasEmItens = Math.max(produtos.length, servicos.length);
-  const sobrando = restantes.slice(usadasEmItens);
-  const galeria = sobrando.map((url, i) => ({
+  const sobrando = fotosProdutos.slice(usadasEmItens);
+  const fotosGaleria = midias?.galeria?.length ? midias.galeria : sobrando;
+  const galeria = fotosGaleria.map((url, i) => ({
     id: uid("img"),
     url,
     titulo: plano.galeria?.[i]?.titulo ?? base.conteudo.nome,
@@ -77,6 +90,8 @@ export function aplicarPlanoIA(
   if (galeria.length) ativas.add("galeria");
   if (depoimentos.length) ativas.add("depoimentos");
   if (faq.length) ativas.add("faq");
+  if (midias?.equipe?.length) ativas.add("equipe");
+  if (midias?.videos?.length) ativas.add("videos");
   ativas.add("apresentacao");
   ativas.add("links");
   ativas.add("formulario");
@@ -108,6 +123,12 @@ export function aplicarPlanoIA(
     produtos: produtos.length ? produtos : base.produtos,
     servicos: servicos.length ? servicos : base.servicos,
     galeria: galeria.length ? galeria : base.galeria,
+    equipe: midias?.equipe?.length ? midias.equipe : base.equipe,
+    ...(midias?.videos?.length
+      ? { videos: midias.videos }
+      : base.videos
+        ? { videos: base.videos }
+        : {}),
     depoimentos,
     faq,
     formulario: {

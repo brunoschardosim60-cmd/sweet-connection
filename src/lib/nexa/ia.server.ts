@@ -7,6 +7,8 @@ export interface EntradaPlano {
   estado?: string;
   /** URL pública da logo; a IA usa somente como referência de identidade visual. */
   logo?: string;
+  /** Imagem escolhida como capa do mini-site. */
+  capa?: string;
   /** URLs públicas das imagens enviadas (usadas como referência visual). */
   imagens?: string[];
   /** Estilo visual pedido pela pessoa. */
@@ -64,7 +66,9 @@ function briefingEmTexto(entrada: EntradaPlano) {
     `Negócio: ${entrada.empresa}`,
     `Descrição/nicho informado: ${entrada.nicho}`,
     entrada.cidade ? `Cidade: ${entrada.cidade} - ${entrada.estado ?? ""}` : "",
-    entrada.logo ? "A primeira imagem é a logo da marca; as demais são fotos do negócio." : "",
+    entrada.logo ? "A primeira imagem é a logo da marca." : "",
+    entrada.capa ? "A segunda imagem é a capa preferida do mini-site." : "",
+    "As imagens restantes são referências de produtos, equipe ou ambiente.",
     entrada.estilo && entrada.estilo !== "automatico"
       ? `Estilo visual desejado: ${ESTILOS_IA[entrada.estilo].rotulo} (${ESTILOS_IA[entrada.estilo].descricao}).`
       : "",
@@ -78,7 +82,7 @@ function briefingEmTexto(entrada: EntradaPlano) {
 }
 
 function urlsDeReferencia(entrada: EntradaPlano) {
-  return [entrada.logo, ...(entrada.imagens ?? [])]
+  return [entrada.logo, entrada.capa, ...(entrada.imagens ?? [])]
     .filter(Boolean)
     .slice(0, MAX_IMAGENS_REFERENCIA) as string[];
 }

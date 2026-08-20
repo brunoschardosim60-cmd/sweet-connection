@@ -55,6 +55,35 @@ describe("aplicarPlanoIA", () => {
     });
     expect(outro.aparencia.corPrimaria).toBe(base.aparencia.corPrimaria);
   });
+
+  it("mantém mídia classificada em capa, produtos, equipe e vídeos", () => {
+    const outro = aplicarPlanoIA(
+      base,
+      {
+        descricao: "x",
+        segmento: "beleza",
+        produtos: [{ nome: "Pomada", descricao: "Fixação", categoria: "Produtos" }],
+      },
+      [],
+      { estilo: "automatico", tema: "automatico" },
+      "https://cdn.test/logo.jpg",
+      {
+        capa: "https://cdn.test/capa-escolhida.jpg",
+        produtos: ["https://cdn.test/pomada.jpg"],
+        galeria: ["https://cdn.test/ambiente.jpg"],
+        equipe: [{ id: "e1", nome: "João", funcao: "Barbeiro", foto: "https://cdn.test/joao.jpg" }],
+        videos: [{ id: "v1", titulo: "Conheça o espaço", url: "https://cdn.test/visita.mp4" }],
+      },
+    );
+    expect(outro.conteudo.logo).toBe("https://cdn.test/logo.jpg");
+    expect(outro.conteudo.capa).toBe("https://cdn.test/capa-escolhida.jpg");
+    expect(outro.produtos[0]?.imagem).toBe("https://cdn.test/pomada.jpg");
+    expect(outro.galeria[0]?.url).toBe("https://cdn.test/ambiente.jpg");
+    expect(outro.equipe[0]?.nome).toBe("João");
+    expect(outro.videos?.[0]?.titulo).toBe("Conheça o espaço");
+    expect(outro.secoes.find((s) => s.tipo === "equipe")?.ativa).toBe(true);
+    expect(outro.secoes.find((s) => s.tipo === "videos")?.ativa).toBe(true);
+  });
 });
 
 describe("preferências de estilo e paleta", () => {
