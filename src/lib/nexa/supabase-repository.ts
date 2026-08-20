@@ -12,6 +12,8 @@ function mensagemErro(error: { message: string; code?: string }) {
     return "O banco ainda não recebeu as migrations da Nexa.";
   }
   if (error.code === "42501") return "Sua conta não tem permissão para alterar estes dados.";
+  if (error.message.includes("subscription_required")) return "Ative um plano para publicar este mini-site.";
+  if (error.message.includes("published_site_limit_reached")) return "Você atingiu o limite de mini-sites publicados do seu plano.";
   return error.message;
 }
 

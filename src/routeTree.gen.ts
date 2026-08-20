@@ -25,6 +25,7 @@ import { Route as PainelAgendaRouteImport } from './routes/painel.agenda'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
 import { Route as PainelConfiguracoesRouteImport } from './routes/painel.configuracoes'
 import { Route as PainelEstatisticasRouteImport } from './routes/painel.estatisticas'
+import { Route as PainelMeuPlanoRouteImport } from './routes/painel.meu-plano'
 import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
 import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
@@ -115,6 +116,11 @@ const PainelEstatisticasRoute = PainelEstatisticasRouteImport.update({
   path: '/estatisticas',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelMeuPlanoRoute = PainelMeuPlanoRouteImport.update({
+  id: '/meu-plano',
+  path: '/meu-plano',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelMidiasRoute = PainelMidiasRouteImport.update({
   id: '/midias',
   path: '/midias',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/meu-plano': typeof PainelMeuPlanoRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/meu-plano': typeof PainelMeuPlanoRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
   '/painel/estatisticas': typeof PainelEstatisticasRoute
+  '/painel/meu-plano': typeof PainelMeuPlanoRoute
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
+    | '/painel/meu-plano'
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
+    | '/painel/meu-plano'
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/painel/clientes'
     | '/painel/configuracoes'
     | '/painel/estatisticas'
+    | '/painel/meu-plano'
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
@@ -455,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelEstatisticasRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/meu-plano': {
+      id: '/painel/meu-plano'
+      path: '/meu-plano'
+      fullPath: '/painel/meu-plano'
+      preLoaderRoute: typeof PainelMeuPlanoRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/midias': {
       id: '/painel/midias'
       path: '/midias'
@@ -526,6 +545,7 @@ interface PainelRouteChildren {
   PainelClientesRoute: typeof PainelClientesRoute
   PainelConfiguracoesRoute: typeof PainelConfiguracoesRoute
   PainelEstatisticasRoute: typeof PainelEstatisticasRoute
+  PainelMeuPlanoRoute: typeof PainelMeuPlanoRoute
   PainelMidiasRoute: typeof PainelMidiasRoute
   PainelModelosRoute: typeof PainelModelosRoute
   PainelNovoRoute: typeof PainelNovoRoute
@@ -541,6 +561,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelClientesRoute: PainelClientesRoute,
   PainelConfiguracoesRoute: PainelConfiguracoesRoute,
   PainelEstatisticasRoute: PainelEstatisticasRoute,
+  PainelMeuPlanoRoute: PainelMeuPlanoRoute,
   PainelMidiasRoute: PainelMidiasRoute,
   PainelModelosRoute: PainelModelosRoute,
   PainelNovoRoute: PainelNovoRoute,

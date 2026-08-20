@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Settings,
+  Crown,
   Sun,
   Users,
   X,
@@ -58,6 +59,7 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },
   { to: "/painel/configuracoes", rotulo: "Configurações", icone: Settings },
+  { to: "/painel/meu-plano", rotulo: "Meu plano", icone: Crown },
 ];
 
 type ItemBusca = {

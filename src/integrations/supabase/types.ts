@@ -423,6 +423,8 @@ export type Database = {
           plan_changed_by: string | null
           plan_updated_at: string
           role: string
+          subscription_status: string
+          subscription_tier: string
           updated_at: string
         }
         Insert: {
@@ -436,6 +438,8 @@ export type Database = {
           plan_changed_by?: string | null
           plan_updated_at?: string
           role?: string
+          subscription_status?: string
+          subscription_tier?: string
           updated_at?: string
         }
         Update: {
@@ -449,6 +453,8 @@ export type Database = {
           plan_changed_by?: string | null
           plan_updated_at?: string
           role?: string
+          subscription_status?: string
+          subscription_tier?: string
           updated_at?: string
         }
         Relationships: []
