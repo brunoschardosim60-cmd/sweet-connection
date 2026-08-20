@@ -972,7 +972,9 @@ export function Planos() {
                         <Check
                           size={16}
                           aria-hidden="true"
-                          className={p.destaque ? "mt-0.5 shrink-0 text-lime" : "mt-0.5 shrink-0 text-ink"}
+                          className={
+                            p.destaque ? "mt-0.5 shrink-0 text-lime" : "mt-0.5 shrink-0 text-ink"
+                          }
                         />
                         <span className="min-w-0">{it}</span>
                       </li>
@@ -992,7 +994,6 @@ export function Planos() {
             </Reveal>
           ))}
         </div>
-
       </div>
 
       {modal && (

@@ -76,9 +76,7 @@ function CartaoAcesso({
           )}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-              ativo
-                ? "bg-lime text-ink"
-                : "border border-border bg-secondary text-muted-foreground"
+              ativo ? "bg-lime text-ink" : "border border-border bg-secondary text-muted-foreground"
             }`}
           >
             <span
@@ -136,7 +134,6 @@ function CartaoAcesso({
   );
 }
 
-
 function PainelAcessos() {
   const { admin, carregando: checando } = useIsAdmin();
   const { usuarios, auditoria, usoIa, carregando, erro, definirAssinatura } = useAdminDados(30);
@@ -144,16 +141,12 @@ function PainelAcessos() {
   const [plano, setPlano] = useState<"todos" | PlanoNexa>("todos");
   const [ocupado, setOcupado] = useState<string | null>(null);
 
-  const assinaturas = useMemo(
-    () => new Map(usoIa.map((u) => [u.user_id, u])),
-    [usoIa],
-  );
+  const assinaturas = useMemo(() => new Map(usoIa.map((u) => [u.user_id, u])), [usoIa]);
 
   const lista = useMemo(
     () => filtrarUsuarios(usuarios, { busca, plano }),
     [busca, plano, usuarios],
   );
-
 
   const alterarPlano = async (usuario: AdminUsuario, proximo: string) => {
     setOcupado(usuario.user_id);
@@ -270,7 +263,8 @@ function PainelAcessos() {
               usuario={usuario}
               tier={assinatura?.tier ?? "none"}
               ativo={
-                assinatura?.subscription_status === "active" && (assinatura?.tier ?? "none") !== "none"
+                assinatura?.subscription_status === "active" &&
+                (assinatura?.tier ?? "none") !== "none"
               }
               ocupado={ocupado === usuario.user_id}
               onPlano={(proximo) => void alterarPlano(usuario, proximo)}

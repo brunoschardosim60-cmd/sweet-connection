@@ -29,7 +29,12 @@ const nomes: Record<string, string> = {
 
 const beneficios: Record<string, string[]> = {
   none: ["1 rascunho salvo", "Prévia do mini-site", "Modelos para explorar"],
-  essential: ["Publicação do mini-site", "Links, WhatsApp e redes", "Horários e localização", "QR Code"],
+  essential: [
+    "Publicação do mini-site",
+    "Links, WhatsApp e redes",
+    "Horários e localização",
+    "QR Code",
+  ],
   professional: [
     "Tudo do Essencial",
     "Serviços e agendamento",
@@ -162,9 +167,7 @@ function MeuPlano() {
             to="/"
             hash="planos"
             className={`mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transform-none sm:w-auto ${
-              ativo
-                ? "bg-lime text-ink outline-lime"
-                : "bg-ink text-ink-foreground outline-ink"
+              ativo ? "bg-lime text-ink outline-lime" : "bg-ink text-ink-foreground outline-ink"
             }`}
           >
             {ativo ? "Fazer upgrade" : "Escolher plano"}
