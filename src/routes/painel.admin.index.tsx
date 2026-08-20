@@ -261,7 +261,7 @@ function LinhaUsuario({
 function PainelAdmin() {
   const { admin, carregando: checando } = useIsAdmin();
   const [periodo, setPeriodo] = useState<Periodo>(30);
-  const { resumo, usuarios, serie, carregando, erro, recarregar, definirPlano } =
+  const { resumo, usuarios, serie, usoIa, carregando, erro, recarregar, definirPlano } =
     useAdminDados(periodo);
   const [busca, setBusca] = useState("");
   const [plano, setPlano] = useState<"todos" | "pro" | "free">("todos");
@@ -441,6 +441,41 @@ function PainelAdmin() {
           />
         </div>
       )}
+
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <header>
+          <h2 className="text-sm font-bold">Consumo de IA</h2>
+          <p className="text-xs text-muted-foreground">
+            Gerações novas que consomem tokens; resultados do cache não entram nesta conta.
+          </p>
+        </header>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[560px] text-left text-xs">
+            <thead className="text-muted-foreground">
+              <tr>
+                <th className="p-2">Conta</th>
+                <th className="p-2">Plano</th>
+                <th className="p-2">7 dias</th>
+                <th className="p-2">{periodo} dias</th>
+                <th className="p-2">Último uso</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usoIa.map((uso) => (
+                <tr key={uso.user_id} className="border-t border-border">
+                  <td className="p-2">{uso.email ?? uso.user_id}</td>
+                  <td className="p-2 capitalize">
+                    {uso.tier} · {uso.subscription_status}
+                  </td>
+                  <td className="p-2 font-semibold">{uso.generations_7d}</td>
+                  <td className="p-2 font-semibold">{uso.generations_30d}</td>
+                  <td className="p-2">{dataCurta(uso.last_generation_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="rounded-2xl border border-border bg-card p-4">
         <header className="flex flex-wrap items-center justify-between gap-3">

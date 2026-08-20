@@ -546,6 +546,18 @@ export type Database = {
           used: number
         }[]
       }
+      nexa_admin_ai_usage: {
+        Args: { requested_days?: number }
+        Returns: {
+          email: string | null
+          generations_30d: number
+          generations_7d: number
+          last_generation_at: string | null
+          subscription_status: string
+          tier: string
+          user_id: string
+        }[]
+      }
       nexa_refund_ai_generation: {
         Args: { requested_user_id: string }
         Returns: undefined

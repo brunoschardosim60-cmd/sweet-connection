@@ -55,6 +55,16 @@ export type AdminPonto = {
   visitas: number;
 };
 
+export type AdminUsoIA = {
+  user_id: string;
+  email: string | null;
+  tier: string;
+  subscription_status: string;
+  generations_7d: number;
+  generations_30d: number;
+  last_generation_at: string | null;
+};
+
 export const PERIODOS = [7, 30, 90] as const;
 export type Periodo = (typeof PERIODOS)[number];
 
@@ -159,19 +169,21 @@ export function useAdminDados(periodo: Periodo = 30) {
   const [usuarios, setUsuarios] = useState<AdminUsuario[]>([]);
   const [serie, setSerie] = useState<AdminPonto[]>([]);
   const [auditoria, setAuditoria] = useState<AdminAuditoria[]>([]);
+  const [usoIa, setUsoIa] = useState<AdminUsoIA[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
     setErro(null);
-    const [r1, r2, r3, r4] = await Promise.all([
+    const [r1, r2, r3, r4, r5] = await Promise.all([
       supabase.rpc("nexa_admin_overview"),
       supabase.rpc("nexa_admin_users"),
       supabase.rpc("nexa_admin_series", { requested_days: periodo }),
       supabase.rpc("nexa_admin_audit", { requested_limit: 100 }),
+      supabase.rpc("nexa_admin_ai_usage", { requested_days: periodo }),
     ]);
-    const falha = r1.error ?? r2.error ?? r3.error ?? r4.error;
+    const falha = r1.error ?? r2.error ?? r3.error ?? r4.error ?? r5.error;
     if (falha) {
       setErro(mensagemErroAdmin(falha));
       setCarregando(false);
@@ -181,6 +193,7 @@ export function useAdminDados(periodo: Periodo = 30) {
     setUsuarios((r2.data ?? []) as unknown as AdminUsuario[]);
     setSerie((r3.data ?? []) as unknown as AdminPonto[]);
     setAuditoria((r4.data ?? []) as unknown as AdminAuditoria[]);
+    setUsoIa((r5.data ?? []) as unknown as AdminUsoIA[]);
     setCarregando(false);
   }, [periodo]);
 
@@ -205,6 +218,7 @@ export function useAdminDados(periodo: Periodo = 30) {
     usuarios,
     serie,
     auditoria,
+    usoIa,
     carregando,
     erro,
     recarregar: carregar,
