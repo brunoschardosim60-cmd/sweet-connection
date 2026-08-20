@@ -1,4 +1,5 @@
-import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import { createStart, createMiddleware } from "@tanstack/react-start";
+import { createCsrfMiddleware } from "@tanstack/start-client-core";
 
 import { renderErrorPage } from "./lib/error-page";
 
@@ -19,7 +20,9 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
-// from cross-site requests.
+// from cross-site requests. Import it from its defining package: the root
+// TanStack Start barrel can expose an uninitialized re-export during an SSR
+// cold start, which takes down every page before React renders.
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === "serverFn",
 });
