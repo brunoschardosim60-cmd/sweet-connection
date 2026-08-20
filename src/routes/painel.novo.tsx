@@ -11,6 +11,7 @@ import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
+import { importarDadosPublicos } from "@/lib/nexa/importar-dados";
 import type { Cliente, SegmentoId, Site } from "@/lib/nexa/types";
 
 interface NovoBusca {
@@ -305,6 +306,7 @@ function NovoSite() {
     cidade: localizacaoInfo.cidade,
     estado: localizacaoInfo.estado,
   }));
+  const [textoImportado, setTextoImportado] = useState("");
 
   const [modeloId, setModeloId] = useState(() =>
     search.modo === "ia" ? modeloPersonalizado.id : (search.modelo ?? nichoInfo.modeloId),
@@ -546,6 +548,40 @@ function NovoSite() {
                   </select>
                 </label>
               </div>
+              <div className="sm:col-span-2 rounded-xl border border-border bg-secondary/30 p-3">
+                <label className="block">
+                  <span className="text-sm font-semibold">
+                    Importar dados do Google ou Instagram
+                  </span>
+                  <textarea
+                    value={textoImportado}
+                    onChange={(event) => setTextoImportado(event.target.value)}
+                    rows={4}
+                    placeholder="Cole aqui nome, telefone, endereço, serviços, horários e avaliações. A revisão continuará sendo sua."
+                    className="mt-2 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={textoImportado.trim().length < 8}
+                  onClick={() => {
+                    const dados = importarDadosPublicos(textoImportado);
+                    setCliente((atual) => ({
+                      ...atual,
+                      ...(dados.empresa ? { empresa: dados.empresa } : {}),
+                      ...(dados.telefone ? { telefone: telefoneMask(dados.telefone) } : {}),
+                      ...(dados.cidade ? { cidade: dados.cidade } : {}),
+                      ...(dados.estado ? { estado: dados.estado } : {}),
+                      ...(dados.segmento ? { segmento: dados.segmento } : {}),
+                    }));
+                    if (dados.endereco) setEnderecoPersonalizado(dados.endereco);
+                    toast.success("Dados encontrados. Revise os campos antes de continuar.");
+                  }}
+                  className="mt-2 min-h-11 rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground disabled:opacity-50"
+                >
+                  Extrair e revisar dados
+                </button>
+              </div>
             </div>
           )}
 
@@ -567,6 +603,7 @@ function NovoSite() {
               </div>
               <CriacaoIA
                 cliente={cliente}
+                briefingInicial={textoImportado}
                 slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
                 {...(cliente.empresa.trim().length > 1 &&
                 cliente.telefone.replace(/\D/g, "").length >= 10

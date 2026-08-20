@@ -21,11 +21,13 @@ export function CriacaoIA({
   slug,
   desabilitado,
   onCriar,
+  briefingInicial = "",
 }: {
   cliente: Cliente;
   slug: string;
   desabilitado?: string;
   onCriar: (site: Site) => Promise<void>;
+  briefingInicial?: string;
 }) {
   const entradaProdutos = useRef<HTMLInputElement>(null);
   const entradaLogo = useRef<HTMLInputElement>(null);
@@ -34,7 +36,7 @@ export function CriacaoIA({
   const entradaEquipe = useRef<HTMLInputElement>(null);
   const entradaVideo = useRef<HTMLInputElement>(null);
   const gerar = useServerFn(gerarPlanoSite);
-  const [descricao, setDescricao] = useState("");
+  const [descricao, setDescricao] = useState(briefingInicial);
   const [capa, setCapa] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
   const [fotosProdutos, setFotosProdutos] = useState<string[]>([]);
