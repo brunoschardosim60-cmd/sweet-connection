@@ -139,15 +139,21 @@ function CartaoAcesso({
 
 function PainelAcessos() {
   const { admin, carregando: checando } = useIsAdmin();
-  const { usuarios, auditoria, carregando, erro, definirAssinatura } = useAdminDados(30);
+  const { usuarios, auditoria, usoIa, carregando, erro, definirAssinatura } = useAdminDados(30);
   const [busca, setBusca] = useState("");
   const [plano, setPlano] = useState<"todos" | PlanoNexa>("todos");
   const [ocupado, setOcupado] = useState<string | null>(null);
+
+  const assinaturas = useMemo(
+    () => new Map(usoIa.map((u) => [u.user_id, u])),
+    [usoIa],
+  );
 
   const lista = useMemo(
     () => filtrarUsuarios(usuarios, { busca, plano }),
     [busca, plano, usuarios],
   );
+
 
   const alterarPlano = async (usuario: AdminUsuario, proximo: string) => {
     setOcupado(usuario.user_id);
