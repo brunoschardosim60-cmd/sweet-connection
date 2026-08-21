@@ -132,7 +132,7 @@ function PainelPedidos() {
       {aba === "mesas" && (
         <AbaMesas siteId={site?.id} slug={site?.slug} nome={site?.conteudo.nome} />
       )}
-      {aba === "operacao" && <AbaOperacao />}
+      {aba === "operacao" && <AbaOperacao siteId={site?.id} />}
     </div>
   );
 }
@@ -610,12 +610,34 @@ function AbaMesas({
   );
 }
 
-function AbaOperacao() {
+function AbaOperacao({ siteId }: { siteId?: string | undefined }) {
   const [periodo, setPeriodo] = useState("hoje");
+  const [pedidos, setPedidos] = useState<
+    { total: number; modalidade: string; created_at: string }[]
+  >([]);
+  useEffect(() => {
+    if (!siteId) {
+      setPedidos([]);
+      return;
+    }
+    void supabase
+      .from("pedidos_cardapio")
+      .select("total,modalidade,created_at")
+      .eq("minisite_id", siteId)
+      .neq("status", "cancelado")
+      .then(({ data }) =>
+        setPedidos((data ?? []) as { total: number; modalidade: string; created_at: string }[]),
+      );
+  }, [siteId]);
+  const limite = periodo === "hoje" ? 1 : Number(periodo);
+  const recentes = pedidos.filter(
+    (p) => Date.now() - new Date(p.created_at).getTime() <= limite * 86400000,
+  );
+  const total = recentes.reduce((s, p) => s + p.total, 0);
   const metricas = [
-    { rotulo: "Faturamento", valor: moeda(0) },
-    { rotulo: "Pedidos", valor: "0" },
-    { rotulo: "Ticket médio", valor: moeda(0) },
+    { rotulo: "Faturamento", valor: moeda(total) },
+    { rotulo: "Pedidos", valor: String(recentes.length) },
+    { rotulo: "Ticket médio", valor: moeda(recentes.length ? total / recentes.length : 0) },
   ];
 
   return (
@@ -634,7 +656,7 @@ function AbaOperacao() {
           <option value="hoje">Hoje</option>
           <option value="7">7 dias</option>
           <option value="30">30 dias</option>
-          <option value="personalizado">Período personalizado</option>
+          <option value="90">90 dias</option>
         </select>
         <Etiqueta />
       </div>
@@ -644,7 +666,7 @@ function AbaOperacao() {
           <li key={m.rotulo} className="surface p-4">
             <p className="text-xs text-muted-foreground">{m.rotulo}</p>
             <p className="font-display text-2xl font-bold">{m.valor}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">Sem pedidos registrados</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Dados de pedidos confirmados</p>
           </li>
         ))}
       </ul>
