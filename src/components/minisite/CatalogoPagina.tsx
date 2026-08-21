@@ -32,6 +32,15 @@ import {
 } from "@/lib/nexa/catalogo";
 import type { Produto, Site } from "@/lib/nexa/types";
 
+interface CamposEntrega {
+  endereco: string;
+  bairro: string;
+  complemento: string;
+  referencia: string;
+  observacao: string;
+  troco: string;
+}
+
 interface LinhaCarrinho {
   quantidade: number;
   observacao: string;
@@ -61,7 +70,7 @@ export function CatalogoPagina({
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
   const [entrega, setEntrega] = useState<Entrega>("entrega");
   const [pagamento, setPagamento] = useState<Pagamento | undefined>(undefined);
-  const [campos, setCampos] = useState({
+  const [campos, setCampos] = useState<CamposEntrega>({
     endereco: "",
     bairro: "",
     complemento: "",
@@ -847,15 +856,15 @@ function PainelCarrinho({
   setEntrega: (e: Entrega) => void;
   pagamento: Pagamento | undefined;
   setPagamento: (p: Pagamento) => void;
-  campos: Record<string, string>;
-  setCampos: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  campos: CamposEntrega;
+  setCampos: React.Dispatch<React.SetStateAction<CamposEntrega>>;
   onAlterar: (id: string, delta: number) => void;
   onObservacao: (id: string, valor: string) => void;
   linkPedido?: string | undefined;
   onEnviar: () => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
-  const campo = (nome: keyof typeof campos, rotulo: string, placeholder = "") => (
+  const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
       <input
