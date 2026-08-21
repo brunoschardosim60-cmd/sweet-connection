@@ -1017,15 +1017,18 @@ export function Planos() {
                       ))}
                     </ul>
                   </div>
-                  <Link
-                    to="/painel/meu-plano"
-                    aria-label={`Assinar o plano ${p.nome}`}
-                    className={`mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
-                      p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
-                    }`}
-                  >
-                    Assinar agora
-                  </Link>
+                  <div className="mt-auto pt-7">
+                    <Link
+                      to="/painel/meu-plano"
+                      aria-label={`Assinar o plano ${p.nome}`}
+                      className={`inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
+                        p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
+                      }`}
+                    >
+                      Assinar agora
+                    </Link>
+                  </div>
+
                 </article>
               </Reveal>
             </li>
