@@ -70,7 +70,7 @@ declare
   v_pedido public.pedidos_cardapio%rowtype; v_mesa uuid;
 begin
   select id, published_content into v_site from public.minisites
-  where slug = lower(trim(requested_slug)) and status = 'published' and published_content is not null;
+  where slug = lower(trim(requested_slug)) and status = 'publicado' and published_content is not null;
   if not found then raise exception 'minisite_not_found'; end if;
   if requested_modalidade not in ('entrega','retirada','mesa') then raise exception 'invalid_modality'; end if;
   if jsonb_typeof(requested_items) <> 'array' or jsonb_array_length(requested_items) not between 1 and 40 then raise exception 'invalid_items'; end if;

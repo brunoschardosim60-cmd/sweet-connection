@@ -224,11 +224,29 @@ export function AbaCardapio({
             }
             className="h-5 w-5 rounded border-border"
           />
-          Carrinho com envio do pedido por WhatsApp
+          Carrinho e confirmação de pedido no painel
+        </label>
+        <label className="mt-3 block text-xs text-muted-foreground">
+          Taxas por bairro (um por linha: Bairro = valor)
+          <textarea
+            rows={3}
+            value={(comercio.taxasPorBairro ?? []).map((t) => `${t.bairro} = ${t.taxa}`).join("\n")}
+            onChange={(e) => {
+              const taxasPorBairro = e.target.value.split("\n").flatMap((linha) => {
+                const [bairro, valor] = linha.split("=");
+                const taxa = Number(valor?.replace(",", ".").trim());
+                return bairro?.trim() && Number.isFinite(taxa) && taxa >= 0
+                  ? [{ bairro: bairro.trim(), taxa }]
+                  : [];
+              });
+              aplicar((s) => ({ ...s, comercio: { ...comercio, ...s.comercio, taxasPorBairro } }));
+            }}
+            placeholder="Centro = 5\nBela Vista = 8"
+            className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"
+          />
         </label>
         <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-          Cadastro de mesas, prazo de preparo automático e recebimento de pedidos no painel ficam
-          <strong> disponíveis após a ativação da operação</strong>. Os horários de atendimento
+          Mesas e pedidos reais são geridos na rota Pedidos do painel. Os horários de atendimento
           usados no status “Aberto agora” são os da aba Contato.
         </p>
       </section>

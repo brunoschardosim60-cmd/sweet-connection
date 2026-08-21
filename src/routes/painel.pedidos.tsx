@@ -12,6 +12,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import { useNexa } from "@/lib/nexa/hooks";
 import { copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 import { rotulosModalidade, rotulosPagamento, type Modalidade } from "@/lib/nexa/catalogo";
@@ -128,7 +129,9 @@ function PainelPedidos() {
       {!pronto && <p className="text-sm text-muted-foreground">Carregando seus mini-sites…</p>}
 
       {aba === "pedidos" && <AbaPedidos siteId={site?.id} />}
-      {aba === "mesas" && <AbaMesas slug={site?.slug} nome={site?.conteudo.nome} />}
+      {aba === "mesas" && (
+        <AbaMesas siteId={site?.id} slug={site?.slug} nome={site?.conteudo.nome} />
+      )}
       {aba === "operacao" && <AbaOperacao />}
     </div>
   );
@@ -425,10 +428,58 @@ const estadosMesa = [
   },
 ] as const;
 
-function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | undefined }) {
-  const [quantidade, setQuantidade] = useState(6);
-  const [estados, setEstados] = useState<Record<number, string>>({});
-  const mesas = Array.from({ length: Math.min(Math.max(quantidade, 1), 40) }, (_, i) => i + 1);
+function AbaMesas({
+  siteId,
+  slug,
+  nome,
+}: {
+  siteId?: string | undefined;
+  slug?: string | undefined;
+  nome?: string | undefined;
+}) {
+  type Mesa = { id: string; numero: number; nome: string | null; estado: string; ativa: boolean };
+  const [mesas, setMesas] = useState<Mesa[]>([]);
+  const [novaMesa, setNovaMesa] = useState("1");
+  const [carregando, setCarregando] = useState(false);
+  const carregar = async () => {
+    if (!siteId) return;
+    setCarregando(true);
+    const { data, error } = await supabase
+      .from("mesas_cardapio")
+      .select("id,numero,nome,estado,ativa")
+      .eq("minisite_id", siteId)
+      .order("numero");
+    if (error) toast.error("Não foi possível carregar as mesas.");
+    else setMesas(data ?? []);
+    setCarregando(false);
+  };
+  useEffect(() => {
+    void carregar();
+  }, [siteId]);
+  const criarMesa = async () => {
+    const numero = Number(novaMesa);
+    if (!siteId || !Number.isInteger(numero) || numero < 1 || numero > 200) {
+      toast.error("Informe um número entre 1 e 200.");
+      return;
+    }
+    const { error } = await supabase.from("mesas_cardapio").insert({ minisite_id: siteId, numero });
+    if (error) {
+      toast.error(
+        error.code === "23505" ? "Esta mesa já existe." : "Não foi possível cadastrar a mesa.",
+      );
+      return;
+    }
+    setNovaMesa(String(numero + 1));
+    void carregar();
+  };
+  const atualizarMesa = async (
+    mesa: Mesa,
+    dados: Partial<Pick<Mesa, "estado" | "ativa" | "nome">>,
+  ) => {
+    const { error } = await supabase.from("mesas_cardapio").update(dados).eq("id", mesa.id);
+    if (error) toast.error("Não foi possível salvar a mesa.");
+    else void carregar();
+  };
 
   const copiar = async (numero: number) => {
     if (!slug) return;
@@ -456,21 +507,26 @@ function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | u
         <>
           <div className="surface flex flex-wrap items-end gap-3 p-4">
             <label className="text-xs font-medium text-muted-foreground">
-              Mesas do salão (pré-visualização)
+              Nova mesa
               <input
                 type="number"
                 min={1}
-                max={40}
-                value={quantidade}
-                onChange={(e) => setQuantidade(Number(e.target.value) || 1)}
+                max={200}
+                value={novaMesa}
+                onChange={(e) => setNovaMesa(e.target.value)}
                 className="mt-1 block min-h-11 w-28 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
               />
             </label>
+            <button
+              type="button"
+              onClick={() => void criarMesa()}
+              className="min-h-11 rounded-full bg-ink px-4 text-xs font-semibold text-ink-foreground"
+            >
+              Cadastrar mesa
+            </button>
             <p className="flex-1 text-xs text-muted-foreground">
-              A quantidade acima só organiza esta visualização. O cadastro permanente de mesas,
-              estado (livre, ocupada, aguardando pedido, em atendimento) e pedidos ativos fica{" "}
-              <strong>disponível após a ativação</strong>. Os links abaixo, porém, são reais e já
-              abrem o cardápio de {nome}.
+              Mesas, estados e links ficam salvos para {nome}. O QR Code abre o cardápio já
+              vinculado à mesa.
             </p>
           </div>
 
@@ -488,55 +544,66 @@ function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | u
             </li>
           </ul>
 
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {mesas.map((n) => (
-              <li key={n} className="surface space-y-3 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-display text-lg font-bold">Mesa {n}</p>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      estadosMesa.find((e) => e.id === (estados[n] ?? "livre"))?.cor ?? ""
-                    }`}
-                  >
-                    {estadosMesa.find((e) => e.id === (estados[n] ?? "livre"))?.rotulo}
-                  </span>
-                </div>
-                <p className="truncate text-xs text-muted-foreground">
-                  {enderecoSite(slug)}/cardapio?mesa={n}
-                </p>
-                <label className="block text-[11px] text-muted-foreground">
-                  Estado (visual, ainda não salvo)
-                  <select
-                    value={estados[n] ?? "livre"}
-                    onChange={(e) => setEstados((a) => ({ ...a, [n]: e.target.value }))}
-                    className="mt-1 min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
-                  >
-                    {estadosMesa.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.rotulo}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void copiar(n)}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-xs font-semibold text-ink-foreground"
-                  >
-                    <Copy size={14} aria-hidden /> Copiar link da mesa
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 rounded-full border border-dashed border-border px-4 text-xs font-semibold text-muted-foreground"
-                  >
-                    <QrCode size={14} aria-hidden /> QR Code
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {carregando ? (
+            <p className="text-sm text-muted-foreground">Carregando mesas…</p>
+          ) : mesas.length === 0 ? (
+            <p className="surface p-6 text-sm text-muted-foreground">
+              Nenhuma mesa cadastrada ainda.
+            </p>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {mesas.map((mesa) => (
+                <li key={mesa.id} className="surface space-y-3 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-display text-lg font-bold">Mesa {mesa.numero}</p>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        estadosMesa.find((e) => e.id === mesa.estado)?.cor ?? ""
+                      }`}
+                    >
+                      {estadosMesa.find((e) => e.id === mesa.estado)?.rotulo ?? mesa.estado}
+                    </span>
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {enderecoSite(slug)}/cardapio?mesa={mesa.numero}
+                  </p>
+                  <label className="block text-[11px] text-muted-foreground">
+                    Estado
+                    <select
+                      value={mesa.estado}
+                      onChange={(e) => void atualizarMesa(mesa, { estado: e.target.value })}
+                      className="mt-1 min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+                    >
+                      {estadosMesa.map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {e.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void copiar(mesa.numero)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 text-xs font-semibold text-ink-foreground"
+                    >
+                      <Copy size={14} aria-hidden /> Copiar link
+                    </button>
+                    <details className="rounded-xl border border-border p-2">
+                      <summary className="cursor-pointer text-xs font-semibold">
+                        <QrCode size={14} className="mr-1 inline" aria-hidden /> QR Code
+                      </summary>
+                      <QRCodeSVG
+                        className="mt-2"
+                        value={`${enderecoSite(slug)}/cardapio?mesa=${mesa.numero}`}
+                        size={144}
+                      />
+                    </details>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
     </section>
