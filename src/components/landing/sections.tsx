@@ -665,7 +665,8 @@ export function EditorDemo() {
                   key={p.nome}
                   type="button"
                   onClick={() => setPaleta(i)}
-                  className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm ${
+                  aria-pressed={paleta === i}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                     paleta === i ? "border-ink" : "border-border"
                   }`}
                 >
@@ -684,7 +685,8 @@ export function EditorDemo() {
                   key={b}
                   type="button"
                   onClick={() => setBotao(b)}
-                  className={`rounded-xl border px-3 py-2 text-sm capitalize ${
+                  aria-pressed={botao === b}
+                  className={`inline-flex min-h-11 items-center rounded-xl border px-3.5 text-sm capitalize focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                     botao === b ? "border-ink bg-ink text-ink-foreground" : "border-border"
                   }`}
                 >
@@ -699,7 +701,7 @@ export function EditorDemo() {
             </p>
             <Link
               to="/painel"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               Abrir o editor <ArrowRight size={15} />
             </Link>
