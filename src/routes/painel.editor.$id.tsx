@@ -36,6 +36,7 @@ import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import { NotaEstrelas } from "@/components/editor/NotaEstrelas";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
+import { AvisoPlano, type MotivoBloqueio } from "@/components/planos/AvisoPlano";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelosCriacao } from "@/lib/nexa/modelos";
 import { paletasProntas } from "@/lib/nexa/paletas";
@@ -92,6 +93,10 @@ function Editor() {
 
   const original = sites.find((s) => s.id === id);
   const [rascunho, setRascunho] = useState<Site | null>(null);
+  const [bloqueioPlano, setBloqueioPlano] = useState<{
+    motivo: MotivoBloqueio;
+    mensagem: string;
+  } | null>(null);
   const [aba, setAba] = useState<Aba>("conteudo");
   const [dispositivo, setDispositivo] = useState<Dispositivo>("celular");
   const [sujo, setSujo] = useState(false);
@@ -228,6 +233,16 @@ function Editor() {
         },
       );
     } catch (error) {
+      const mensagem = error instanceof Error ? error.message : "";
+      if (
+        !publicado &&
+        (mensagem.includes("Ative um plano") || mensagem.includes("limite de mini-sites"))
+      ) {
+        setBloqueioPlano({
+          motivo: mensagem.includes("limite") ? "limite-sites" : "sem-plano",
+          mensagem,
+        });
+      }
       toast.error(publicado ? "Não foi possível despublicar" : "Não foi possível publicar", {
         description: error instanceof Error ? error.message : undefined,
       });
@@ -295,6 +310,11 @@ function Editor() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
+      {bloqueioPlano && (
+        <div className="fixed bottom-4 left-4 z-50 w-[min(28rem,calc(100vw-2rem))]">
+          <AvisoPlano {...bloqueioPlano} />
+        </div>
+      )}
       <header className="sticky top-0 z-30 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-3 py-3 backdrop-blur-xl sm:px-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
