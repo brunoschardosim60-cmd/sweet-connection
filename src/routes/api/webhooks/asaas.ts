@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
 
           const { data: checkout, error: checkoutError } = await supabaseAdmin
             .from("billing_checkout_sessions")
-            .select("id,owner_id,tier")
+            .select("id,owner_id,tier,billing_cycle")
             .eq("id", checkoutId)
             .eq("provider", "asaas")
             .maybeSingle();
@@ -72,6 +72,7 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
           const profileUpdate = {
             subscription_status: state,
             ...(state === "active" ? { subscription_tier: checkout.tier } : {}),
+            ...(state === "active" ? { billing_cycle: checkout.billing_cycle } : {}),
             billing_provider: "asaas",
             billing_customer_id: customerId,
             billing_subscription_id: subscriptionId,

@@ -588,6 +588,7 @@ export type Database = {
       profiles: {
         Row: {
           billing_cancel_at_period_end: boolean
+          billing_cycle: string
           billing_current_period_end: string | null
           billing_customer_id: string | null
           billing_provider: string | null
@@ -609,6 +610,7 @@ export type Database = {
         }
         Insert: {
           billing_cancel_at_period_end?: boolean
+          billing_cycle?: string
           billing_current_period_end?: string | null
           billing_customer_id?: string | null
           billing_provider?: string | null
@@ -630,6 +632,7 @@ export type Database = {
         }
         Update: {
           billing_cancel_at_period_end?: boolean
+          billing_cycle?: string
           billing_current_period_end?: string | null
           billing_customer_id?: string | null
           billing_provider?: string | null

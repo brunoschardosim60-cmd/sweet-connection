@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
           const { data: profile, error } = await (supabaseAdmin as any)
             .from("profiles")
             .select(
-              "subscription_tier,subscription_status,billing_provider,billing_subscription_id,billing_cancel_at_period_end,billing_current_period_end",
+              "subscription_tier,subscription_status,billing_cycle,billing_provider,billing_subscription_id,billing_cancel_at_period_end,billing_current_period_end",
             )
             .eq("id", user.id)
             .single();
@@ -64,6 +64,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
             subscription: {
               tier: profile.subscription_tier,
               status: profile.subscription_status,
+              cycle: profile.billing_cycle,
               cancelAtPeriodEnd: profile.billing_cancel_at_period_end,
               currentPeriodEnd: profile.billing_current_period_end,
             },

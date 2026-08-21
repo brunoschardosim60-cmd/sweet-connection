@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   FORMAS_PAGAMENTO_CHECKOUT,
+  cicloCobranca,
   descontoBoasVindas,
   idDaReferencia,
   planoPago,
@@ -30,6 +31,12 @@ describe("integração Asaas", () => {
     expect(planoPago("professional")).toBe("professional");
     expect(planoPago("catalog")).toBe("catalog");
     expect(planoPago("none")).toBeNull();
+  });
+
+  it("aceita somente os ciclos mensal e anual", () => {
+    expect(cicloCobranca("monthly")).toBe("monthly");
+    expect(cicloCobranca("annual")).toBe("annual");
+    expect(cicloCobranca("yearly")).toBeNull();
   });
 
   it("não extrai referências que não foram emitidas pela Nexa", () => {

@@ -27,7 +27,11 @@ export const Route = createFileRoute("/painel/meu-plano")({
   component: MeuPlano,
 });
 
-type Assinatura = { subscription_tier: string; subscription_status: string };
+type Assinatura = {
+  subscription_tier: string;
+  subscription_status: string;
+  billing_cycle: string;
+};
 type Fatura = {
   id: string;
   status: string;
@@ -139,7 +143,7 @@ function MeuPlano() {
   useEffect(() => {
     void supabase
       .from("profiles")
-      .select("subscription_tier,subscription_status")
+      .select("subscription_tier,subscription_status,billing_cycle")
       .single()
       .then(({ data }) => {
         setDados(data);
@@ -156,9 +160,17 @@ function MeuPlano() {
       if (!resposta.ok) return;
       const dadosGerenciamento = (await resposta.json()) as {
         invoices?: Fatura[];
-        subscription?: { currentPeriodEnd?: string | null; cancelAtPeriodEnd?: boolean };
+        subscription?: {
+          currentPeriodEnd?: string | null;
+          cancelAtPeriodEnd?: boolean;
+          cycle?: Ciclo;
+        };
       };
       setFaturas(dadosGerenciamento.invoices ?? []);
+      if (dadosGerenciamento.subscription?.cycle)
+        setDados(
+          (atual) => atual && { ...atual, billing_cycle: dadosGerenciamento.subscription!.cycle! },
+        );
       if (dadosGerenciamento.subscription?.cancelAtPeriodEnd)
         setFimCancelamento(dadosGerenciamento.subscription.currentPeriodEnd ?? null);
     });
@@ -186,6 +198,7 @@ function MeuPlano() {
 
   const tier = dados?.subscription_tier || "none";
   const ativo = dados?.subscription_status === "active" && tier !== "none";
+  const cicloAtivo = dados?.billing_cycle === "annual" ? "anual" : "mensal";
   const inclusos = beneficios[tier] ?? beneficios["none"]!;
   const restricoes = bloqueado[tier] ?? [];
   const opcaoSelecionada = opcoes.find((opcao) => opcao.tier === planoEscolhido)!;
@@ -298,7 +311,7 @@ function MeuPlano() {
           className={`border-t p-5 sm:p-7 ${ativo ? "border-ink-foreground/15" : "border-border"}`}
         >
           <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
-            {ativo ? "Incluído no seu plano" : "Disponível sem plano"}
+            {ativo ? `Plano ${cicloAtivo} ativo` : "Disponível sem plano"}
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {inclusos.map((item) => (
