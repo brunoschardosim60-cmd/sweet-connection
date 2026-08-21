@@ -1,4 +1,4 @@
-const ASAAS_API_URL = "https://api.asaas.com/v3";
+const ASAAS_API_URL_PADRAO = "https://api.asaas.com/v3";
 
 export type PlanoPago = "essential" | "professional" | "catalog";
 
@@ -44,7 +44,8 @@ function chaveAsaas() {
 }
 
 async function requisicaoAsaas(path: string, init?: RequestInit) {
-  const resposta = await fetch(`${ASAAS_API_URL}${path}`, {
+  const baseUrl = (process.env["ASAAS_API_URL"] ?? ASAAS_API_URL_PADRAO).replace(/\/$/, "");
+  const resposta = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       access_token: chaveAsaas(),
