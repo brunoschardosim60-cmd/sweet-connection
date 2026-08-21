@@ -1028,7 +1028,6 @@ export function Planos() {
                       Assinar agora
                     </Link>
                   </div>
-
                 </article>
               </Reveal>
             </li>
