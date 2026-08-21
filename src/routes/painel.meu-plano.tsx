@@ -72,6 +72,12 @@ const bloqueado: Record<string, string[]> = {
 };
 
 type PlanoContratavel = "essential" | "professional" | "catalog";
+type Ciclo = "monthly" | "annual";
+const precosAnuais: Record<PlanoContratavel, string> = {
+  essential: "R$ 390",
+  professional: "R$ 855",
+  catalog: "R$ 1.300",
+};
 
 const opcoes: {
   tier: PlanoContratavel;
@@ -113,11 +119,22 @@ function MeuPlano() {
   const [dados, setDados] = useState<Assinatura | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [planoEscolhido, setPlanoEscolhido] = useState<PlanoContratavel>("essential");
+  const [ciclo, setCiclo] = useState<Ciclo>("monthly");
   const [pagando, setPagando] = useState(false);
   const [erroPagamento, setErroPagamento] = useState("");
   const [faturas, setFaturas] = useState<Fatura[]>([]);
   const [fimCancelamento, setFimCancelamento] = useState<string | null>(null);
   const [cancelando, setCancelando] = useState(false);
+
+  useEffect(() => {
+    const parametros = new URLSearchParams(window.location.search);
+    const plano = parametros.get("plano");
+    const periodicidade = parametros.get("ciclo");
+    if (plano === "essential" || plano === "professional" || plano === "catalog") {
+      setPlanoEscolhido(plano);
+    }
+    if (periodicidade === "monthly" || periodicidade === "annual") setCiclo(periodicidade);
+  }, []);
 
   useEffect(() => {
     void supabase
@@ -183,7 +200,7 @@ function MeuPlano() {
       const resposta = await fetch("/api/billing/asaas/checkout", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-        body: JSON.stringify({ tier: planoEscolhido }),
+        body: JSON.stringify({ tier: planoEscolhido, cycle: ciclo }),
       });
       const retorno = (await resposta.json().catch(() => ({}))) as { url?: string; error?: string };
       if (!resposta.ok || !retorno.url)
@@ -322,6 +339,26 @@ function MeuPlano() {
             {ativo ? "Trocar de plano" : "Escolher um plano"}
           </p>
           <div
+            role="group"
+            aria-label="Periodicidade"
+            className="mt-3 inline-flex rounded-full border border-border p-1"
+          >
+            <button
+              type="button"
+              onClick={() => setCiclo("monthly")}
+              className={`min-h-10 rounded-full px-4 text-xs font-semibold ${ciclo === "monthly" ? "bg-ink text-ink-foreground" : "text-muted-foreground"}`}
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              onClick={() => setCiclo("annual")}
+              className={`min-h-10 rounded-full px-4 text-xs font-semibold ${ciclo === "annual" ? "bg-ink text-ink-foreground" : "text-muted-foreground"}`}
+            >
+              Anual · economize
+            </button>
+          </div>
+          <div
             role="radiogroup"
             aria-labelledby="rotulo-escolha-plano"
             className="mt-3 grid gap-3 sm:grid-cols-3"
@@ -356,13 +393,17 @@ function MeuPlano() {
                     )}
                   </span>
                   <span className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
-                    {opcao.precoAnterior && (
+                    {ciclo === "monthly" && opcao.precoAnterior && (
                       <span className="text-sm font-bold line-through opacity-60">
                         {opcao.precoAnterior}
                       </span>
                     )}
-                    <span className="font-display text-xl font-extrabold">{opcao.preco}</span>
-                    <span className="text-xs font-semibold opacity-70">{opcao.sufixo}</span>
+                    <span className="font-display text-xl font-extrabold">
+                      {ciclo === "annual" ? precosAnuais[opcao.tier] : opcao.preco}
+                    </span>
+                    <span className="text-xs font-semibold opacity-70">
+                      {ciclo === "annual" ? "/ano" : opcao.sufixo}
+                    </span>
                   </span>
                   <span className="mt-1 block text-xs opacity-70">{opcao.descricao}</span>
                 </button>
@@ -375,7 +416,9 @@ function MeuPlano() {
               ativo ? "bg-ink-foreground/10" : "bg-secondary text-foreground"
             }`}
           >
-            {opcaoSelecionada.nota}
+            {ciclo === "annual"
+              ? `Cobrança anual de ${precosAnuais[opcaoSelecionada.tier]}. Renovação anual; a promoção de R$ 5 não se aplica ao anual.`
+              : opcaoSelecionada.nota}
           </p>
 
           <button
@@ -395,7 +438,9 @@ function MeuPlano() {
             ) : (
               <ArrowUpRight size={16} aria-hidden="true" />
             )}
-            {pagando ? "Abrindo pagamento…" : `Assinar ${opcaoSelecionada.nome}`}
+            {pagando
+              ? "Abrindo pagamento…"
+              : `Assinar ${opcaoSelecionada.nome} ${ciclo === "annual" ? "anual" : "mensal"}`}
           </button>
           <p className="mt-2 text-xs text-muted-foreground" role="status">
             {pagando

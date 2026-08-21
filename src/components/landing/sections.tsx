@@ -5,6 +5,8 @@ import {
   BarChart3,
   Calendar,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   Clock,
   CreditCard,
@@ -21,6 +23,7 @@ import {
   Star,
   Tag,
   Utensils,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GraficoArea, GraficoBarras } from "@/components/Graficos";
@@ -981,14 +984,42 @@ const planos: {
 ];
 
 export function Planos() {
+  const [planoAberto, setPlanoAberto] = useState<number | null>(null);
+  const [cicloPlano, setCicloPlano] = useState<"monthly" | "annual">("monthly");
+  const planoEmFoco = planoAberto === null ? null : planos[planoAberto];
+  const anual: Record<string, string> = {
+    Essencial: "R$ 390",
+    Profissional: "R$ 855",
+    Catálogo: "R$ 1.300",
+  };
+  const tierDoPlano: Record<string, string> = {
+    Essencial: "essential",
+    Profissional: "professional",
+    Catálogo: "catalog",
+  };
+
+  useEffect(() => {
+    if (planoAberto === null) return;
+    const aoPressionar = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPlanoAberto(null);
+    };
+    window.addEventListener("keydown", aoPressionar);
+    return () => window.removeEventListener("keydown", aoPressionar);
+  }, [planoAberto]);
+
+  const mudarPlano = (direcao: -1 | 1) => {
+    setPlanoAberto((atual) =>
+      atual === null ? 0 : (atual + direcao + planos.length) % planos.length,
+    );
+  };
+
   return (
     <section id="planos" className="border-y border-border bg-sand py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal>
-          <h2 className="text-3xl font-extrabold md:text-5xl">Planos demonstrativos</h2>
+          <h2 className="text-3xl font-extrabold md:text-5xl">Planos para o seu negócio</h2>
           <p className="mt-4 max-w-xl text-muted-foreground">
-            Valores e recursos ilustrativos — podem ser alterados a qualquer momento antes do
-            lançamento comercial.
+            Escolha mensal ou anual e avance para o pagamento seguro apenas quando estiver pronto.
           </p>
         </Reveal>
 
@@ -1065,15 +1096,16 @@ export function Planos() {
                     </ul>
                   </div>
                   <div className="mt-auto pt-7">
-                    <Link
-                      to="/painel/meu-plano"
+                    <button
+                      type="button"
+                      onClick={() => setPlanoAberto(i)}
                       aria-label={`Assinar o plano ${p.nome}`}
                       className={`inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
                         p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
                       }`}
                     >
                       Assinar agora
-                    </Link>
+                    </button>
                   </div>
                 </article>
               </Reveal>
@@ -1086,6 +1118,124 @@ export function Planos() {
           119/mês) não têm promoção de estreia.
         </p>
       </div>
+      {planoEmFoco && planoAberto !== null && (
+        <div
+          className="fixed inset-0 z-[100] grid place-items-center bg-ink/55 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPlanoAberto(null);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-plano-modal"
+            className={`relative w-full max-w-xl rounded-3xl border p-6 shadow-[var(--shadow-lift)] sm:p-8 ${
+              planoEmFoco.destaque
+                ? "border-ink bg-ink text-ink-foreground"
+                : "border-border bg-card"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setPlanoAberto(null)}
+              aria-label="Fechar detalhes do plano"
+              className="absolute right-4 top-4 grid min-h-11 min-w-11 place-items-center rounded-full border border-current/20 transition-colors hover:bg-secondary"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+            <p
+              className={`text-xs font-bold uppercase tracking-[0.16em] ${planoEmFoco.destaque ? "text-lime" : "text-muted-foreground"}`}
+            >
+              Escolha seu plano
+            </p>
+            <h3 id="titulo-plano-modal" className="mt-2 pr-10 font-display text-3xl font-extrabold">
+              Nexa {planoEmFoco.nome}
+            </h3>
+            <p
+              className={`mt-2 max-w-lg text-sm ${planoEmFoco.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
+            >
+              {planoEmFoco.resumo}
+            </p>
+
+            <div
+              role="group"
+              aria-label="Periodicidade do plano"
+              className="mt-6 inline-flex rounded-full border border-current/20 p-1"
+            >
+              <button
+                type="button"
+                onClick={() => setCicloPlano("monthly")}
+                className={`min-h-10 rounded-full px-4 text-sm font-semibold ${cicloPlano === "monthly" ? (planoEmFoco.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground") : "opacity-70"}`}
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setCicloPlano("annual")}
+                className={`min-h-10 rounded-full px-4 text-sm font-semibold ${cicloPlano === "annual" ? (planoEmFoco.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground") : "opacity-70"}`}
+              >
+                Anual
+              </button>
+            </div>
+
+            <p className="mt-5 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
+              {cicloPlano === "monthly" && planoEmFoco.precoAnterior && (
+                <span className="text-2xl opacity-65 line-through">
+                  {planoEmFoco.precoAnterior}
+                </span>
+              )}
+              {cicloPlano === "annual" ? anual[planoEmFoco.nome] : planoEmFoco.preco}
+              <span className="text-base font-semibold opacity-70">
+                {cicloPlano === "annual" ? "/ano" : planoEmFoco.sufixo}
+              </span>
+            </p>
+            <p
+              className={`mt-2 rounded-xl px-3 py-2 text-sm ${planoEmFoco.destaque ? "bg-ink-foreground/10" : "bg-secondary"}`}
+            >
+              {cicloPlano === "annual"
+                ? "Cobrança única anual com renovação anual. A promoção de estreia não se aplica ao plano anual."
+                : planoEmFoco.nota}
+            </p>
+            <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+              {planoEmFoco.itens.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm">
+                  <Check
+                    size={16}
+                    className={`mt-0.5 shrink-0 ${planoEmFoco.destaque ? "text-lime" : "text-ink"}`}
+                    aria-hidden="true"
+                  />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-7 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => mudarPlano(-1)}
+                aria-label="Ver plano anterior"
+                className="grid min-h-11 min-w-11 place-items-center rounded-full border border-current/20"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <a
+                href={`/painel/meu-plano?plano=${tierDoPlano[planoEmFoco.nome]}&ciclo=${cicloPlano}`}
+                className={`inline-flex min-h-12 flex-1 items-center justify-center rounded-full px-5 text-sm font-bold ${planoEmFoco.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"}`}
+              >
+                Continuar para pagamento
+              </a>
+              <button
+                type="button"
+                onClick={() => mudarPlano(1)}
+                aria-label="Ver próximo plano"
+                className="grid min-h-11 min-w-11 place-items-center rounded-full border border-current/20"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

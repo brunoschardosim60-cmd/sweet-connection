@@ -1,11 +1,17 @@
 const ASAAS_API_URL_PADRAO = "https://api.asaas.com/v3";
 
 export type PlanoPago = "essential" | "professional" | "catalog";
+export type CicloCobranca = "monthly" | "annual";
 
 const PRECO_CENTAVOS: Record<PlanoPago, number> = {
   essential: 3900,
   professional: 7900,
   catalog: 11900,
+};
+const PRECO_ANUAL_CENTAVOS: Record<PlanoPago, number> = {
+  essential: 39000,
+  professional: 85500,
+  catalog: 130000,
 };
 
 export const PRECOS_PLANOS: Record<PlanoPago, string> = {
@@ -19,6 +25,9 @@ const DESCONTO_BOAS_VINDAS_ESSENCIAL = 3400;
 
 export function planoPago(valor: unknown): PlanoPago | null {
   return valor === "essential" || valor === "professional" || valor === "catalog" ? valor : null;
+}
+export function cicloCobranca(valor: unknown): CicloCobranca | null {
+  return valor === "monthly" || valor === "annual" ? valor : null;
 }
 
 export function referenciaCheckout(id: string) {
@@ -92,12 +101,16 @@ export async function listarPagamentosAsaas(subscriptionId: string) {
 export async function criarCheckoutAsaas(args: {
   sessionId: string;
   tier: PlanoPago;
+  cycle: CicloCobranca;
   callbackUrl: string;
   elegivelBoasVindas: boolean;
 }) {
-  const valor = PRECO_CENTAVOS[args.tier] / 100;
+  const valor = (args.cycle === "annual" ? PRECO_ANUAL_CENTAVOS : PRECO_CENTAVOS)[args.tier] / 100;
   const vencimento = proximoVencimento();
-  const desconto = descontoBoasVindas(args.tier, args.elegivelBoasVindas, vencimento);
+  const desconto =
+    args.cycle === "monthly"
+      ? descontoBoasVindas(args.tier, args.elegivelBoasVindas, vencimento)
+      : undefined;
   const plano =
     args.tier === "essential"
       ? "Essencial"
@@ -122,15 +135,15 @@ export async function criarCheckoutAsaas(args: {
         {
           name: `Nexa ${plano}`,
           description:
-            args.tier === "essential" && args.elegivelBoasVindas
+            args.cycle === "monthly" && args.tier === "essential" && args.elegivelBoasVindas
               ? "1º mês por R$ 5,00; depois R$ 39,00/mês"
-              : `Assinatura mensal Nexa ${plano}`,
+              : `Assinatura ${args.cycle === "annual" ? "anual" : "mensal"} Nexa ${plano}`,
           quantity: 1,
           value: valor,
         },
       ],
       subscription: {
-        cycle: "MONTHLY",
+        cycle: args.cycle === "annual" ? "YEARLY" : "MONTHLY",
         nextDueDate: vencimento,
         ...(desconto ? { discount: desconto } : {}),
       },

@@ -224,6 +224,7 @@ export type Database = {
       }
       billing_checkout_sessions: {
         Row: {
+          billing_cycle: string
           created_at: string
           id: string
           owner_id: string
@@ -237,6 +238,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_cycle?: string
           created_at?: string
           id?: string
           owner_id: string
@@ -250,6 +252,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_cycle?: string
           created_at?: string
           id?: string
           owner_id?: string

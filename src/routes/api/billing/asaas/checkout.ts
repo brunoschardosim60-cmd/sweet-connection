@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { criarCheckoutAsaas, planoPago } from "@/lib/nexa/asaas.server";
+import { criarCheckoutAsaas, cicloCobranca, planoPago } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function json(body: unknown, status = 200) {
@@ -22,9 +22,13 @@ export const Route = createFileRoute("/api/billing/asaas/checkout")({
           if (authError || !auth.user)
             return json({ error: "Sua sessão expirou. Entre novamente." }, 401);
 
-          const body = (await request.json().catch(() => null)) as { tier?: unknown } | null;
+          const body = (await request.json().catch(() => null)) as {
+            tier?: unknown;
+            cycle?: unknown;
+          } | null;
           const tier = planoPago(body?.tier);
-          if (!tier) return json({ error: "Plano inválido." }, 400);
+          const cycle = cicloCobranca(body?.cycle ?? "monthly");
+          if (!tier || !cycle) return json({ error: "Plano inválido." }, 400);
 
           // A condição é decidida no servidor: somente quem ainda não teve
           // um checkout pago da Nexa recebe o primeiro mês promocional.
@@ -39,7 +43,7 @@ export const Route = createFileRoute("/api/billing/asaas/checkout")({
 
           const { data: session, error: sessionError } = await supabaseAdmin
             .from("billing_checkout_sessions")
-            .insert({ owner_id: auth.user.id, provider: "asaas", tier })
+            .insert({ owner_id: auth.user.id, provider: "asaas", tier, billing_cycle: cycle })
             .select("id")
             .single();
           if (sessionError || !session) throw new Error("Não foi possível preparar seu checkout.");
@@ -49,6 +53,7 @@ export const Route = createFileRoute("/api/billing/asaas/checkout")({
             const checkout = await criarCheckoutAsaas({
               sessionId: session.id,
               tier,
+              cycle,
               callbackUrl: callback,
               elegivelBoasVindas,
             });
