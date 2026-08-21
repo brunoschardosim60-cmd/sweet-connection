@@ -292,4 +292,6 @@ export interface Modelo {
   destaque: string;
   paleta: { fundo: string; texto: string; primaria: string; suave: string };
   imagem: string;
+  /** Família de produto: "cardapio" agrupa os modelos de Cardápio Digital. */
+  familia?: "cardapio";
 }
