@@ -14,6 +14,8 @@ function mensagemErro(error: { message: string; code?: string }) {
   if (error.code === "42501") return "Sua conta não tem permissão para alterar estes dados.";
   if (error.message.includes("subscription_required")) return "Ative um plano para publicar este mini-site.";
   if (error.message.includes("published_site_limit_reached")) return "Você atingiu o limite de mini-sites publicados do seu plano.";
+  if (error.message.includes("minisite_creation_limit_reached")) return "Você atingiu o limite de projetos do seu plano.";
+  if (error.message.includes("catalog_feature_required")) return "Cardápio, cupons e promoções exigem o plano Catálogo.";
   return error.message;
 }
 
