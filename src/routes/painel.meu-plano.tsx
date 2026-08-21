@@ -28,6 +28,7 @@ export const Route = createFileRoute("/painel/meu-plano")({
 });
 
 type Assinatura = { subscription_tier: string; subscription_status: string };
+type Fatura = { id: string; status: string; value: number | null; dueDate: string | null; paymentDate: string | null; invoiceUrl: string | null };
 
 const nomes: Record<string, string> = {
   none: "Sem plano",
@@ -105,6 +106,9 @@ function MeuPlano() {
   const [planoEscolhido, setPlanoEscolhido] = useState<PlanoContratavel>("essential");
   const [pagando, setPagando] = useState(false);
   const [erroPagamento, setErroPagamento] = useState("");
+  const [faturas, setFaturas] = useState<Fatura[]>([]);
+  const [fimCancelamento, setFimCancelamento] = useState<string | null>(null);
+  const [cancelando, setCancelando] = useState(false);
 
   useEffect(() => {
     void supabase
@@ -115,6 +119,23 @@ function MeuPlano() {
         setDados(data);
         setCarregando(false);
       });
+  }, []);
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.access_token) return;
+      const resposta = await fetch("/api/billing/asaas/manage", {
+        headers: { authorization: `Bearer ${session.access_token}` },
+      });
+      if (!resposta.ok) return;
+      const dadosGerenciamento = (await resposta.json()) as {
+        invoices?: Fatura[];
+        subscription?: { currentPeriodEnd?: string | null; cancelAtPeriodEnd?: boolean };
+      };
+      setFaturas(dadosGerenciamento.invoices ?? []);
+      if (dadosGerenciamento.subscription?.cancelAtPeriodEnd)
+        setFimCancelamento(dadosGerenciamento.subscription.currentPeriodEnd ?? null);
+    });
   }, []);
 
   if (carregando) {
@@ -164,6 +185,25 @@ function MeuPlano() {
         error instanceof Error ? error.message : "Não foi possível abrir o pagamento.",
       );
       setPagando(false);
+    }
+  }
+
+  async function cancelarAssinatura() {
+    if (!window.confirm("Cancelar a renovação automática? Seu acesso permanece ativo até o fim do período já pago.")) return;
+    setCancelando(true);
+    try {
+      const { data: sessao } = await supabase.auth.getSession();
+      const resposta = await fetch("/api/billing/asaas/cancel", {
+        method: "POST",
+        headers: { authorization: `Bearer ${sessao.session?.access_token ?? ""}` },
+      });
+      const retorno = (await resposta.json().catch(() => ({}))) as { currentPeriodEnd?: string | null; error?: string };
+      if (!resposta.ok) throw new Error(retorno.error ?? "Não foi possível cancelar a assinatura.");
+      setFimCancelamento(retorno.currentPeriodEnd ?? null);
+    } catch (error) {
+      setErroPagamento(error instanceof Error ? error.message : "Não foi possível cancelar a assinatura.");
+    } finally {
+      setCancelando(false);
     }
   }
 
@@ -360,6 +400,32 @@ function MeuPlano() {
           )}
         </div>
       </article>
+
+      {ativo && (
+        <section className="rounded-2xl border border-border p-5">
+          <h2 className="text-base font-bold">Cobranças e assinatura</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {fimCancelamento
+              ? `Renovação cancelada. Seu acesso continua até ${new Date(fimCancelamento).toLocaleDateString("pt-BR")}.`
+              : "Acompanhe seus pagamentos e gerencie a renovação automática."}
+          </p>
+          {faturas.length > 0 && (
+            <ul className="mt-4 divide-y divide-border text-sm">
+              {faturas.map((fatura) => (
+                <li key={fatura.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <span>R$ {(fatura.value ?? 0).toFixed(2).replace(".", ",")} · {fatura.status}</span>
+                  {fatura.invoiceUrl && <a href={fatura.invoiceUrl} target="_blank" rel="noreferrer" className="min-h-11 py-2 underline">Ver fatura</a>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {!fimCancelamento && (
+            <button type="button" onClick={() => void cancelarAssinatura()} disabled={cancelando} className="mt-4 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive disabled:opacity-60">
+              {cancelando ? "Cancelando…" : "Cancelar renovação"}
+            </button>
+          )}
+        </section>
+      )}
 
       {!ativo && (
         <div className="grid gap-4 sm:grid-cols-2">

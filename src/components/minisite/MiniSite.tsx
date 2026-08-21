@@ -31,7 +31,8 @@ import { useMarca } from "@/lib/nexa/hooks";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
-import { enviarFormularioPublicado, registrarEventoPublicado } from "@/lib/nexa/public-api";
+import { enviarFormularioPublicado, notificarDonoDoMinisite, registrarEventoPublicado } from "@/lib/nexa/public-api";
+import { reservarHospedagem } from "@/lib/nexa/reservas";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
@@ -450,7 +451,7 @@ function Secao({
     case "faq":
       return <BlocoFaq site={site} titulo={titulo} />;
     case "formulario":
-      return <BlocoFormulario site={site} />;
+      return site.modeloId === "pousada-hotel" ? <BlocoReservaHospedagem site={site} /> : <BlocoFormulario site={site} />;
     case "agenda":
       return <BlocoAgenda site={site} titulo={titulo} />;
     case "livre":
@@ -1323,6 +1324,7 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
                 servico,
                 chave: chaveEnvio.current,
               });
+              notificarDonoDoMinisite("agendamento", reserva.id);
               registrar(`Agenda: ${dataIso(dia)} ${hora}`);
               if (!reserva.repetido) {
                 eventoMarketing("agendamento_confirmado", {
@@ -1525,6 +1527,83 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
   );
 }
 
+function BlocoReservaHospedagem({ site }: { site: Site }) {
+  const publicado = useContext(PublicacaoCtx);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [confirmada, setConfirmada] = useState<{ checkIn: string; checkOut: string } | null>(null);
+  const chave = useRef(novaChaveIdempotencia());
+  const hoje = dataIso(new Date());
+
+  if (confirmada) {
+    return (
+      <section>
+        <Titulo site={site}>Reserva solicitada</Titulo>
+        <Cartao site={site}>
+          <p className="p-4 text-sm font-medium" style={{ color: site.aparencia.corPrimaria }}>
+            Reserva confirmada de {new Date(`${confirmada.checkIn}T12:00:00`).toLocaleDateString("pt-BR")} a {new Date(`${confirmada.checkOut}T12:00:00`).toLocaleDateString("pt-BR")}. A pousada receberá seus dados para o atendimento.
+          </p>
+        </Cartao>
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <Titulo site={site}>Reserve sua estadia</Titulo>
+      <Cartao site={site}>
+        <form
+          className="flex flex-col gap-3 p-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (enviando) return;
+            if (!publicado) {
+              setErro("A reserva fica disponível no mini-site publicado.");
+              return;
+            }
+            const dados = new FormData(event.currentTarget);
+            setErro(null);
+            setEnviando(true);
+            try {
+              const reserva = await reservarHospedagem({
+                slug: site.slug,
+                checkIn: String(dados.get("check-in") ?? ""),
+                checkOut: String(dados.get("check-out") ?? ""),
+                acomodacao: String(dados.get("acomodacao") ?? "principal"),
+                hospedes: Number(dados.get("hospedes") ?? 0),
+                nome: String(dados.get("nome") ?? "").trim(),
+                telefone: String(dados.get("telefone") ?? "").trim(),
+                email: String(dados.get("email") ?? "").trim(),
+                observacao: String(dados.get("observacao") ?? "").trim(),
+                chave: chave.current,
+              });
+              notificarDonoDoMinisite("reserva", reserva.id);
+              setConfirmada({ checkIn: reserva.checkIn, checkOut: reserva.checkOut });
+            } catch (error) {
+              setErro(error instanceof Error ? error.message : "Não foi possível reservar.");
+            } finally {
+              setEnviando(false);
+            }
+          }}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs font-semibold">Check-in<input name="check-in" type="date" min={hoje} required className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} /></label>
+            <label className="text-xs font-semibold">Check-out<input name="check-out" type="date" min={hoje} required className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} /></label>
+          </div>
+          <input name="acomodacao" defaultValue="principal" type="hidden" />
+          <label className="text-xs font-semibold">Hóspedes<select name="hospedes" defaultValue="2" className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? "hóspede" : "hóspedes"}</option>)}</select></label>
+          <input name="nome" required maxLength={120} placeholder="Nome completo" aria-label="Nome completo" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
+          <input name="telefone" required maxLength={40} placeholder="WhatsApp" aria-label="WhatsApp" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
+          <input name="email" type="email" required maxLength={254} placeholder="E-mail" aria-label="E-mail" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
+          <textarea name="observacao" maxLength={1000} rows={3} placeholder="Pedido especial (opcional)" aria-label="Pedido especial" className="w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
+          {erro && <p role="alert" className="text-sm font-medium">{erro}</p>}
+          <button type="submit" disabled={enviando} className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-60" style={{ background: site.aparencia.corPrimaria, color: contraste(site.aparencia.corPrimaria), borderRadius: "var(--ms-radius)" }}>{enviando ? "Confirmando…" : "Confirmar reserva"}</button>
+        </form>
+      </Cartao>
+    </section>
+  );
+}
+
 function BlocoFormulario({ site }: { site: Site }) {
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -1560,7 +1639,8 @@ function BlocoFormulario({ site }: { site: Site }) {
             setErro(null);
             setEnviando(true);
             try {
-              await enviarFormularioPublicado(site.slug, dados);
+              const envio = await enviarFormularioPublicado(site.slug, dados);
+              notificarDonoDoMinisite("formulario", String(envio ?? ""));
               form.reset();
               setEnviado(true);
             } catch (error) {

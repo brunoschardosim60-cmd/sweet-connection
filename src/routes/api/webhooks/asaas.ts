@@ -42,6 +42,21 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
             typeof payment["subscription"] === "string" ? payment["subscription"] : null;
           const checkoutStatus =
             state === "active" ? "paid" : state === "past_due" ? "past_due" : "cancelled";
+          await (supabaseAdmin as any).from("billing_invoices").upsert(
+            {
+              owner_id: checkout.owner_id,
+              provider: "asaas",
+              provider_payment_id: paymentId,
+              provider_subscription_id: subscriptionId,
+              tier: checkout.tier,
+              status: String(payment["status"] ?? "UNKNOWN"),
+              amount: typeof payment["value"] === "number" ? payment["value"] : null,
+              due_date: typeof payment["dueDate"] === "string" ? payment["dueDate"] : null,
+              paid_at: typeof payment["paymentDate"] === "string" ? payment["paymentDate"] : null,
+              invoice_url: typeof payment["invoiceUrl"] === "string" ? payment["invoiceUrl"] : null,
+            },
+            { onConflict: "provider_payment_id" },
+          );
           await supabaseAdmin
             .from("billing_checkout_sessions")
             .update({

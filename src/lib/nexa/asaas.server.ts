@@ -76,6 +76,19 @@ async function requisicaoAsaas(path: string, init?: RequestInit) {
   return resposta.json() as Promise<Record<string, unknown>>;
 }
 
+export async function cancelarAssinaturaAsaas(subscriptionId: string) {
+  return requisicaoAsaas(`/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function listarPagamentosAsaas(subscriptionId: string) {
+  const resposta = await requisicaoAsaas(
+    `/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=30&offset=0`,
+  );
+  return Array.isArray(resposta["data"]) ? resposta["data"] : [];
+}
+
 export async function criarCheckoutAsaas(args: {
   sessionId: string;
   tier: PlanoPago;

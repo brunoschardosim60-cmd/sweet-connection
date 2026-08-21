@@ -32,11 +32,14 @@ import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
+import { Route as ApiBillingAsaasCancelRouteImport } from './routes/api/billing/asaas/cancel'
 import { Route as ApiBillingAsaasCheckoutRouteImport } from './routes/api/billing/asaas/checkout'
+import { Route as ApiBillingAsaasManageRouteImport } from './routes/api/billing/asaas/manage'
 import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -154,6 +157,12 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsDispatchRoute =
+  ApiNotificationsDispatchRouteImport.update({
+    id: '/api/notifications/dispatch',
+    path: '/api/notifications/dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiWebhooksAsaasRoute = ApiWebhooksAsaasRouteImport.update({
   id: '/api/webhooks/asaas',
   path: '/api/webhooks/asaas',
@@ -174,9 +183,19 @@ const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
   path: '/editor/$id',
   getParentRoute: () => PainelRoute,
 } as any)
+const ApiBillingAsaasCancelRoute = ApiBillingAsaasCancelRouteImport.update({
+  id: '/api/billing/asaas/cancel',
+  path: '/api/billing/asaas/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingAsaasCheckoutRoute = ApiBillingAsaasCheckoutRouteImport.update({
   id: '/api/billing/asaas/checkout',
   path: '/api/billing/asaas/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingAsaasManageRoute = ApiBillingAsaasManageRouteImport.update({
+  id: '/api/billing/asaas/manage',
+  path: '/api/billing/asaas/manage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
@@ -209,11 +228,14 @@ export interface FileRoutesByFullPath {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
+  '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
+  '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesByTo {
@@ -239,11 +261,14 @@ export interface FileRoutesByTo {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin': typeof PainelAdminIndexRoute
+  '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
+  '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesById {
@@ -271,11 +296,14 @@ export interface FileRoutesById {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
+  '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
+  '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRouteTypes {
@@ -304,11 +332,14 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin/'
+    | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
+    | '/api/billing/asaas/manage'
     | '/api/public/manifest/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -334,11 +365,14 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel'
+    | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin'
+    | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
+    | '/api/billing/asaas/manage'
     | '/api/public/manifest/$slug'
   id:
     | '__root__'
@@ -365,11 +399,14 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/painel/admin/'
+    | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
+    | '/api/billing/asaas/manage'
     | '/api/public/manifest/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -387,8 +424,11 @@ export interface RootRouteChildren {
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   DemonstracaoIaRoute: typeof DemonstracaoIaRoute
   SiteSlugRoute: typeof SiteSlugRoute
+  ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
+  ApiBillingAsaasCancelRoute: typeof ApiBillingAsaasCancelRoute
   ApiBillingAsaasCheckoutRoute: typeof ApiBillingAsaasCheckoutRoute
+  ApiBillingAsaasManageRoute: typeof ApiBillingAsaasManageRoute
   ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
 }
 
@@ -555,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/notifications/dispatch': {
+      id: '/api/notifications/dispatch'
+      path: '/api/notifications/dispatch'
+      fullPath: '/api/notifications/dispatch'
+      preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/asaas': {
       id: '/api/webhooks/asaas'
       path: '/api/webhooks/asaas'
@@ -583,11 +630,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelEditorIdRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/api/billing/asaas/cancel': {
+      id: '/api/billing/asaas/cancel'
+      path: '/api/billing/asaas/cancel'
+      fullPath: '/api/billing/asaas/cancel'
+      preLoaderRoute: typeof ApiBillingAsaasCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/asaas/checkout': {
       id: '/api/billing/asaas/checkout'
       path: '/api/billing/asaas/checkout'
       fullPath: '/api/billing/asaas/checkout'
       preLoaderRoute: typeof ApiBillingAsaasCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/asaas/manage': {
+      id: '/api/billing/asaas/manage'
+      path: '/api/billing/asaas/manage'
+      fullPath: '/api/billing/asaas/manage'
+      preLoaderRoute: typeof ApiBillingAsaasManageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/manifest/$slug': {
@@ -649,8 +710,11 @@ const rootRouteChildren: RootRouteChildren = {
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   DemonstracaoIaRoute: DemonstracaoIaRoute,
   SiteSlugRoute: SiteSlugRoute,
+  ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
+  ApiBillingAsaasCancelRoute: ApiBillingAsaasCancelRoute,
   ApiBillingAsaasCheckoutRoute: ApiBillingAsaasCheckoutRoute,
+  ApiBillingAsaasManageRoute: ApiBillingAsaasManageRoute,
   ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
 }
 export const routeTree = rootRouteImport
