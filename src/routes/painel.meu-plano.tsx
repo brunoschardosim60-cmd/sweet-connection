@@ -56,29 +56,43 @@ const bloqueado: Record<string, string[]> = {
 
 type PlanoContratavel = "essential" | "professional" | "catalog";
 
-const opcoes: { tier: PlanoContratavel; nome: string; preco: string; descricao: string }[] = [
+const opcoes: {
+  tier: PlanoContratavel;
+  nome: string;
+  preco: string;
+  sufixo: string;
+  descricao: string;
+  nota: string;
+}[] = [
   {
     tier: "essential",
     nome: "Essencial",
-    preco: "R$ 5 no 1º mês",
-    descricao: "Depois R$ 39/mês · 1 mini-site publicado",
+    preco: "R$ 5",
+    sufixo: "no 1º mês",
+    descricao: "1 mini-site publicado",
+    nota: "R$ 5 no primeiro mês · R$ 39/mês nas renovações. Promoção válida apenas para novos clientes.",
   },
   {
     tier: "professional",
     nome: "Profissional",
-    preco: "R$ 79/mês",
+    preco: "R$ 79",
+    sufixo: "/mês",
     descricao: "Até 3 mini-sites + IA semanal",
+    nota: "R$ 79/mês desde a primeira cobrança.",
   },
   {
     tier: "catalog",
     nome: "Catálogo",
-    preco: "R$ 119/mês",
+    preco: "R$ 119",
+    sufixo: "/mês",
     descricao: "Tudo do Profissional + catálogo",
+    nota: "R$ 119/mês desde a primeira cobrança.",
   },
 ];
 
 function MeuPlano() {
   const [dados, setDados] = useState<Assinatura | null>(null);
+  const [carregando, setCarregando] = useState(true);
   const [planoEscolhido, setPlanoEscolhido] = useState<PlanoContratavel>("essential");
   const [pagando, setPagando] = useState(false);
   const [erroPagamento, setErroPagamento] = useState("");
@@ -88,22 +102,38 @@ function MeuPlano() {
       .from("profiles")
       .select("subscription_tier,subscription_status")
       .single()
-      .then(({ data }) => setDados(data));
+      .then(({ data }) => {
+        setDados(data);
+        setCarregando(false);
+      });
   }, []);
 
-  if (!dados) {
+  if (carregando) {
     return (
-      <div className="grid min-h-[40vh] place-items-center" role="status">
-        <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        <span className="sr-only">Carregando seu plano…</span>
-      </div>
+      <section className="mx-auto w-full max-w-3xl space-y-6" aria-busy="true">
+        <div className="h-8 w-48 animate-pulse rounded-full bg-secondary motion-reduce:animate-none" />
+        <div className="h-56 animate-pulse rounded-3xl bg-secondary motion-reduce:animate-none" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-24 animate-pulse rounded-2xl bg-secondary motion-reduce:animate-none"
+            />
+          ))}
+        </div>
+        <p className="sr-only" role="status">
+          Carregando seu plano…
+        </p>
+      </section>
     );
   }
 
-  const tier = dados.subscription_tier || "none";
-  const ativo = dados.subscription_status === "active" && tier !== "none";
+  const tier = dados?.subscription_tier || "none";
+  const ativo = dados?.subscription_status === "active" && tier !== "none";
   const inclusos = beneficios[tier] ?? beneficios["none"]!;
   const restricoes = bloqueado[tier] ?? [];
+  const opcaoSelecionada = opcoes.find((opcao) => opcao.tier === planoEscolhido)!;
+
 
   async function iniciarCheckout() {
     setPagando(true);
