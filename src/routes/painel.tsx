@@ -293,7 +293,10 @@ function PainelLayout() {
           </button>
         </div>
 
-        <nav aria-label="Navegação do painel" className="mt-4 flex flex-1 flex-col gap-1">
+        <nav
+          aria-label="Navegação do painel"
+          className="mt-4 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
+        >
           {navegacao.map((i) => {
             const ativo = ativoDe(i);
             return (
@@ -313,7 +316,7 @@ function PainelLayout() {
 
         <Link
           to="/"
-          className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+          className="flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
         >
           <Globe size={17} className="shrink-0" />
           {!recolhida && "Ver landing page"}
@@ -322,7 +325,7 @@ function PainelLayout() {
           type="button"
           onClick={() => void sair()}
           title={recolhida ? "Sair" : undefined}
-          className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
+          className="flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
         >
           <LogOut size={17} className="shrink-0" />
           {!recolhida && "Sair"}
@@ -534,7 +537,10 @@ function PainelLayout() {
                 </button>
               </div>
 
-              <nav aria-label="Navegação do painel" className="mt-2 flex flex-1 flex-col gap-1">
+              <nav
+                aria-label="Navegação do painel"
+                className="mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
+              >
                 {navegacao.map((i) => {
                   const ativo = ativoDe(i);
                   return (
