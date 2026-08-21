@@ -46,6 +46,7 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       "produtos",
       "equipe",
       "horarios",
+      "agenda",
       "depoimentos",
       "galeria",
       "faq",

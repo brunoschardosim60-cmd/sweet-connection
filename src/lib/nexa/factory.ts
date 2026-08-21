@@ -180,6 +180,7 @@ export const presetsModelo: Record<string, PresetModelo> = {
       "produtos",
       "equipe",
       "horarios",
+      "agenda",
       "depoimentos",
       "galeria",
       "faq",
@@ -267,6 +268,7 @@ export const secoesPadrao: { tipo: TipoSecao; titulo: string; ativa: boolean }[]
   { tipo: "cupom", titulo: "Cupom", ativa: false },
   { tipo: "localizacao", titulo: "Localização", ativa: true },
   { tipo: "horarios", titulo: "Horários", ativa: true },
+  { tipo: "agenda", titulo: "Agenda", ativa: false },
   { tipo: "faq", titulo: "Perguntas frequentes", ativa: false },
   { tipo: "formulario", titulo: "Formulário", ativa: false },
   { tipo: "rodape", titulo: "Rodapé", ativa: true },
@@ -447,5 +449,15 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       whatsappApi: "",
     },
     metricas: metricasVazias(),
+    ...(preset.secoes.includes("agenda")
+      ? {
+          agenda: {
+            ativa: true,
+            intervalo: 30,
+            diasVisiveis: 14,
+            observacao: "Escolha o melhor dia e horário para sua aula experimental.",
+          },
+        }
+      : {}),
   };
 }

@@ -25,6 +25,11 @@ describe("modelos e conteúdo demonstrativo", () => {
     }
   });
 
+  it("habilita agenda real no novo site de academia", () => {
+    expect(presetsModelo["academia-studio"]?.secoes).toContain("agenda");
+    expect(siteDoModelo("academia-studio").agenda?.ativa).toBe(true);
+  });
+
   it("nenhuma demonstração ativa uma seção sem conteúdo", () => {
     for (const m of modelos) {
       const s = siteDoModelo(m.id);

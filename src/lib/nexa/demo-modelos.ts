@@ -1397,6 +1397,16 @@ export function siteDoModelo(modeloId: string): Site {
       whatsappApi: "",
     },
     metricas: metricasPadrao(80),
+    ...(modelo.id === "academia-studio"
+      ? {
+          agenda: {
+            ativa: true,
+            intervalo: 30,
+            diasVisiveis: 14,
+            observacao: "Escolha o melhor dia e horário para sua aula experimental.",
+          },
+        }
+      : {}),
   };
 }
 
