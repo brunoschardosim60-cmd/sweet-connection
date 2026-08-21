@@ -32,11 +32,22 @@ type Agendamento = {
   observacao: string;
   status: string;
   created_at: string;
+  data_original: string | null;
+  hora_original: string | null;
+  reagendamentos: number | null;
+  reagendado_em: string | null;
 };
 
 function dataBr(iso: string) {
   const [a, m, d] = iso.split("-");
   return `${d}/${m}/${a}`;
+}
+
+/** Data e hora curtas do último reagendamento (ex.: 21/08 às 03:15). */
+function dataHoraBr(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} às ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 function PaginaAgenda() {
@@ -198,6 +209,8 @@ function PaginaAgenda() {
           {visiveis.map((item) => {
             const cancelado = item.status === "cancelado";
             const editando = reagendando?.id === item.id;
+            const vezes = item.reagendamentos ?? 0;
+            const foiReagendado = vezes > 0;
             return (
               <li
                 key={item.id}
@@ -227,6 +240,11 @@ function PaginaAgenda() {
                       >
                         {cancelado ? "Cancelado" : "Confirmado"}
                       </span>
+                      {foiReagendado && (
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                          Reagendado{vezes > 1 ? ` ${vezes}×` : ""}
+                        </span>
+                      )}
                       {editando && !cancelado && (
                         <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                           Reagendando
@@ -252,6 +270,21 @@ function PaginaAgenda() {
                         <div className="flex min-w-0 gap-1.5 sm:col-span-2">
                           <dt className="text-muted-foreground">Observação:</dt>
                           <dd className="truncate font-medium">{item.observacao}</dd>
+                        </div>
+                      )}
+                      {foiReagendado && item.data_original && (
+                        <div className="flex min-w-0 flex-wrap gap-1.5 sm:col-span-2">
+                          <dt className="text-muted-foreground">Horário original:</dt>
+                          <dd className="font-medium">
+                            <span className="line-through">
+                              {dataBr(item.data_original)} às {item.hora_original ?? "—"}
+                            </span>
+                            {item.reagendado_em && (
+                              <span className="ml-1.5 text-muted-foreground">
+                                (alterado em {dataHoraBr(item.reagendado_em)})
+                              </span>
+                            )}
+                          </dd>
                         </div>
                       )}
                     </dl>
