@@ -17,19 +17,25 @@ import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { moeda } from "@/lib/nexa/utils";
 import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/estilo";
+import { useFocoModal } from "@/components/minisite/useFocoModal";
 import {
   categoriasDeProdutos,
   descontoPercentual,
   filtrarCatalogo,
   filtrosCatalogo,
+  lerRascunhoPedido,
   mensagemPedido,
+  ordenacoesCatalogo,
+  ordenarCatalogo,
   perfilCatalogo,
   precoFinal,
   rotulosModalidade,
   rotulosPagamento,
   situacaoAtendimento,
+  salvarRascunhoPedido,
   totaisCarrinho,
   type Entrega,
+  type OrdemCatalogo,
   type FiltroCatalogo,
   type ItemCarrinho,
   type Pagamento,
@@ -73,6 +79,7 @@ export function CatalogoPagina({
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("Todos");
   const [filtro, setFiltro] = useState<FiltroCatalogo>("todos");
+  const [ordem, setOrdem] = useState<OrdemCatalogo>("destaque");
   const [carregando, setCarregando] = useState(true);
   const [detalhe, setDetalhe] = useState<Produto | null>(null);
   const [carrinho, setCarrinho] = useState<Record<string, LinhaCarrinho>>({});
@@ -93,10 +100,34 @@ export function CatalogoPagina({
     troco: "",
   });
 
+  const [restaurado, setRestaurado] = useState(false);
+
   useEffect(() => {
     const t = setTimeout(() => setCarregando(false), 250);
     return () => clearTimeout(t);
   }, []);
+
+  // Rascunho anônimo: recupera o carrinho ao voltar do mini-site.
+  useEffect(() => {
+    const salvo = lerRascunhoPedido(site.slug);
+    if (salvo) {
+      setCarrinho(salvo.carrinho ?? {});
+      if (salvo.modalidade) setEntrega(salvo.modalidade);
+      if (salvo.pagamento) setPagamento(salvo.pagamento);
+      if (salvo.campos) setCampos((c) => ({ ...c, ...salvo.campos }));
+    }
+    setRestaurado(true);
+  }, [site.slug]);
+
+  useEffect(() => {
+    if (!restaurado) return;
+    salvarRascunhoPedido(site.slug, {
+      carrinho,
+      modalidade: entrega,
+      ...(pagamento ? { pagamento } : {}),
+      campos: { ...campos },
+    });
+  }, [restaurado, site.slug, carrinho, entrega, pagamento, campos]);
 
   useEffect(() => {
     if (rastrear) void registrarEventoPublicado(site.slug, "visita", "cardapio").catch(() => {});
@@ -114,8 +145,8 @@ export function CatalogoPagina({
     [site.produtos],
   );
   const lista = useMemo(
-    () => filtrarCatalogo(site.produtos, { busca, categoria, filtro }),
-    [site.produtos, busca, categoria, filtro],
+    () => ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem),
+    [site.produtos, busca, categoria, filtro, ordem],
   );
 
   const itens: ItemCarrinho[] = site.produtos
@@ -314,6 +345,30 @@ export function CatalogoPagina({
                   {f.rotulo}
                 </Chip>
               ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="ordem-catalogo" className="text-xs opacity-70">
+                Ordenar por
+              </label>
+              <select
+                id="ordem-catalogo"
+                value={ordem}
+                onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
+                className="min-h-11 bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "999px",
+                  color: "inherit",
+                  outlineColor: primaria,
+                }}
+              >
+                {ordenacoesCatalogo.map((o) => (
+                  <option key={o.id} value={o.id} style={{ color: "#111" }}>
+                    {o.rotulo}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {categorias.length > 1 && (
