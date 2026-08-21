@@ -468,12 +468,40 @@ export function CriacaoIA({
         type="button"
         onClick={() => void revisar()}
         disabled={gerando}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-70 sm:w-auto"
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto"
       >
-        {gerando ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+        {gerando ? (
+          <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden />
+        ) : (
+          <Wand2 size={16} aria-hidden />
+        )}
         {gerando ? "Gerando sugestão…" : plano ? "Gerar nova sugestão" : "Gerar sugestão com IA"}
       </button>
-      {desabilitado && <p className="mt-2 text-xs text-muted-foreground">{desabilitado}</p>}
+
+      <p aria-live="polite" className="mt-2 min-h-5 text-xs text-muted-foreground">
+        {gerando
+          ? "A IA está montando a proposta com as informações enviadas. Isso pode levar alguns segundos."
+          : plano
+            ? "Sugestão pronta: revise abaixo antes de criar o mini-site."
+            : "Nada é criado nem publicado antes da sua aprovação."}
+      </p>
+
+      {gerando && (
+        <div
+          className="mt-3 space-y-2"
+          aria-hidden="true"
+          data-estado="carregando-sugestao-ia"
+        >
+          {[0, 1, 2].map((linha) => (
+            <div
+              key={linha}
+              className="h-3 animate-pulse rounded-full bg-secondary motion-reduce:animate-none"
+              style={{ width: `${100 - linha * 18}%` }}
+            />
+          ))}
+        </div>
+      )}
+
 
       {plano && (
         <RevisaoIA
