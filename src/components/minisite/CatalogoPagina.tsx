@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { whatsappLink } from "@/lib/nexa/brand";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
+import { supabase } from "@/integrations/supabase/client";
 import {
   criarPedidoPublicado,
   notificarDonoDoMinisite,
@@ -110,6 +111,7 @@ export function CatalogoPagina({
   const [restaurado, setRestaurado] = useState(false);
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [retornoPedido, setRetornoPedido] = useState<string>("");
+  const [ranking, setRanking] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const t = setTimeout(() => setCarregando(false), 250);
@@ -148,6 +150,14 @@ export function CatalogoPagina({
     if (rastrear) void registrarEventoPublicado(site.slug, "visita", "cardapio").catch(() => {});
   }, [rastrear, site.slug]);
 
+  useEffect(() => {
+    void supabase
+      .rpc("nexa_ranking_produtos_cardapio", { requested_slug: site.slug })
+      .then(({ data }) =>
+        setRanking(Object.fromEntries((data ?? []).map((item) => [item.produto_id, item.pedidos]))),
+      );
+  }, [site.slug]);
+
   const registrar = (rotulo: string, whatsapp = false) => {
     if (rastrear)
       void registrarEventoPublicado(site.slug, whatsapp ? "whatsapp" : "clique", rotulo).catch(
@@ -160,8 +170,9 @@ export function CatalogoPagina({
     [site.produtos],
   );
   const lista = useMemo(
-    () => ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem),
-    [site.produtos, busca, categoria, filtro, ordem],
+    () =>
+      ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem, ranking),
+    [site.produtos, busca, categoria, filtro, ordem, ranking],
   );
 
   const itens: ItemCarrinho[] = site.produtos

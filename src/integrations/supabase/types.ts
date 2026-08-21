@@ -880,6 +880,10 @@ export type Database = {
         Args: { requested_id: string; requested_status: string }
         Returns: Json
       }
+      nexa_ranking_produtos_cardapio: {
+        Args: { requested_slug: string }
+        Returns: { produto_id: string; pedidos: number }[]
+      }
       nexa_plan_allows_publish: {
         Args: { requested_user_id: string }
         Returns: boolean

@@ -259,7 +259,11 @@ export const ordenacoesCatalogo: { id: OrdemCatalogo; rotulo: string }[] = [
  * Ordena a lista já filtrada. "Mais pedidos" usa os itens marcados como
  * destaque pelo estabelecimento — não há métrica de vendas sem backend.
  */
-export function ordenarCatalogo(produtos: Produto[], ordem: OrdemCatalogo = "destaque") {
+export function ordenarCatalogo(
+  produtos: Produto[],
+  ordem: OrdemCatalogo = "destaque",
+  ranking: Record<string, number> = {},
+) {
   const lista = [...produtos];
   switch (ordem) {
     case "preco-asc":
@@ -271,7 +275,7 @@ export function ordenarCatalogo(produtos: Produto[], ordem: OrdemCatalogo = "des
     case "pedidos":
       return lista.sort(
         (a, b) =>
-          Number(b.destaque) - Number(a.destaque) ||
+          (ranking[b.id] ?? 0) - (ranking[a.id] ?? 0) ||
           Number(b.disponivel) - Number(a.disponivel) ||
           a.nome.localeCompare(b.nome, "pt-BR"),
       );
