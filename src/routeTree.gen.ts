@@ -20,6 +20,7 @@ import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
+import { Route as DemonstracaoIaRouteImport } from './routes/demonstracao.ia'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelAgendaRouteImport } from './routes/painel.agenda'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
@@ -91,6 +92,11 @@ const AgendamentoTokenRoute = AgendamentoTokenRouteImport.update({
 const DemonstracaoModeloRoute = DemonstracaoModeloRouteImport.update({
   id: '/demonstracao/$modelo',
   path: '/demonstracao/$modelo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemonstracaoIaRoute = DemonstracaoIaRouteImport.update({
+  id: '/demonstracao/ia',
+  path: '/demonstracao/ia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelIndexRoute = PainelIndexRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/demonstracao/ia': typeof DemonstracaoIaRoute
   '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/demonstracao/ia': typeof DemonstracaoIaRoute
   '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
+  '/demonstracao/ia': typeof DemonstracaoIaRoute
   '/painel/agenda': typeof PainelAgendaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/configuracoes': typeof PainelConfiguracoesRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/demonstracao/ia'
     | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/demonstracao/ia'
     | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
+    | '/demonstracao/ia'
     | '/painel/agenda'
     | '/painel/clientes'
     | '/painel/configuracoes'
@@ -373,6 +385,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
+  DemonstracaoIaRoute: typeof DemonstracaoIaRoute
   SiteSlugRoute: typeof SiteSlugRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
   ApiBillingAsaasCheckoutRoute: typeof ApiBillingAsaasCheckoutRoute
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       path: '/demonstracao/$modelo'
       fullPath: '/demonstracao/$modelo'
       preLoaderRoute: typeof DemonstracaoModeloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demonstracao/ia': {
+      id: '/demonstracao/ia'
+      path: '/demonstracao/ia'
+      fullPath: '/demonstracao/ia'
+      preLoaderRoute: typeof DemonstracaoIaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel/': {
@@ -627,6 +647,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
+  DemonstracaoIaRoute: DemonstracaoIaRoute,
   SiteSlugRoute: SiteSlugRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
   ApiBillingAsaasCheckoutRoute: ApiBillingAsaasCheckoutRoute,
