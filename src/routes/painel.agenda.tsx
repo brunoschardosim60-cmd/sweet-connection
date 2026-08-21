@@ -43,6 +43,13 @@ function dataBr(iso: string) {
   return `${d}/${m}/${a}`;
 }
 
+/** Data e hora curtas do último reagendamento (ex.: 21/08 às 03:15). */
+function dataHoraBr(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")} às ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function PaginaAgenda() {
   const { sites, pronto } = useNexa();
   const [linhas, setLinhas] = useState<Agendamento[]>([]);
