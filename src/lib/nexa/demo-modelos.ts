@@ -1,4 +1,5 @@
 import { extrasPorModelo } from "./demo-extras";
+import { conteudoNovosModelos } from "./demo-novos";
 import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
 import { imagens } from "./images";
 import { modeloPorId, modelos } from "./modelos";
@@ -1193,6 +1194,7 @@ const conteudoPorModelo: Record<
       },
     ],
   },
+  ...conteudoNovosModelos,
 };
 
 const depoimentosGenericos: Site["depoimentos"] = [

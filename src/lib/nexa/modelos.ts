@@ -194,6 +194,50 @@ export const modelos: Modelo[] = [
     paleta: { fundo: "#14101a", texto: "#f6f1fa", primaria: "#b07cff", suave: "#211a2b" },
     imagem: imagens.eventos,
   },
+  {
+    id: "academia-studio",
+    nome: "Academia e Studio de Pilates",
+    segmento: "saude",
+    layout: "cards",
+    descricao:
+      "Modalidades, planos, grade de horários, professores e aula experimental com agendamento.",
+    destaque: "Planos + aula experimental",
+    paleta: { fundo: "#f7f9f6", texto: "#16201a", primaria: "#3f7d4f", suave: "#e6efe6" },
+    imagem: imagens.academia,
+  },
+  {
+    id: "tattoo-studio",
+    nome: "Estúdio de Tatuagem",
+    segmento: "beleza",
+    layout: "imersivo",
+    descricao:
+      "Portfólio por estilo, artistas do estúdio, cuidados pós-tattoo e orçamento por referência.",
+    destaque: "Portfólio + orçamento",
+    paleta: { fundo: "#0c0c0d", texto: "#f4f1ee", primaria: "#c2413a", suave: "#171718" },
+    imagem: imagens.tattoo,
+  },
+  {
+    id: "construcao-arquitetura",
+    nome: "Construção e Arquitetura",
+    segmento: "servicos",
+    layout: "corporativo",
+    descricao:
+      "Serviços, obras realizadas, processo de trabalho por etapas e solicitação de orçamento.",
+    destaque: "Obras + orçamento",
+    paleta: { fundo: "#f6f5f2", texto: "#1a1c1e", primaria: "#c46a1f", suave: "#e9e6e0" },
+    imagem: imagens.construcao,
+  },
+  {
+    id: "pousada-hotel",
+    nome: "Pousada e Hospedagem",
+    segmento: "eventos",
+    layout: "editorial",
+    descricao:
+      "Acomodações com valores, galeria, comodidades, localização e consulta de disponibilidade.",
+    destaque: "Acomodações + reserva",
+    paleta: { fundo: "#fbf7f1", texto: "#1d2521", primaria: "#0f7d76", suave: "#e7f0ec" },
+    imagem: imagens.pousada,
+  },
 ];
 
 /** Ponto de partida em branco: estrutura mínima para montar tudo do zero. */

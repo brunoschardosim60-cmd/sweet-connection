@@ -140,7 +140,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         id: "d1",
         nome: "Patrícia (demonstração)",
         nota: 5,
-        comentario: "Minhas dores nas costas sumiram em dois meses de pilates. Turma pequena faz diferença.",
+        comentario:
+          "Minhas dores nas costas sumiram em dois meses de pilates. Turma pequena faz diferença.",
         data: "2026-06-04",
         destaque: true,
       },
@@ -157,7 +158,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       {
         id: "f1",
         pergunta: "Preciso ter experiência para começar?",
-        resposta: "Não. A primeira aula é experimental e o professor adapta os exercícios ao seu nível.",
+        resposta:
+          "Não. A primeira aula é experimental e o professor adapta os exercícios ao seu nível.",
       },
       {
         id: "f2",
@@ -241,7 +243,12 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       },
     ],
     equipe: [
-      { id: "e1", nome: "Nina Braga", funcao: "Tatuadora - blackwork e realismo", foto: imagens.tattoo },
+      {
+        id: "e1",
+        nome: "Nina Braga",
+        funcao: "Tatuadora - blackwork e realismo",
+        foto: imagens.tattoo,
+      },
       { id: "e2", nome: "Léo Duarte", funcao: "Tatuador - fineline e lettering" },
     ],
     galeria: [
@@ -254,7 +261,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         id: "d1",
         nome: "Bruna (demonstração)",
         nota: 5,
-        comentario: "Estúdio impecável e orçamento explicado antes de fechar. O desenho ficou melhor que a referência.",
+        comentario:
+          "Estúdio impecável e orçamento explicado antes de fechar. O desenho ficou melhor que a referência.",
         data: "2026-06-09",
         destaque: true,
       },
@@ -262,7 +270,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         id: "d2",
         nome: "Vitor (demonstração)",
         nota: 5,
-        comentario: "Sessão longa e confortável, com pausas combinadas e cuidados explicados no final.",
+        comentario:
+          "Sessão longa e confortável, com pausas combinadas e cuidados explicados no final.",
         data: "2026-04-27",
         destaque: false,
       },
@@ -271,7 +280,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       {
         id: "f1",
         pergunta: "Como funciona o orçamento?",
-        resposta: "Envie a referência, o local do corpo e o tamanho aproximado pelo formulário. Respondemos com valor e tempo de sessão.",
+        resposta:
+          "Envie a referência, o local do corpo e o tamanho aproximado pelo formulário. Respondemos com valor e tempo de sessão.",
       },
       {
         id: "f2",
@@ -281,7 +291,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       {
         id: "f3",
         pergunta: "Quais cuidados devo ter depois?",
-        resposta: "Higienizar com sabão neutro, hidratar conforme orientação e evitar sol e mar por 15 dias.",
+        resposta:
+          "Higienizar com sabão neutro, hidratar conforme orientação e evitar sol e mar por 15 dias.",
       },
     ],
     formulario: {
@@ -292,7 +303,12 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
         { id: "c3", rotulo: "Estilo desejado", tipo: "texto", obrigatorio: false },
         { id: "c4", rotulo: "Local do corpo e tamanho", tipo: "texto", obrigatorio: true },
-        { id: "c5", rotulo: "Descreva a ideia ou referência", tipo: "textarea", obrigatorio: false },
+        {
+          id: "c5",
+          rotulo: "Descreva a ideia ou referência",
+          tipo: "textarea",
+          obrigatorio: false,
+        },
       ],
     },
   },
@@ -372,7 +388,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         id: "d1",
         nome: "Família Andrade (demonstração)",
         nota: 5,
-        comentario: "Cronograma cumprido e relatório toda semana. Reforma entregue sem surpresa no orçamento.",
+        comentario:
+          "Cronograma cumprido e relatório toda semana. Reforma entregue sem surpresa no orçamento.",
         data: "2026-05-22",
         destaque: true,
       },
@@ -380,7 +397,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         id: "d2",
         nome: "Cláudio (demonstração)",
         nota: 5,
-        comentario: "Projeto 3D ajudou muito a decidir. A execução ficou igual ao que foi apresentado.",
+        comentario:
+          "Projeto 3D ajudou muito a decidir. A execução ficou igual ao que foi apresentado.",
         data: "2026-03-30",
         destaque: false,
       },
@@ -389,7 +407,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       {
         id: "f1",
         pergunta: "Como funciona o processo de trabalho?",
-        resposta: "Visita técnica, estudo preliminar, orçamento por etapa, execução com cronograma e entrega com vistoria.",
+        resposta:
+          "Visita técnica, estudo preliminar, orçamento por etapa, execução com cronograma e entrega com vistoria.",
       },
       {
         id: "f2",
@@ -408,7 +427,12 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       campos: [
         { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
         { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
-        { id: "c3", rotulo: "Tipo de obra (projeto, reforma, construção)", tipo: "texto", obrigatorio: true },
+        {
+          id: "c3",
+          rotulo: "Tipo de obra (projeto, reforma, construção)",
+          tipo: "texto",
+          obrigatorio: true,
+        },
         { id: "c4", rotulo: "Metragem aproximada", tipo: "texto", obrigatorio: false },
         { id: "c5", rotulo: "Endereço do imóvel", tipo: "texto", obrigatorio: false },
         { id: "c6", rotulo: "Descreva o que precisa", tipo: "textarea", obrigatorio: false },
@@ -530,7 +554,8 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
       {
         id: "f1",
         pergunta: "Qual o horário de check-in e check-out?",
-        resposta: "Check-in a partir das 15h e check-out até as 12h. Horários diferentes sob consulta.",
+        resposta:
+          "Check-in a partir das 15h e check-out até as 12h. Horários diferentes sob consulta.",
       },
       {
         id: "f2",
