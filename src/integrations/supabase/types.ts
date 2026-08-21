@@ -49,11 +49,15 @@ export type Database = {
           chave_idempotencia: string | null
           created_at: string
           data: string
+          data_original: string | null
           hora: string
+          hora_original: string | null
           id: string
           minisite_id: string
           nome: string
           observacao: string
+          reagendado_em: string | null
+          reagendamentos: number
           servico: string
           status: string
           telefone: string
@@ -64,11 +68,15 @@ export type Database = {
           chave_idempotencia?: string | null
           created_at?: string
           data: string
+          data_original?: string | null
           hora: string
+          hora_original?: string | null
           id?: string
           minisite_id: string
           nome?: string
           observacao?: string
+          reagendado_em?: string | null
+          reagendamentos?: number
           servico?: string
           status?: string
           telefone?: string
@@ -79,11 +87,15 @@ export type Database = {
           chave_idempotencia?: string | null
           created_at?: string
           data?: string
+          data_original?: string | null
           hora?: string
+          hora_original?: string | null
           id?: string
           minisite_id?: string
           nome?: string
           observacao?: string
+          reagendado_em?: string | null
+          reagendamentos?: number
           servico?: string
           status?: string
           telefone?: string
