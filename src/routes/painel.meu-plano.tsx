@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Check, Crown, Loader2, Lock, Minus, Sparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Crown,
+  Loader2,
+  Lock,
+  Minus,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AvisoPlano } from "@/components/planos/AvisoPlano";
 
