@@ -189,7 +189,7 @@ function AbaPedidos() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="entrada-filtro"
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
             >
               <option value="todos">Todos</option>
               {statusPedido.map((s) => (
@@ -203,7 +203,7 @@ function AbaPedidos() {
             <select
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
-              className="entrada-filtro"
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
             >
               <option value="hoje">Hoje</option>
               <option value="7">7 dias</option>
@@ -212,7 +212,7 @@ function AbaPedidos() {
             </select>
           </Campo>
           <Campo rotulo="Tipo">
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="entrada-filtro">
+            <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground">
               <option value="todos">Todos</option>
               {(Object.keys(rotulosModalidade) as Modalidade[]).map((m) => (
                 <option key={m} value={m}>
@@ -225,7 +225,7 @@ function AbaPedidos() {
             <select
               value={pagamento}
               onChange={(e) => setPagamento(e.target.value)}
-              className="entrada-filtro"
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
             >
               <option value="todos">Todos</option>
               {Object.entries(rotulosPagamento).map(([id, rotulo]) => (
@@ -240,7 +240,7 @@ function AbaPedidos() {
               value={mesa}
               onChange={(e) => setMesa(e.target.value)}
               placeholder="Ex.: 12"
-              className="entrada-filtro"
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
             />
           </Campo>
         </div>

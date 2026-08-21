@@ -22,6 +22,7 @@ import {
   Loader2,
   LogOut,
   ShieldCheck,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -55,6 +56,7 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel/clientes", rotulo: "Clientes", icone: Users },
   { to: "/painel/solicitacoes", rotulo: "Solicitações", icone: Inbox },
   { to: "/painel/agenda", rotulo: "Agenda", icone: CalendarDays },
+  { to: "/painel/pedidos", rotulo: "Pedidos", icone: ClipboardList },
   { to: "/painel/modelos", rotulo: "Modelos", icone: LayoutGrid },
   { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },

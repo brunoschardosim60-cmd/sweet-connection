@@ -435,13 +435,23 @@ export function Recursos() {
 
 export function GaleriaModelos({ limite }: { limite?: number }) {
   const [filtro, setFiltro] = useState<string>("todos");
-  const lista = modelos.filter((m) => filtro === "todos" || m.segmento === filtro);
+  const lista = modelos.filter((m) =>
+    filtro === "todos"
+      ? true
+      : filtro === "cardapio"
+        ? m.familia === "cardapio"
+        : m.segmento === filtro && m.familia !== "cardapio",
+  );
   const visiveis = limite ? lista.slice(0, limite) : lista;
 
   return (
     <div>
       <div className="flex flex-wrap gap-2">
-        {[{ id: "todos", nome: "Todos" }, ...segmentos].map((s) => (
+        {[
+          { id: "todos", nome: "Todos" },
+          { id: "cardapio", nome: "Cardápio digital" },
+          ...segmentos,
+        ].map((s) => (
           <button
             key={s.id}
             type="button"
