@@ -931,6 +931,7 @@ export function ComoFunciona() {
 const planos: {
   nome: string;
   preco: string;
+  precoAnterior?: string;
   sufixo?: string;
   selo?: string;
   nota?: string;
@@ -941,6 +942,7 @@ const planos: {
   {
     nome: "Essencial",
     preco: "R$ 5",
+    precoAnterior: "R$ 39",
     sufixo: "no 1º mês",
     selo: "Promoção de estreia",
     nota: "Depois R$ 39/mês nas renovações. O valor de R$ 5 vale apenas para o primeiro mês de novos clientes.",
@@ -1023,6 +1025,11 @@ export function Planos() {
                     {p.resumo}
                   </p>
                   <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
+                    {p.precoAnterior && (
+                      <span className="text-2xl font-bold text-muted-foreground line-through decoration-2 opacity-70">
+                        {p.precoAnterior}
+                      </span>
+                    )}
                     {p.preco}
                     {p.sufixo && (
                       <span className="text-base font-semibold opacity-70">{p.sufixo}</span>

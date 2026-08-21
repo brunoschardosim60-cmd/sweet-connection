@@ -77,6 +77,7 @@ const opcoes: {
   tier: PlanoContratavel;
   nome: string;
   preco: string;
+  precoAnterior?: string;
   sufixo: string;
   descricao: string;
   nota: string;
@@ -85,6 +86,7 @@ const opcoes: {
     tier: "essential",
     nome: "Essencial",
     preco: "R$ 5",
+    precoAnterior: "R$ 39",
     sufixo: "no 1º mês",
     descricao: "1 mini-site publicado",
     nota: "R$ 5 no primeiro mês · R$ 39/mês nas renovações. Promoção válida apenas para novos clientes.",
@@ -354,6 +356,11 @@ function MeuPlano() {
                     )}
                   </span>
                   <span className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
+                    {opcao.precoAnterior && (
+                      <span className="text-sm font-bold line-through opacity-60">
+                        {opcao.precoAnterior}
+                      </span>
+                    )}
                     <span className="font-display text-xl font-extrabold">{opcao.preco}</span>
                     <span className="text-xs font-semibold opacity-70">{opcao.sufixo}</span>
                   </span>
