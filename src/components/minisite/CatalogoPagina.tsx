@@ -501,7 +501,7 @@ export function CatalogoPagina({
       )}
 
       {carrinhoAberto && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <DrawerCarrinho site={site} onFechar={() => setCarrinhoAberto(false)}>
           <button
             type="button"
             aria-label="Fechar carrinho"
