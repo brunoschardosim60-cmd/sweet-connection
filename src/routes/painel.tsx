@@ -295,7 +295,7 @@ function PainelLayout() {
 
         <nav
           aria-label="Navegação do painel"
-          className="mt-4 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
+          className="scrollbar-invisivel mt-4 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
         >
           {navegacao.map((i) => {
             const ativo = ativoDe(i);
@@ -539,7 +539,7 @@ function PainelLayout() {
 
               <nav
                 aria-label="Navegação do painel"
-                className="mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
+                className="scrollbar-invisivel mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain pr-1"
               >
                 {navegacao.map((i) => {
                   const ativo = ativoDe(i);
