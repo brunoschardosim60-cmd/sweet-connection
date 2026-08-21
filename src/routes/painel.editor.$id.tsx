@@ -459,7 +459,7 @@ function Editor() {
           <div
             role="tablist"
             aria-label="Seções do editor"
-            className="grid grid-cols-4 gap-1.5 pb-1"
+            className="flex shrink-0 flex-wrap gap-1.5 pb-1"
           >
             {abas.map((a) => (
               <button
@@ -468,14 +468,17 @@ function Editor() {
                 role="tab"
                 aria-selected={aba === a.id}
                 onClick={() => setAba(a.id)}
-                className={`min-h-11 truncate rounded-full px-2 py-2 text-xs font-medium sm:text-sm ${
-                  aba === a.id ? "bg-ink text-ink-foreground" : "bg-secondary text-muted-foreground"
+                className={`inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:text-sm ${
+                  aba === a.id
+                    ? "bg-ink text-ink-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {a.rotulo}
               </button>
             ))}
           </div>
+
 
           <div
             ref={painelConfiguracoesRef}
