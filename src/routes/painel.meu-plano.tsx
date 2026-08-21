@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Check, Crown, Loader2, Lock, Minus, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,8 +54,29 @@ const bloqueado: Record<string, string[]> = {
   none: ["Publicar o mini-site", "Criação automática com IA", "Mais de um projeto"],
 };
 
+type PlanoContratavel = "essential" | "professional" | "catalog";
+
+const opcoes: { tier: PlanoContratavel; nome: string; preco: string; descricao: string }[] = [
+  { tier: "essential", nome: "Essencial", preco: "R$ 39/mês", descricao: "1 mini-site publicado" },
+  {
+    tier: "professional",
+    nome: "Profissional",
+    preco: "R$ 79/mês",
+    descricao: "Até 3 mini-sites + IA semanal",
+  },
+  {
+    tier: "catalog",
+    nome: "Catálogo",
+    preco: "R$ 119/mês",
+    descricao: "Tudo do Profissional + catálogo",
+  },
+];
+
 function MeuPlano() {
   const [dados, setDados] = useState<Assinatura | null>(null);
+  const [planoEscolhido, setPlanoEscolhido] = useState<PlanoContratavel>("essential");
+  const [pagando, setPagando] = useState(false);
+  const [erroPagamento, setErroPagamento] = useState("");
 
   useEffect(() => {
     void supabase
@@ -78,6 +99,30 @@ function MeuPlano() {
   const ativo = dados.subscription_status === "active" && tier !== "none";
   const inclusos = beneficios[tier] ?? beneficios["none"]!;
   const restricoes = bloqueado[tier] ?? [];
+
+  async function iniciarCheckout() {
+    setPagando(true);
+    setErroPagamento("");
+    try {
+      const { data: sessao } = await supabase.auth.getSession();
+      const token = sessao.session?.access_token;
+      if (!token) throw new Error("Sua sessão expirou. Entre novamente para contratar um plano.");
+      const resposta = await fetch("/api/billing/asaas/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tier: planoEscolhido }),
+      });
+      const retorno = (await resposta.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!resposta.ok || !retorno.url)
+        throw new Error(retorno.error ?? "Não foi possível abrir o pagamento.");
+      window.location.assign(retorno.url);
+    } catch (error) {
+      setErroPagamento(
+        error instanceof Error ? error.message : "Não foi possível abrir o pagamento.",
+      );
+      setPagando(false);
+    }
+  }
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
@@ -163,16 +208,55 @@ function MeuPlano() {
             </>
           )}
 
-          <Link
-            to="/"
-            hash="planos"
-            className={`mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transform-none sm:w-auto ${
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {opcoes.map((opcao) => (
+              <button
+                key={opcao.tier}
+                type="button"
+                onClick={() => setPlanoEscolhido(opcao.tier)}
+                aria-pressed={planoEscolhido === opcao.tier}
+                className={`min-h-24 rounded-2xl border p-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                  planoEscolhido === opcao.tier
+                    ? ativo
+                      ? "border-lime bg-ink-foreground/10 outline-lime"
+                      : "border-ink bg-secondary outline-ink"
+                    : ativo
+                      ? "border-ink-foreground/20 hover:border-ink-foreground/50"
+                      : "border-border hover:border-foreground/40"
+                }`}
+              >
+                <span className="block font-bold">{opcao.nome}</span>
+                <span className="mt-1 block font-semibold">{opcao.preco}</span>
+                <span className="mt-1 block text-xs opacity-70">{opcao.descricao}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => void iniciarCheckout()}
+            disabled={pagando}
+            className={`mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto ${
               ativo ? "bg-lime text-ink outline-lime" : "bg-ink text-ink-foreground outline-ink"
             }`}
           >
-            {ativo ? "Fazer upgrade" : "Escolher plano"}
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
+            {pagando ? (
+              <Loader2
+                className="animate-spin motion-reduce:animate-none"
+                size={16}
+                aria-hidden="true"
+              />
+            ) : (
+              <ArrowUpRight size={16} aria-hidden="true" />
+            )}
+            {pagando
+              ? "Abrindo pagamento…"
+              : `Assinar ${opcoes.find((opcao) => opcao.tier === planoEscolhido)?.nome}`}
+          </button>
+          {erroPagamento && (
+            <p className="mt-3 text-sm text-destructive" role="alert">
+              {erroPagamento}
+            </p>
+          )}
         </div>
       </article>
 

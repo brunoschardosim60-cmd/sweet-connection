@@ -1,0 +1,29 @@
+import { describe, expect, it } from "vitest";
+import {
+  idDaReferencia,
+  planoPago,
+  referenciaCheckout,
+  statusAssinaturaAsaas,
+} from "../src/lib/nexa/asaas.server";
+
+describe("integração Asaas", () => {
+  it("aceita somente planos comercializáveis", () => {
+    expect(planoPago("essential")).toBe("essential");
+    expect(planoPago("professional")).toBe("professional");
+    expect(planoPago("catalog")).toBe("catalog");
+    expect(planoPago("none")).toBeNull();
+  });
+
+  it("não extrai referências que não foram emitidas pela Nexa", () => {
+    const id = "c4f9a31d-1e50-4cc8-9a93-291bb1fbe15d";
+    expect(idDaReferencia(referenciaCheckout(id))).toBe(id);
+    expect(idDaReferencia("owner:qualquer-usuario:catalog")).toBeNull();
+  });
+
+  it("só ativa plano depois de pagamento confirmado ou recebido", () => {
+    expect(statusAssinaturaAsaas("PENDING")).toBeNull();
+    expect(statusAssinaturaAsaas("RECEIVED")).toBe("active");
+    expect(statusAssinaturaAsaas("CONFIRMED")).toBe("active");
+    expect(statusAssinaturaAsaas("OVERDUE")).toBe("past_due");
+  });
+});

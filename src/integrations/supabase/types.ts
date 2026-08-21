@@ -210,6 +210,48 @@ export type Database = {
           },
         ]
       }
+      billing_checkout_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          paid_at: string | null
+          provider: string
+          provider_checkout_id: string | null
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
+          status: string
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          paid_at?: string | null
+          provider: string
+          provider_checkout_id?: string | null
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          paid_at?: string | null
+          provider?: string
+          provider_checkout_id?: string | null
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string
@@ -434,6 +476,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          billing_customer_id: string | null
+          billing_provider: string | null
+          billing_subscription_id: string | null
+          billing_updated_at: string | null
           cleanup_claimed_at: string | null
           created_at: string
           deletion_scheduled_at: string | null
@@ -449,6 +495,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_customer_id?: string | null
+          billing_provider?: string | null
+          billing_subscription_id?: string | null
+          billing_updated_at?: string | null
           cleanup_claimed_at?: string | null
           created_at?: string
           deletion_scheduled_at?: string | null
@@ -464,6 +514,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_customer_id?: string | null
+          billing_provider?: string | null
+          billing_subscription_id?: string | null
+          billing_updated_at?: string | null
           cleanup_claimed_at?: string | null
           created_at?: string
           deletion_scheduled_at?: string | null
@@ -766,6 +820,10 @@ export type Database = {
       touch_nexa_activity: {
         Args: never
         Returns: {
+          billing_customer_id: string | null
+          billing_provider: string | null
+          billing_subscription_id: string | null
+          billing_updated_at: string | null
           cleanup_claimed_at: string | null
           created_at: string
           deletion_scheduled_at: string | null
@@ -790,6 +848,10 @@ export type Database = {
       update_nexa_profile: {
         Args: { requested_display_name: string }
         Returns: {
+          billing_customer_id: string | null
+          billing_provider: string | null
+          billing_subscription_id: string | null
+          billing_updated_at: string | null
           cleanup_claimed_at: string | null
           created_at: string
           deletion_scheduled_at: string | null
