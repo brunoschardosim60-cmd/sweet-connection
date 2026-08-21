@@ -17,6 +17,10 @@ import mecanica from "@/assets/seg-mecanica.jpg";
 import pizzaria from "@/assets/seg-pizzaria.jpg";
 import doceria from "@/assets/seg-doceria.jpg";
 import eventos from "@/assets/seg-eventos.jpg";
+import academia from "@/assets/seg-academia.jpg";
+import tattoo from "@/assets/seg-tattoo.jpg";
+import construcao from "@/assets/seg-construcao.jpg";
+import pousada from "@/assets/seg-pousada.jpg";
 
 export const imagens = {
   restaurante,
@@ -38,6 +42,10 @@ export const imagens = {
   pizzaria,
   doceria,
   eventos,
+  academia,
+  tattoo,
+  construcao,
+  pousada,
 } as const;
 
 export type ImagemKey = keyof typeof imagens;

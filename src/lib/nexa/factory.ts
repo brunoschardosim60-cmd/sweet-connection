@@ -6,6 +6,8 @@ type PresetModelo = {
   secoes: TipoSecao[];
   formulario: Site["formulario"]["tipo"];
   tituloFormulario: string;
+  /** Títulos próprios do segmento para as seções padrão (apenas visual). */
+  titulos?: Partial<Record<TipoSecao, string>>;
 };
 
 const BASE: TipoSecao[] = ["apresentacao", "links"];
@@ -25,11 +27,13 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "reserva",
     tituloFormulario: "Solicite uma reserva",
+    titulos: { produtos: "Pratos da casa", galeria: "O ambiente" },
   },
   "hamburgueria-urbana": {
     secoes: [...BASE, "produtos", "promocao", "cupom", "formulario", ...FINAL],
     formulario: "contato",
     tituloFormulario: "Faça seu pedido",
+    titulos: { produtos: "Cardápio", promocao: "Combos do dia" },
   },
   "loja-roupas": {
     secoes: [
@@ -44,6 +48,7 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "contato",
     tituloFormulario: "Consulte disponibilidade",
+    titulos: { produtos: "Coleção", galeria: "Looks" },
   },
   cosmeticos: {
     secoes: [
@@ -58,11 +63,13 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "contato",
     tituloFormulario: "Fale com a loja",
+    titulos: { produtos: "Produtos e kits" },
   },
   "barbearia-premium": {
     secoes: [...BASE, "servicos", "equipe", "galeria", "depoimentos", "formulario", ...FINAL],
     formulario: "agendamento",
     tituloFormulario: "Agende seu horário",
+    titulos: { servicos: "Serviços", equipe: "Barbeiros", galeria: "Antes e depois" },
   },
   "salao-beleza": {
     secoes: [
@@ -77,66 +84,79 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "agendamento",
     tituloFormulario: "Agende seu atendimento",
+    titulos: { equipe: "Profissionais", galeria: "Trabalhos" },
   },
   clinica: {
     secoes: [...BASE, "servicos", "equipe", "depoimentos", "faq", "formulario", ...FINAL],
     formulario: "agendamento",
     tituloFormulario: "Solicite um agendamento",
+    titulos: { servicos: "Especialidades", equipe: "Corpo clínico" },
   },
   "personal-trainer": {
     secoes: [...BASE, "servicos", "videos", "depoimentos", "formulario", "rodape"],
     formulario: "contato",
     tituloFormulario: "Solicite uma avaliação",
+    titulos: { servicos: "Planos de treino", videos: "Resultados em vídeo" },
   },
   fotografo: {
     secoes: [...BASE, "servicos", "galeria", "depoimentos", "formulario", "rodape"],
     formulario: "orcamento",
     tituloFormulario: "Peça seu orçamento",
+    titulos: { servicos: "Pacotes", galeria: "Portfólio" },
   },
   corretor: {
     secoes: [...BASE, "produtos", "galeria", "formulario", "localizacao", "rodape"],
     formulario: "contato",
     tituloFormulario: "Agende uma visita",
+    titulos: { produtos: "Imóveis em destaque", galeria: "Fotos dos imóveis" },
   },
   transportadora: {
     secoes: [...BASE, "servicos", "faq", "formulario", "localizacao", "rodape"],
     formulario: "cotacao",
     tituloFormulario: "Solicite uma cotação",
+    titulos: { servicos: "Serviços e áreas atendidas" },
   },
   advocacia: {
     secoes: [...BASE, "servicos", "equipe", "faq", "formulario", "localizacao", "rodape"],
     formulario: "contato",
     tituloFormulario: "Solicite um contato",
+    titulos: { servicos: "Áreas de atuação", equipe: "Advogados" },
   },
   "prestador-servicos": {
     secoes: [...BASE, "servicos", "galeria", "depoimentos", "faq", "formulario", ...FINAL],
     formulario: "orcamento",
     tituloFormulario: "Solicite um orçamento",
+    titulos: { servicos: "O que fazemos", galeria: "Trabalhos realizados" },
   },
   petshop: {
     secoes: [...BASE, "servicos", "produtos", "galeria", "equipe", "formulario", ...FINAL],
     formulario: "agendamento",
     tituloFormulario: "Agende o atendimento do seu pet",
+    titulos: { servicos: "Serviços", produtos: "Lojinha" },
   },
   odontologia: {
     secoes: [...BASE, "servicos", "equipe", "depoimentos", "faq", "formulario", ...FINAL],
     formulario: "agendamento",
     tituloFormulario: "Agende sua avaliação",
+    titulos: { servicos: "Tratamentos", equipe: "Equipe" },
   },
   mecanica: {
     secoes: [...BASE, "servicos", "galeria", "faq", "formulario", ...FINAL],
     formulario: "orcamento",
     tituloFormulario: "Solicite um orçamento",
+    titulos: { servicos: "Serviços da oficina", galeria: "Nossa estrutura" },
   },
   pizzaria: {
     secoes: [...BASE, "cardapio", "produtos", "promocao", "cupom", "formulario", ...FINAL],
     formulario: "contato",
     tituloFormulario: "Faça seu pedido",
+    titulos: { produtos: "Sabores", promocao: "Promoções do dia" },
   },
   doceria: {
     secoes: [...BASE, "produtos", "galeria", "promocao", "cupom", "formulario", "rodape"],
     formulario: "orcamento",
     tituloFormulario: "Solicite sua encomenda",
+    titulos: { produtos: "Vitrine de doces" },
   },
   "eventos-festas": {
     secoes: [
@@ -151,6 +171,85 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "orcamento",
     tituloFormulario: "Solicite um orçamento para seu evento",
+    titulos: { servicos: "Pacotes de festa", galeria: "Eventos realizados" },
+  },
+  "academia-studio": {
+    secoes: [
+      ...BASE,
+      "servicos",
+      "produtos",
+      "equipe",
+      "horarios",
+      "depoimentos",
+      "galeria",
+      "faq",
+      "formulario",
+      "localizacao",
+      "rodape",
+    ],
+    formulario: "agendamento",
+    tituloFormulario: "Agende sua aula experimental",
+    titulos: {
+      servicos: "Modalidades",
+      produtos: "Planos",
+      equipe: "Professores",
+      horarios: "Grade de horários",
+    },
+  },
+  "tattoo-studio": {
+    secoes: [
+      ...BASE,
+      "galeria",
+      "servicos",
+      "equipe",
+      "depoimentos",
+      "faq",
+      "formulario",
+      ...FINAL,
+    ],
+    formulario: "orcamento",
+    tituloFormulario: "Peça seu orçamento",
+    titulos: {
+      galeria: "Portfólio",
+      servicos: "Estilos",
+      equipe: "Artistas",
+      faq: "Cuidados e dúvidas",
+    },
+  },
+  "construcao-arquitetura": {
+    secoes: [
+      ...BASE,
+      "servicos",
+      "galeria",
+      "depoimentos",
+      "equipe",
+      "faq",
+      "formulario",
+      ...FINAL,
+    ],
+    formulario: "orcamento",
+    tituloFormulario: "Solicite um orçamento de obra",
+    titulos: {
+      galeria: "Obras realizadas",
+      servicos: "Serviços",
+      faq: "Como trabalhamos",
+      equipe: "Time técnico",
+    },
+  },
+  "pousada-hotel": {
+    secoes: [
+      ...BASE,
+      "produtos",
+      "galeria",
+      "servicos",
+      "depoimentos",
+      "faq",
+      "formulario",
+      ...FINAL,
+    ],
+    formulario: "reserva",
+    tituloFormulario: "Consulte disponibilidade",
+    titulos: { produtos: "Acomodações", servicos: "Comodidades", galeria: "A pousada" },
   },
 };
 
@@ -194,7 +293,12 @@ export const criarSecoes = (modeloId?: string): Secao[] => {
   ];
   return ordenadas.map((tipo) => {
     const secao = porTipo.get(tipo)!;
-    return { id: uid("sec"), ...secao, ativa: preset.secoes.includes(tipo) };
+    return {
+      id: uid("sec"),
+      ...secao,
+      titulo: preset.titulos?.[tipo] ?? secao.titulo,
+      ativa: preset.secoes.includes(tipo),
+    };
   });
 };
 
