@@ -210,17 +210,45 @@ export function CriacaoIA({
 
   return (
     <div className="surface border-ink/20 p-5 sm:p-6">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-ink-foreground">
+      <div className="mb-3 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground"
+          aria-hidden="true"
+        >
           <Sparkles size={16} />
         </span>
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-base font-bold">Criação automática com IA</h2>
           <p className="text-xs text-muted-foreground">
-            Descreva o negócio e envie fotos: a IA cria do zero a estrutura, as cores e o conteúdo.
+            A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você pode
+            editar tudo depois.
           </p>
         </div>
       </div>
+
+      <div className="mb-4 rounded-2xl border border-dashed border-border p-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          O que melhora o resultado
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {[
+            "Descrição do negócio",
+            "Logo",
+            "Fotos reais",
+            "Serviços/produtos",
+            "Contato",
+          ].map((item) => (
+            <li
+              key={item}
+              className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {desabilitado && <AvisoPlano motivo="sem-ia" mensagem={desabilitado} className="mb-4" />}
 
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">O que o negócio faz</span>
@@ -231,7 +259,11 @@ export function CriacaoIA({
           placeholder="Ex.: barbearia masculina com corte, barba e produtos próprios, atendimento com hora marcada."
           className="w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
         />
+        <span className="mt-1 block text-xs text-muted-foreground">
+          Mínimo de 10 caracteres. Quanto mais específico, melhor a sugestão.
+        </span>
       </label>
+
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <input
