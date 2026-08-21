@@ -30,6 +30,7 @@ import { Route as PainelMeuPlanoRouteImport } from './routes/painel.meu-plano'
 import { Route as PainelMidiasRouteImport } from './routes/painel.midias'
 import { Route as PainelModelosRouteImport } from './routes/painel.modelos'
 import { Route as PainelNovoRouteImport } from './routes/painel.novo'
+import { Route as PainelPedidosRouteImport } from './routes/painel.pedidos'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
@@ -148,6 +149,11 @@ const PainelNovoRoute = PainelNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelPedidosRoute = PainelPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelSolicitacoesRoute = PainelSolicitacoesRouteImport.update({
   id: '/solicitacoes',
   path: '/solicitacoes',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
+  '/painel/pedidos': typeof PainelPedidosRoute
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
+  '/painel/pedidos': typeof PainelPedidosRoute
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
@@ -301,6 +309,7 @@ export interface FileRoutesById {
   '/painel/midias': typeof PainelMidiasRoute
   '/painel/modelos': typeof PainelModelosRoute
   '/painel/novo': typeof PainelNovoRoute
+  '/painel/pedidos': typeof PainelPedidosRoute
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
+    | '/painel/pedidos'
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
+    | '/painel/pedidos'
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/painel/midias'
     | '/painel/modelos'
     | '/painel/novo'
+    | '/painel/pedidos'
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
@@ -594,6 +606,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelNovoRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/pedidos': {
+      id: '/painel/pedidos'
+      path: '/pedidos'
+      fullPath: '/painel/pedidos'
+      preLoaderRoute: typeof PainelPedidosRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/solicitacoes': {
       id: '/painel/solicitacoes'
       path: '/solicitacoes'
@@ -690,6 +709,7 @@ interface PainelRouteChildren {
   PainelMidiasRoute: typeof PainelMidiasRoute
   PainelModelosRoute: typeof PainelModelosRoute
   PainelNovoRoute: typeof PainelNovoRoute
+  PainelPedidosRoute: typeof PainelPedidosRoute
   PainelSolicitacoesRoute: typeof PainelSolicitacoesRoute
   PainelIndexRoute: typeof PainelIndexRoute
   PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
@@ -706,6 +726,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelMidiasRoute: PainelMidiasRoute,
   PainelModelosRoute: PainelModelosRoute,
   PainelNovoRoute: PainelNovoRoute,
+  PainelPedidosRoute: PainelPedidosRoute,
   PainelSolicitacoesRoute: PainelSolicitacoesRoute,
   PainelIndexRoute: PainelIndexRoute,
   PainelAdminPapeisRoute: PainelAdminPapeisRoute,

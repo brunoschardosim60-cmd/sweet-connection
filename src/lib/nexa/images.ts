@@ -21,6 +21,10 @@ import academia from "@/assets/seg-academia.jpg";
 import tattoo from "@/assets/seg-tattoo.jpg";
 import construcao from "@/assets/seg-construcao.jpg";
 import pousada from "@/assets/seg-pousada.jpg";
+import bar from "@/assets/seg-bar.jpg";
+import cafeteria from "@/assets/seg-cafeteria.jpg";
+import acai from "@/assets/seg-acai.jpg";
+import marmita from "@/assets/seg-marmita.jpg";
 
 export const imagens = {
   restaurante,
@@ -46,6 +50,10 @@ export const imagens = {
   tattoo,
   construcao,
   pousada,
+  bar,
+  cafeteria,
+  acai,
+  marmita,
 } as const;
 
 export type ImagemKey = keyof typeof imagens;

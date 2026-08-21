@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  Clock,
   Info,
+  MapPin,
   MessageCircle,
   Minus,
   Plus,
@@ -23,7 +25,9 @@ import {
   mensagemPedido,
   perfilCatalogo,
   precoFinal,
+  rotulosModalidade,
   rotulosPagamento,
+  situacaoAtendimento,
   totaisCarrinho,
   type Entrega,
   type FiltroCatalogo,
@@ -33,6 +37,11 @@ import {
 import type { Produto, Site } from "@/lib/nexa/types";
 
 interface CamposEntrega {
+  nome: string;
+  whatsapp: string;
+  horarioPreferido: string;
+  mesa: string;
+  pessoas: string;
   endereco: string;
   bairro: string;
   complemento: string;
@@ -71,6 +80,11 @@ export function CatalogoPagina({
   const [entrega, setEntrega] = useState<Entrega>("entrega");
   const [pagamento, setPagamento] = useState<Pagamento | undefined>(undefined);
   const [campos, setCampos] = useState<CamposEntrega>({
+    nome: "",
+    whatsapp: "",
+    horarioPreferido: "",
+    mesa: "",
+    pessoas: "",
     endereco: "",
     bairro: "",
     complemento: "",
@@ -118,6 +132,7 @@ export function CatalogoPagina({
     });
 
   const totais = totaisCarrinho(itens, site, entrega);
+  const situacao = situacaoAtendimento(site);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
   const alterar = (p: Produto, delta: number, observacao?: string) => {
@@ -184,19 +199,74 @@ export function CatalogoPagina({
               <p className="truncate text-[11px] opacity-70">{perfil.rotulo}</p>
             </div>
           </div>
-          {quantidadeTotal > 0 ? (
-            <button
-              type="button"
-              onClick={() => setCarrinhoAberto(true)}
-              aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              style={{ ...botaoPrimario, outlineColor: primaria }}
+          <button
+            type="button"
+            onClick={() => setCarrinhoAberto(true)}
+            aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            style={{
+              ...botaoPrimario,
+              opacity: quantidadeTotal > 0 ? 1 : 0.85,
+              outlineColor: primaria,
+            }}
+          >
+            <ShoppingBag size={16} aria-hidden />
+            <span aria-hidden>{quantidadeTotal}</span>
+          </button>
+        </div>
+
+        <div
+          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto px-4 pb-2 text-[11px]"
+          aria-label="Informações do estabelecimento"
+        >
+          <span
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
+            style={{
+              background: hexToRgba(situacao.aberto ? primaria : "#888888", 0.16),
+              color: situacao.aberto ? primaria : "inherit",
+            }}
+          >
+            <span
+              aria-hidden
+              className="h-2 w-2 rounded-full"
+              style={{ background: situacao.aberto ? primaria : "currentColor" }}
+            />
+            {situacao.rotulo}
+          </span>
+          {perfil.prazo && (
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80"
+              style={{ border: "1px solid var(--ms-border)" }}
             >
-              <ShoppingBag size={16} aria-hidden />
-              {quantidadeTotal}
-            </button>
-          ) : (
-            <span className="min-h-11 w-11" aria-hidden />
+              <Clock size={12} aria-hidden /> {perfil.prazo}
+            </span>
+          )}
+          {site.conteudo.endereco && (
+            <a
+              href={
+                interacoesExternas
+                  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.conteudo.endereco)}`
+                  : undefined
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2"
+              style={{ border: "1px solid var(--ms-border)", outlineColor: primaria }}
+            >
+              <MapPin size={12} aria-hidden /> Como chegar
+            </a>
+          )}
+          {site.conteudo.whatsapp && (
+            <a
+              href={interacoesExternas ? whatsappLink(site.conteudo.whatsapp, "") : undefined}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => registrar("Cardápio: WhatsApp do cabeçalho", true)}
+              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2"
+              style={{ border: "1px solid var(--ms-border)", outlineColor: primaria }}
+            >
+              <MessageCircle size={12} aria-hidden /> WhatsApp
+            </a>
           )}
         </div>
       </header>
@@ -864,6 +934,7 @@ function PainelCarrinho({
   onEnviar: () => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
+  const modalidades: Entrega[] = perfilCatalogo(site).modalidades ?? ["entrega", "retirada"];
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
@@ -965,13 +1036,37 @@ function PainelCarrinho({
         ))}
       </ul>
 
-      <div role="group" aria-label="Forma de recebimento" className="flex gap-2">
-        {(["entrega", "retirada"] as Entrega[]).map((op) => (
+      <div
+        role="group"
+        aria-label="Modalidade do pedido"
+        className="-mx-1 flex gap-2 overflow-x-auto px-1"
+      >
+        {modalidades.map((op) => (
           <Chip key={op} ativo={entrega === op} cor={primaria} onClick={() => setEntrega(op)}>
-            {op === "entrega" ? "Entrega" : "Retirada no local"}
+            {rotulosModalidade[op]}
           </Chip>
         ))}
       </div>
+
+      <div className="grid gap-2">
+        {campo("nome", "Seu nome")}
+        {campo("whatsapp", "WhatsApp para contato", "(00) 00000-0000")}
+      </div>
+
+      {entrega === "mesa" && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {campo("mesa", "Número da mesa", "Ex.: 12")}
+          {campo("pessoas", "Quantas pessoas?", "Ex.: 4")}
+          <div className="sm:col-span-2">{campo("observacao", "Observações do pedido")}</div>
+        </div>
+      )}
+
+      {entrega === "retirada" && (
+        <div className="grid gap-2">
+          {campo("horarioPreferido", "Horário preferido para retirar", "Ex.: 19h30")}
+          {campo("observacao", "Observações do pedido")}
+        </div>
+      )}
 
       {entrega === "entrega" && (
         <div className="grid gap-2">
@@ -1034,12 +1129,14 @@ function PainelCarrinho({
             opacity: linkPedido ? 1 : 0.6,
           }}
         >
-          <MessageCircle size={15} aria-hidden /> Continuar pedido no WhatsApp
+          <MessageCircle size={15} aria-hidden />{" "}
+          {entrega === "mesa" ? "Enviar pedido para a equipe" : "Continuar pedido no WhatsApp"}
         </a>
       )}
       <p className="text-[11px] opacity-70">
-        O pedido é finalizado na conversa do WhatsApp com o estabelecimento. Nenhum pagamento é
-        processado aqui.
+        {entrega === "mesa"
+          ? "O pedido segue para o WhatsApp do estabelecimento e será confirmado pela equipe. O envio automático para a cozinha fica disponível após a ativação da operação."
+          : "O pedido é finalizado na conversa do WhatsApp com o estabelecimento. Nenhum pagamento é processado aqui."}
       </p>
     </div>
   );
