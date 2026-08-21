@@ -233,6 +233,11 @@ function PaginaAgenda() {
                       >
                         {cancelado ? "Cancelado" : "Confirmado"}
                       </span>
+                      {foiReagendado && (
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                          Reagendado{vezes > 1 ? ` ${vezes}×` : ""}
+                        </span>
+                      )}
                       {editando && !cancelado && (
                         <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                           Reagendando
