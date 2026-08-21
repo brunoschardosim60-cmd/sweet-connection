@@ -446,7 +446,8 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
             key={s.id}
             type="button"
             onClick={() => setFiltro(s.id)}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
+            aria-pressed={filtro === s.id}
+            className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
               filtro === s.id
                 ? "border-ink bg-ink text-ink-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-secondary"
@@ -459,41 +460,43 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {visiveis.map((m, i) => (
-          <Reveal key={m.id} delay={i * 40}>
-            <article className="group relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)]">
-              <div className="relative h-52 overflow-hidden">
+          <Reveal key={m.id} delay={i * 40} className="h-full">
+            <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]">
+              <div className="relative h-52 shrink-0 overflow-hidden">
                 <img
                   src={m.imagem}
-                  alt={m.nome}
+                  alt={`Prévia do modelo ${m.nome}`}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
                 />
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 p-3 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
                   <Link
                     to="/demonstracao/$modelo"
                     params={{ modelo: m.id }}
-                    className="rounded-full bg-card px-4 py-2 text-xs font-semibold"
+                    aria-label={`Visualizar demonstração do modelo ${m.nome}`}
+                    className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
                   >
                     Visualizar modelo
                   </Link>
                   <Link
                     to="/painel/novo"
                     search={{ modelo: m.id }}
-                    className="rounded-full bg-lime px-4 py-2 text-xs font-bold text-ink"
+                    aria-label={`Usar o modelo ${m.nome}`}
+                    className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
                   >
                     Usar este modelo
                   </Link>
                 </div>
               </div>
-              <div className="p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-display text-lg font-bold">{m.nome}</h3>
+              <div className="flex min-w-0 flex-1 flex-col p-5">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <h3 className="min-w-0 font-display text-lg font-bold">{m.nome}</h3>
                   <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                     {m.destaque}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{m.descricao}</p>
-                <div className="mt-4 flex gap-1.5">
+                <div className="mt-4 flex gap-1.5" aria-hidden="true">
                   {Object.values(m.paleta).map((c) => (
                     <span
                       key={c}
@@ -506,43 +509,69 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
             </article>
           </Reveal>
         ))}
-        <Reveal delay={visiveis.length * 40}>
-          <article className="group relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)]">
-            <div className="relative grid h-52 place-items-center overflow-hidden bg-ink text-ink-foreground">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)] transition-transform duration-500 group-hover:scale-105" />
-              <span className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink transition-transform duration-500 group-hover:scale-105">
+        <Reveal delay={visiveis.length * 40} className="h-full">
+          <article
+            aria-labelledby="modelo-ia"
+            className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]"
+          >
+            <div className="relative grid h-52 shrink-0 place-items-center overflow-hidden bg-ink text-ink-foreground">
+              <div
+                className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)] transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+                aria-hidden="true"
+              />
+              <span
+                className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+                aria-hidden="true"
+              >
                 <Sparkles size={28} />
               </span>
-              <Link
-                to="/painel/novo"
-                search={{ modo: "ia" }}
-                className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 text-xs font-bold opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100"
-              >
-                <span className="rounded-full bg-lime px-4 py-2 text-ink">Criar com IA</span>
-              </Link>
+              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 p-3 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+                <Link
+                  to="/demonstracao/ia"
+                  aria-label="Ver como funciona a criação automática com IA"
+                  className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                >
+                  Como funciona
+                </Link>
+                <Link
+                  to="/painel/novo"
+                  search={{ modo: "ia" }}
+                  aria-label="Criar mini-site com a criação automática de IA"
+                  className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                >
+                  Criar com IA
+                </Link>
+              </div>
             </div>
-            <div className="p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-display text-lg font-bold">Criação automática com IA</h3>
-                <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                  IA + fotos
+            <div className="flex min-w-0 flex-1 flex-col p-5">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <h3 id="modelo-ia" className="min-w-0 font-display text-lg font-bold">
+                  Criação automática com IA
+                </h3>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  <Sparkles size={11} aria-hidden="true" /> Feito com IA
                 </span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Descreva o negócio e envie fotos. A IA sugere modelo, cores, textos e seções.
+                A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você
+                pode editar tudo depois.
               </p>
-              <div className="mt-4 flex gap-1.5" aria-label="Paleta do modelo">
-                {["#111312", "#f3fff2", "#b8ff3c", "#dfffb1"].map((cor) => (
-                  <span
-                    key={cor}
-                    className="h-4 w-4 rounded-full border border-border"
-                    style={{ background: cor }}
-                  />
-                ))}
-              </div>
+              <ul className="mt-3 flex flex-wrap gap-1.5">
+                {["Descrição", "Logo", "Fotos reais", "Serviços/produtos", "Contato"].map(
+                  (item) => (
+                    <li
+                      key={item}
+                      className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground"
+                    >
+                      {item}
+                    </li>
+                  ),
+                )}
+              </ul>
             </div>
           </article>
         </Reveal>
+
       </div>
     </div>
   );
