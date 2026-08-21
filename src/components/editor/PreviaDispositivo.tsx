@@ -52,11 +52,11 @@ export function SeletorDispositivo({
             aria-label={`Prévia ${d.rotulo.toLowerCase()}`}
             aria-pressed={ativo}
             onClick={() => onChange(d.id)}
-            className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
+            className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
               ativo ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:bg-secondary"
             }`}
           >
-            <Icone size={14} aria-hidden />
+            <Icone size={16} aria-hidden />
           </button>
         );
       })}
@@ -85,7 +85,7 @@ function BotaoControle({
       aria-pressed={ativo}
       disabled={desabilitado}
       onClick={onClick}
-      className={`grid h-7 w-7 place-items-center rounded-full transition-colors disabled:opacity-30 ${
+      className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-30 ${
         ativo
           ? "bg-ink text-ink-foreground"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -151,14 +151,14 @@ export function MolduraPrevia({
             desabilitado={desktop}
             onClick={() => setOrientacao(horizontal ? "vertical" : "horizontal")}
           >
-            <RotateCcw size={13} aria-hidden />
+            <RotateCcw size={15} aria-hidden />
           </BotaoControle>
           <BotaoControle
             rotulo="Diminuir zoom"
             desabilitado={zoom <= ZOOM_MIN}
             onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 10) / 10))}
           >
-            <ZoomOut size={13} aria-hidden />
+            <ZoomOut size={15} aria-hidden />
           </BotaoControle>
           <span
             aria-live="polite"
@@ -171,7 +171,7 @@ export function MolduraPrevia({
             desabilitado={zoom >= ZOOM_MAX}
             onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 10) / 10))}
           >
-            <ZoomIn size={13} aria-hidden />
+            <ZoomIn size={15} aria-hidden />
           </BotaoControle>
           <BotaoControle rotulo="Zoom padrão" onClick={() => setZoom(1)}>
             <span className="text-[10px] font-semibold">1x</span>
@@ -181,7 +181,7 @@ export function MolduraPrevia({
             ativo={telaCheia}
             onClick={alternarTelaCheia}
           >
-            {telaCheia ? <Minimize2 size={13} aria-hidden /> : <Maximize2 size={13} aria-hidden />}
+            {telaCheia ? <Minimize2 size={15} aria-hidden /> : <Maximize2 size={15} aria-hidden />}
           </BotaoControle>
         </div>
       )}

@@ -1195,7 +1195,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
-              className="grid h-10 w-10 place-items-center rounded-full border border-border hover:bg-secondary"
+              className="grid h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               <Instagram size={16} />
             </a>
@@ -1204,7 +1204,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="WhatsApp"
-              className="grid h-10 w-10 place-items-center rounded-full border border-border hover:bg-secondary"
+              className="grid h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               <MessageCircle size={16} />
             </a>
@@ -1213,22 +1213,28 @@ export function SiteFooter() {
         {colunas.map((c) => (
           <div key={c.titulo}>
             <p className="text-sm font-bold">{c.titulo}</p>
-            <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <ul className="mt-3 text-sm text-muted-foreground">
               {c.itens.map((i) => (
                 <li key={i}>
                   {i === "Termos de uso" ? (
-                    <Link to="/termos" className="transition-colors hover:text-foreground">
+                    <Link
+                      to="/termos"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    >
                       {i}
                     </Link>
                   ) : i === "Privacidade" ? (
-                    <Link to="/privacidade" className="transition-colors hover:text-foreground">
+                    <Link
+                      to="/privacidade"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                    >
                       {i}
                     </Link>
                   ) : (
                     <button
                       type="button"
                       onClick={() => toast("Recurso disponível em breve")}
-                      className="transition-colors hover:text-foreground"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     >
                       {i}
                     </button>

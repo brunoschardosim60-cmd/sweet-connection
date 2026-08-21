@@ -45,7 +45,11 @@ export function SiteHeader() {
       }`}
     >
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 md:flex md:justify-between">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
+        <Link
+          to="/"
+          aria-label="Página inicial"
+          className="flex min-h-11 min-w-0 items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        >
           <Logo />
         </Link>
 
@@ -55,7 +59,7 @@ export function SiteHeader() {
               <Link
                 key={i.rotulo}
                 to={i.to}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 {i.rotulo}
               </Link>
@@ -63,7 +67,7 @@ export function SiteHeader() {
               <a
                 key={i.rotulo}
                 href={i.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 {i.rotulo}
               </a>

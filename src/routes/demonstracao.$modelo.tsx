@@ -37,7 +37,10 @@ function Demonstracao() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sand">
       <header className="z-40 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:flex sm:justify-between">
-        <Link to="/modelos" className="inline-flex min-w-0 items-center gap-2 text-sm font-medium">
+        <Link
+          to="/modelos"
+          className="inline-flex min-h-11 min-w-0 items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        >
           <ArrowLeft size={16} /> <span className="truncate">Voltar aos modelos</span>
         </Link>
         <div className="flex shrink-0 items-center gap-2">
@@ -45,7 +48,7 @@ function Demonstracao() {
           <Link
             to="/painel/novo"
             search={{ modelo }}
-            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-ink-foreground"
+            className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Usar este modelo
           </Link>
