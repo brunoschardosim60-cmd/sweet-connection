@@ -199,7 +199,13 @@ function MeuPlano() {
               <h2 className="truncate font-display text-2xl font-extrabold sm:text-3xl">
                 {nomes[tier] ?? "Sem plano"}
               </h2>
+              {tier === "essential" && (
+                <p className="mt-1 text-sm font-medium opacity-80">
+                  R$ 5 no primeiro mês · R$ 39/mês nas renovações
+                </p>
+              )}
             </div>
+
           </div>
           <span
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
