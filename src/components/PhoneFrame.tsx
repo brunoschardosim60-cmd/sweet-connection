@@ -58,8 +58,6 @@ export function PhoneFrame({
           {children}
         </div>
       </div>
-
     </div>
   );
-
 }
