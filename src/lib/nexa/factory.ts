@@ -195,6 +195,7 @@ export const presetsModelo: Record<string, PresetModelo> = {
       produtos: "Planos",
       equipe: "Professores",
       horarios: "Grade de horários",
+      agenda: "Aula experimental",
     },
   },
   "tattoo-studio": {
