@@ -292,7 +292,7 @@ function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode
   );
 }
 
-function AbaMesas({ slug, nome }: { slug?: string; nome?: string }) {
+function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | undefined }) {
   const [quantidade, setQuantidade] = useState(6);
   const mesas = Array.from({ length: Math.min(Math.max(quantidade, 1), 40) }, (_, i) => i + 1);
 
