@@ -1,5 +1,6 @@
 import type { Produto, Site } from "./types";
-import { moeda } from "./utils";
+import { estaAberto, moeda } from "./utils";
+import { perfilCardapioPorModelo } from "./cardapio-modelos";
 
 export type FiltroCatalogo = "todos" | "destaques" | "promocoes" | "disponiveis";
 
@@ -20,6 +21,10 @@ export interface PerfilCatalogo {
   apoio: string;
   /** Grupos de opção apresentados no detalhe do item (somente visual). */
   gruposOpcao: string[];
+  /** Estimativa de preparo/entrega exibida no cabeçalho (ajustável no editor). */
+  prazo?: string;
+  /** Modalidades sugeridas pelo modelo. */
+  modalidades?: Modalidade[];
 }
 
 const perfilPadrao: PerfilCatalogo = {
@@ -70,6 +75,8 @@ const perfis: Record<string, PerfilCatalogo> = {
 
 /** Identifica o perfil do catálogo pelo modelo e, na falta dele, pelo segmento. */
 export function perfilCatalogo(site: Site): PerfilCatalogo {
+  const doModelo = perfilCardapioPorModelo(site.modeloId);
+  if (doModelo) return doModelo;
   const modelo = (site.modeloId || "").toLowerCase();
   const nome = `${modelo} ${site.conteudo.nome} ${site.cliente.empresa}`.toLowerCase();
   const chave = (["pizzaria", "hamburgueria", "doceria", "bar", "restaurante"] as const).find((k) =>
@@ -129,7 +136,23 @@ export interface ItemCarrinho {
   observacao?: string;
 }
 
-export type Entrega = "entrega" | "retirada";
+export type Modalidade = "entrega" | "retirada" | "mesa";
+/** Mantido por compatibilidade com o carrinho do mini-site. */
+export type Entrega = Modalidade;
+
+export const rotulosModalidade: Record<Modalidade, string> = {
+  entrega: "Entrega",
+  retirada: "Retirada no local",
+  mesa: "Mesa / comanda",
+};
+
+/** Situação do estabelecimento a partir dos horários cadastrados. */
+export function situacaoAtendimento(site: Site) {
+  const horarios = site.conteudo.horarios ?? [];
+  if (horarios.length === 0) return { conhecida: false, aberto: false, rotulo: "Horário não informado" };
+  const aberto = estaAberto(horarios);
+  return { conhecida: true, aberto, rotulo: aberto ? "Aberto agora" : "Fechado agora" };
+}
 export type Pagamento = "pix" | "cartao" | "dinheiro";
 
 export const rotulosPagamento: Record<Pagamento, string> = {
@@ -155,6 +178,11 @@ export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entre
 }
 
 export interface DadosEntrega {
+  nome?: string;
+  whatsapp?: string;
+  horarioPreferido?: string;
+  mesa?: string;
+  pessoas?: string;
   endereco?: string;
   bairro?: string;
   complemento?: string;
@@ -185,7 +213,14 @@ export function mensagemPedido(
     `Subtotal: ${moeda(subtotal)}`,
     taxa > 0 ? `Taxa de entrega: ${moeda(taxa)}` : "",
     `Total: ${moeda(total)}`,
-    entrega === "entrega" ? "Entrega" : "Retirada no local",
+    `Modalidade: ${rotulosModalidade[entrega]}`,
+    dados.nome?.trim() ? `Nome: ${dados.nome.trim()}` : "",
+    dados.whatsapp?.trim() ? `WhatsApp: ${dados.whatsapp.trim()}` : "",
+    entrega === "mesa" && dados.mesa?.trim() ? `Mesa: ${dados.mesa.trim()}` : "",
+    entrega === "mesa" && dados.pessoas?.trim() ? `Pessoas: ${dados.pessoas.trim()}` : "",
+    entrega === "retirada" && dados.horarioPreferido?.trim()
+      ? `Horário preferido: ${dados.horarioPreferido.trim()}`
+      : "",
     dados.endereco?.trim() ? `Endereço: ${dados.endereco.trim()}` : "",
     dados.bairro?.trim() ? `Bairro: ${dados.bairro.trim()}` : "",
     dados.complemento?.trim() ? `Complemento: ${dados.complemento.trim()}` : "",
