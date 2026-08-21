@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  FORMAS_PAGAMENTO_CHECKOUT,
   idDaReferencia,
   planoPago,
   proximoVencimento,
@@ -8,6 +9,10 @@ import {
 } from "../src/lib/nexa/asaas.server";
 
 describe("integração Asaas", () => {
+  it("oferece Pix e cartão no checkout", () => {
+    expect(FORMAS_PAGAMENTO_CHECKOUT).toEqual(["PIX", "CREDIT_CARD"]);
+  });
+
   it("aceita somente planos comercializáveis", () => {
     expect(planoPago("essential")).toBe("essential");
     expect(planoPago("professional")).toBe("professional");

@@ -14,6 +14,8 @@ export const PRECOS_PLANOS: Record<PlanoPago, string> = {
   catalog: "119,00",
 };
 
+export const FORMAS_PAGAMENTO_CHECKOUT = ["PIX", "CREDIT_CARD"] as const;
+
 export function planoPago(valor: unknown): PlanoPago | null {
   return valor === "essential" || valor === "professional" || valor === "catalog" ? valor : null;
 }
@@ -77,9 +79,9 @@ export async function criarCheckoutAsaas(args: {
   const data = await requisicaoAsaas("/checkouts", {
     method: "POST",
     body: JSON.stringify({
-      // Assinaturas recorrentes do Checkout usam cartão. Pix só deve ser
-      // habilitado quando a conta Asaas estiver aprovada para Pix Automático.
-      billingTypes: ["CREDIT_CARD"],
+      // Para a recorrência por Pix, a disponibilidade final depende da
+      // habilitação de Pix Automático na conta do recebedor.
+      billingTypes: FORMAS_PAGAMENTO_CHECKOUT,
       chargeTypes: ["RECURRENT"],
       minutesToExpire: 30,
       callback: {
