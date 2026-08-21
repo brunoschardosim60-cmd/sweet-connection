@@ -18,7 +18,11 @@ export function AuthShell({
     <main className="grid min-h-dvh lg:grid-cols-2">
       <section className="flex flex-col justify-center px-5 py-10 sm:px-10">
         <div className="mx-auto w-full max-w-md">
-          <Link to="/" className="inline-flex" aria-label="Voltar para a página inicial">
+          <Link
+            to="/"
+            className="inline-flex min-h-11 items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            aria-label="Voltar para a página inicial"
+          >
             <Logo />
           </Link>
           <h1 className="mt-8 font-display text-3xl font-bold tracking-tight">{titulo}</h1>

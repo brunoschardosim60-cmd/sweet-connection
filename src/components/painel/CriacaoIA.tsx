@@ -8,6 +8,8 @@ import { aplicarPlanoIA } from "@/lib/nexa/ia-aplicar";
 import { buscarPlanoEmCache, guardarPlanoEmCache } from "@/lib/nexa/ia-cache";
 import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa/ia-tipos";
 import { RevisaoIA } from "@/components/painel/RevisaoIA";
+import { AvisoPlano } from "@/components/planos/AvisoPlano";
+
 import { enviarArquivo } from "@/lib/nexa/media";
 import { uid } from "@/lib/nexa/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -210,17 +212,41 @@ export function CriacaoIA({
 
   return (
     <div className="surface border-ink/20 p-5 sm:p-6">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-ink-foreground">
+      <div className="mb-3 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground"
+          aria-hidden="true"
+        >
           <Sparkles size={16} />
         </span>
-        <div>
+        <div className="min-w-0">
           <h2 className="font-display text-base font-bold">Criação automática com IA</h2>
           <p className="text-xs text-muted-foreground">
-            Descreva o negócio e envie fotos: a IA cria do zero a estrutura, as cores e o conteúdo.
+            A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você pode
+            editar tudo depois.
           </p>
         </div>
       </div>
+
+      <div className="mb-4 rounded-2xl border border-dashed border-border p-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          O que melhora o resultado
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {["Descrição do negócio", "Logo", "Fotos reais", "Serviços/produtos", "Contato"].map(
+            (item) => (
+              <li
+                key={item}
+                className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+              >
+                {item}
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
+
+      {desabilitado && <AvisoPlano motivo="sem-ia" mensagem={desabilitado} className="mb-4" />}
 
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">O que o negócio faz</span>
@@ -231,6 +257,9 @@ export function CriacaoIA({
           placeholder="Ex.: barbearia masculina com corte, barba e produtos próprios, atendimento com hora marcada."
           className="w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
         />
+        <span className="mt-1 block text-xs text-muted-foreground">
+          Mínimo de 10 caracteres. Quanto mais específico, melhor a sugestão.
+        </span>
       </label>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -434,12 +463,35 @@ export function CriacaoIA({
         type="button"
         onClick={() => void revisar()}
         disabled={gerando}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground disabled:opacity-70 sm:w-auto"
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto"
       >
-        {gerando ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+        {gerando ? (
+          <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden />
+        ) : (
+          <Wand2 size={16} aria-hidden />
+        )}
         {gerando ? "Gerando sugestão…" : plano ? "Gerar nova sugestão" : "Gerar sugestão com IA"}
       </button>
-      {desabilitado && <p className="mt-2 text-xs text-muted-foreground">{desabilitado}</p>}
+
+      <p aria-live="polite" className="mt-2 min-h-5 text-xs text-muted-foreground">
+        {gerando
+          ? "A IA está montando a proposta com as informações enviadas. Isso pode levar alguns segundos."
+          : plano
+            ? "Sugestão pronta: revise abaixo antes de criar o mini-site."
+            : "Nada é criado nem publicado antes da sua aprovação."}
+      </p>
+
+      {gerando && (
+        <div className="mt-3 space-y-2" aria-hidden="true" data-estado="carregando-sugestao-ia">
+          {[0, 1, 2].map((linha) => (
+            <div
+              key={linha}
+              className="h-3 animate-pulse rounded-full bg-secondary motion-reduce:animate-none"
+              style={{ width: `${100 - linha * 18}%` }}
+            />
+          ))}
+        </div>
+      )}
 
       {plano && (
         <RevisaoIA

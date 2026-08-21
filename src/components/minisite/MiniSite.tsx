@@ -906,7 +906,10 @@ function BlocoGaleria({ site, titulo }: { site: Site; titulo: string }) {
             key={g.id}
             type="button"
             onClick={() => setAmpliada(g.url)}
-            className="relative aspect-square overflow-hidden transition-transform duration-200 hover:scale-[1.02]"
+            aria-label={
+              g.titulo ? `Ampliar ${g.titulo}` : g.tipo === "video" ? "Abrir vídeo" : "Ampliar foto"
+            }
+            className="relative aspect-square min-h-11 overflow-hidden transition-transform duration-200 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transform-none"
             style={{ borderRadius: "var(--ms-radius)" }}
           >
             {g.tipo === "video" ? (

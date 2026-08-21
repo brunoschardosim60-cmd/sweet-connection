@@ -67,7 +67,10 @@ function Login() {
       rodape={
         <>
           Ainda não tem conta?{" "}
-          <Link to="/cadastro" className="font-semibold text-foreground underline">
+          <Link
+            to="/cadastro"
+            className="inline-flex min-h-11 items-center font-semibold text-foreground underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          >
             Criar minha conta
           </Link>
         </>
@@ -93,7 +96,10 @@ function Login() {
         />
 
         <div className="flex justify-end">
-          <Link to="/recuperar-senha" className="text-sm font-medium underline">
+          <Link
+            to="/recuperar-senha"
+            className="inline-flex min-h-11 items-center text-sm font-medium underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          >
             Esqueci minha senha
           </Link>
         </div>
