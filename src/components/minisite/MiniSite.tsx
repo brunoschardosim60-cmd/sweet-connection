@@ -1343,67 +1343,119 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
             }
           }}
         >
-          {site.agenda?.observacao && (
-            <p className="text-xs opacity-70">{site.agenda.observacao}</p>
-          )}
+          <div
+            className="flex flex-col gap-1 pb-1"
+            style={{ borderBottom: "1px solid var(--ms-border)" }}
+          >
+            <p className="text-sm font-semibold">Escolha um horário disponível</p>
+            {site.agenda?.observacao && (
+              <p className="text-xs opacity-70">{site.agenda.observacao}</p>
+            )}
+          </div>
           <div>
-            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o dia</p>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-70">
+              1. Escolha o dia
+            </p>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
               {dias.map((d) => {
                 const ativo = dia !== null && dataIso(d) === dataIso(dia);
+                const [nomeDia = "", numero = ""] = rotuloDia(d).split(" ");
                 return (
                   <button
                     key={dataIso(d)}
                     type="button"
                     onClick={() => setDia(d)}
                     aria-pressed={ativo}
-                    className="min-h-11 shrink-0 px-3 py-2 text-xs font-medium"
+                    className="flex min-h-11 w-16 shrink-0 flex-col items-center justify-center gap-0.5 px-2 py-2 leading-tight transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
                     style={{
-                      borderRadius: "999px",
-                      border: "1px solid var(--ms-border)",
+                      borderRadius: "var(--ms-radius)",
+                      border: `1px solid ${ativo ? site.aparencia.corPrimaria : "var(--ms-border)"}`,
                       background: ativo ? site.aparencia.corPrimaria : "transparent",
                       color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                      outlineColor: site.aparencia.corPrimaria,
                     }}
                   >
-                    {rotuloDia(d)}
+                    <span className="text-[10px] uppercase opacity-70">{nomeDia}</span>
+                    <span className="text-sm font-semibold">{numero}</span>
                   </button>
                 );
               })}
             </div>
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold opacity-70">Escolha o horário</p>
-            {carregando ? (
-              <p className="text-xs opacity-60">Carregando horários…</p>
-            ) : horas.length === 0 ? (
-              <p className="text-xs opacity-60">Sem horários disponíveis neste dia.</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {horas.map((h) => {
-                  const indisponivel = ocupados.includes(h);
-                  const ativo = hora === h;
-                  return (
-                    <button
-                      key={h}
-                      type="button"
-                      disabled={indisponivel}
-                      onClick={() => setHora(h)}
-                      aria-pressed={ativo}
-                      className="min-h-11 px-3 py-2 text-xs font-medium disabled:opacity-40 disabled:line-through"
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                2. Escolha o horário
+              </p>
+              <p className="flex items-center gap-3 text-[11px] opacity-70">
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    aria-hidden
+                    className="inline-block size-2 rounded-full"
+                    style={{ background: site.aparencia.corPrimaria }}
+                  />
+                  selecionado
+                </span>
+                <span className="inline-flex items-center gap-1 line-through">ocupado</span>
+              </p>
+            </div>
+            <div aria-live="polite">
+              {carregando ? (
+                <div className="flex flex-wrap gap-2" aria-hidden>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="h-11 w-16 animate-pulse motion-reduce:animate-none"
                       style={{
                         borderRadius: "var(--ms-radius)",
-                        border: "1px solid var(--ms-border)",
-                        background: ativo ? site.aparencia.corPrimaria : "transparent",
-                        color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                        background: "var(--ms-border)",
                       }}
-                    >
-                      {h}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    />
+                  ))}
+                </div>
+              ) : horas.length === 0 ? (
+                <p className="text-xs opacity-60">Sem horários disponíveis neste dia.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {horas.map((h) => {
+                    const indisponivel = ocupados.includes(h);
+                    const ativo = hora === h;
+                    return (
+                      <button
+                        key={h}
+                        type="button"
+                        disabled={indisponivel}
+                        onClick={() => setHora(h)}
+                        aria-pressed={ativo}
+                        aria-label={indisponivel ? `${h} — horário ocupado` : `${h} — disponível`}
+                        title={indisponivel ? "Horário já reservado" : undefined}
+                        className="min-h-11 min-w-16 px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:font-normal disabled:opacity-45 disabled:line-through motion-reduce:transition-none"
+                        style={{
+                          borderRadius: "var(--ms-radius)",
+                          border: `1px solid ${ativo ? site.aparencia.corPrimaria : "var(--ms-border)"}`,
+                          background: ativo ? site.aparencia.corPrimaria : "transparent",
+                          color: ativo ? contraste(site.aparencia.corPrimaria) : "inherit",
+                          outlineColor: site.aparencia.corPrimaria,
+                        }}
+                      >
+                        {h}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {!carregando && horas.length > 0 && (
+                <p className="mt-2 text-[11px] opacity-70">
+                  {hora
+                    ? `Horário ${hora} selecionado. Confirme abaixo com seus dados.`
+                    : "Toque em um horário para continuar."}
+                </p>
+              )}
+            </div>
           </div>
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
+            3. Seus dados
+          </p>
           {site.servicos.length > 0 && (
             <select
               value={servico}
