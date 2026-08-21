@@ -33,7 +33,13 @@ import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, notificarDonoDoMinisite, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { reservarHospedagem } from "@/lib/nexa/reservas";
-import { enderecoCardapio, itensDestaque, perfilCatalogo } from "@/lib/nexa/catalogo";
+import {
+  enderecoCardapio,
+  itensDestaque,
+  lerRascunhoPedido,
+  perfilCatalogo,
+  salvarRascunhoPedido,
+} from "@/lib/nexa/catalogo";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
