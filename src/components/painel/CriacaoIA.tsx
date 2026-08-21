@@ -8,6 +8,8 @@ import { aplicarPlanoIA } from "@/lib/nexa/ia-aplicar";
 import { buscarPlanoEmCache, guardarPlanoEmCache } from "@/lib/nexa/ia-cache";
 import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa/ia-tipos";
 import { RevisaoIA } from "@/components/painel/RevisaoIA";
+import { AvisoPlano } from "@/components/planos/AvisoPlano";
+
 import { enviarArquivo } from "@/lib/nexa/media";
 import { uid } from "@/lib/nexa/utils";
 import { supabase } from "@/integrations/supabase/client";
