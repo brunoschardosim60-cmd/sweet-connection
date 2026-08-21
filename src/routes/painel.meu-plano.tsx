@@ -143,7 +143,6 @@ function MeuPlano() {
   const restricoes = bloqueado[tier] ?? [];
   const opcaoSelecionada = opcoes.find((opcao) => opcao.tier === planoEscolhido)!;
 
-
   async function iniciarCheckout() {
     setPagando(true);
     setErroPagamento("");
@@ -205,7 +204,6 @@ function MeuPlano() {
                 </p>
               )}
             </div>
-
           </div>
           <span
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
@@ -360,7 +358,6 @@ function MeuPlano() {
               </span>
             </div>
           )}
-
         </div>
       </article>
 
