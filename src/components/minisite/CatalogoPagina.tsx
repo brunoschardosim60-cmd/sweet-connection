@@ -116,6 +116,12 @@ export function CatalogoPagina({
       if (salvo.pagamento) setPagamento(salvo.pagamento);
       if (salvo.campos) setCampos((c) => ({ ...c, ...salvo.campos }));
     }
+    // Link de mesa (/cardapio?mesa=12) já abre na modalidade correta.
+    const mesa = new URLSearchParams(window.location.search).get("mesa");
+    if (mesa) {
+      setEntrega("mesa");
+      setCampos((c) => ({ ...c, mesa }));
+    }
     setRestaurado(true);
   }, [site.slug]);
 
