@@ -226,6 +226,69 @@ export function AbaCardapio({
           />
           Carrinho e confirmação de pedido no painel
         </label>
+        <fieldset className="mt-4">
+          <legend className="text-xs font-medium text-muted-foreground">
+            Formas de pagamento aceitas
+          </legend>
+          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+            {(["pix", "cartao", "dinheiro", "balcao"] as const).map((tipo) => {
+              const aceitos = comercio.pagamentosAceitos ?? ["pix", "cartao", "dinheiro"];
+              return (
+                <label key={tipo} className="flex min-h-11 items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={aceitos.includes(tipo)}
+                    onChange={(e) =>
+                      aplicar((s) => ({
+                        ...s,
+                        comercio: {
+                          ...comercio,
+                          ...s.comercio,
+                          pagamentosAceitos: e.target.checked
+                            ? [...aceitos, tipo]
+                            : aceitos.filter((p) => p !== tipo),
+                        },
+                      }))
+                    }
+                  />
+                  {tipo === "balcao"
+                    ? "Pagar no balcão"
+                    : tipo === "cartao"
+                      ? "Cartão"
+                      : tipo[0]?.toUpperCase() + tipo.slice(1)}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="text-xs text-muted-foreground">
+            Chave Pix do estabelecimento
+            <input
+              value={comercio.pixChave ?? ""}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: { ...comercio, ...s.comercio, pixChave: e.target.value },
+                }))
+              }
+              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Favorecido do Pix
+            <input
+              value={comercio.pixFavorecido ?? ""}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: { ...comercio, ...s.comercio, pixFavorecido: e.target.value },
+                }))
+              }
+              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </label>
+        </div>
         <label className="mt-3 block text-xs text-muted-foreground">
           Taxas por bairro (um por linha: Bairro = valor)
           <textarea

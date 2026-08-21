@@ -1217,13 +1217,37 @@ function PainelCarrinho({
       )}
 
       <div role="group" aria-label="Forma de pagamento" className="flex flex-wrap gap-2">
-        {(Object.keys(rotulosPagamento) as Pagamento[]).map((p) => (
+        {(site.comercio?.pagamentosAceitos?.length
+          ? site.comercio.pagamentosAceitos
+          : (Object.keys(rotulosPagamento) as Pagamento[])
+        ).map((p) => (
           <Chip key={p} ativo={pagamento === p} cor={primaria} onClick={() => setPagamento(p)}>
             {rotulosPagamento[p]}
           </Chip>
         ))}
       </div>
       {pagamento === "dinheiro" && campo("troco", "Troco para quanto?", "Ex.: R$ 100,00")}
+      {pagamento === "pix" && site.comercio?.pixChave && (
+        <div className="rounded-xl border p-3 text-xs" style={{ borderColor: "var(--ms-border)" }}>
+          <p className="font-semibold">
+            Pix para {site.comercio.pixFavorecido || site.conteudo.nome}
+          </p>
+          <p className="mt-1 break-all opacity-80">Chave: {site.comercio.pixChave}</p>
+          {site.comercio.pixQrCode && (
+            <img
+              src={site.comercio.pixQrCode}
+              alt="QR Code Pix do estabelecimento"
+              className="mt-2 h-32 w-32 object-contain"
+            />
+          )}
+        </div>
+      )}
+      {pagamento === "balcao" && (
+        <p className="rounded-xl border p-3 text-xs" style={{ borderColor: "var(--ms-border)" }}>
+          Pague diretamente no balcão ou com a equipe do estabelecimento. A Nexa não processa este
+          pagamento.
+        </p>
+      )}
 
       <dl
         className="flex flex-col gap-1 border-t pt-2 text-sm"

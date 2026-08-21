@@ -155,12 +155,13 @@ export function situacaoAtendimento(site: Site) {
   const aberto = estaAberto(horarios);
   return { conhecida: true, aberto, rotulo: aberto ? "Aberto agora" : "Fechado agora" };
 }
-export type Pagamento = "pix" | "cartao" | "dinheiro";
+export type Pagamento = "pix" | "cartao" | "dinheiro" | "balcao";
 
 export const rotulosPagamento: Record<Pagamento, string> = {
   pix: "Pix",
   cartao: "Cartão",
   dinheiro: "Dinheiro",
+  balcao: "Pagar no balcão",
 };
 
 export const subtotalCarrinho = (itens: ItemCarrinho[]) =>

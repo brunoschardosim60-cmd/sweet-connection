@@ -201,6 +201,11 @@ export interface Comercio {
   pedidoMinimo: number;
   /** Taxas por bairro para delivery. Nunca contém dados do visitante. */
   taxasPorBairro?: { bairro: string; taxa: number }[];
+  /** Formas escolhidas e dados de recebimento pertencem ao estabelecimento. */
+  pagamentosAceitos?: ("pix" | "cartao" | "dinheiro" | "balcao")[];
+  pixChave?: string;
+  pixFavorecido?: string;
+  pixQrCode?: string;
 }
 
 /** Configuração da agenda de horários do mini-site. */
