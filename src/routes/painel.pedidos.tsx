@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList,
@@ -16,6 +16,7 @@ import { useNexa } from "@/lib/nexa/hooks";
 import { copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 import { rotulosModalidade, rotulosPagamento, type Modalidade } from "@/lib/nexa/catalogo";
 import { moeda } from "@/lib/nexa/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/painel/pedidos")({
   head: () => ({
@@ -95,9 +96,8 @@ function PainelPedidos() {
       </header>
 
       <Aviso>
-        Os pedidos enviados pelo cardápio chegam hoje no WhatsApp do estabelecimento. O recebimento
-        automático nesta tela fica <strong>disponível após a ativação da operação</strong> — nada
-        aqui inventa pedidos ou valores.
+        Pedidos confirmados pelo Cardápio Digital aparecem aqui em tempo real. Dados de contato
+        ficam visíveis apenas ao dono deste mini-site.
       </Aviso>
 
       <div role="tablist" aria-label="Áreas de pedidos" className="flex flex-wrap gap-2">
@@ -127,7 +127,7 @@ function PainelPedidos() {
 
       {!pronto && <p className="text-sm text-muted-foreground">Carregando seus mini-sites…</p>}
 
-      {aba === "pedidos" && <AbaPedidos />}
+      {aba === "pedidos" && <AbaPedidos siteId={site?.id} />}
       {aba === "mesas" && <AbaMesas slug={site?.slug} nome={site?.conteudo.nome} />}
       {aba === "operacao" && <AbaOperacao />}
     </div>
@@ -150,13 +150,70 @@ function Etiqueta() {
   );
 }
 
-function AbaPedidos() {
+type Pedido = {
+  id: string;
+  codigo: number;
+  status: string;
+  modalidade: string;
+  nome: string;
+  telefone: string;
+  total: number;
+  pagamento: string | null;
+  mesa_id: string | null;
+  created_at: string;
+  itens: { nome: string; quantidade: number }[];
+};
+function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
   const [status, setStatus] = useState<string>("todos");
   const [tipo, setTipo] = useState<string>("todos");
   const [periodo, setPeriodo] = useState("hoje");
   const [pagamento, setPagamento] = useState("todos");
   const [mesa, setMesa] = useState("");
   const [busca, setBusca] = useState("");
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const carregar = async () => {
+    if (!siteId) {
+      setPedidos([]);
+      setCarregando(false);
+      return;
+    }
+    setCarregando(true);
+    const { data } = await supabase
+      .from("pedidos_cardapio")
+      .select("id,codigo,status,modalidade,nome,telefone,total,pagamento,mesa_id,created_at,itens")
+      .eq("minisite_id", siteId)
+      .order("created_at", { ascending: false });
+    setPedidos((data ?? []) as unknown as Pedido[]);
+    setCarregando(false);
+  };
+  useEffect(() => {
+    void carregar();
+    // carregar is intentionally recreated with the selected site.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteId]);
+  const visiveis = pedidos.filter(
+    (p) =>
+      (status === "todos" ||
+        p.status ===
+          status
+            .replace("novos", "novo")
+            .replace("prontos", "pronto")
+            .replace("concluidos", "concluido")
+            .replace("cancelados", "cancelado")
+            .replace("rota", "em_rota")) &&
+      (tipo === "todos" || p.modalidade === tipo) &&
+      (pagamento === "todos" || p.pagamento === pagamento) &&
+      `${p.codigo} ${p.nome} ${p.telefone}`.toLowerCase().includes(busca.toLowerCase()),
+  );
+  const mudarStatus = async (id: string, novo: string) => {
+    const { error } = await supabase.rpc("nexa_atualizar_status_pedido", {
+      requested_id: id,
+      requested_status: novo,
+    });
+    if (!error) void carregar();
+    else toast.error("Não foi possível atualizar o pedido.");
+  };
 
   return (
     <section aria-label="Lista de pedidos" className="space-y-4">
@@ -164,7 +221,20 @@ function AbaPedidos() {
         {statusPedido.map((s) => (
           <li key={s.id} className="surface p-3">
             <p className="text-xs text-muted-foreground">{s.rotulo}</p>
-            <p className="font-display text-2xl font-bold">0</p>
+            <p className="font-display text-2xl font-bold">
+              {
+                pedidos.filter(
+                  (p) =>
+                    p.status ===
+                    s.id
+                      .replace("novos", "novo")
+                      .replace("prontos", "pronto")
+                      .replace("concluidos", "concluido")
+                      .replace("cancelados", "cancelado")
+                      .replace("rota", "em_rota"),
+                ).length
+              }
+            </p>
           </li>
         ))}
       </ul>
@@ -250,16 +320,60 @@ function AbaPedidos() {
         </div>
       </div>
 
-      <div className="surface grid place-items-center gap-2 px-4 py-12 text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-secondary">
-          <Utensils size={20} className="text-muted-foreground" aria-hidden />
-        </span>
-        <p className="font-semibold">Nenhum pedido recebido nesta tela</p>
-        <p className="max-w-md text-sm text-muted-foreground">
-          Os pedidos do cardápio seguem para o WhatsApp do estabelecimento. Assim que a operação for
-          ativada, eles aparecem aqui com código, horário, itens, cliente e histórico de status.
-        </p>
-      </div>
+      {carregando ? (
+        <div className="surface p-8 text-center text-sm text-muted-foreground">
+          Carregando pedidos…
+        </div>
+      ) : visiveis.length === 0 ? (
+        <div className="surface grid place-items-center gap-2 px-4 py-12 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-secondary">
+            <Utensils size={20} className="text-muted-foreground" aria-hidden />
+          </span>
+          <p className="font-semibold">Nenhum pedido recebido nesta tela</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Nenhum pedido corresponde aos filtros selecionados.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {visiveis.map((p) => (
+            <li
+              key={p.id}
+              className="surface flex flex-wrap items-center justify-between gap-3 p-4"
+            >
+              <div>
+                <p className="font-semibold">
+                  #{p.codigo} · {p.nome}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {rotulosModalidade[p.modalidade as Modalidade] ?? p.modalidade} · {p.telefone} ·{" "}
+                  {new Date(p.created_at).toLocaleString("pt-BR")}
+                </p>
+                <p className="mt-1 text-xs">
+                  {p.itens.map((i) => `${i.quantidade}× ${i.nome}`).join(", ")}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <strong>{moeda(p.total)}</strong>
+                <select
+                  aria-label={`Status do pedido ${p.codigo}`}
+                  value={p.status}
+                  onChange={(e) => void mudarStatus(p.id, e.target.value)}
+                  className="min-h-11 rounded-xl border border-border bg-card px-3 text-xs"
+                >
+                  {["novo", "aceito", "preparo", "pronto", "em_rota", "concluido", "cancelado"].map(
+                    (s) => (
+                      <option key={s} value={s}>
+                        {s.replaceAll("_", " ")}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="surface space-y-3 p-4">
         <div className="flex flex-wrap items-center gap-2">

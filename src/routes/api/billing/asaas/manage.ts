@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+// The server-only billing columns are newer than the checked-in generated client types.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status });

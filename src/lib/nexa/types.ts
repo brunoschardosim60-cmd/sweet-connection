@@ -199,6 +199,8 @@ export interface Comercio {
   carrinho: boolean;
   taxaEntrega: number;
   pedidoMinimo: number;
+  /** Taxas por bairro para delivery. Nunca contém dados do visitante. */
+  taxasPorBairro?: { bairro: string; taxa: number }[];
 }
 
 /** Configuração da agenda de horários do mini-site. */

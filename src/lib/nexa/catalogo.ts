@@ -166,9 +166,9 @@ export const rotulosPagamento: Record<Pagamento, string> = {
 export const subtotalCarrinho = (itens: ItemCarrinho[]) =>
   itens.reduce((t, i) => t + i.preco * i.quantidade, 0);
 
-export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entrega) {
+export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entrega, bairro = "") {
   const subtotal = subtotalCarrinho(itens);
-  const taxa = entrega === "entrega" ? (site.comercio?.taxaEntrega ?? 0) : 0;
+  const taxa = entrega === "entrega" ? taxaEntrega(site, bairro) : 0;
   const minimo = site.comercio?.pedidoMinimo ?? 0;
   return {
     subtotal,
@@ -177,6 +177,15 @@ export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entre
     total: subtotal + taxa,
     abaixoDoMinimo: minimo > 0 && subtotal < minimo,
   };
+}
+
+/** A taxa por bairro, quando cadastrada, tem prioridade sobre a taxa padrão. */
+export function taxaEntrega(site: Site, bairro = "") {
+  const taxas = site.comercio?.taxasPorBairro ?? [];
+  const encontrada = taxas.find(
+    (t) => t.bairro.trim().localeCompare(bairro.trim(), "pt-BR", { sensitivity: "base" }) === 0,
+  );
+  return encontrada?.taxa ?? site.comercio?.taxaEntrega ?? 0;
 }
 
 export interface DadosEntrega {
@@ -308,7 +317,25 @@ export function salvarRascunhoPedido(slug: string, dado: RascunhoPedido) {
   try {
     const vazio = Object.keys(dado.carrinho).length === 0;
     if (vazio) window.localStorage.removeItem(chaveRascunho(slug));
-    else window.localStorage.setItem(chaveRascunho(slug), JSON.stringify(dado));
+    else {
+      // Endereço, telefone e nome são dados pessoais: ficam somente na memória
+      // da página, nunca em localStorage compartilhado do navegador.
+      const {
+        nome: _nome,
+        whatsapp: _whatsapp,
+        endereco: _endereco,
+        referencia: _referencia,
+        ...seguros
+      } = dado.campos;
+      void _nome;
+      void _whatsapp;
+      void _endereco;
+      void _referencia;
+      window.localStorage.setItem(
+        chaveRascunho(slug),
+        JSON.stringify({ ...dado, campos: seguros }),
+      );
+    }
   } catch {
     /* armazenamento indisponível: o pedido segue funcionando na sessão atual */
   }

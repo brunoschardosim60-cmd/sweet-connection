@@ -5,6 +5,8 @@ import {
   statusAssinaturaAsaas,
 } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+// Billing invoice fields are server-only and absent from the older generated client type.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type EventoAsaas = { payment?: { id?: unknown } };
 

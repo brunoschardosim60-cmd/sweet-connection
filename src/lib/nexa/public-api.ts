@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { Site } from "./types";
+import type { DadosEntrega, ItemCarrinho, Modalidade } from "./catalogo";
 
 let fingerprintDaSessao: string | null = null;
 const CHAVE_FINGERPRINT = "nexa:public-session";
@@ -65,7 +66,7 @@ export async function enviarFormularioPublicado(slug: string, dados: Record<stri
 
 /** A confirmação ao visitante não depende da entrega externa da notificação. */
 export function notificarDonoDoMinisite(
-  tipo: "formulario" | "agendamento" | "reserva",
+  tipo: "formulario" | "agendamento" | "reserva" | "pedido",
   id: string,
 ) {
   if (!id || typeof window === "undefined") return;
@@ -74,6 +75,42 @@ export function notificarDonoDoMinisite(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ type: tipo, id }),
   }).catch(() => {});
+}
+
+export async function criarPedidoPublicado(
+  slug: string,
+  itens: ItemCarrinho[],
+  modalidade: Modalidade,
+  dados: DadosEntrega,
+) {
+  const chave = crypto.randomUUID();
+  const { data, error } = await supabase.rpc("nexa_criar_pedido_cardapio", {
+    requested_slug: slug,
+    requested_items: itens as unknown as Json,
+    requested_modalidade: modalidade,
+    requested_dados: dados as unknown as Json,
+    requested_chave: chave,
+  });
+  if (error) {
+    const codigo = error.message;
+    if (codigo.includes("minimum_not_reached"))
+      throw new Error("O pedido ainda não atingiu o mínimo do estabelecimento.");
+    if (codigo.includes("rate_limit_exceeded"))
+      throw new Error("Aguarde alguns minutos antes de enviar outro pedido.");
+    if (codigo.includes("invalid_address")) throw new Error("Informe o endereço para a entrega.");
+    if (codigo.includes("invalid_table"))
+      throw new Error("Esta mesa não está disponível. Leia o QR Code da mesa novamente.");
+    if (codigo.includes("invalid_contact"))
+      throw new Error("Informe seu nome e WhatsApp para confirmar o pedido.");
+    throw new Error("Não foi possível confirmar o pedido. Tente novamente.");
+  }
+  return data as unknown as {
+    id: string;
+    codigo: number;
+    total: number;
+    status: string;
+    repetido: boolean;
+  };
 }
 
 export async function registrarEventoPublicado(

@@ -513,6 +513,12 @@ export type Database = {
           },
         ]
       }
+      mesas_cardapio: {
+        Row: { ativa: boolean; created_at: string; estado: string; id: string; minisite_id: string; nome: string | null; numero: number; updated_at: string }
+        Insert: { ativa?: boolean; created_at?: string; estado?: string; id?: string; minisite_id: string; nome?: string | null; numero: number; updated_at?: string }
+        Update: { ativa?: boolean; created_at?: string; estado?: string; id?: string; minisite_id?: string; nome?: string | null; numero?: number; updated_at?: string }
+        Relationships: [{ foreignKeyName: "mesas_cardapio_minisite_id_fkey"; columns: ["minisite_id"]; isOneToOne: false; referencedRelation: "minisites"; referencedColumns: ["id"] }]
+      }
       notification_deliveries: {
         Row: {
           channel: string
@@ -548,6 +554,12 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pedidos_cardapio: {
+        Row: { bairro: string | null; chave_idempotencia: string | null; codigo: number; complemento: string | null; created_at: string; endereco: string | null; horario_preferido: string | null; id: string; itens: Json; mesa_id: string | null; minisite_id: string; modalidade: string; nome: string; observacao: string | null; pagamento: string | null; pessoas: number | null; referencia: string | null; status: string; subtotal: number; taxa_entrega: number; telefone: string; total: number; troco: string | null; updated_at: string }
+        Insert: { bairro?: string | null; chave_idempotencia?: string | null; codigo?: never; complemento?: string | null; created_at?: string; endereco?: string | null; horario_preferido?: string | null; id?: string; itens: Json; mesa_id?: string | null; minisite_id: string; modalidade: string; nome: string; observacao?: string | null; pagamento?: string | null; pessoas?: number | null; referencia?: string | null; status?: string; subtotal: number; taxa_entrega?: number; telefone: string; total: number; troco?: string | null; updated_at?: string }
+        Update: { bairro?: string | null; chave_idempotencia?: string | null; codigo?: never; complemento?: string | null; created_at?: string; endereco?: string | null; horario_preferido?: string | null; id?: string; itens?: Json; mesa_id?: string | null; minisite_id?: string; modalidade?: string; nome?: string; observacao?: string | null; pagamento?: string | null; pessoas?: number | null; referencia?: string | null; status?: string; subtotal?: number; taxa_entrega?: number; telefone?: string; total?: number; troco?: string | null; updated_at?: string }
+        Relationships: [{ foreignKeyName: "pedidos_cardapio_mesa_id_fkey"; columns: ["mesa_id"]; isOneToOne: false; referencedRelation: "mesas_cardapio"; referencedColumns: ["id"] }, { foreignKeyName: "pedidos_cardapio_minisite_id_fkey"; columns: ["minisite_id"]; isOneToOne: false; referencedRelation: "minisites"; referencedColumns: ["id"] }]
       }
       platform_settings: {
         Row: {
@@ -859,6 +871,14 @@ export type Database = {
           daily_limit: number
           used: number
         }[]
+      }
+      nexa_criar_pedido_cardapio: {
+        Args: { requested_chave?: string; requested_dados?: Json; requested_items: Json; requested_modalidade: string; requested_slug: string }
+        Returns: Json
+      }
+      nexa_atualizar_status_pedido: {
+        Args: { requested_id: string; requested_status: string }
+        Returns: Json
       }
       nexa_plan_allows_publish: {
         Args: { requested_user_id: string }

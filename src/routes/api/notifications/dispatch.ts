@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+// Dynamic source tables are selected from a closed allow-list above.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-type Tipo = "formulario" | "agendamento" | "reserva";
-const tipos = new Set<Tipo>(["formulario", "agendamento", "reserva"]);
+type Tipo = "formulario" | "agendamento" | "reserva" | "pedido";
+const tipos = new Set<Tipo>(["formulario", "agendamento", "reserva", "pedido"]);
 
 function textoSeguro(value: unknown) {
   return String(value ?? "")
@@ -62,7 +64,9 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
               ? "form_submissions"
               : type === "agendamento"
                 ? "agendamentos"
-                : "reservas_hospedagem";
+                : type === "reserva"
+                  ? "reservas_hospedagem"
+                  : "pedidos_cardapio";
           const { data: source, error } = await (supabaseAdmin as any)
             .from(table)
             .select("*")
@@ -92,7 +96,9 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
               ? `Novo formulário em /site/${site.slug}\n\n${JSON.stringify(source.payload ?? {}, null, 2)}`
               : type === "agendamento"
                 ? `Novo agendamento em /site/${site.slug}\n${textoSeguro(source.nome)} — ${textoSeguro(source.data)} às ${textoSeguro(source.hora)}`
-                : `Nova reserva em /site/${site.slug}\n${textoSeguro(source.nome)} — ${textoSeguro(source.check_in)} até ${textoSeguro(source.check_out)} · ${textoSeguro(source.hospedes)} hóspede(s)`;
+                : type === "reserva"
+                  ? `Nova reserva em /site/${site.slug}\n${textoSeguro(source.nome)} — ${textoSeguro(source.check_in)} até ${textoSeguro(source.check_out)} · ${textoSeguro(source.hospedes)} hóspede(s)`
+                  : `Novo pedido #${textoSeguro(source.codigo)} em /site/${site.slug}\n${textoSeguro(source.nome)} · ${textoSeguro(source.modalidade)} · R$ ${textoSeguro(source.total)}`;
           const result = await enviarEmail(email, `Nexa: nova ${type} no seu mini-site`, resumo);
           await (supabaseAdmin as any)
             .from("notification_deliveries")

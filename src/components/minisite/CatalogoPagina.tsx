@@ -14,7 +14,11 @@ import {
 } from "lucide-react";
 import { whatsappLink } from "@/lib/nexa/brand";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
-import { registrarEventoPublicado } from "@/lib/nexa/public-api";
+import {
+  criarPedidoPublicado,
+  notificarDonoDoMinisite,
+  registrarEventoPublicado,
+} from "@/lib/nexa/public-api";
 import { moeda } from "@/lib/nexa/utils";
 import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/estilo";
 import { useFocoModal } from "@/components/minisite/useFocoModal";
@@ -24,7 +28,6 @@ import {
   filtrarCatalogo,
   filtrosCatalogo,
   lerRascunhoPedido,
-  mensagemPedido,
   ordenacoesCatalogo,
   ordenarCatalogo,
   perfilCatalogo,
@@ -33,6 +36,7 @@ import {
   rotulosPagamento,
   situacaoAtendimento,
   salvarRascunhoPedido,
+  limparRascunhoPedido,
   totaisCarrinho,
   type Entrega,
   type OrdemCatalogo,
@@ -104,6 +108,8 @@ export function CatalogoPagina({
   });
 
   const [restaurado, setRestaurado] = useState(false);
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [retornoPedido, setRetornoPedido] = useState<string>("");
 
   useEffect(() => {
     const t = setTimeout(() => setCarregando(false), 250);
@@ -171,7 +177,7 @@ export function CatalogoPagina({
       };
     });
 
-  const totais = totaisCarrinho(itens, site, entrega);
+  const totais = totaisCarrinho(itens, site, entrega, campos.bairro);
   const situacao = situacaoAtendimento(site);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
@@ -190,11 +196,33 @@ export function CatalogoPagina({
   const definirObservacao = (id: string, observacao: string) =>
     setCarrinho((atual) => (atual[id] ? { ...atual, [id]: { ...atual[id], observacao } } : atual));
 
-  const mensagem = mensagemPedido(site, itens, entrega, {
-    ...campos,
-    ...(pagamento ? { pagamento } : {}),
-  });
-  const linkPedido = whatsappLink(site.conteudo.whatsapp, mensagem);
+  const confirmarPedido = async () => {
+    setRetornoPedido("");
+    setEnviandoPedido(true);
+    try {
+      const pedido = await criarPedidoPublicado(site.slug, itens, entrega, {
+        ...campos,
+        ...(pagamento ? { pagamento } : {}),
+      });
+      limparRascunhoPedido(site.slug);
+      setCarrinho({});
+      setCarrinhoAberto(false);
+      setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
+      eventoMarketing("iniciar_checkout", {
+        value: pedido.total,
+        currency: "BRL",
+        transaction_id: pedido.id,
+      });
+      registrar("Catálogo: pedido confirmado");
+      notificarDonoDoMinisite("pedido", pedido.id);
+    } catch (error) {
+      setRetornoPedido(
+        error instanceof Error ? error.message : "Não foi possível confirmar o pedido.",
+      );
+    } finally {
+      setEnviandoPedido(false);
+    }
+  };
 
   const botaoPrimario = {
     background: primaria,
@@ -469,11 +497,9 @@ export function CatalogoPagina({
                 if (p) alterar(p, d);
               }}
               onObservacao={definirObservacao}
-              linkPedido={interacoesExternas ? linkPedido : undefined}
-              onEnviar={() => {
-                eventoMarketing("iniciar_checkout", { value: totais.total, currency: "BRL" });
-                registrar("Catálogo: enviar pedido", true);
-              }}
+              enviando={enviandoPedido}
+              retorno={retornoPedido}
+              onEnviar={() => void confirmarPedido()}
             />
           </div>
         </aside>
@@ -528,11 +554,9 @@ export function CatalogoPagina({
               if (p) alterar(p, d);
             }}
             onObservacao={definirObservacao}
-            linkPedido={interacoesExternas ? linkPedido : undefined}
-            onEnviar={() => {
-              eventoMarketing("iniciar_checkout", { value: totais.total, currency: "BRL" });
-              registrar("Catálogo: enviar pedido", true);
-            }}
+            enviando={enviandoPedido}
+            retorno={retornoPedido}
+            onEnviar={() => void confirmarPedido()}
           />
         </DrawerCarrinho>
       )}
@@ -1000,7 +1024,8 @@ function PainelCarrinho({
   setCampos,
   onAlterar,
   onObservacao,
-  linkPedido,
+  enviando,
+  retorno,
   onEnviar,
 }: {
   site: Site;
@@ -1014,7 +1039,8 @@ function PainelCarrinho({
   setCampos: React.Dispatch<React.SetStateAction<CamposEntrega>>;
   onAlterar: (id: string, delta: number) => void;
   onObservacao: (id: string, valor: string) => void;
-  linkPedido?: string | undefined;
+  enviando: boolean;
+  retorno: string;
   onEnviar: () => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
@@ -1208,34 +1234,37 @@ function PainelCarrinho({
         </div>
       </dl>
 
+      {retorno && (
+        <p role="status" className="text-xs font-medium">
+          {retorno}
+        </p>
+      )}
       {totais.abaixoDoMinimo ? (
         <p className="text-xs opacity-75">
           Pedido mínimo de {moeda(totais.minimo)} para enviar pelo WhatsApp.
         </p>
       ) : (
-        <a
-          href={linkPedido}
-          target={linkPedido ? "_blank" : undefined}
-          rel="noreferrer"
-          aria-disabled={linkPedido ? undefined : true}
-          onClick={linkPedido ? onEnviar : undefined}
+        <button
+          type="button"
+          disabled={enviando}
+          onClick={onEnviar}
           className="inline-flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
             background: primaria,
             color: contraste(primaria),
             borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
             outlineColor: primaria,
-            opacity: linkPedido ? 1 : 0.6,
+            opacity: enviando ? 0.65 : 1,
           }}
         >
-          <MessageCircle size={15} aria-hidden />{" "}
-          {entrega === "mesa" ? "Enviar pedido para a equipe" : "Continuar pedido no WhatsApp"}
-        </a>
+          <ShoppingBag size={15} aria-hidden />{" "}
+          {enviando ? "Confirmando pedido…" : "Confirmar pedido"}
+        </button>
       )}
       <p className="text-[11px] opacity-70">
         {entrega === "mesa"
-          ? "O pedido segue para o WhatsApp do estabelecimento e será confirmado pela equipe. O envio automático para a cozinha fica disponível após a ativação da operação."
-          : "O pedido é finalizado na conversa do WhatsApp com o estabelecimento. Nenhum pagamento é processado aqui."}
+          ? "Seu pedido será registrado para a equipe do estabelecimento."
+          : "Seu pedido é registrado para a equipe. O pagamento é combinado diretamente com o estabelecimento."}
       </p>
     </div>
   );
