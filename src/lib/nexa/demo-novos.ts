@@ -551,7 +551,7 @@ export const conteudoNovosModelos: Record<string, ConteudoDemo> = {
         { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
         { id: "c3", rotulo: "Data de entrada", tipo: "data", obrigatorio: true },
         { id: "c4", rotulo: "Data de saída", tipo: "data", obrigatorio: true },
-        { id: "c5", rotulo: "Quantidade de hóspedes", tipo: "numero", obrigatorio: true },
+        { id: "c5", rotulo: "Quantidade de hóspedes", tipo: "texto", obrigatorio: true },
         { id: "c6", rotulo: "Acomodação de interesse", tipo: "texto", obrigatorio: false },
       ],
     },
