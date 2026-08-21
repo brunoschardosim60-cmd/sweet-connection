@@ -31,7 +31,10 @@ export function idDaReferencia(valor: unknown) {
 export function proximoVencimento() {
   const data = new Date();
   data.setDate(data.getDate() + 1);
-  return data.toISOString().slice(0, 10);
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia} 12:00:00`;
 }
 
 function chaveAsaas() {
@@ -71,10 +74,16 @@ export async function criarCheckoutAsaas(args: {
   const data = await requisicaoAsaas("/checkouts", {
     method: "POST",
     body: JSON.stringify({
-      billingTypes: ["PIX", "CREDIT_CARD"],
+      // Assinaturas recorrentes do Checkout usam cartão. Pix só deve ser
+      // habilitado quando a conta Asaas estiver aprovada para Pix Automático.
+      billingTypes: ["CREDIT_CARD"],
       chargeTypes: ["RECURRENT"],
       minutesToExpire: 30,
-      callback: { successUrl: args.callbackUrl, cancelUrl: args.callbackUrl },
+      callback: {
+        successUrl: args.callbackUrl,
+        cancelUrl: args.callbackUrl,
+        expiredUrl: args.callbackUrl,
+      },
       externalReference: referenciaCheckout(args.sessionId),
       items: [
         {

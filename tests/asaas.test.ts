@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   idDaReferencia,
   planoPago,
+  proximoVencimento,
   referenciaCheckout,
   statusAssinaturaAsaas,
 } from "../src/lib/nexa/asaas.server";
@@ -25,5 +26,9 @@ describe("integração Asaas", () => {
     expect(statusAssinaturaAsaas("RECEIVED")).toBe("active");
     expect(statusAssinaturaAsaas("CONFIRMED")).toBe("active");
     expect(statusAssinaturaAsaas("OVERDUE")).toBe("past_due");
+  });
+
+  it("envia a data de assinatura no formato exigido pelo checkout", () => {
+    expect(proximoVencimento()).toMatch(/^\d{4}-\d{2}-\d{2} 12:00:00$/);
   });
 });
