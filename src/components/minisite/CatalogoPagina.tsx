@@ -934,6 +934,7 @@ function PainelCarrinho({
   onEnviar: () => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
+  const modalidades: Entrega[] = perfilCatalogo(site).modalidades ?? ["entrega", "retirada"];
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
@@ -1035,13 +1036,37 @@ function PainelCarrinho({
         ))}
       </ul>
 
-      <div role="group" aria-label="Forma de recebimento" className="flex gap-2">
-        {(["entrega", "retirada"] as Entrega[]).map((op) => (
+      <div
+        role="group"
+        aria-label="Modalidade do pedido"
+        className="-mx-1 flex gap-2 overflow-x-auto px-1"
+      >
+        {modalidades.map((op) => (
           <Chip key={op} ativo={entrega === op} cor={primaria} onClick={() => setEntrega(op)}>
-            {op === "entrega" ? "Entrega" : "Retirada no local"}
+            {rotulosModalidade[op]}
           </Chip>
         ))}
       </div>
+
+      <div className="grid gap-2">
+        {campo("nome", "Seu nome")}
+        {campo("whatsapp", "WhatsApp para contato", "(00) 00000-0000")}
+      </div>
+
+      {entrega === "mesa" && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {campo("mesa", "Número da mesa", "Ex.: 12")}
+          {campo("pessoas", "Quantas pessoas?", "Ex.: 4")}
+          <div className="sm:col-span-2">{campo("observacao", "Observações do pedido")}</div>
+        </div>
+      )}
+
+      {entrega === "retirada" && (
+        <div className="grid gap-2">
+          {campo("horarioPreferido", "Horário preferido para retirar", "Ex.: 19h30")}
+          {campo("observacao", "Observações do pedido")}
+        </div>
+      )}
 
       {entrega === "entrega" && (
         <div className="grid gap-2">
@@ -1104,12 +1129,14 @@ function PainelCarrinho({
             opacity: linkPedido ? 1 : 0.6,
           }}
         >
-          <MessageCircle size={15} aria-hidden /> Continuar pedido no WhatsApp
+          <MessageCircle size={15} aria-hidden />{" "}
+          {entrega === "mesa" ? "Enviar pedido para a equipe" : "Continuar pedido no WhatsApp"}
         </a>
       )}
       <p className="text-[11px] opacity-70">
-        O pedido é finalizado na conversa do WhatsApp com o estabelecimento. Nenhum pagamento é
-        processado aqui.
+        {entrega === "mesa"
+          ? "O pedido segue para o WhatsApp do estabelecimento e será confirmado pela equipe. O envio automático para a cozinha fica disponível após a ativação da operação."
+          : "O pedido é finalizado na conversa do WhatsApp com o estabelecimento. Nenhum pagamento é processado aqui."}
       </p>
     </div>
   );
