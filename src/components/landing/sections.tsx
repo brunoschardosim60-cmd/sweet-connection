@@ -571,7 +571,6 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
             </div>
           </article>
         </Reveal>
-
       </div>
     </div>
   );

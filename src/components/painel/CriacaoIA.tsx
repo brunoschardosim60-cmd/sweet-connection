@@ -233,20 +233,16 @@ export function CriacaoIA({
           O que melhora o resultado
         </p>
         <ul className="mt-2 flex flex-wrap gap-1.5">
-          {[
-            "Descrição do negócio",
-            "Logo",
-            "Fotos reais",
-            "Serviços/produtos",
-            "Contato",
-          ].map((item) => (
-            <li
-              key={item}
-              className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-            >
-              {item}
-            </li>
-          ))}
+          {["Descrição do negócio", "Logo", "Fotos reais", "Serviços/produtos", "Contato"].map(
+            (item) => (
+              <li
+                key={item}
+                className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+              >
+                {item}
+              </li>
+            ),
+          )}
         </ul>
       </div>
 
@@ -265,7 +261,6 @@ export function CriacaoIA({
           Mínimo de 10 caracteres. Quanto mais específico, melhor a sugestão.
         </span>
       </label>
-
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <input
@@ -487,11 +482,7 @@ export function CriacaoIA({
       </p>
 
       {gerando && (
-        <div
-          className="mt-3 space-y-2"
-          aria-hidden="true"
-          data-estado="carregando-sugestao-ia"
-        >
+        <div className="mt-3 space-y-2" aria-hidden="true" data-estado="carregando-sugestao-ia">
           {[0, 1, 2].map((linha) => (
             <div
               key={linha}
@@ -501,7 +492,6 @@ export function CriacaoIA({
           ))}
         </div>
       )}
-
 
       {plano && (
         <RevisaoIA
