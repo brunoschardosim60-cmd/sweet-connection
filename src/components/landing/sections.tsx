@@ -891,8 +891,8 @@ export function ComoFunciona() {
 const planos = [
   {
     nome: "Essencial",
-    preco: "R$ 5",
-    resumo: "Para profissionais que precisam centralizar seus contatos.",
+    preco: "R$ 5 no 1º mês",
+    resumo: "Depois R$ 39/mês. Para profissionais que precisam centralizar seus contatos.",
     itens: ["Links ilimitados", "WhatsApp e redes sociais", "Horários e localização", "QR Code"],
   },
   {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   FORMAS_PAGAMENTO_CHECKOUT,
+  descontoBoasVindas,
   idDaReferencia,
   planoPago,
   proximoVencimento,
@@ -11,6 +12,17 @@ import {
 describe("integração Asaas", () => {
   it("oferece Pix e cartão no checkout", () => {
     expect(FORMAS_PAGAMENTO_CHECKOUT).toEqual(["PIX", "CREDIT_CARD"]);
+  });
+
+  it("aplica R$ 34 de desconto somente no primeiro mês do Essencial", () => {
+    expect(descontoBoasVindas("essential", true, "2026-08-21 12:00:00")).toEqual({
+      value: 34,
+      type: "FIXED",
+      dueDateLimitDays: 0,
+      limitDate: "2026-08-21",
+    });
+    expect(descontoBoasVindas("essential", false, "2026-08-21 12:00:00")).toBeUndefined();
+    expect(descontoBoasVindas("professional", true, "2026-08-21 12:00:00")).toBeUndefined();
   });
 
   it("aceita somente planos comercializáveis", () => {

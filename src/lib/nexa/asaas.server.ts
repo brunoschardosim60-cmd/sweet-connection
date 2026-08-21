@@ -3,18 +3,19 @@ const ASAAS_API_URL_PADRAO = "https://api.asaas.com/v3";
 export type PlanoPago = "essential" | "professional" | "catalog";
 
 const PRECO_CENTAVOS: Record<PlanoPago, number> = {
-  essential: 500,
+  essential: 3900,
   professional: 7900,
   catalog: 11900,
 };
 
 export const PRECOS_PLANOS: Record<PlanoPago, string> = {
-  essential: "5,00",
+  essential: "39,00",
   professional: "79,00",
   catalog: "119,00",
 };
 
 export const FORMAS_PAGAMENTO_CHECKOUT = ["PIX", "CREDIT_CARD"] as const;
+const DESCONTO_BOAS_VINDAS_ESSENCIAL = 3400;
 
 export function planoPago(valor: unknown): PlanoPago | null {
   return valor === "essential" || valor === "professional" || valor === "catalog" ? valor : null;
@@ -37,6 +38,17 @@ export function proximoVencimento() {
   const mes = String(data.getMonth() + 1).padStart(2, "0");
   const dia = String(data.getDate()).padStart(2, "0");
   return `${ano}-${mes}-${dia} 12:00:00`;
+}
+
+export function descontoBoasVindas(tier: PlanoPago, elegivel: boolean, vencimento: string) {
+  if (tier !== "essential" || !elegivel) return undefined;
+  return {
+    // R$ 39,00 - R$ 34,00 = R$ 5,00 apenas na primeira mensalidade.
+    value: DESCONTO_BOAS_VINDAS_ESSENCIAL / 100,
+    type: "FIXED" as const,
+    dueDateLimitDays: 0,
+    limitDate: vencimento.slice(0, 10),
+  };
 }
 
 function chaveAsaas() {
@@ -68,8 +80,11 @@ export async function criarCheckoutAsaas(args: {
   sessionId: string;
   tier: PlanoPago;
   callbackUrl: string;
+  elegivelBoasVindas: boolean;
 }) {
   const valor = PRECO_CENTAVOS[args.tier] / 100;
+  const vencimento = proximoVencimento();
+  const desconto = descontoBoasVindas(args.tier, args.elegivelBoasVindas, vencimento);
   const plano =
     args.tier === "essential"
       ? "Essencial"
@@ -93,12 +108,19 @@ export async function criarCheckoutAsaas(args: {
       items: [
         {
           name: `Nexa ${plano}`,
-          description: `Assinatura mensal Nexa ${plano}`,
+          description:
+            args.tier === "essential" && args.elegivelBoasVindas
+              ? "1º mês por R$ 5,00; depois R$ 39,00/mês"
+              : `Assinatura mensal Nexa ${plano}`,
           quantity: 1,
           value: valor,
         },
       ],
-      subscription: { cycle: "MONTHLY", nextDueDate: proximoVencimento() },
+      subscription: {
+        cycle: "MONTHLY",
+        nextDueDate: vencimento,
+        ...(desconto ? { discount: desconto } : {}),
+      },
     }),
   });
   const id = typeof data["id"] === "string" ? data["id"] : null;

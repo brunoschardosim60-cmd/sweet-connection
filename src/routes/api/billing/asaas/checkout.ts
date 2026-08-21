@@ -26,6 +26,17 @@ export const Route = createFileRoute("/api/billing/asaas/checkout")({
           const tier = planoPago(body?.tier);
           if (!tier) return json({ error: "Plano inválido." }, 400);
 
+          // A condição é decidida no servidor: somente quem ainda não teve
+          // um checkout pago da Nexa recebe o primeiro mês promocional.
+          const { count: comprasPagas, error: comprasError } = await supabaseAdmin
+            .from("billing_checkout_sessions")
+            .select("id", { count: "exact", head: true })
+            .eq("owner_id", auth.user.id)
+            .eq("provider", "asaas")
+            .eq("status", "paid");
+          if (comprasError) throw new Error("Não foi possível verificar sua elegibilidade.");
+          const elegivelBoasVindas = comprasPagas === 0;
+
           const { data: session, error: sessionError } = await supabaseAdmin
             .from("billing_checkout_sessions")
             .insert({ owner_id: auth.user.id, provider: "asaas", tier })
@@ -39,6 +50,7 @@ export const Route = createFileRoute("/api/billing/asaas/checkout")({
               sessionId: session.id,
               tier,
               callbackUrl: callback,
+              elegivelBoasVindas,
             });
             const { error: updateError } = await supabaseAdmin
               .from("billing_checkout_sessions")

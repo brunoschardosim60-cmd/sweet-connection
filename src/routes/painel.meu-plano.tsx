@@ -57,7 +57,12 @@ const bloqueado: Record<string, string[]> = {
 type PlanoContratavel = "essential" | "professional" | "catalog";
 
 const opcoes: { tier: PlanoContratavel; nome: string; preco: string; descricao: string }[] = [
-  { tier: "essential", nome: "Essencial", preco: "R$ 5/mês", descricao: "1 mini-site publicado" },
+  {
+    tier: "essential",
+    nome: "Essencial",
+    preco: "R$ 5 no 1º mês",
+    descricao: "Depois R$ 39/mês · 1 mini-site publicado",
+  },
   {
     tier: "professional",
     nome: "Profissional",
