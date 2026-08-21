@@ -1,5 +1,6 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
+import { requisicaoCsrfPermitida } from "./lib/csrf";
 import { renderErrorPage } from "./lib/error-page";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
@@ -17,33 +18,12 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
-// Proteção CSRF própria: importar `createCsrfMiddleware` de
-// "@tanstack/start-client-core" arrasta `node:async_hooks` para o bundle do
-// navegador e derruba a hidratação (a página fica estática e as animações
-// nunca aparecem). Aqui a checagem roda apenas no servidor, dentro de
-// `.server()`, que é removido do bundle do cliente.
-const csrfMiddleware = createMiddleware().server(async ({ next, request }) => {
-  const metodo = request?.method?.toUpperCase() ?? "GET";
-  const seguro = metodo === "GET" || metodo === "HEAD" || metodo === "OPTIONS";
-  if (!seguro && request) {
-    const site = request.headers.get("sec-fetch-site");
-    if (site && site !== "same-origin" && site !== "none") {
-      return new Response("Origem não permitida.", { status: 403 });
-    }
-    if (!site) {
-      const origem = request.headers.get("origin") ?? request.headers.get("referer");
-      if (origem) {
-        try {
-          if (new URL(origem).origin !== new URL(request.url).origin) {
-            return new Response("Origem não permitida.", { status: 403 });
-          }
-        } catch {
-          return new Response("Origem não permitida.", { status: 403 });
-        }
-      }
-    }
-  }
-  return next();
+// Mantém a proteção padrão de server functions sem importar o helper
+// isomórfico que causava falha de hidratação no navegador. As rotas de API,
+// como o webhook Asaas, continuam usando sua autenticação dedicada.
+const csrfMiddleware = createMiddleware().server(async ({ next, request, handlerType }) => {
+  if (handlerType !== "serverFn" || requisicaoCsrfPermitida(request)) return next();
+  return new Response("Origem não permitida.", { status: 403 });
 });
 
 export const startInstance = createStart(() => ({
