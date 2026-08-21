@@ -1,4 +1,5 @@
 import { imagens } from "./images";
+import { modelosCardapio } from "./cardapio-modelos";
 import type { Modelo } from "./types";
 
 export const modelos: Modelo[] = [
@@ -238,6 +239,7 @@ export const modelos: Modelo[] = [
     paleta: { fundo: "#fbf7f1", texto: "#1d2521", primaria: "#0f7d76", suave: "#e7f0ec" },
     imagem: imagens.pousada,
   },
+  ...modelosCardapio,
 ];
 
 /** Ponto de partida em branco: estrutura mínima para montar tudo do zero. */

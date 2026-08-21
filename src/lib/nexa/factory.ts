@@ -1,4 +1,5 @@
 import { modeloPorId } from "./modelos";
+import { presetsCardapio } from "./cardapio-modelos";
 import { diasSemana, uid } from "./utils";
 import type { Cliente, Secao, Site, TipoSecao } from "./types";
 
@@ -253,6 +254,7 @@ export const presetsModelo: Record<string, PresetModelo> = {
     tituloFormulario: "Consulte disponibilidade",
     titulos: { produtos: "Acomodações", servicos: "Comodidades", galeria: "A pousada" },
   },
+  ...presetsCardapio,
 };
 
 export const secoesPadrao: { tipo: TipoSecao; titulo: string; ativa: boolean }[] = [
