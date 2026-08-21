@@ -243,34 +243,69 @@ function MeuPlano() {
             </>
           )}
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {opcoes.map((opcao) => (
-              <button
-                key={opcao.tier}
-                type="button"
-                onClick={() => setPlanoEscolhido(opcao.tier)}
-                aria-pressed={planoEscolhido === opcao.tier}
-                className={`min-h-24 rounded-2xl border p-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                  planoEscolhido === opcao.tier
-                    ? ativo
-                      ? "border-lime bg-ink-foreground/10 outline-lime"
-                      : "border-ink bg-secondary outline-ink"
-                    : ativo
-                      ? "border-ink-foreground/20 hover:border-ink-foreground/50"
-                      : "border-border hover:border-foreground/40"
-                }`}
-              >
-                <span className="block font-bold">{opcao.nome}</span>
-                <span className="mt-1 block font-semibold">{opcao.preco}</span>
-                <span className="mt-1 block text-xs opacity-70">{opcao.descricao}</span>
-              </button>
-            ))}
+          <p
+            id="rotulo-escolha-plano"
+            className="mt-6 text-xs font-semibold uppercase tracking-wide opacity-70"
+          >
+            {ativo ? "Trocar de plano" : "Escolher um plano"}
+          </p>
+          <div
+            role="radiogroup"
+            aria-labelledby="rotulo-escolha-plano"
+            className="mt-3 grid gap-3 sm:grid-cols-3"
+          >
+            {opcoes.map((opcao) => {
+              const selecionado = planoEscolhido === opcao.tier;
+              return (
+                <button
+                  key={opcao.tier}
+                  type="button"
+                  role="radio"
+                  aria-checked={selecionado}
+                  onClick={() => setPlanoEscolhido(opcao.tier)}
+                  className={`flex min-h-28 flex-col rounded-2xl border p-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    selecionado
+                      ? ativo
+                        ? "border-lime bg-ink-foreground/10 outline-lime"
+                        : "border-ink bg-secondary outline-ink"
+                      : ativo
+                        ? "border-ink-foreground/20 hover:border-ink-foreground/50"
+                        : "border-border hover:border-foreground/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="font-bold">{opcao.nome}</span>
+                    {selecionado && (
+                      <Check
+                        size={16}
+                        className={`shrink-0 ${ativo ? "text-lime" : "text-ink"}`}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
+                    <span className="font-display text-xl font-extrabold">{opcao.preco}</span>
+                    <span className="text-xs font-semibold opacity-70">{opcao.sufixo}</span>
+                  </span>
+                  <span className="mt-1 block text-xs opacity-70">{opcao.descricao}</span>
+                </button>
+              );
+            })}
           </div>
+
+          <p
+            className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${
+              ativo ? "bg-ink-foreground/10" : "bg-secondary text-foreground"
+            }`}
+          >
+            {opcaoSelecionada.nota}
+          </p>
+
           <button
             type="button"
             onClick={() => void iniciarCheckout()}
             disabled={pagando}
-            className={`mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto ${
+            className={`mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto ${
               ativo ? "bg-lime text-ink outline-lime" : "bg-ink text-ink-foreground outline-ink"
             }`}
           >
@@ -283,15 +318,34 @@ function MeuPlano() {
             ) : (
               <ArrowUpRight size={16} aria-hidden="true" />
             )}
-            {pagando
-              ? "Abrindo pagamento…"
-              : `Assinar ${opcoes.find((opcao) => opcao.tier === planoEscolhido)?.nome}`}
+            {pagando ? "Abrindo pagamento…" : `Assinar ${opcaoSelecionada.nome}`}
           </button>
+          <p className="mt-2 text-xs text-muted-foreground" role="status">
+            {pagando
+              ? "Estamos abrindo o ambiente seguro de pagamento. Não feche esta página."
+              : "Você será levado ao ambiente de pagamento. O plano só muda depois da confirmação da cobrança."}
+          </p>
           {erroPagamento && (
-            <p className="mt-3 text-sm text-destructive" role="alert">
-              {erroPagamento}
-            </p>
+            <div
+              role="alert"
+              className="mt-3 flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3"
+            >
+              <TriangleAlert
+                size={16}
+                className="mt-0.5 shrink-0 text-destructive"
+                aria-hidden="true"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-destructive">
+                  Não foi possível abrir o pagamento
+                </span>
+                <span className="mt-0.5 block break-words text-xs text-muted-foreground">
+                  {erroPagamento}
+                </span>
+              </span>
+            </div>
           )}
+
         </div>
       </article>
 
