@@ -1,5 +1,4 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
-import { createCsrfMiddleware } from "@tanstack/start-client-core";
 
 import { renderErrorPage } from "./lib/error-page";
 
@@ -18,13 +17,33 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
-// Start installs this automatically when src/start.ts is absent; defining the
-// file opts out, so re-add it explicitly to keep server functions protected
-// from cross-site requests. Import it from its defining package: the root
-// TanStack Start barrel can expose an uninitialized re-export during an SSR
-// cold start, which takes down every page before React renders.
-const csrfMiddleware = createCsrfMiddleware({
-  filter: (ctx) => ctx.handlerType === "serverFn",
+// Proteção CSRF própria: importar `createCsrfMiddleware` de
+// "@tanstack/start-client-core" arrasta `node:async_hooks` para o bundle do
+// navegador e derruba a hidratação (a página fica estática e as animações
+// nunca aparecem). Aqui a checagem roda apenas no servidor, dentro de
+// `.server()`, que é removido do bundle do cliente.
+const csrfMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const metodo = request?.method?.toUpperCase() ?? "GET";
+  const seguro = metodo === "GET" || metodo === "HEAD" || metodo === "OPTIONS";
+  if (!seguro && request) {
+    const site = request.headers.get("sec-fetch-site");
+    if (site && site !== "same-origin" && site !== "none") {
+      return new Response("Origem não permitida.", { status: 403 });
+    }
+    if (!site) {
+      const origem = request.headers.get("origin") ?? request.headers.get("referer");
+      if (origem) {
+        try {
+          if (new URL(origem).origin !== new URL(request.url).origin) {
+            return new Response("Origem não permitida.", { status: 403 });
+          }
+        } catch {
+          return new Response("Origem não permitida.", { status: 403 });
+        }
+      }
+    }
+  }
+  return next();
 });
 
 export const startInstance = createStart(() => ({
