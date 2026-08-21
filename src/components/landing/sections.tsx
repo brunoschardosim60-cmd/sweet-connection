@@ -888,17 +888,31 @@ export function ComoFunciona() {
 
 /* ------------------------------- PLANOS ------------------------------- */
 
-const planos = [
+const planos: {
+  nome: string;
+  preco: string;
+  sufixo?: string;
+  selo?: string;
+  nota?: string;
+  resumo: string;
+  destaque?: boolean;
+  itens: string[];
+}[] = [
   {
     nome: "Essencial",
-    preco: "R$ 5 no 1º mês",
-    resumo: "Depois R$ 39/mês. Para profissionais que precisam centralizar seus contatos.",
+    preco: "R$ 5",
+    sufixo: "no 1º mês",
+    selo: "Promoção de estreia",
+    nota: "Depois R$ 39/mês nas renovações. O valor de R$ 5 vale apenas para o primeiro mês de novos clientes.",
+    resumo: "Para profissionais que precisam centralizar seus contatos.",
     itens: ["Links ilimitados", "WhatsApp e redes sociais", "Horários e localização", "QR Code"],
   },
   {
     nome: "Profissional",
     preco: "R$ 79",
+    sufixo: "/mês",
     destaque: true,
+    nota: "Cobrança mensal, sem promoção de estreia.",
     resumo: "Para empresas que apresentam serviços e recebem solicitações.",
     itens: [
       "Tudo do Essencial",
@@ -911,6 +925,8 @@ const planos = [
   {
     nome: "Catálogo",
     preco: "R$ 119",
+    sufixo: "/mês",
+    nota: "Cobrança mensal, sem promoção de estreia.",
     resumo: "Para lojas e restaurantes que divulgam produtos e recebem pedidos.",
     itens: [
       "Tudo do Profissional",
@@ -934,67 +950,97 @@ export function Planos() {
           </p>
         </Reveal>
 
-        <div className="mt-10 grid items-stretch gap-5 md:grid-cols-3">
+        <ul className="mt-10 grid items-stretch gap-5 md:grid-cols-3">
           {planos.map((p, i) => (
-            <Reveal key={p.nome} delay={i * 80} className="h-full">
-              <div
-                className={`relative flex h-full flex-col rounded-3xl border p-6 transition-shadow sm:p-7 ${
-                  p.destaque
-                    ? "border-ink bg-ink text-ink-foreground shadow-[var(--shadow-lift)] md:-mt-3 md:pb-9"
-                    : "border-border bg-card hover:shadow-[var(--shadow-lift)]"
-                }`}
-              >
-                <div className="flex min-h-7 items-start justify-between gap-3">
-                  <h3 className="font-display text-2xl font-bold">{p.nome}</h3>
-                  {p.destaque && (
-                    <span className="shrink-0 rounded-full bg-lime px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
-                      Mais escolhido
-                    </span>
-                  )}
-                </div>
-                <p
-                  className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
-                >
-                  {p.resumo}
-                </p>
-                <p className="mt-6 font-display text-4xl font-extrabold">
-                  {p.preco}
-                  <span className="text-base font-medium opacity-60">/mês</span>
-                </p>
-                <div
-                  className={`mt-6 border-t pt-5 ${p.destaque ? "border-ink-foreground/15" : "border-border"}`}
-                >
-                  <ul className="space-y-2.5 text-sm">
-                    {p.itens.map((it) => (
-                      <li key={it} className="flex items-start gap-2">
-                        <Check
-                          size={16}
-                          aria-hidden="true"
-                          className={
-                            p.destaque ? "mt-0.5 shrink-0 text-lime" : "mt-0.5 shrink-0 text-ink"
-                          }
-                        />
-                        <span className="min-w-0">{it}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <Link
-                  to="/painel/meu-plano"
-                  className={`mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
-                    p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
+            <li key={p.nome} className="h-full">
+              <Reveal delay={i * 80} className="h-full">
+                <article
+                  aria-labelledby={`plano-${p.nome}`}
+                  className={`relative flex h-full flex-col rounded-3xl border p-6 transition-shadow sm:p-7 ${
+                    p.destaque
+                      ? "border-ink bg-ink text-ink-foreground shadow-[var(--shadow-lift)] md:-mt-3 md:pb-9"
+                      : "border-border bg-card hover:shadow-[var(--shadow-lift)]"
                   }`}
                 >
-                  Assinar agora
-                </Link>
-              </div>
-            </Reveal>
+                  <div className="flex min-h-7 items-start justify-between gap-3">
+                    <h3 id={`plano-${p.nome}`} className="font-display text-2xl font-bold">
+                      {p.nome}
+                    </h3>
+                    {p.destaque && (
+                      <span className="shrink-0 rounded-full bg-lime px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
+                        Mais escolhido
+                      </span>
+                    )}
+                    {p.selo && (
+                      <span className="shrink-0 rounded-full border border-ink px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
+                        {p.selo}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
+                  >
+                    {p.resumo}
+                  </p>
+                  <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
+                    {p.preco}
+                    {p.sufixo && (
+                      <span className="text-base font-semibold opacity-70">{p.sufixo}</span>
+                    )}
+                  </p>
+                  {p.nota && (
+                    <p
+                      className={`mt-2 rounded-xl px-3 py-2 text-sm font-medium ${
+                        p.destaque
+                          ? "bg-ink-foreground/10 text-ink-foreground"
+                          : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {p.nota}
+                    </p>
+                  )}
+                  <div
+                    className={`mt-6 border-t pt-5 ${p.destaque ? "border-ink-foreground/15" : "border-border"}`}
+                  >
+                    <ul className="space-y-2.5 text-sm">
+                      {p.itens.map((it) => (
+                        <li key={it} className="flex items-start gap-2">
+                          <Check
+                            size={16}
+                            aria-hidden="true"
+                            className={
+                              p.destaque ? "mt-0.5 shrink-0 text-lime" : "mt-0.5 shrink-0 text-ink"
+                            }
+                          />
+                          <span className="min-w-0">{it}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Link
+                    to="/painel/meu-plano"
+                    aria-label={`Assinar o plano ${p.nome}`}
+                    className={`mt-auto inline-flex min-h-12 w-full items-center justify-center rounded-full px-5 pt-7 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
+                      p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
+                    }`}
+                  >
+                    Assinar agora
+                  </Link>
+                </article>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ul>
+        <p className="mt-6 max-w-2xl text-sm text-muted-foreground">
+          A promoção de R$ 5 no primeiro mês é válida apenas para novos clientes no plano Essencial.
+          A partir da segunda cobrança, o valor é R$ 39/mês. Profissional (R$ 79/mês) e Catálogo (R$
+          119/mês) não têm promoção de estreia.
+        </p>
       </div>
     </section>
   );
 }
+
 
 /* -------------------------------- FAQ -------------------------------- */
 
