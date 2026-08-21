@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 
 describe("interações externas da demonstração", () => {
@@ -24,6 +25,20 @@ describe("interações externas da demonstração", () => {
     expect(html).toContain('href="https://wa.me/');
     expect(html).toContain('href="https://www.google.com/maps/');
     expect(html).toContain('target="_blank"');
+  });
+
+  it("mostra o catálogo com carrinho nos modelos de Cardápio Digital", () => {
+    const cardapio = siteDoModelo("cardapio-hamburgueria");
+    const html = renderToStaticMarkup(
+      createElement(CatalogoPagina, {
+        site: cardapio,
+        interacoesExternas: false,
+        mostrarVoltar: false,
+      }),
+    );
+
+    expect(html).toContain("Abrir carrinho");
+    expect(html).not.toContain("Pedir pelo WhatsApp");
   });
 });
 

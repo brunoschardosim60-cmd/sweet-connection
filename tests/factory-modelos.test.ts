@@ -35,6 +35,14 @@ describe("presets funcionais dos modelos", () => {
     expect(site.produtos).toEqual([]);
     expect(site.servicos).toEqual([]);
   });
+
+  it("cria cardápio digital já preparado para carrinho, sem CTA direto de WhatsApp", () => {
+    const site = criarSite(cliente, "cardapio-hamburgueria", "burger-teste");
+
+    expect(site.comercio).toEqual({ carrinho: true, taxaEntrega: 0, pedidoMinimo: 0 });
+    expect(site.links).toEqual([]);
+    expect(site.secoes.find((secao) => secao.tipo === "produtos")?.ativa).toBe(true);
+  });
 });
 
 describe("normalização de WhatsApp", () => {

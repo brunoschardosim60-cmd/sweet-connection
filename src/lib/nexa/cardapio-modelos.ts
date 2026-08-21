@@ -214,7 +214,12 @@ const definicoes: DefinicaoCardapio[] = [
         nome: "Entradas",
         itens: [
           ["Burrata da casa", "Burrata cremosa, tomates confitados e pesto.", 46.9, {}],
-          ["Bruschetta de cogumelos", "Pão de fermentação natural e cogumelos salteados.", 38.9, {}],
+          [
+            "Bruschetta de cogumelos",
+            "Pão de fermentação natural e cogumelos salteados.",
+            38.9,
+            {},
+          ],
         ],
       },
       {
@@ -479,7 +484,12 @@ const definicoes: DefinicaoCardapio[] = [
         nome: "Sorvetes",
         itens: [
           ["Sorvete artesanal (bola)", "Sabores do dia na vitrine.", 9.9, {}],
-          ["Milkshake 400ml", "Chocolate, morango ou ovomaltine.", 22.9, { precoPromocional: 18.9 }],
+          [
+            "Milkshake 400ml",
+            "Chocolate, morango ou ovomaltine.",
+            22.9,
+            { precoPromocional: 18.9 },
+          ],
         ],
       },
       {
@@ -638,4 +648,5 @@ const perfisPorModelo: Record<string, PerfilCardapio> = Object.fromEntries(
 export const perfilCardapioPorModelo = (modeloId?: string) =>
   modeloId ? perfisPorModelo[modeloId] : undefined;
 
-export const ehModeloCardapio = (modeloId?: string) => Boolean(modeloId && perfisPorModelo[modeloId]);
+export const ehModeloCardapio = (modeloId?: string) =>
+  Boolean(modeloId && perfisPorModelo[modeloId]);

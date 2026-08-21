@@ -212,7 +212,11 @@ function AbaPedidos() {
             </select>
           </Campo>
           <Campo rotulo="Tipo">
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground">
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+            >
               <option value="todos">Todos</option>
               {(Object.keys(rotulosModalidade) as Modalidade[]).map((m) => (
                 <option key={m} value={m}>
@@ -358,7 +362,10 @@ function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | u
 
           <ul className="flex flex-wrap gap-2" aria-label="Legenda de estados das mesas">
             {estadosMesa.map((e) => (
-              <li key={e.id} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${e.cor}`}>
+              <li
+                key={e.id}
+                className={`rounded-full px-3 py-1 text-[11px] font-semibold ${e.cor}`}
+              >
                 {e.rotulo}
               </li>
             ))}
@@ -462,14 +469,16 @@ function AbaOperacao() {
       </ul>
 
       <div className="grid gap-3 lg:grid-cols-3">
-        {["Itens mais pedidos", "Horários de maior movimento", "Pedidos por modalidade"].map((t) => (
-          <div key={t} className="surface grid min-h-40 place-items-center gap-1 p-4 text-center">
-            <p className="text-sm font-semibold">{t}</p>
-            <p className="text-xs text-muted-foreground">
-              Sem dados ainda. Nenhum número é estimado aqui.
-            </p>
-          </div>
-        ))}
+        {["Itens mais pedidos", "Horários de maior movimento", "Pedidos por modalidade"].map(
+          (t) => (
+            <div key={t} className="surface grid min-h-40 place-items-center gap-1 p-4 text-center">
+              <p className="text-sm font-semibold">{t}</p>
+              <p className="text-xs text-muted-foreground">
+                Sem dados ainda. Nenhum número é estimado aqui.
+              </p>
+            </div>
+          ),
+        )}
       </div>
     </section>
   );

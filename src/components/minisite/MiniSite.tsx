@@ -31,7 +31,11 @@ import { useMarca } from "@/lib/nexa/hooks";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
-import { enviarFormularioPublicado, notificarDonoDoMinisite, registrarEventoPublicado } from "@/lib/nexa/public-api";
+import {
+  enviarFormularioPublicado,
+  notificarDonoDoMinisite,
+  registrarEventoPublicado,
+} from "@/lib/nexa/public-api";
 import { reservarHospedagem } from "@/lib/nexa/reservas";
 import {
   enderecoCardapio,
@@ -458,7 +462,11 @@ function Secao({
     case "faq":
       return <BlocoFaq site={site} titulo={titulo} />;
     case "formulario":
-      return site.modeloId === "pousada-hotel" ? <BlocoReservaHospedagem site={site} /> : <BlocoFormulario site={site} />;
+      return site.modeloId === "pousada-hotel" ? (
+        <BlocoReservaHospedagem site={site} />
+      ) : (
+        <BlocoFormulario site={site} />
+      );
     case "agenda":
       return <BlocoAgenda site={site} titulo={titulo} />;
     case "livre":
@@ -686,8 +694,8 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       <Titulo site={site}>{titulo}</Titulo>
       {compacto && (
         <p className="mb-4 text-sm opacity-70">
-          Uma seleção do {perfil.rotulo.toLowerCase()}. Veja todos os itens, categorias e
-          promoções na página completa.
+          Uma seleção do {perfil.rotulo.toLowerCase()}. Veja todos os itens, categorias e promoções
+          na página completa.
         </p>
       )}
       <div className={compacto ? "hidden" : "mb-4 flex flex-col gap-3"}>
@@ -1511,9 +1519,7 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
               )}
             </div>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
-            3. Seus dados
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-70">3. Seus dados</p>
           {site.servicos.length > 0 && (
             <select
               value={servico}
@@ -1597,7 +1603,10 @@ function BlocoReservaHospedagem({ site }: { site: Site }) {
         <Titulo site={site}>Reserva solicitada</Titulo>
         <Cartao site={site}>
           <p className="p-4 text-sm font-medium" style={{ color: site.aparencia.corPrimaria }}>
-            Reserva confirmada de {new Date(`${confirmada.checkIn}T12:00:00`).toLocaleDateString("pt-BR")} a {new Date(`${confirmada.checkOut}T12:00:00`).toLocaleDateString("pt-BR")}. A pousada receberá seus dados para o atendimento.
+            Reserva confirmada de{" "}
+            {new Date(`${confirmada.checkIn}T12:00:00`).toLocaleDateString("pt-BR")} a{" "}
+            {new Date(`${confirmada.checkOut}T12:00:00`).toLocaleDateString("pt-BR")}. A pousada
+            receberá seus dados para o atendimento.
           </p>
         </Cartao>
       </section>
@@ -1643,17 +1652,99 @@ function BlocoReservaHospedagem({ site }: { site: Site }) {
           }}
         >
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs font-semibold">Check-in<input name="check-in" type="date" min={hoje} required className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} /></label>
-            <label className="text-xs font-semibold">Check-out<input name="check-out" type="date" min={hoje} required className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} /></label>
+            <label className="text-xs font-semibold">
+              Check-in
+              <input
+                name="check-in"
+                type="date"
+                min={hoje}
+                required
+                className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+                style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+              />
+            </label>
+            <label className="text-xs font-semibold">
+              Check-out
+              <input
+                name="check-out"
+                type="date"
+                min={hoje}
+                required
+                className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+                style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+              />
+            </label>
           </div>
           <input name="acomodacao" defaultValue="principal" type="hidden" />
-          <label className="text-xs font-semibold">Hóspedes<select name="hospedes" defaultValue="2" className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? "hóspede" : "hóspedes"}</option>)}</select></label>
-          <input name="nome" required maxLength={120} placeholder="Nome completo" aria-label="Nome completo" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
-          <input name="telefone" required maxLength={40} placeholder="WhatsApp" aria-label="WhatsApp" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
-          <input name="email" type="email" required maxLength={254} placeholder="E-mail" aria-label="E-mail" className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
-          <textarea name="observacao" maxLength={1000} rows={3} placeholder="Pedido especial (opcional)" aria-label="Pedido especial" className="w-full bg-transparent px-3 py-2 text-sm outline-none" style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }} />
-          {erro && <p role="alert" className="text-sm font-medium">{erro}</p>}
-          <button type="submit" disabled={enviando} className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-60" style={{ background: site.aparencia.corPrimaria, color: contraste(site.aparencia.corPrimaria), borderRadius: "var(--ms-radius)" }}>{enviando ? "Confirmando…" : "Confirmar reserva"}</button>
+          <label className="text-xs font-semibold">
+            Hóspedes
+            <select
+              name="hospedes"
+              defaultValue="2"
+              className="mt-1 min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+              style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+            >
+              {Array.from({ length: 10 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1} {i === 0 ? "hóspede" : "hóspedes"}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            name="nome"
+            required
+            maxLength={120}
+            placeholder="Nome completo"
+            aria-label="Nome completo"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          <input
+            name="telefone"
+            required
+            maxLength={40}
+            placeholder="WhatsApp"
+            aria-label="WhatsApp"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={254}
+            placeholder="E-mail"
+            aria-label="E-mail"
+            className="min-h-11 w-full bg-transparent px-3 py-2 text-sm outline-none"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          <textarea
+            name="observacao"
+            maxLength={1000}
+            rows={3}
+            placeholder="Pedido especial (opcional)"
+            aria-label="Pedido especial"
+            className="w-full bg-transparent px-3 py-2 text-sm outline-none"
+            style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
+          />
+          {erro && (
+            <p role="alert" className="text-sm font-medium">
+              {erro}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={enviando}
+            className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-60"
+            style={{
+              background: site.aparencia.corPrimaria,
+              color: contraste(site.aparencia.corPrimaria),
+              borderRadius: "var(--ms-radius)",
+            }}
+          >
+            {enviando ? "Confirmando…" : "Confirmar reserva"}
+          </button>
         </form>
       </Cartao>
     </section>

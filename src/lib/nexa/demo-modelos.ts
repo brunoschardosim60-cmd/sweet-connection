@@ -1,6 +1,6 @@
 import { extrasPorModelo } from "./demo-extras";
 import { conteudoNovosModelos } from "./demo-novos";
-import { conteudoCardapioModelos } from "./cardapio-modelos";
+import { conteudoCardapioModelos, ehModeloCardapio } from "./cardapio-modelos";
 import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
 import { imagens } from "./images";
 import { modeloPorId, modelos } from "./modelos";
@@ -1399,6 +1399,15 @@ export function siteDoModelo(modeloId: string): Site {
       whatsappApi: "",
     },
     metricas: metricasPadrao(80),
+    ...(ehModeloCardapio(modelo.id)
+      ? {
+          comercio: {
+            carrinho: true,
+            taxaEntrega: 0,
+            pedidoMinimo: 0,
+          },
+        }
+      : {}),
     ...(modelo.id === "academia-studio"
       ? {
           agenda: {

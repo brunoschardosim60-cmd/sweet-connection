@@ -69,10 +69,13 @@ export function CatalogoPagina({
   site,
   rastrear = false,
   interacoesExternas = true,
+  mostrarVoltar = true,
 }: {
   site: Site;
   rastrear?: boolean;
   interacoesExternas?: boolean;
+  /** Cardápios digitais usam esta página como entrada principal. */
+  mostrarVoltar?: boolean;
 }) {
   const perfil = perfilCatalogo(site);
   const primaria = site.aparencia.corPrimaria;
@@ -185,9 +188,7 @@ export function CatalogoPagina({
   };
 
   const definirObservacao = (id: string, observacao: string) =>
-    setCarrinho((atual) =>
-      atual[id] ? { ...atual, [id]: { ...atual[id], observacao } } : atual,
-    );
+    setCarrinho((atual) => (atual[id] ? { ...atual, [id]: { ...atual[id], observacao } } : atual));
 
   const mensagem = mensagemPedido(site, itens, entrega, {
     ...campos,
@@ -214,15 +215,19 @@ export function CatalogoPagina({
         }}
       >
         <div className="mx-auto grid w-full max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
-          <a
-            href={interacoesExternas ? `/site/${site.slug}` : undefined}
-            aria-label="Voltar ao site"
-            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{ outlineColor: primaria }}
-          >
-            <ArrowLeft size={16} aria-hidden />
-            <span className="hidden sm:inline">Voltar ao site</span>
-          </a>
+          {mostrarVoltar ? (
+            <a
+              href={interacoesExternas ? `/site/${site.slug}` : undefined}
+              aria-label="Voltar ao site"
+              className="inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              style={{ outlineColor: primaria }}
+            >
+              <ArrowLeft size={16} aria-hidden />
+              <span className="hidden sm:inline">Voltar ao site</span>
+            </a>
+          ) : (
+            <span aria-hidden className="block w-2" />
+          )}
           <div className="flex min-w-0 items-center gap-2">
             {site.conteudo.logo && (
               <img
@@ -509,26 +514,26 @@ export function CatalogoPagina({
       {carrinhoAberto && (
         <DrawerCarrinho site={site} onFechar={() => setCarrinhoAberto(false)}>
           <PainelCarrinho
-              site={site}
-              itens={itens}
-              totais={totais}
-              entrega={entrega}
-              setEntrega={setEntrega}
-              pagamento={pagamento}
-              setPagamento={setPagamento}
-              campos={campos}
-              setCampos={setCampos}
-              onAlterar={(id, d) => {
-                const p = site.produtos.find((x) => x.id === id);
-                if (p) alterar(p, d);
-              }}
-              onObservacao={definirObservacao}
-              linkPedido={interacoesExternas ? linkPedido : undefined}
-              onEnviar={() => {
-                eventoMarketing("iniciar_checkout", { value: totais.total, currency: "BRL" });
-                registrar("Catálogo: enviar pedido", true);
-              }}
-            />
+            site={site}
+            itens={itens}
+            totais={totais}
+            entrega={entrega}
+            setEntrega={setEntrega}
+            pagamento={pagamento}
+            setPagamento={setPagamento}
+            campos={campos}
+            setCampos={setCampos}
+            onAlterar={(id, d) => {
+              const p = site.produtos.find((x) => x.id === id);
+              if (p) alterar(p, d);
+            }}
+            onObservacao={definirObservacao}
+            linkPedido={interacoesExternas ? linkPedido : undefined}
+            onEnviar={() => {
+              eventoMarketing("iniciar_checkout", { value: totais.total, currency: "BRL" });
+              registrar("Catálogo: enviar pedido", true);
+            }}
+          />
         </DrawerCarrinho>
       )}
     </div>
@@ -665,9 +670,7 @@ function CartaoProduto({
                 {produto.categoria}
               </span>
             )}
-            {produto.destaque && (
-              <Badge cor={primaria}>Mais pedido</Badge>
-            )}
+            {produto.destaque && <Badge cor={primaria}>Mais pedido</Badge>}
             {desconto > 0 && <Badge cor={primaria}>Promoção −{desconto}%</Badge>}
             {!produto.disponivel && (
               <span
@@ -1078,7 +1081,11 @@ function PainelCarrinho({
                 aria-label={`Remover uma unidade de ${i.nome}`}
                 onClick={() => onAlterar(i.produtoId, -1)}
                 className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)", outlineColor: primaria }}
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "var(--ms-radius)",
+                  outlineColor: primaria,
+                }}
               >
                 <Minus size={14} aria-hidden />
               </button>
@@ -1087,7 +1094,11 @@ function PainelCarrinho({
                 aria-label={`Adicionar uma unidade de ${i.nome}`}
                 onClick={() => onAlterar(i.produtoId, 1)}
                 className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)", outlineColor: primaria }}
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "var(--ms-radius)",
+                  outlineColor: primaria,
+                }}
               >
                 <Plus size={14} aria-hidden />
               </button>
@@ -1096,7 +1107,11 @@ function PainelCarrinho({
                 aria-label={`Remover ${i.nome} do pedido`}
                 onClick={() => onAlterar(i.produtoId, -i.quantidade)}
                 className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)", outlineColor: primaria }}
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "var(--ms-radius)",
+                  outlineColor: primaria,
+                }}
               >
                 <Trash2 size={14} aria-hidden />
               </button>
@@ -1173,7 +1188,10 @@ function PainelCarrinho({
       </div>
       {pagamento === "dinheiro" && campo("troco", "Troco para quanto?", "Ex.: R$ 100,00")}
 
-      <dl className="flex flex-col gap-1 border-t pt-2 text-sm" style={{ borderColor: "var(--ms-border)" }}>
+      <dl
+        className="flex flex-col gap-1 border-t pt-2 text-sm"
+        style={{ borderColor: "var(--ms-border)" }}
+      >
         <div className="flex justify-between">
           <dt className="opacity-75">Subtotal</dt>
           <dd>{moeda(totais.subtotal)}</dd>

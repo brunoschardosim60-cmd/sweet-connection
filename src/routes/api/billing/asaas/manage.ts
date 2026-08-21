@@ -22,7 +22,9 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
           if (!user) return json({ error: "Sua sessão expirou." }, 401);
           const { data: profile, error } = await (supabaseAdmin as any)
             .from("profiles")
-            .select("subscription_tier,subscription_status,billing_provider,billing_subscription_id,billing_cancel_at_period_end,billing_current_period_end")
+            .select(
+              "subscription_tier,subscription_status,billing_provider,billing_subscription_id,billing_cancel_at_period_end,billing_current_period_end",
+            )
             .eq("id", user.id)
             .single();
           if (error || !profile) throw new Error("Perfil não encontrado.");
@@ -30,7 +32,9 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
           let invoices: Record<string, unknown>[] = [];
           if (profile.billing_provider === "asaas" && profile.billing_subscription_id) {
             const pagamentos = await listarPagamentosAsaas(profile.billing_subscription_id);
-            invoices = pagamentos.filter((item): item is Record<string, unknown> => !!item && typeof item === "object");
+            invoices = pagamentos.filter(
+              (item): item is Record<string, unknown> => !!item && typeof item === "object",
+            );
             for (const payment of invoices) {
               const paymentId = typeof payment["id"] === "string" ? payment["id"] : null;
               if (!paymentId) continue;
@@ -44,8 +48,10 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
                   status: String(payment["status"] ?? "UNKNOWN"),
                   amount: typeof payment["value"] === "number" ? payment["value"] : null,
                   due_date: typeof payment["dueDate"] === "string" ? payment["dueDate"] : null,
-                  paid_at: typeof payment["paymentDate"] === "string" ? payment["paymentDate"] : null,
-                  invoice_url: typeof payment["invoiceUrl"] === "string" ? payment["invoiceUrl"] : null,
+                  paid_at:
+                    typeof payment["paymentDate"] === "string" ? payment["paymentDate"] : null,
+                  invoice_url:
+                    typeof payment["invoiceUrl"] === "string" ? payment["invoiceUrl"] : null,
                 },
                 { onConflict: "provider_payment_id" },
               );
@@ -60,8 +66,12 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
               currentPeriodEnd: profile.billing_current_period_end,
             },
             invoices: invoices.map((payment) => ({
-              id: payment["id"], status: payment["status"], value: payment["value"],
-              dueDate: payment["dueDate"], paymentDate: payment["paymentDate"], invoiceUrl: payment["invoiceUrl"],
+              id: payment["id"],
+              status: payment["status"],
+              value: payment["value"],
+              dueDate: payment["dueDate"],
+              paymentDate: payment["paymentDate"],
+              invoiceUrl: payment["invoiceUrl"],
             })),
           });
         } catch (error) {

@@ -64,7 +64,10 @@ export async function enviarFormularioPublicado(slug: string, dados: Record<stri
 }
 
 /** A confirmação ao visitante não depende da entrega externa da notificação. */
-export function notificarDonoDoMinisite(tipo: "formulario" | "agendamento" | "reserva", id: string) {
+export function notificarDonoDoMinisite(
+  tipo: "formulario" | "agendamento" | "reserva",
+  id: string,
+) {
   if (!id || typeof window === "undefined") return;
   void fetch("/api/notifications/dispatch", {
     method: "POST",

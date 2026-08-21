@@ -10,12 +10,12 @@ export default defineConfig({
   // Vercel sets VERCEL=1 during its build. Lovable keeps overriding this to
   // cloudflare-module inside its own sandbox, so both integrations keep working.
   nitro: process.env["VERCEL"]
-    ? {
+    ? ({
         preset: "vercel",
         // Evita um ciclo de chunks do Nitro/Vercel que inicializava o
         // middleware interno do TanStack antes da função createMiddleware.
         inlineDynamicImports: true,
-      } as never
+      } as never)
     : {},
   tanstackStart: {
     // Mantém o invólucro de erros SSR já usado pelo projeto.

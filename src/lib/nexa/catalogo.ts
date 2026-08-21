@@ -79,12 +79,13 @@ export function perfilCatalogo(site: Site): PerfilCatalogo {
   if (doModelo) return doModelo;
   const modelo = (site.modeloId || "").toLowerCase();
   const nome = `${modelo} ${site.conteudo.nome} ${site.cliente.empresa}`.toLowerCase();
-  const chave = (["pizzaria", "hamburgueria", "doceria", "bar", "restaurante"] as const).find((k) =>
-    k === "hamburgueria"
-      ? /hamburg|burger|lanche/.test(nome)
-      : k === "bar"
-        ? /\bbar\b|pub|boteco|cerveja/.test(nome)
-        : nome.includes(k.slice(0, 6)),
+  const chave = (["pizzaria", "hamburgueria", "doceria", "bar", "restaurante"] as const).find(
+    (k) =>
+      k === "hamburgueria"
+        ? /hamburg|burger|lanche/.test(nome)
+        : k === "bar"
+          ? /\bbar\b|pub|boteco|cerveja/.test(nome)
+          : nome.includes(k.slice(0, 6)),
   );
   if (chave) return perfis[chave] ?? perfilPadrao;
   if (site.cliente.segmento === "alimentacao") return perfis["restaurante"] ?? perfilPadrao;
@@ -149,7 +150,8 @@ export const rotulosModalidade: Record<Modalidade, string> = {
 /** Situação do estabelecimento a partir dos horários cadastrados. */
 export function situacaoAtendimento(site: Site) {
   const horarios = site.conteudo.horarios ?? [];
-  if (horarios.length === 0) return { conhecida: false, aberto: false, rotulo: "Horário não informado" };
+  if (horarios.length === 0)
+    return { conhecida: false, aberto: false, rotulo: "Horário não informado" };
   const aberto = estaAberto(horarios);
   return { conhecida: true, aberto, rotulo: aberto ? "Aberto agora" : "Fechado agora" };
 }
@@ -226,7 +228,9 @@ export function mensagemPedido(
     dados.complemento?.trim() ? `Complemento: ${dados.complemento.trim()}` : "",
     dados.referencia?.trim() ? `Referência: ${dados.referencia.trim()}` : "",
     dados.pagamento ? `Pagamento: ${rotulosPagamento[dados.pagamento]}` : "",
-    dados.pagamento === "dinheiro" && dados.troco?.trim() ? `Troco para: ${dados.troco.trim()}` : "",
+    dados.pagamento === "dinheiro" && dados.troco?.trim()
+      ? `Troco para: ${dados.troco.trim()}`
+      : "",
     dados.observacao?.trim() ? `Observações: ${dados.observacao.trim()}` : "",
   ];
   return linhas.filter(Boolean).join("\n");

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import {
   MolduraPrevia,
   SeletorDispositivo,
@@ -48,6 +49,7 @@ import { copiarTexto, enderecoSite, origemPublica } from "@/lib/nexa/clipboard";
 import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { grupoDeSecao, secaoTemConteudo } from "@/lib/nexa/secoes";
+import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import {
   dataDoCampo,
   dataParaExpiracao,
@@ -73,7 +75,8 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "cardapio" | "aparencia" | "seo" | "qualidade" | "versoes";
+type Aba =
+  "conteudo" | "secoes" | "itens" | "cardapio" | "aparencia" | "seo" | "qualidade" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
@@ -110,7 +113,10 @@ function Editor() {
   const revisaoRef = useRef(0);
 
   useEffect(() => {
-    if (original && !rascunho) setRascunho(structuredClone(original));
+    if (original && !rascunho) {
+      setRascunho(structuredClone(original));
+      if (ehModeloCardapio(original.modeloId)) setAba("cardapio");
+    }
   }, [original, rascunho]);
 
   /** O editor ocupa uma tela fixa; somente seus painéis internos devem rolar. */
@@ -309,6 +315,14 @@ function Editor() {
           texto: salvoEm ? `salvo ${dataHora(salvoEm)}` : "tudo salvo",
           cor: "text-muted-foreground",
         };
+  const cardapioDigital = ehModeloCardapio(rascunho.modeloId);
+  const abasVisiveis = cardapioDigital
+    ? abas.filter((a) =>
+        ["conteudo", "cardapio", "itens", "aparencia", "seo", "qualidade", "versoes"].includes(
+          a.id,
+        ),
+      )
+    : abas;
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
@@ -463,7 +477,7 @@ function Editor() {
             aria-label="Seções do editor"
             className="flex shrink-0 flex-wrap gap-1.5 pb-1"
           >
-            {abas.map((a) => (
+            {abasVisiveis.map((a) => (
               <button
                 key={a.id}
                 type="button"
@@ -519,7 +533,11 @@ function Editor() {
         >
           <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
           <MolduraPrevia dispositivo={dispositivo}>
-            <MiniSite site={rascunho} botaoFlutuante={false} modoEdicao />
+            {cardapioDigital ? (
+              <CatalogoPagina site={rascunho} interacoesExternas={false} mostrarVoltar={false} />
+            ) : (
+              <MiniSite site={rascunho} botaoFlutuante={false} modoEdicao />
+            )}
           </MolduraPrevia>
         </section>
       </div>

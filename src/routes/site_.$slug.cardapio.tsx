@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { perfilCatalogo } from "@/lib/nexa/catalogo";
+import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
 
@@ -23,7 +24,9 @@ export const Route = createFileRoute("/site_/$slug/cardapio")({
       loaderData.seo.descricao ||
       `${perfil.rotulo} de ${loaderData.conteudo.nome}: itens, preços e pedidos pelo WhatsApp.`;
     const imagem = loaderData.seo.imagem || loaderData.conteudo.capa;
-    const canonical = `${enderecoSite(loaderData.slug)}/cardapio`;
+    const canonical = ehModeloCardapio(loaderData.modeloId)
+      ? enderecoSite(loaderData.slug)
+      : `${enderecoSite(loaderData.slug)}/cardapio`;
 
     return {
       meta: [
@@ -70,7 +73,7 @@ function CardapioPublico() {
   return (
     <>
       <Rastreadores site={site} />
-      <CatalogoPagina site={site} rastrear />
+      <CatalogoPagina site={site} rastrear mostrarVoltar={!ehModeloCardapio(site.modeloId)} />
     </>
   );
 }

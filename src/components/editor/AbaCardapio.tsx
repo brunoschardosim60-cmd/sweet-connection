@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ExternalLink, Eye, EyeOff, FolderPen, GripVertical } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  FolderPen,
+  GripVertical,
+} from "lucide-react";
 import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import {
   categoriasDeProdutos,
@@ -133,23 +141,23 @@ export function AbaCardapio({
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPrevia((v) => !v)}
-            aria-pressed={previa}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
-          >
-            {previa ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
-            {previa ? "Ocultar prévia" : "Ver prévia"}
-          </button>
-          <a
-            href={enderecoCardapio(site.slug)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
-          >
-            <ExternalLink size={14} aria-hidden /> Abrir página
-          </a>
+            <button
+              type="button"
+              onClick={() => setPrevia((v) => !v)}
+              aria-pressed={previa}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
+            >
+              {previa ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
+              {previa ? "Ocultar prévia" : "Ver prévia"}
+            </button>
+            <a
+              href={enderecoCardapio(site.slug)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
+            >
+              <ExternalLink size={14} aria-hidden /> Abrir página
+            </a>
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
@@ -173,7 +181,11 @@ export function AbaCardapio({
               onChange={(e) =>
                 aplicar((s) => ({
                   ...s,
-                  comercio: { ...comercio, ...s.comercio, taxaEntrega: Number(e.target.value) || 0 },
+                  comercio: {
+                    ...comercio,
+                    ...s.comercio,
+                    taxaEntrega: Number(e.target.value) || 0,
+                  },
                 }))
               }
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
@@ -189,7 +201,11 @@ export function AbaCardapio({
               onChange={(e) =>
                 aplicar((s) => ({
                   ...s,
-                  comercio: { ...comercio, ...s.comercio, pedidoMinimo: Number(e.target.value) || 0 },
+                  comercio: {
+                    ...comercio,
+                    ...s.comercio,
+                    pedidoMinimo: Number(e.target.value) || 0,
+                  },
                 }))
               }
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
@@ -201,7 +217,10 @@ export function AbaCardapio({
             type="checkbox"
             checked={comercio.carrinho}
             onChange={(e) =>
-              aplicar((s) => ({ ...s, comercio: { ...comercio, ...s.comercio, carrinho: e.target.checked } }))
+              aplicar((s) => ({
+                ...s,
+                comercio: { ...comercio, ...s.comercio, carrinho: e.target.checked },
+              }))
             }
             className="h-5 w-5 rounded border-border"
           />
@@ -237,9 +256,7 @@ export function AbaCardapio({
 
       {[...categorias, ...(semCategoria.length ? ["Sem categoria"] : [])].map((cat) => {
         const itens =
-          cat === "Sem categoria"
-            ? semCategoria
-            : site.produtos.filter((p) => p.categoria === cat);
+          cat === "Sem categoria" ? semCategoria : site.produtos.filter((p) => p.categoria === cat);
         return (
           <section
             key={cat}

@@ -1,5 +1,5 @@
 import { modeloPorId } from "./modelos";
-import { presetsCardapio } from "./cardapio-modelos";
+import { ehModeloCardapio, presetsCardapio } from "./cardapio-modelos";
 import { diasSemana, uid } from "./utils";
 import type { Cliente, Secao, Site, TipoSecao } from "./types";
 
@@ -377,6 +377,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
   const modelo = modeloPorId(modeloId);
   const preset = presetsModelo[modelo.id] ?? presetsModelo["prestador-servicos"]!;
   const emBranco = modelo.id === "personalizado";
+  const cardapioDigital = ehModeloCardapio(modelo.id);
   const agora = new Date().toISOString();
   return {
     id: uid("site"),
@@ -415,17 +416,18 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       capaTipo: emBranco ? "cor" : "imagem",
     },
     secoes: criarSecoes(modelo.id),
-    links: cliente.telefone
-      ? [
-          {
-            id: uid("link"),
-            tipo: "whatsapp",
-            titulo: "Falar no WhatsApp",
-            valor: cliente.telefone,
-            ativo: true,
-          },
-        ]
-      : [],
+    links:
+      !cardapioDigital && cliente.telefone
+        ? [
+            {
+              id: uid("link"),
+              tipo: "whatsapp",
+              titulo: "Falar no WhatsApp",
+              valor: cliente.telefone,
+              ativo: true,
+            },
+          ]
+        : [],
     produtos: [],
     servicos: [],
     galeria: [],
@@ -452,6 +454,15 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
       whatsappApi: "",
     },
     metricas: metricasVazias(),
+    ...(cardapioDigital
+      ? {
+          comercio: {
+            carrinho: true,
+            taxaEntrega: 0,
+            pedidoMinimo: 0,
+          },
+        }
+      : {}),
     ...(preset.secoes.includes("agenda")
       ? {
           agenda: {

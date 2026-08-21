@@ -9,6 +9,7 @@ import {
   perfilCatalogo,
   totaisCarrinho,
 } from "@/lib/nexa/catalogo";
+import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import type { Produto } from "@/lib/nexa/types";
 
 const cliente = {
@@ -74,5 +75,11 @@ describe("catálogo do mini-site", () => {
     expect(texto).toContain("Endereço: Rua A, 10");
     expect(texto).toContain("Troco para: R$ 50,00");
     expect(texto).not.toContain("Bairro:");
+  });
+
+  it("ativa carrinho nos modelos de demonstração do Cardápio Digital", () => {
+    const site = siteDoModelo("cardapio-pizzaria");
+    expect(site.comercio?.carrinho).toBe(true);
+    expect(site.produtos.length).toBeGreaterThan(0);
   });
 });

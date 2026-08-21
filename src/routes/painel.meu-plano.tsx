@@ -28,7 +28,14 @@ export const Route = createFileRoute("/painel/meu-plano")({
 });
 
 type Assinatura = { subscription_tier: string; subscription_status: string };
-type Fatura = { id: string; status: string; value: number | null; dueDate: string | null; paymentDate: string | null; invoiceUrl: string | null };
+type Fatura = {
+  id: string;
+  status: string;
+  value: number | null;
+  dueDate: string | null;
+  paymentDate: string | null;
+  invoiceUrl: string | null;
+};
 
 const nomes: Record<string, string> = {
   none: "Sem plano",
@@ -189,7 +196,12 @@ function MeuPlano() {
   }
 
   async function cancelarAssinatura() {
-    if (!window.confirm("Cancelar a renovação automática? Seu acesso permanece ativo até o fim do período já pago.")) return;
+    if (
+      !window.confirm(
+        "Cancelar a renovação automática? Seu acesso permanece ativo até o fim do período já pago.",
+      )
+    )
+      return;
     setCancelando(true);
     try {
       const { data: sessao } = await supabase.auth.getSession();
@@ -197,11 +209,16 @@ function MeuPlano() {
         method: "POST",
         headers: { authorization: `Bearer ${sessao.session?.access_token ?? ""}` },
       });
-      const retorno = (await resposta.json().catch(() => ({}))) as { currentPeriodEnd?: string | null; error?: string };
+      const retorno = (await resposta.json().catch(() => ({}))) as {
+        currentPeriodEnd?: string | null;
+        error?: string;
+      };
       if (!resposta.ok) throw new Error(retorno.error ?? "Não foi possível cancelar a assinatura.");
       setFimCancelamento(retorno.currentPeriodEnd ?? null);
     } catch (error) {
-      setErroPagamento(error instanceof Error ? error.message : "Não foi possível cancelar a assinatura.");
+      setErroPagamento(
+        error instanceof Error ? error.message : "Não foi possível cancelar a assinatura.",
+      );
     } finally {
       setCancelando(false);
     }
@@ -412,15 +429,34 @@ function MeuPlano() {
           {faturas.length > 0 && (
             <ul className="mt-4 divide-y divide-border text-sm">
               {faturas.map((fatura) => (
-                <li key={fatura.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <span>R$ {(fatura.value ?? 0).toFixed(2).replace(".", ",")} · {fatura.status}</span>
-                  {fatura.invoiceUrl && <a href={fatura.invoiceUrl} target="_blank" rel="noreferrer" className="min-h-11 py-2 underline">Ver fatura</a>}
+                <li
+                  key={fatura.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3"
+                >
+                  <span>
+                    R$ {(fatura.value ?? 0).toFixed(2).replace(".", ",")} · {fatura.status}
+                  </span>
+                  {fatura.invoiceUrl && (
+                    <a
+                      href={fatura.invoiceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="min-h-11 py-2 underline"
+                    >
+                      Ver fatura
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
           )}
           {!fimCancelamento && (
-            <button type="button" onClick={() => void cancelarAssinatura()} disabled={cancelando} className="mt-4 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive disabled:opacity-60">
+            <button
+              type="button"
+              onClick={() => void cancelarAssinatura()}
+              disabled={cancelando}
+              className="mt-4 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive disabled:opacity-60"
+            >
               {cancelando ? "Cancelando…" : "Cancelar renovação"}
             </button>
           )}

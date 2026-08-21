@@ -1,8 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
+import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 
 export const Route = createFileRoute("/site/$slug")({
   loader: async ({ params }) => {
@@ -104,7 +106,11 @@ function SitePublico() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados) }}
       />
       <Rastreadores site={site} />
-      <MiniSite site={site} rastrear />
+      {ehModeloCardapio(site.modeloId) ? (
+        <CatalogoPagina site={site} rastrear mostrarVoltar={false} />
+      ) : (
+        <MiniSite site={site} rastrear />
+      )}
     </div>
   );
 }

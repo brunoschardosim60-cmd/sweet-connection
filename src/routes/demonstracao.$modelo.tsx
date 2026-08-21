@@ -2,6 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
+import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modelos } from "@/lib/nexa/modelos";
 import {
@@ -60,7 +62,11 @@ function Demonstracao() {
         className="flex min-h-0 flex-1 justify-center overflow-hidden p-3 sm:p-5"
       >
         <MolduraPrevia dispositivo={disp}>
-          <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+          {ehModeloCardapio(site.modeloId) ? (
+            <CatalogoPagina site={site} interacoesExternas={false} mostrarVoltar={false} />
+          ) : (
+            <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
+          )}
         </MolduraPrevia>
       </main>
     </div>
