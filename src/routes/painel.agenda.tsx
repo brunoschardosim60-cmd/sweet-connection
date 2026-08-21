@@ -202,6 +202,8 @@ function PaginaAgenda() {
           {visiveis.map((item) => {
             const cancelado = item.status === "cancelado";
             const editando = reagendando?.id === item.id;
+            const vezes = item.reagendamentos ?? 0;
+            const foiReagendado = vezes > 0;
             return (
               <li
                 key={item.id}
