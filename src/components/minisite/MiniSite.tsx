@@ -1494,21 +1494,30 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
             style={{ border: "1px solid var(--ms-border)", borderRadius: "var(--ms-radius)" }}
           />
           {erro && (
-            <p role="alert" className="text-sm font-medium">
+            <p
+              role="alert"
+              className="px-3 py-2 text-sm font-medium"
+              style={{
+                borderRadius: "var(--ms-radius)",
+                border: "1px solid var(--ms-border)",
+                background: "color-mix(in srgb, currentColor 6%, transparent)",
+              }}
+            >
               {erro}
             </p>
           )}
           <button
             type="submit"
             disabled={enviando || !hora}
-            className="min-h-11 px-4 py-3 text-sm font-semibold disabled:opacity-50"
+            className="min-h-11 px-4 py-3 text-sm font-semibold transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
             style={{
               background: site.aparencia.corPrimaria,
               color: contraste(site.aparencia.corPrimaria),
               borderRadius: "var(--ms-radius)",
+              outlineColor: site.aparencia.corPrimaria,
             }}
           >
-            {enviando ? "Confirmando…" : "Confirmar horário"}
+            {enviando ? "Confirmando…" : hora ? `Confirmar ${hora}` : "Selecione um horário"}
           </button>
         </form>
       </Cartao>
