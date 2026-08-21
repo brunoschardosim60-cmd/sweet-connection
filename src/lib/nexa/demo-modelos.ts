@@ -360,11 +360,31 @@ const conteudoPorModelo: Record<
         preco: 420,
       },
     ],
+    equipe: [
+      {
+        id: "e1",
+        nome: "Dra. Renata Villas",
+        funcao: "Clínica geral - CRM demonstração",
+        foto: imagens.clinica,
+      },
+      { id: "e2", nome: "Dr. Paulo Menezes", funcao: "Cardiologia" },
+      { id: "e3", nome: "Nut. Bruna Tavares", funcao: "Nutrição clínica" },
+    ],
     faq: [
       {
         id: "f1",
         pergunta: "Atendem convênios?",
         resposta: "Sim, os principais convênios nacionais.",
+      },
+      {
+        id: "f2",
+        pergunta: "Como funciona o agendamento?",
+        resposta: "Envie o formulário com a especialidade e a data desejada; a recepção confirma pelo WhatsApp.",
+      },
+      {
+        id: "f3",
+        pergunta: "Preciso levar exames anteriores?",
+        resposta: "Sempre que possível leve exames dos últimos 12 meses para a primeira consulta.",
       },
     ],
   },
