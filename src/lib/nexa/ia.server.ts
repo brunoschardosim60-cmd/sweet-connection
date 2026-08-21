@@ -23,6 +23,21 @@ const MODELO_GEMINI_PADRAO = "gemini-2.5-flash";
 const MAX_IMAGENS_REFERENCIA = 4;
 const MAX_BYTES_POR_IMAGEM = 3 * 1024 * 1024;
 
+type UsoTokens = { prompt: number; completion: number; total: number };
+type RespostaGeracao = { plano: PlanoIA; uso: UsoTokens };
+
+function numeroNaoNegativo(valor: unknown) {
+  return typeof valor === "number" && Number.isFinite(valor) && valor > 0 ? Math.floor(valor) : 0;
+}
+
+function custoEstimadoGemini(uso: UsoTokens) {
+  // A franquia gratuita continua em R$ 0. Caso a conta passe a usar tarifa paga,
+  // os valores por milhão de tokens podem ser configurados na Vercel sem expor chave.
+  const entrada = Number(process.env["GEMINI_INPUT_COST_BRL_PER_MILLION"] ?? 0);
+  const saida = Number(process.env["GEMINI_OUTPUT_COST_BRL_PER_MILLION"] ?? 0);
+  return Math.max(0, (uso.prompt * entrada + uso.completion * saida) / 1_000_000);
+}
+
 function extrairJson(texto: string): PlanoIA {
   const limpo = texto
     .trim()
@@ -120,7 +135,10 @@ async function partesDeImagemGemini(entrada: EntradaPlano) {
   return partes;
 }
 
-async function gerarComGeminiDireto(chave: string, entrada: EntradaPlano): Promise<PlanoIA> {
+async function gerarComGeminiDireto(
+  chave: string,
+  entrada: EntradaPlano,
+): Promise<RespostaGeracao> {
   const modelo = process.env["GEMINI_MODEL"] ?? MODELO_GEMINI_PADRAO;
   const resposta = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`,
@@ -147,10 +165,24 @@ async function gerarComGeminiDireto(chave: string, entrada: EntradaPlano): Promi
   }
   const json = (await resposta.json()) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[];
+    usageMetadata?: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+      totalTokenCount?: number;
+    };
   };
   const texto = json.candidates?.[0]?.content?.parts?.map((parte) => parte.text ?? "").join("");
   if (!texto) throw new Error("O Gemini não devolveu conteúdo.");
-  return extrairJson(texto);
+  const prompt = numeroNaoNegativo(json.usageMetadata?.promptTokenCount);
+  const completion = numeroNaoNegativo(json.usageMetadata?.candidatesTokenCount);
+  return {
+    plano: extrairJson(texto),
+    uso: {
+      prompt,
+      completion,
+      total: numeroNaoNegativo(json.usageMetadata?.totalTokenCount) || prompt + completion,
+    },
+  };
 }
 
 /** Gera o plano de conteúdo do mini-site a partir da descrição do negócio. */
@@ -177,12 +209,43 @@ async function devolverGeracao(ownerId: string) {
   await supabaseAdmin.rpc("nexa_refund_ai_generation", { requested_user_id: ownerId });
 }
 
+async function registrarUso(
+  ownerId: string,
+  provider: "gemini" | "lovable",
+  modelo: string,
+  uso: UsoTokens,
+) {
+  // Métrica de custo nunca interfere na geração entregue ao cliente.
+  try {
+    await supabaseAdmin.rpc("nexa_record_ai_generation", {
+      requested_user_id: ownerId,
+      requested_provider: provider,
+      requested_model: modelo,
+      requested_prompt_tokens: uso.prompt,
+      requested_completion_tokens: uso.completion,
+      requested_total_tokens: uso.total,
+      requested_estimated_cost_brl: provider === "gemini" ? custoEstimadoGemini(uso) : 0,
+    });
+  } catch {
+    // A geração continua válida mesmo se a telemetria temporariamente falhar.
+  }
+}
+
 /** Gera um plano somente para uma sessão Supabase autenticada e com saldo diário. */
 export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Promise<PlanoIA> {
   const ownerId = await reservarGeracao(accessToken);
   try {
     const chaveGemini = process.env["GEMINI_API_KEY"];
-    if (chaveGemini) return gerarComGeminiDireto(chaveGemini, entrada);
+    if (chaveGemini) {
+      const geracao = await gerarComGeminiDireto(chaveGemini, entrada);
+      await registrarUso(
+        ownerId,
+        "gemini",
+        process.env["GEMINI_MODEL"] ?? MODELO_GEMINI_PADRAO,
+        geracao.uso,
+      );
+      return geracao.plano;
+    }
 
     const chave = process.env["LOVABLE_API_KEY"];
     if (!chave) throw new Error("Serviço de IA indisponível: configure GEMINI_API_KEY na Vercel.");
@@ -216,9 +279,17 @@ export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Pr
 
     const json = (await resposta.json()) as {
       choices?: { message?: { content?: string } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
     };
     const texto = json.choices?.[0]?.message?.content;
     if (!texto) throw new Error("A IA não devolveu conteúdo.");
+    const prompt = numeroNaoNegativo(json.usage?.prompt_tokens);
+    const completion = numeroNaoNegativo(json.usage?.completion_tokens);
+    await registrarUso(ownerId, "lovable", MODELO_LOVABLE, {
+      prompt,
+      completion,
+      total: numeroNaoNegativo(json.usage?.total_tokens) || prompt + completion,
+    });
     return extrairJson(texto);
   } catch (error) {
     await devolverGeracao(ownerId);

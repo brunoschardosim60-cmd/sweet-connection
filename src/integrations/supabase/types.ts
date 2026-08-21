@@ -779,11 +779,14 @@ export type Database = {
         Args: { requested_days?: number }
         Returns: {
           email: string
-          generations_30d: number
+          estimated_cost_brl_period: number
+          generations_period: number
           generations_7d: number
           last_generation_at: string
           subscription_status: string
           tier: string
+          tokens_7d: number
+          tokens_period: number
           user_id: string
         }[]
       }
@@ -802,6 +805,19 @@ export type Database = {
         }[]
       }
       nexa_admin_overview: { Args: never; Returns: Json }
+      nexa_admin_finance: {
+        Args: { requested_days?: number }
+        Returns: {
+          active_subscriptions: number
+          ai_estimated_cost_brl: number
+          ai_generations: number
+          ai_tokens: number
+          paid_invoices: number
+          revenue_overdue_brl: number
+          revenue_pending_brl: number
+          revenue_received_brl: number
+        }[]
+      }
       nexa_admin_series: {
         Args: { requested_days?: number }
         Returns: {
@@ -896,6 +912,18 @@ export type Database = {
       }
       nexa_refund_ai_generation: {
         Args: { requested_user_id: string }
+        Returns: undefined
+      }
+      nexa_record_ai_generation: {
+        Args: {
+          requested_completion_tokens: number
+          requested_estimated_cost_brl: number
+          requested_model: string
+          requested_prompt_tokens: number
+          requested_provider: string
+          requested_total_tokens: number
+          requested_user_id: string
+        }
         Returns: undefined
       }
       nexa_reservar_hospedagem: {

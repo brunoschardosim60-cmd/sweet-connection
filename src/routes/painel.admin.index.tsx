@@ -53,6 +53,14 @@ const dataCurta = (v: string | null) =>
     ? new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
     : "—";
 
+const moeda = (valor: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor ?? 0);
+
+const numeroCompacto = (valor: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(
+    valor ?? 0,
+  );
+
 const rotuloDia = (dia: string) =>
   new Date(`${dia}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
@@ -261,7 +269,7 @@ function LinhaUsuario({
 function PainelAdmin() {
   const { admin, carregando: checando } = useIsAdmin();
   const [periodo, setPeriodo] = useState<Periodo>(30);
-  const { resumo, usuarios, serie, usoIa, carregando, erro, recarregar, definirPlano } =
+  const { resumo, usuarios, serie, usoIa, financeiro, carregando, erro, recarregar, definirPlano } =
     useAdminDados(periodo);
   const [busca, setBusca] = useState("");
   const [plano, setPlano] = useState<"todos" | "pro" | "free">("todos");
@@ -442,11 +450,54 @@ function PainelAdmin() {
         </div>
       )}
 
+      {financeiro && (
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <header>
+            <h2 className="text-sm font-bold">Financeiro e custo de IA</h2>
+            <p className="text-xs text-muted-foreground">
+              Valores baseados em pagamentos sincronizados pelo Asaas nos últimos {periodo} dias.
+            </p>
+          </header>
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Cartao
+              rotulo="Faturamento recebido"
+              valor={moeda(financeiro.revenue_received_brl)}
+              detalhe={`${financeiro.paid_invoices} cobrança(s) recebida(s)`}
+              icone={BarChart3}
+            />
+            <Cartao
+              rotulo="A receber"
+              valor={moeda(financeiro.revenue_pending_brl)}
+              detalhe="Cobranças pendentes no período"
+              icone={Inbox}
+            />
+            <Cartao
+              rotulo="Em atraso"
+              valor={moeda(financeiro.revenue_overdue_brl)}
+              detalhe={`${financeiro.active_subscriptions} assinatura(s) ativa(s)`}
+              icone={AlertCircle}
+            />
+            <Cartao
+              rotulo="Custo estimado IA"
+              valor={moeda(financeiro.ai_estimated_cost_brl)}
+              detalhe={`${numeroCompacto(financeiro.ai_tokens)} tokens · ${financeiro.ai_generations} geração(ões)`}
+              icone={Crown}
+            />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            O custo de IA é estimado pelos tokens registrados. Com a franquia gratuita do Gemini,
+            ele aparece como R$ 0,00; a fatura do Google continua sendo a referência de cobrança
+            efetiva.
+          </p>
+        </section>
+      )}
+
       <section className="rounded-2xl border border-border bg-card p-4">
         <header>
           <h2 className="text-sm font-bold">Consumo de IA</h2>
           <p className="text-xs text-muted-foreground">
-            Gerações novas que consomem tokens; resultados do cache não entram nesta conta.
+            Gerações novas e tokens efetivamente retornados pelo provedor; resultados do cache não
+            entram nesta conta.
           </p>
         </header>
         <div className="mt-3 overflow-x-auto">
@@ -455,8 +506,9 @@ function PainelAdmin() {
               <tr>
                 <th className="p-2">Conta</th>
                 <th className="p-2">Plano</th>
-                <th className="p-2">7 dias</th>
-                <th className="p-2">{periodo} dias</th>
+                <th className="p-2">Gerações 7d</th>
+                <th className="p-2">Tokens {periodo}d</th>
+                <th className="p-2">Custo estimado</th>
                 <th className="p-2">Último uso</th>
               </tr>
             </thead>
@@ -468,7 +520,8 @@ function PainelAdmin() {
                     {uso.tier} · {uso.subscription_status}
                   </td>
                   <td className="p-2 font-semibold">{uso.generations_7d}</td>
-                  <td className="p-2 font-semibold">{uso.generations_30d}</td>
+                  <td className="p-2 font-semibold">{numeroCompacto(uso.tokens_period)}</td>
+                  <td className="p-2 font-semibold">{moeda(uso.estimated_cost_brl_period)}</td>
                   <td className="p-2">{dataCurta(uso.last_generation_at)}</td>
                 </tr>
               ))}
