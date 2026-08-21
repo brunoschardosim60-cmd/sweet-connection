@@ -189,7 +189,12 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "agendamento",
     tituloFormulario: "Agende sua aula experimental",
-    titulos: { servicos: "Modalidades", produtos: "Planos", equipe: "Professores", horarios: "Grade de horários" },
+    titulos: {
+      servicos: "Modalidades",
+      produtos: "Planos",
+      equipe: "Professores",
+      horarios: "Grade de horários",
+    },
   },
   "tattoo-studio": {
     secoes: [
@@ -204,7 +209,12 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "orcamento",
     tituloFormulario: "Peça seu orçamento",
-    titulos: { galeria: "Portfólio", servicos: "Estilos", equipe: "Artistas", faq: "Cuidados e dúvidas" },
+    titulos: {
+      galeria: "Portfólio",
+      servicos: "Estilos",
+      equipe: "Artistas",
+      faq: "Cuidados e dúvidas",
+    },
   },
   "construcao-arquitetura": {
     secoes: [
@@ -219,7 +229,12 @@ export const presetsModelo: Record<string, PresetModelo> = {
     ],
     formulario: "orcamento",
     tituloFormulario: "Solicite um orçamento de obra",
-    titulos: { galeria: "Obras realizadas", servicos: "Serviços", faq: "Como trabalhamos", equipe: "Time técnico" },
+    titulos: {
+      galeria: "Obras realizadas",
+      servicos: "Serviços",
+      faq: "Como trabalhamos",
+      equipe: "Time técnico",
+    },
   },
   "pousada-hotel": {
     secoes: [
@@ -278,7 +293,12 @@ export const criarSecoes = (modeloId?: string): Secao[] => {
   ];
   return ordenadas.map((tipo) => {
     const secao = porTipo.get(tipo)!;
-    return { id: uid("sec"), ...secao, ativa: preset.secoes.includes(tipo) };
+    return {
+      id: uid("sec"),
+      ...secao,
+      titulo: preset.titulos?.[tipo] ?? secao.titulo,
+      ativa: preset.secoes.includes(tipo),
+    };
   });
 };
 

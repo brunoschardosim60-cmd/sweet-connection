@@ -1237,8 +1237,8 @@ const depoimentosGenericos: Site["depoimentos"] = [
 ];
 
 /** Ordena as seções da demonstração conforme a sequência definida no modelo. */
-function ordenarSecoes(ordem: TipoSecao[]): Site["secoes"] {
-  const todas = criarSecoes();
+function ordenarSecoes(ordem: TipoSecao[], modeloId?: string): Site["secoes"] {
+  const todas = criarSecoes(modeloId);
   const posicao = (tipo: TipoSecao) => {
     const i = ordem.indexOf(tipo);
     return i === -1 ? ordem.length + 1 : i;
@@ -1340,7 +1340,7 @@ export function siteDoModelo(modeloId: string): Site {
       capaTipo: "imagem",
       logoFormato: c.logoFormato ?? "redondo",
     },
-    secoes: ordenarSecoes(c.secoes),
+    secoes: ordenarSecoes(c.secoes, modelo.id),
     links: [
       {
         id: "l1",
