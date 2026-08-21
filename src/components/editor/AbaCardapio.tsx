@@ -26,6 +26,7 @@ export function AbaCardapio({
   onIrParaItens?: () => void;
 }) {
   const perfil = perfilCatalogo(site);
+  const comercio = site.comercio ?? { carrinho: false, taxaEntrega: 0, pedidoMinimo: 0 };
   const categorias = useMemo(() => categoriasDeProdutos(site.produtos), [site.produtos]);
   const semCategoria = site.produtos.filter((p) => !p.categoria);
   const [renomeando, setRenomeando] = useState<string | null>(null);
@@ -117,11 +118,11 @@ export function AbaCardapio({
               type="number"
               min={0}
               step="0.5"
-              value={site.comercio.taxaEntrega}
+              value={comercio.taxaEntrega}
               onChange={(e) =>
                 aplicar((s) => ({
                   ...s,
-                  comercio: { ...s.comercio, taxaEntrega: Number(e.target.value) || 0 },
+                  comercio: { ...comercio, ...s.comercio, taxaEntrega: Number(e.target.value) || 0 },
                 }))
               }
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
@@ -133,11 +134,11 @@ export function AbaCardapio({
               type="number"
               min={0}
               step="1"
-              value={site.comercio.pedidoMinimo}
+              value={comercio.pedidoMinimo}
               onChange={(e) =>
                 aplicar((s) => ({
                   ...s,
-                  comercio: { ...s.comercio, pedidoMinimo: Number(e.target.value) || 0 },
+                  comercio: { ...comercio, ...s.comercio, pedidoMinimo: Number(e.target.value) || 0 },
                 }))
               }
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
@@ -147,9 +148,9 @@ export function AbaCardapio({
         <label className="mt-3 flex items-center gap-2 text-xs">
           <input
             type="checkbox"
-            checked={site.comercio.carrinho}
+            checked={comercio.carrinho}
             onChange={(e) =>
-              aplicar((s) => ({ ...s, comercio: { ...s.comercio, carrinho: e.target.checked } }))
+              aplicar((s) => ({ ...s, comercio: { ...comercio, ...s.comercio, carrinho: e.target.checked } }))
             }
             className="h-5 w-5 rounded border-border"
           />
