@@ -37,6 +37,7 @@ import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaa
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
+import { Route as SiteSlugCardapioRouteImport } from './routes/site_.$slug.cardapio'
 import { Route as ApiBillingAsaasCancelRouteImport } from './routes/api/billing/asaas/cancel'
 import { Route as ApiBillingAsaasCheckoutRouteImport } from './routes/api/billing/asaas/checkout'
 import { Route as ApiBillingAsaasManageRouteImport } from './routes/api/billing/asaas/manage'
@@ -183,6 +184,11 @@ const PainelEditorIdRoute = PainelEditorIdRouteImport.update({
   path: '/editor/$id',
   getParentRoute: () => PainelRoute,
 } as any)
+const SiteSlugCardapioRoute = SiteSlugCardapioRouteImport.update({
+  id: '/site_/$slug/cardapio',
+  path: '/site/$slug/cardapio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingAsaasCancelRoute = ApiBillingAsaasCancelRouteImport.update({
   id: '/api/billing/asaas/cancel',
   path: '/api/billing/asaas/cancel',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/site/$slug/cardapio': typeof SiteSlugCardapioRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/site/$slug/cardapio': typeof SiteSlugCardapioRoute
   '/painel/admin': typeof PainelAdminIndexRoute
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
+  '/site_/$slug/cardapio': typeof SiteSlugCardapioRoute
   '/painel/admin/': typeof PainelAdminIndexRoute
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/site/$slug/cardapio'
     | '/painel/admin/'
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/site/$slug/cardapio'
     | '/painel/admin'
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/api/webhooks/asaas'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
+    | '/site_/$slug/cardapio'
     | '/painel/admin/'
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
@@ -426,6 +438,7 @@ export interface RootRouteChildren {
   SiteSlugRoute: typeof SiteSlugRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
+  SiteSlugCardapioRoute: typeof SiteSlugCardapioRoute
   ApiBillingAsaasCancelRoute: typeof ApiBillingAsaasCancelRoute
   ApiBillingAsaasCheckoutRoute: typeof ApiBillingAsaasCheckoutRoute
   ApiBillingAsaasManageRoute: typeof ApiBillingAsaasManageRoute
@@ -630,6 +643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelEditorIdRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/site_/$slug/cardapio': {
+      id: '/site_/$slug/cardapio'
+      path: '/site/$slug/cardapio'
+      fullPath: '/site/$slug/cardapio'
+      preLoaderRoute: typeof SiteSlugCardapioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/asaas/cancel': {
       id: '/api/billing/asaas/cancel'
       path: '/api/billing/asaas/cancel'
@@ -712,6 +732,7 @@ const rootRouteChildren: RootRouteChildren = {
   SiteSlugRoute: SiteSlugRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
+  SiteSlugCardapioRoute: SiteSlugCardapioRoute,
   ApiBillingAsaasCancelRoute: ApiBillingAsaasCancelRoute,
   ApiBillingAsaasCheckoutRoute: ApiBillingAsaasCheckoutRoute,
   ApiBillingAsaasManageRoute: ApiBillingAsaasManageRoute,

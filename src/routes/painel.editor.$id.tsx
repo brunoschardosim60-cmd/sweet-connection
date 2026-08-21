@@ -27,6 +27,7 @@ import {
   SeletorDispositivo,
   type Dispositivo,
 } from "@/components/editor/PreviaDispositivo";
+import { AbaCardapio } from "@/components/editor/AbaCardapio";
 import {
   PainelQualidade,
   destinoPorSecao,
@@ -72,12 +73,13 @@ export const Route = createFileRoute("/painel/editor/$id")({
   component: Editor,
 });
 
-type Aba = "conteudo" | "secoes" | "itens" | "aparencia" | "seo" | "qualidade" | "versoes";
+type Aba = "conteudo" | "secoes" | "itens" | "cardapio" | "aparencia" | "seo" | "qualidade" | "versoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "conteudo", rotulo: "Conteúdo" },
   { id: "secoes", rotulo: "Seções" },
   { id: "itens", rotulo: "Itens" },
+  { id: "cardapio", rotulo: "Cardápio" },
   { id: "aparencia", rotulo: "Aparência" },
   { id: "seo", rotulo: "SEO" },
   { id: "qualidade", rotulo: "Qualidade" },
@@ -486,6 +488,13 @@ function Editor() {
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}
             {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
+            {aba === "cardapio" && (
+              <AbaCardapio
+                site={rascunho}
+                aplicar={aplicar}
+                onIrParaItens={() => setAba("itens")}
+              />
+            )}
             {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
             {aba === "qualidade" && <PainelQualidade site={rascunho} onIr={irPara} />}

@@ -33,6 +33,7 @@ import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, notificarDonoDoMinisite, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { reservarHospedagem } from "@/lib/nexa/reservas";
+import { enderecoCardapio, itensDestaque, perfilCatalogo } from "@/lib/nexa/catalogo";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
@@ -634,11 +635,15 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
     () => ["Todos", ...Array.from(new Set(site.produtos.map((p) => p.categoria).filter(Boolean)))],
     [site.produtos],
   );
-  const lista = site.produtos.filter(
-    (p) =>
-      (cat === "Todos" || p.categoria === cat) &&
-      p.nome.toLowerCase().includes(busca.toLowerCase()),
-  );
+  const perfil = perfilCatalogo(site);
+  const compacto = site.produtos.length > 6;
+  const lista = compacto
+    ? itensDestaque(site.produtos, 6)
+    : site.produtos.filter(
+        (p) =>
+          (cat === "Todos" || p.categoria === cat) &&
+          p.nome.toLowerCase().includes(busca.toLowerCase()),
+      );
   if (site.produtos.length === 0) return null;
 
   const catalogo = site.aparencia.layout === "catalogo" || site.aparencia.layout === "colorido";
@@ -646,7 +651,13 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   return (
     <section>
       <Titulo site={site}>{titulo}</Titulo>
-      <div className="mb-4 flex flex-col gap-3">
+      {compacto && (
+        <p className="mb-4 text-sm opacity-70">
+          Uma seleção do {perfil.rotulo.toLowerCase()}. Veja todos os itens, categorias e
+          promoções na página completa.
+        </p>
+      )}
+      <div className={compacto ? "hidden" : "mb-4 flex flex-col gap-3"}>
         <div
           className="flex min-h-11 items-center gap-2 px-3 py-2"
           style={{
@@ -766,6 +777,18 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
         ))}
       </div>
       {lista.length === 0 && <p className="text-sm opacity-60">Nenhum item encontrado.</p>}
+      {compacto && (
+        <div className="mt-4">
+          <Botao
+            site={site}
+            bloco
+            {...(interacoesExternas ? { href: enderecoCardapio(site.slug) } : {})}
+            onClick={() => registrar(`${perfil.rotulo}: ver completo`)}
+          >
+            {perfil.cta} · {site.produtos.length} itens
+          </Botao>
+        </div>
+      )}
       {usarCarrinho &&
         (() => {
           const itens = site.produtos
