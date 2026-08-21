@@ -265,6 +265,21 @@ function PaginaAgenda() {
                           <dd className="truncate font-medium">{item.observacao}</dd>
                         </div>
                       )}
+                      {foiReagendado && item.data_original && (
+                        <div className="flex min-w-0 flex-wrap gap-1.5 sm:col-span-2">
+                          <dt className="text-muted-foreground">Horário original:</dt>
+                          <dd className="font-medium">
+                            <span className="line-through">
+                              {dataBr(item.data_original)} às {item.hora_original ?? "—"}
+                            </span>
+                            {item.reagendado_em && (
+                              <span className="ml-1.5 text-muted-foreground">
+                                (alterado em {dataHoraBr(item.reagendado_em)})
+                              </span>
+                            )}
+                          </dd>
+                        </div>
+                      )}
                     </dl>
                   </div>
                 </div>
