@@ -93,7 +93,10 @@ function Cadastro() {
       rodape={
         <>
           Já tenho uma conta.{" "}
-          <Link to="/login" className="font-semibold text-foreground underline">
+          <Link
+            to="/login"
+            className="inline-flex min-h-11 items-center font-semibold text-foreground underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          >
             Entrar
           </Link>
         </>
@@ -146,7 +149,7 @@ function Cadastro() {
               onChange={(e) => setTermos(e.target.checked)}
               aria-invalid={tocado && !!erros.termos}
               aria-describedby={tocado && erros.termos ? "cad-termos-erro" : undefined}
-              className="mt-0.5 h-4 w-4 rounded border-border"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-border"
             />
             <p className="text-muted-foreground">
               <label htmlFor="cad-termos" className="cursor-pointer">

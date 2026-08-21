@@ -52,7 +52,7 @@ export function CampoSenha({
           onClick={() => setVisivel((v) => !v)}
           aria-label={visivel ? "Ocultar senha" : "Mostrar senha"}
           aria-pressed={visivel}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-secondary"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         >
           {visivel ? <EyeOff size={17} /> : <Eye size={17} />}
         </button>
