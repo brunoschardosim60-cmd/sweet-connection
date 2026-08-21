@@ -97,13 +97,17 @@ export function CatalogoPagina({
 
   const itens: ItemCarrinho[] = site.produtos
     .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
-    .map((p) => ({
-      produtoId: p.id,
-      nome: p.nome,
-      preco: precoFinal(p),
-      quantidade: carrinho[p.id]?.quantidade ?? 0,
-      ...(carrinho[p.id]?.observacao ? { observacao: carrinho[p.id]?.observacao } : {}),
-    }));
+    .map((p) => {
+      const observacao = carrinho[p.id]?.observacao ?? "";
+      return {
+        produtoId: p.id,
+        nome: p.nome,
+        preco: precoFinal(p),
+        quantidade: carrinho[p.id]?.quantidade ?? 0,
+        ...(observacao ? { observacao } : {}),
+      };
+    });
+
   const totais = totaisCarrinho(itens, site, entrega);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
