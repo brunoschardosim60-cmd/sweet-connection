@@ -3,13 +3,13 @@ const ASAAS_API_URL = "https://api.asaas.com/v3";
 export type PlanoPago = "essential" | "professional" | "catalog";
 
 const PRECO_CENTAVOS: Record<PlanoPago, number> = {
-  essential: 3900,
+  essential: 100,
   professional: 7900,
   catalog: 11900,
 };
 
 export const PRECOS_PLANOS: Record<PlanoPago, string> = {
-  essential: "39,00",
+  essential: "1,00",
   professional: "79,00",
   catalog: "119,00",
 };
