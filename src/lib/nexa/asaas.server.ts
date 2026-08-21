@@ -50,6 +50,8 @@ async function requisicaoAsaas(path: string, init?: RequestInit) {
     headers: {
       access_token: chaveAsaas(),
       "content-type": "application/json",
+      // Obrigatório para contas Asaas recentes e útil para rastrear a integração.
+      "user-agent": "Nexa/1.0 (billing integration)",
       ...(init?.headers ?? {}),
     },
   });
