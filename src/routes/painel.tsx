@@ -97,6 +97,7 @@ function PainelLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const noEditor = pathname.includes("/painel/editor/");
   const { sites, envios, pronto, erro, store } = useNexa();
+  const usuarioAnteriorRef = useRef<string | null>(null);
   const [busca, setBusca] = useState("");
   const [ativo, setAtivo] = useState(-1);
   const opcoesRef = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -108,6 +109,16 @@ function PainelLayout() {
       void navigate({ to: "/login", replace: true });
     }
   }, [carregandoSessao, navigate, user]);
+
+  // Trocar de conta no mesmo navegador jamais pode mostrar por um instante os
+  // mini-sites que ainda estavam na memória da conta anterior.
+  useEffect(() => {
+    const id = user?.id ?? null;
+    if (!id || usuarioAnteriorRef.current === id) return;
+    usuarioAnteriorRef.current = id;
+    store.reset();
+    void store.carregar(true);
+  }, [store, user?.id]);
 
   /* Escape fecha o menu móvel, foco entra no drawer e o scroll de fundo trava. */
   useEffect(() => {
