@@ -173,43 +173,92 @@ function PaginaAgenda() {
       </div>
 
       {carregando || !pronto ? (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-20 w-full rounded-2xl" />
-          <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="flex flex-col gap-2" aria-live="polite" aria-busy="true">
+          <span className="sr-only">Carregando agenda…</span>
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
         </div>
       ) : visiveis.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-          <CalendarDays size={22} className="mx-auto text-muted-foreground" aria-hidden />
-          <p className="mt-2 text-sm font-medium">Nenhum horário nesta lista</p>
-          <p className="text-xs text-muted-foreground">
-            Ative a seção Agenda no editor do mini-site para receber reservas.
+        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center">
+          <CalendarDays size={24} className="mx-auto text-muted-foreground" aria-hidden />
+          <p className="mt-3 text-sm font-semibold">
+            {filtro === "cancelados"
+              ? "Nenhum horário cancelado"
+              : filtro === "todos"
+                ? "Nenhum horário registrado ainda"
+                : "Nenhum horário próximo"}
+          </p>
+          <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+            Ative a seção Agenda no editor do mini-site e publique para começar a receber reservas.
           </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {visiveis.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">
-                    {dataBr(item.data)} às {item.hora}
-                    {item.status === "cancelado" && (
-                      <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        cancelado
+        <ul className="flex flex-col gap-3" aria-live="polite">
+          {visiveis.map((item) => {
+            const cancelado = item.status === "cancelado";
+            const editando = reagendando?.id === item.id;
+            return (
+              <li
+                key={item.id}
+                className={`overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-soft)] transition-colors motion-reduce:transition-none ${
+                  editando ? "border-ink" : "border-border"
+                } ${cancelado ? "opacity-80" : ""}`}
+              >
+                <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
+                  <div
+                    className={`flex shrink-0 flex-row items-center gap-2 rounded-xl px-3 py-2 sm:w-24 sm:flex-col sm:gap-0.5 sm:py-3 ${
+                      cancelado ? "bg-secondary text-muted-foreground" : "bg-lime text-ink"
+                    }`}
+                  >
+                    <span className="text-base font-semibold leading-none">{item.hora}</span>
+                    <span className="text-xs leading-none opacity-80">{dataBr(item.data)}</span>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-semibold">{item.nome}</p>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          cancelado
+                            ? "bg-secondary text-muted-foreground"
+                            : "bg-ink text-ink-foreground"
+                        }`}
+                      >
+                        {cancelado ? "Cancelado" : "Confirmado"}
                       </span>
-                    )}
-                  </p>
-                  <p className="truncate text-sm">{item.nome}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {[nomePorSite[item.minisite_id], item.servico, item.telefone]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
+                      {editando && !cancelado && (
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          Reagendando
+                        </span>
+                      )}
+                    </div>
+                    <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
+                      <div className="flex min-w-0 gap-1.5">
+                        <dt className="text-muted-foreground">Mini-site:</dt>
+                        <dd className="truncate font-medium">
+                          {nomePorSite[item.minisite_id] ?? "—"}
+                        </dd>
+                      </div>
+                      <div className="flex min-w-0 gap-1.5">
+                        <dt className="text-muted-foreground">Serviço:</dt>
+                        <dd className="truncate font-medium">{item.servico || "—"}</dd>
+                      </div>
+                      <div className="flex min-w-0 gap-1.5">
+                        <dt className="text-muted-foreground">Contato:</dt>
+                        <dd className="truncate font-medium">{item.telefone || "—"}</dd>
+                      </div>
+                      {item.observacao && (
+                        <div className="flex min-w-0 gap-1.5 sm:col-span-2">
+                          <dt className="text-muted-foreground">Observação:</dt>
+                          <dd className="truncate font-medium">{item.observacao}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+
+                <div className="flex flex-wrap gap-2 border-t border-border bg-secondary/30 px-4 py-3">
                   {item.telefone && (
                     <a
                       href={whatsappLink(
@@ -218,41 +267,44 @@ function PaginaAgenda() {
                       )}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-ink px-4 text-xs font-semibold text-ink-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                     >
                       <MessageCircle size={14} aria-hidden /> WhatsApp
                     </a>
                   )}
-                  {item.status === "confirmado" && (
+                  {!cancelado && (
                     <>
                       <button
                         type="button"
-                        onClick={() => setReagendando(item)}
-                        className="min-h-11 rounded-full border border-border px-3 text-xs font-medium"
+                        onClick={() => setReagendando(editando ? null : item)}
+                        aria-expanded={editando}
+                        className="min-h-11 rounded-full border border-border bg-background px-4 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                       >
-                        Reagendar
+                        {editando ? "Fechar reagendamento" : "Reagendar"}
                       </button>
                       <button
                         type="button"
                         onClick={() => void cancelar(item)}
-                        className="min-h-11 rounded-full border border-border px-3 text-xs font-medium text-destructive"
+                        className="ml-auto min-h-11 rounded-full border border-destructive/30 px-4 text-xs font-medium text-destructive focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-destructive"
                       >
                         Cancelar
                       </button>
                     </>
                   )}
                 </div>
-              </div>
 
-              {reagendando?.id === item.id && (
-                <FormularioReagendar
-                  item={item}
-                  onCancelar={() => setReagendando(null)}
-                  onSalvar={(data, hora) => void reagendar(item, data, hora)}
-                />
-              )}
-            </li>
-          ))}
+                {editando && (
+                  <div className="px-4 pb-4">
+                    <FormularioReagendar
+                      item={item}
+                      onCancelar={() => setReagendando(null)}
+                      onSalvar={(data, hora) => void reagendar(item, data, hora)}
+                    />
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
