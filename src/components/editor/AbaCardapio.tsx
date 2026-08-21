@@ -105,6 +105,63 @@ export function AbaCardapio({
         </p>
       </section>
 
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <h3 className="text-sm font-semibold">Operação do {perfil.rotulo.toLowerCase()}</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Valores usados no carrinho e no pedido enviado por WhatsApp.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="block text-xs text-muted-foreground">
+            Taxa de entrega (R$)
+            <input
+              type="number"
+              min={0}
+              step="0.5"
+              value={site.comercio.taxaEntrega}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: { ...s.comercio, taxaEntrega: Number(e.target.value) || 0 },
+                }))
+              }
+              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </label>
+          <label className="block text-xs text-muted-foreground">
+            Pedido mínimo (R$)
+            <input
+              type="number"
+              min={0}
+              step="1"
+              value={site.comercio.pedidoMinimo}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: { ...s.comercio, pedidoMinimo: Number(e.target.value) || 0 },
+                }))
+              }
+              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </label>
+        </div>
+        <label className="mt-3 flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={site.comercio.carrinho}
+            onChange={(e) =>
+              aplicar((s) => ({ ...s, comercio: { ...s.comercio, carrinho: e.target.checked } }))
+            }
+            className="h-5 w-5 rounded border-border"
+          />
+          Carrinho com envio do pedido por WhatsApp
+        </label>
+        <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+          Cadastro de mesas, prazo de preparo automático e recebimento de pedidos no painel ficam
+          <strong> disponíveis após a ativação da operação</strong>. Os horários de atendimento
+          usados no status “Aberto agora” são os da aba Contato.
+        </p>
+      </section>
+
       {[...categorias, ...(semCategoria.length ? ["Sem categoria"] : [])].map((cat) => {
         const itens =
           cat === "Sem categoria"
