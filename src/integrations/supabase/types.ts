@@ -264,6 +264,54 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_invoices: {
+        Row: {
+          amount: number | null
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_url: string | null
+          owner_id: string
+          paid_at: string | null
+          provider: string
+          provider_payment_id: string
+          provider_subscription_id: string | null
+          status: string
+          tier: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          owner_id: string
+          paid_at?: string | null
+          provider: string
+          provider_payment_id: string
+          provider_subscription_id?: string | null
+          status: string
+          tier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          owner_id?: string
+          paid_at?: string | null
+          provider?: string
+          provider_payment_id?: string
+          provider_subscription_id?: string | null
+          status?: string
+          tier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string
@@ -465,6 +513,42 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          last_error: string | null
+          sent_at: string | null
+          source_id: string
+          source_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          sent_at?: string | null
+          source_id: string
+          source_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          sent_at?: string | null
+          source_id?: string
+          source_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           created_at: string
@@ -488,6 +572,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          billing_cancel_at_period_end: boolean
+          billing_current_period_end: string | null
           billing_customer_id: string | null
           billing_provider: string | null
           billing_subscription_id: string | null
@@ -507,6 +593,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_cancel_at_period_end?: boolean
+          billing_current_period_end?: string | null
           billing_customer_id?: string | null
           billing_provider?: string | null
           billing_subscription_id?: string | null
@@ -526,6 +614,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_cancel_at_period_end?: boolean
+          billing_current_period_end?: string | null
           billing_customer_id?: string | null
           billing_provider?: string | null
           billing_subscription_id?: string | null
@@ -545,6 +635,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reservas_hospedagem: {
+        Row: {
+          acomodacao: string
+          chave_idempotencia: string | null
+          check_in: string
+          check_out: string
+          created_at: string
+          email: string
+          hospedes: number
+          id: string
+          minisite_id: string
+          nome: string
+          notification_sent_at: string | null
+          observacao: string
+          status: string
+          telefone: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          acomodacao?: string
+          chave_idempotencia?: string | null
+          check_in: string
+          check_out: string
+          created_at?: string
+          email?: string
+          hospedes: number
+          id?: string
+          minisite_id: string
+          nome: string
+          notification_sent_at?: string | null
+          observacao?: string
+          status?: string
+          telefone?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          acomodacao?: string
+          chave_idempotencia?: string | null
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          email?: string
+          hospedes?: number
+          id?: string
+          minisite_id?: string
+          nome?: string
+          notification_sent_at?: string | null
+          observacao?: string
+          status?: string
+          telefone?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_hospedagem_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -713,6 +868,21 @@ export type Database = {
         Args: { requested_user_id: string }
         Returns: undefined
       }
+      nexa_reservar_hospedagem: {
+        Args: {
+          requested_acomodacao: string
+          requested_chave?: string
+          requested_check_in: string
+          requested_check_out: string
+          requested_email?: string
+          requested_hospedes: number
+          requested_nome: string
+          requested_observacao?: string
+          requested_slug: string
+          requested_telefone?: string
+        }
+        Returns: Json
+      }
       publish_minisite: {
         Args: { requested_id: string }
         Returns: {
@@ -832,6 +1002,8 @@ export type Database = {
       touch_nexa_activity: {
         Args: never
         Returns: {
+          billing_cancel_at_period_end: boolean
+          billing_current_period_end: string | null
           billing_customer_id: string | null
           billing_provider: string | null
           billing_subscription_id: string | null
@@ -860,6 +1032,8 @@ export type Database = {
       update_nexa_profile: {
         Args: { requested_display_name: string }
         Returns: {
+          billing_cancel_at_period_end: boolean
+          billing_current_period_end: string | null
           billing_customer_id: string | null
           billing_provider: string | null
           billing_subscription_id: string | null
