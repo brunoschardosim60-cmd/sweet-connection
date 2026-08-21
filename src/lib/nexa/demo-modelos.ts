@@ -379,7 +379,8 @@ const conteudoPorModelo: Record<
       {
         id: "f2",
         pergunta: "Como funciona o agendamento?",
-        resposta: "Envie o formulário com a especialidade e a data desejada; a recepção confirma pelo WhatsApp.",
+        resposta:
+          "Envie o formulário com a especialidade e a data desejada; a recepção confirma pelo WhatsApp.",
       },
       {
         id: "f3",
@@ -546,7 +547,6 @@ const conteudoPorModelo: Record<
       "links",
       "servicos",
       "equipe",
-      "videos",
       "depoimentos",
       "faq",
       "formulario",
