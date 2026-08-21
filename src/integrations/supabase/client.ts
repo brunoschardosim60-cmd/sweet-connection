@@ -11,7 +11,10 @@ const SUPABASE_PUBLISHABLE_KEY =
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: typeof window !== "undefined" ? localStorage : undefined,
+    // Cada janela/aba mantém sua própria sessão. Isso evita que criar ou entrar
+    // com outra conta em uma segunda janela troque silenciosamente a conta em uso.
+    // A sessão ainda sobrevive a recarregamentos da mesma aba.
+    storage: typeof window !== "undefined" ? sessionStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
   },
