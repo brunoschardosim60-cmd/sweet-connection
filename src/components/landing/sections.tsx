@@ -923,8 +923,6 @@ const planos = [
 ];
 
 export function Planos() {
-  const marca = useMarca();
-  const [modal, setModal] = useState<string | null>(null);
   return (
     <section id="planos" className="border-y border-border bg-sand py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
@@ -981,62 +979,19 @@ export function Planos() {
                     ))}
                   </ul>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setModal(p.nome)}
+                <Link
+                  to="/painel/meu-plano"
                   className={`mt-7 inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink motion-reduce:transform-none ${
                     p.destaque ? "bg-lime text-ink" : "bg-ink text-ink-foreground"
                   }`}
                 >
-                  Tenho interesse
-                </button>
+                  Assinar agora
+                </Link>
               </div>
             </Reveal>
           ))}
         </div>
       </div>
-
-      {modal && (
-        <div
-          className="fixed inset-0 z-[60] grid place-items-center bg-ink/60 p-5 backdrop-blur-sm"
-          onClick={() => setModal(null)}
-        >
-          <div
-            className="w-full max-w-md rounded-3xl border border-border bg-card p-7"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-display text-2xl font-bold">Plano {modal}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Fale com nosso time para receber uma demonstração e ativar o plano para o seu negócio.
-              Nenhum pagamento é processado nesta versão.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a
-                href={whatsappLink(
-                  marca.whatsappComercial,
-                  `Olá! Tenho interesse no plano ${modal} do ${marca.nome}.`,
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground"
-              >
-                <MessageCircle size={15} /> Falar no WhatsApp
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  toast("Registro de interesse disponível em breve", {
-                    description: "Por enquanto, fale com o time pelo WhatsApp.",
-                  });
-                }}
-                className="rounded-full border border-border px-5 py-3 text-sm font-semibold"
-              >
-                Registrar interesse
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
