@@ -33,7 +33,13 @@ import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
 import { enviarFormularioPublicado, notificarDonoDoMinisite, registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { reservarHospedagem } from "@/lib/nexa/reservas";
-import { enderecoCardapio, itensDestaque, perfilCatalogo } from "@/lib/nexa/catalogo";
+import {
+  enderecoCardapio,
+  itensDestaque,
+  lerRascunhoPedido,
+  perfilCatalogo,
+  salvarRascunhoPedido,
+} from "@/lib/nexa/catalogo";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
@@ -620,7 +626,34 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState("Todos");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const [restaurado, setRestaurado] = useState(false);
   const usarCarrinho = site.comercio?.carrinho === true;
+
+  // Rascunho anônimo compartilhado com a página /cardapio (somente navegador).
+  useEffect(() => {
+    const salvo = lerRascunhoPedido(site.slug);
+    if (salvo)
+      setCarrinho(
+        Object.fromEntries(
+          Object.entries(salvo.carrinho ?? {}).map(([id, l]) => [id, l.quantidade]),
+        ),
+      );
+    setRestaurado(true);
+  }, [site.slug]);
+
+  useEffect(() => {
+    if (!restaurado) return;
+    const salvo = lerRascunhoPedido(site.slug);
+    salvarRascunhoPedido(site.slug, {
+      ...(salvo ?? { modalidade: "entrega" as const, campos: {} }),
+      carrinho: Object.fromEntries(
+        Object.entries(carrinho).map(([id, q]) => [
+          id,
+          { quantidade: q, observacao: salvo?.carrinho?.[id]?.observacao ?? "" },
+        ]),
+      ),
+    });
+  }, [restaurado, site.slug, carrinho]);
   const alterarQuantidade = (id: string, delta: number) => {
     if (delta > 0) eventoMarketing("add_to_cart", { item_id: id, quantidade: delta });
     setCarrinho((atual) => {

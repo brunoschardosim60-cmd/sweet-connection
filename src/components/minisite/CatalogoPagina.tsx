@@ -17,19 +17,25 @@ import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { registrarEventoPublicado } from "@/lib/nexa/public-api";
 import { moeda } from "@/lib/nexa/utils";
 import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/estilo";
+import { useFocoModal } from "@/components/minisite/useFocoModal";
 import {
   categoriasDeProdutos,
   descontoPercentual,
   filtrarCatalogo,
   filtrosCatalogo,
+  lerRascunhoPedido,
   mensagemPedido,
+  ordenacoesCatalogo,
+  ordenarCatalogo,
   perfilCatalogo,
   precoFinal,
   rotulosModalidade,
   rotulosPagamento,
   situacaoAtendimento,
+  salvarRascunhoPedido,
   totaisCarrinho,
   type Entrega,
+  type OrdemCatalogo,
   type FiltroCatalogo,
   type ItemCarrinho,
   type Pagamento,
@@ -73,6 +79,7 @@ export function CatalogoPagina({
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("Todos");
   const [filtro, setFiltro] = useState<FiltroCatalogo>("todos");
+  const [ordem, setOrdem] = useState<OrdemCatalogo>("destaque");
   const [carregando, setCarregando] = useState(true);
   const [detalhe, setDetalhe] = useState<Produto | null>(null);
   const [carrinho, setCarrinho] = useState<Record<string, LinhaCarrinho>>({});
@@ -93,10 +100,40 @@ export function CatalogoPagina({
     troco: "",
   });
 
+  const [restaurado, setRestaurado] = useState(false);
+
   useEffect(() => {
     const t = setTimeout(() => setCarregando(false), 250);
     return () => clearTimeout(t);
   }, []);
+
+  // Rascunho anônimo: recupera o carrinho ao voltar do mini-site.
+  useEffect(() => {
+    const salvo = lerRascunhoPedido(site.slug);
+    if (salvo) {
+      setCarrinho(salvo.carrinho ?? {});
+      if (salvo.modalidade) setEntrega(salvo.modalidade);
+      if (salvo.pagamento) setPagamento(salvo.pagamento);
+      if (salvo.campos) setCampos((c) => ({ ...c, ...salvo.campos }));
+    }
+    // Link de mesa (/cardapio?mesa=12) já abre na modalidade correta.
+    const mesa = new URLSearchParams(window.location.search).get("mesa");
+    if (mesa) {
+      setEntrega("mesa");
+      setCampos((c) => ({ ...c, mesa }));
+    }
+    setRestaurado(true);
+  }, [site.slug]);
+
+  useEffect(() => {
+    if (!restaurado) return;
+    salvarRascunhoPedido(site.slug, {
+      carrinho,
+      modalidade: entrega,
+      ...(pagamento ? { pagamento } : {}),
+      campos: { ...campos },
+    });
+  }, [restaurado, site.slug, carrinho, entrega, pagamento, campos]);
 
   useEffect(() => {
     if (rastrear) void registrarEventoPublicado(site.slug, "visita", "cardapio").catch(() => {});
@@ -114,8 +151,8 @@ export function CatalogoPagina({
     [site.produtos],
   );
   const lista = useMemo(
-    () => filtrarCatalogo(site.produtos, { busca, categoria, filtro }),
-    [site.produtos, busca, categoria, filtro],
+    () => ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem),
+    [site.produtos, busca, categoria, filtro, ordem],
   );
 
   const itens: ItemCarrinho[] = site.produtos
@@ -316,6 +353,30 @@ export function CatalogoPagina({
               ))}
             </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="ordem-catalogo" className="text-xs opacity-70">
+                Ordenar por
+              </label>
+              <select
+                id="ordem-catalogo"
+                value={ordem}
+                onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
+                className="min-h-11 bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "999px",
+                  color: "inherit",
+                  outlineColor: primaria,
+                }}
+              >
+                {ordenacoesCatalogo.map((o) => (
+                  <option key={o.id} value={o.id} style={{ color: "#111" }}>
+                    {o.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {categorias.length > 1 && (
               <div
                 role="group"
@@ -446,38 +507,8 @@ export function CatalogoPagina({
       )}
 
       {carrinhoAberto && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button
-            type="button"
-            aria-label="Fechar carrinho"
-            onClick={() => setCarrinhoAberto(false)}
-            className="absolute inset-0 bg-black/50"
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Seu pedido"
-            className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4"
-            style={{
-              background: site.aparencia.corFundo,
-              color: site.aparencia.corTexto,
-              borderTopLeftRadius: "18px",
-              borderTopRightRadius: "18px",
-            }}
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Seu pedido</h2>
-              <button
-                type="button"
-                onClick={() => setCarrinhoAberto(false)}
-                aria-label="Fechar carrinho"
-                className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{ outlineColor: primaria }}
-              >
-                <X size={18} aria-hidden />
-              </button>
-            </div>
-            <PainelCarrinho
+        <DrawerCarrinho site={site} onFechar={() => setCarrinhoAberto(false)}>
+          <PainelCarrinho
               site={site}
               itens={itens}
               totais={totais}
@@ -498,9 +529,61 @@ export function CatalogoPagina({
                 registrar("Catálogo: enviar pedido", true);
               }}
             />
-          </div>
-        </div>
+        </DrawerCarrinho>
       )}
+    </div>
+  );
+}
+
+/** Drawer do carrinho no celular, com foco preso e Escape para fechar. */
+function DrawerCarrinho({
+  site,
+  onFechar,
+  children,
+}: {
+  site: Site;
+  onFechar: () => void;
+  children: React.ReactNode;
+}) {
+  const ref = useFocoModal(true, onFechar);
+  const primaria = site.aparencia.corPrimaria;
+  return (
+    <div className="fixed inset-0 z-40 lg:hidden">
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        onClick={onFechar}
+        className="absolute inset-0 bg-black/50"
+      />
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Seu pedido"
+        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4"
+        style={{
+          background: site.aparencia.corFundo,
+          color: site.aparencia.corTexto,
+          borderTopLeftRadius: "18px",
+          borderTopRightRadius: "18px",
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Seu pedido</h2>
+          <button
+            type="button"
+            onClick={onFechar}
+            aria-label="Fechar carrinho"
+            className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
+            style={{ outlineColor: primaria }}
+          >
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+        {children}
+      </div>
     </div>
   );
 }
@@ -733,21 +816,19 @@ function DetalheProduto({
   const [nota, setNota] = useState(observacao);
   const desconto = descontoPercentual(produto);
 
-  useEffect(() => {
-    const aoTeclar = (e: KeyboardEvent) => e.key === "Escape" && onFechar();
-    document.addEventListener("keydown", aoTeclar);
-    return () => document.removeEventListener("keydown", aoTeclar);
-  }, [onFechar]);
+  const refModal = useFocoModal(true, onFechar);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <button
         type="button"
-        aria-label="Fechar detalhes do item"
+        tabIndex={-1}
+        aria-hidden
         onClick={onFechar}
         className="absolute inset-0 bg-black/50"
       />
       <div
+        ref={refModal}
         role="dialog"
         aria-modal="true"
         aria-label={produto.nome}

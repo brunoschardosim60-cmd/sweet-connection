@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ExternalLink, FolderPen } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, Eye, EyeOff, FolderPen, GripVertical } from "lucide-react";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import {
   categoriasDeProdutos,
   descontoPercentual,
@@ -31,6 +32,45 @@ export function AbaCardapio({
   const semCategoria = site.produtos.filter((p) => !p.categoria);
   const [renomeando, setRenomeando] = useState<string | null>(null);
   const [novoNome, setNovoNome] = useState("");
+  const [previa, setPrevia] = useState(true);
+  const [arrastando, setArrastando] = useState<
+    { tipo: "produto"; id: string } | { tipo: "categoria"; nome: string } | null
+  >(null);
+
+  /** Reordena produtos dentro do array real, sem duplicar nada. */
+  const soltarProduto = (alvoId: string) => {
+    const origem = arrastando?.tipo === "produto" ? arrastando.id : null;
+    setArrastando(null);
+    if (!origem || origem === alvoId) return;
+    aplicar((s) => {
+      const lista = [...s.produtos];
+      const i = lista.findIndex((x) => x.id === origem);
+      const j = lista.findIndex((x) => x.id === alvoId);
+      if (i < 0 || j < 0) return s;
+      const [item] = lista.splice(i, 1);
+      if (!item) return s;
+      lista.splice(j, 0, { ...item, categoria: lista[j]?.categoria ?? item.categoria });
+      return { ...s, produtos: lista };
+    });
+  };
+
+  /** Move o bloco inteiro de uma categoria para a posição de outra. */
+  const soltarCategoria = (alvo: string) => {
+    const origem = arrastando?.tipo === "categoria" ? arrastando.nome : null;
+    setArrastando(null);
+    if (!origem || origem === alvo) return;
+    aplicar((s) => {
+      const chave = (p: Produto) => p.categoria || "Sem categoria";
+      const ordem: string[] = [];
+      for (const p of s.produtos) if (!ordem.includes(chave(p))) ordem.push(chave(p));
+      const i = ordem.indexOf(origem);
+      const j = ordem.indexOf(alvo);
+      if (i < 0 || j < 0) return s;
+      ordem.splice(j, 0, ...ordem.splice(i, 1));
+      const produtos = ordem.flatMap((c) => s.produtos.filter((p) => chave(p) === c));
+      return { ...s, produtos };
+    });
+  };
 
   const mover = (produto: Produto, direcao: -1 | 1) =>
     aplicar((s) => {
@@ -92,6 +132,16 @@ export function AbaCardapio({
               6 itens em destaque.
             </p>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPrevia((v) => !v)}
+            aria-pressed={previa}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
+          >
+            {previa ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
+            {previa ? "Ocultar prévia" : "Ver prévia"}
+          </button>
           <a
             href={enderecoCardapio(site.slug)}
             target="_blank"
@@ -100,6 +150,7 @@ export function AbaCardapio({
           >
             <ExternalLink size={14} aria-hidden /> Abrir página
           </a>
+          </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Grupos de opção sugeridos para este segmento: {perfil.gruposOpcao.join(" · ")}.
@@ -163,14 +214,55 @@ export function AbaCardapio({
         </p>
       </section>
 
+      {previa && (
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <h3 className="text-sm font-semibold">Prévia da página do cardápio</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Reflete em tempo real a ordem, as categorias e os selos exibidos em{" "}
+            {enderecoCardapio(site.slug)}. Nesta prévia os links externos ficam desativados.
+          </p>
+          <div
+            aria-label="Prévia do cardápio"
+            className="mt-3 max-h-[520px] overflow-y-auto rounded-2xl border border-border"
+          >
+            <CatalogoPagina site={site} interacoesExternas={false} />
+          </div>
+        </section>
+      )}
+
+      <p className="text-xs text-muted-foreground">
+        Arraste pelo apoio <GripVertical size={12} className="inline" aria-hidden /> para reordenar
+        categorias e itens, ou use as setas. A ordem salva é a mesma exibida na página pública.
+      </p>
+
       {[...categorias, ...(semCategoria.length ? ["Sem categoria"] : [])].map((cat) => {
         const itens =
           cat === "Sem categoria"
             ? semCategoria
             : site.produtos.filter((p) => p.categoria === cat);
         return (
-          <section key={cat} className="rounded-2xl border border-border bg-card p-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <section
+            key={cat}
+            onDragOver={(e) => {
+              if (arrastando?.tipo === "categoria") e.preventDefault();
+            }}
+            onDrop={() => soltarCategoria(cat)}
+            className={`rounded-2xl border bg-card p-4 ${
+              arrastando?.tipo === "categoria" && arrastando.nome !== cat
+                ? "border-dashed border-ink/60"
+                : "border-border"
+            }`}
+          >
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+              <span
+                draggable
+                onDragStart={() => setArrastando({ tipo: "categoria", nome: cat })}
+                onDragEnd={() => setArrastando(null)}
+                aria-label={`Arrastar categoria ${cat}`}
+                className="grid h-11 w-8 cursor-grab place-items-center text-muted-foreground active:cursor-grabbing"
+              >
+                <GripVertical size={16} aria-hidden />
+              </span>
               <div className="min-w-0">
                 {renomeando === cat && cat !== "Sem categoria" ? (
                   <input
@@ -219,8 +311,28 @@ export function AbaCardapio({
                 return (
                   <li
                     key={p.id}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-border/70 p-3"
+                    onDragOver={(e) => {
+                      if (arrastando?.tipo === "produto") e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.stopPropagation();
+                      soltarProduto(p.id);
+                    }}
+                    className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border p-3 ${
+                      arrastando?.tipo === "produto" && arrastando.id !== p.id
+                        ? "border-dashed border-ink/60"
+                        : "border-border/70"
+                    }`}
                   >
+                    <span
+                      draggable
+                      onDragStart={() => setArrastando({ tipo: "produto", id: p.id })}
+                      onDragEnd={() => setArrastando(null)}
+                      aria-label={`Arrastar ${p.nome}`}
+                      className="grid h-11 w-8 cursor-grab place-items-center text-muted-foreground active:cursor-grabbing"
+                    >
+                      <GripVertical size={15} aria-hidden />
+                    </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{p.nome}</p>
                       <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

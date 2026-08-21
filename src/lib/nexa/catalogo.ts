@@ -231,3 +231,90 @@ export function mensagemPedido(
   ];
   return linhas.filter(Boolean).join("\n");
 }
+
+export type OrdemCatalogo = "destaque" | "pedidos" | "preco-asc" | "preco-desc" | "nome";
+
+export const ordenacoesCatalogo: { id: OrdemCatalogo; rotulo: string }[] = [
+  { id: "destaque", rotulo: "Destaques primeiro" },
+  { id: "pedidos", rotulo: "Mais pedidos" },
+  { id: "preco-asc", rotulo: "Menor preço" },
+  { id: "preco-desc", rotulo: "Maior preço" },
+  { id: "nome", rotulo: "Nome (A–Z)" },
+];
+
+/**
+ * Ordena a lista já filtrada. "Mais pedidos" usa os itens marcados como
+ * destaque pelo estabelecimento — não há métrica de vendas sem backend.
+ */
+export function ordenarCatalogo(produtos: Produto[], ordem: OrdemCatalogo = "destaque") {
+  const lista = [...produtos];
+  switch (ordem) {
+    case "preco-asc":
+      return lista.sort((a, b) => precoFinal(a) - precoFinal(b));
+    case "preco-desc":
+      return lista.sort((a, b) => precoFinal(b) - precoFinal(a));
+    case "nome":
+      return lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    case "pedidos":
+      return lista.sort(
+        (a, b) =>
+          Number(b.destaque) - Number(a.destaque) ||
+          Number(b.disponivel) - Number(a.disponivel) ||
+          a.nome.localeCompare(b.nome, "pt-BR"),
+      );
+    default:
+      return lista.sort(
+        (a, b) =>
+          Number(b.destaque) - Number(a.destaque) ||
+          descontoPercentual(b) - descontoPercentual(a) ||
+          Number(b.disponivel) - Number(a.disponivel),
+      );
+  }
+}
+
+/**
+ * Rascunho anônimo do carrinho, guardado só no navegador do visitante para o
+ * pedido não se perder ao navegar entre o mini-site e o cardápio.
+ * Nunca guarda pedidos confirmados, clientes ou histórico.
+ */
+export interface RascunhoPedido {
+  carrinho: Record<string, { quantidade: number; observacao: string }>;
+  modalidade: Modalidade;
+  pagamento?: Pagamento;
+  campos: Record<string, string>;
+}
+
+const chaveRascunho = (slug: string) => `nexa:carrinho:${slug}`;
+
+export function lerRascunhoPedido(slug: string): RascunhoPedido | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const bruto = window.localStorage.getItem(chaveRascunho(slug));
+    if (!bruto) return null;
+    const dado = JSON.parse(bruto) as RascunhoPedido;
+    if (!dado || typeof dado !== "object" || typeof dado.carrinho !== "object") return null;
+    return dado;
+  } catch {
+    return null;
+  }
+}
+
+export function salvarRascunhoPedido(slug: string, dado: RascunhoPedido) {
+  if (typeof window === "undefined") return;
+  try {
+    const vazio = Object.keys(dado.carrinho).length === 0;
+    if (vazio) window.localStorage.removeItem(chaveRascunho(slug));
+    else window.localStorage.setItem(chaveRascunho(slug), JSON.stringify(dado));
+  } catch {
+    /* armazenamento indisponível: o pedido segue funcionando na sessão atual */
+  }
+}
+
+export function limparRascunhoPedido(slug: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(chaveRascunho(slug));
+  } catch {
+    /* ignorado */
+  }
+}

@@ -292,8 +292,24 @@ function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode
   );
 }
 
+const estadosMesa = [
+  { id: "livre", rotulo: "Livre", cor: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  { id: "ocupada", rotulo: "Ocupada", cor: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  {
+    id: "aguardando",
+    rotulo: "Aguardando pedido",
+    cor: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  },
+  {
+    id: "atendimento",
+    rotulo: "Em atendimento",
+    cor: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+  },
+] as const;
+
 function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | undefined }) {
   const [quantidade, setQuantidade] = useState(6);
+  const [estados, setEstados] = useState<Record<number, string>>({});
   const mesas = Array.from({ length: Math.min(Math.max(quantidade, 1), 40) }, (_, i) => i + 1);
 
   const copiar = async (numero: number) => {
@@ -340,18 +356,47 @@ function AbaMesas({ slug, nome }: { slug?: string | undefined; nome?: string | u
             </p>
           </div>
 
+          <ul className="flex flex-wrap gap-2" aria-label="Legenda de estados das mesas">
+            {estadosMesa.map((e) => (
+              <li key={e.id} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${e.cor}`}>
+                {e.rotulo}
+              </li>
+            ))}
+            <li>
+              <Etiqueta />
+            </li>
+          </ul>
+
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {mesas.map((n) => (
               <li key={n} className="surface space-y-3 p-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-display text-lg font-bold">Mesa {n}</p>
-                  <span className="rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                    Estado após ativação
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      estadosMesa.find((e) => e.id === (estados[n] ?? "livre"))?.cor ?? ""
+                    }`}
+                  >
+                    {estadosMesa.find((e) => e.id === (estados[n] ?? "livre"))?.rotulo}
                   </span>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   {enderecoSite(slug)}/cardapio?mesa={n}
                 </p>
+                <label className="block text-[11px] text-muted-foreground">
+                  Estado (visual, ainda não salvo)
+                  <select
+                    value={estados[n] ?? "livre"}
+                    onChange={(e) => setEstados((a) => ({ ...a, [n]: e.target.value }))}
+                    className="mt-1 min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+                  >
+                    {estadosMesa.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
