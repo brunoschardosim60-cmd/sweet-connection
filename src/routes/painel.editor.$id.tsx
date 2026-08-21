@@ -27,6 +27,7 @@ import {
   SeletorDispositivo,
   type Dispositivo,
 } from "@/components/editor/PreviaDispositivo";
+import { AbaCardapio } from "@/components/editor/AbaCardapio";
 import {
   PainelQualidade,
   destinoPorSecao,
