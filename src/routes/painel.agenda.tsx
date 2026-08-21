@@ -32,6 +32,10 @@ type Agendamento = {
   observacao: string;
   status: string;
   created_at: string;
+  data_original: string | null;
+  hora_original: string | null;
+  reagendamentos: number | null;
+  reagendado_em: string | null;
 };
 
 function dataBr(iso: string) {
