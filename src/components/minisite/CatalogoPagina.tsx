@@ -244,7 +244,7 @@ export function CatalogoPagina({
   return (
     <div
       style={estiloMiniSite(site)}
-      className="min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed"
+      className="@container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed"
     >
       <header
         className="sticky top-0 z-30 w-full backdrop-blur"
