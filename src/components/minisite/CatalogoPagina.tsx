@@ -174,6 +174,10 @@ export function CatalogoPagina({
       ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem, ranking),
     [site.produtos, busca, categoria, filtro, ordem, ranking],
   );
+  /** Catálogo sem nenhum item cadastrado — diferente de "filtro sem resultado". */
+  const catalogoVazio = !carregando && site.produtos.length === 0;
+
+
 
   const itens: ItemCarrinho[] = site.produtos
     .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
@@ -357,6 +361,7 @@ export function CatalogoPagina({
           <h1 className="text-2xl font-semibold">{perfil.rotulo}</h1>
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 
+          {!catalogoVazio && (
           <div
             className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
             style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
@@ -449,6 +454,7 @@ export function CatalogoPagina({
                 : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
             </p>
           </div>
+          )}
 
           {carregando ? (
             <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
@@ -472,11 +478,16 @@ export function CatalogoPagina({
                 borderRadius: "var(--ms-radius)",
               }}
             >
-              <p className="text-sm font-semibold">Nenhum item encontrado</p>
+              <p className="text-sm font-semibold">
+                {catalogoVazio ? "Cardápio em preparação" : "Nenhum item encontrado"}
+              </p>
               <p className="mt-1 text-xs opacity-70">
-                Ajuste a busca, a categoria ou os filtros para ver mais opções.
+                {catalogoVazio
+                  ? "Os itens ainda não foram cadastrados. Fale com o estabelecimento para conhecer as opções."
+                  : "Ajuste a busca, a categoria ou os filtros para ver mais opções."}
               </p>
             </div>
+
           ) : (
             <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
               {lista.map((p) => (
