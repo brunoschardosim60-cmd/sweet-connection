@@ -361,6 +361,7 @@ export function CatalogoPagina({
           <h1 className="text-2xl font-semibold">{perfil.rotulo}</h1>
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 
+          {!catalogoVazio && (
           <div
             className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
             style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
@@ -453,6 +454,7 @@ export function CatalogoPagina({
                 : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
             </p>
           </div>
+          )}
 
           {carregando ? (
             <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
