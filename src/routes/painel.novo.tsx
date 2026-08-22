@@ -638,6 +638,7 @@ function NovoSite() {
                 cliente={cliente}
                 briefingInicial={textoImportado}
                 slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                verificandoAcesso={acessoIA === "carregando"}
                 {...(cliente.empresa.trim().length > 1 &&
                 cliente.telefone.replace(/\D/g, "").length >= 10
                   ? {}
@@ -646,12 +647,10 @@ function NovoSite() {
                     })}
                 {...(cliente.empresa.trim().length > 1 &&
                 cliente.telefone.replace(/\D/g, "").length >= 10 &&
-                acessoIA !== "permitido"
+                acessoIA === "bloqueado"
                   ? {
                       desabilitado:
-                        acessoIA === "carregando"
-                          ? "Estamos verificando o seu plano. Aguarde alguns segundos e tente novamente."
-                          : "A criação automática com IA é exclusiva dos planos Profissional e Catálogo. Escolha um plano para liberar esta função.",
+                        "A criação automática com IA é exclusiva dos planos Profissional e Catálogo. Escolha um plano para liberar esta função.",
                     }
                   : {})}
                 onCriar={criarComSite}

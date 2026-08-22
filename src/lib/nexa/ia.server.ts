@@ -209,7 +209,7 @@ async function reservarGeracao(accessToken: string) {
   const resultado = Array.isArray(data) ? data[0] : data;
   if (!resultado?.allowed) {
     throw new Error(
-      `Você atingiu o limite diário de ${resultado?.daily_limit ?? 5} gerações de IA. Tente amanhã ou mude para o plano Pro.`,
+      "Você já utilizou a geração com IA incluída no seu plano nesta semana. Uma nova geração ficará disponível na próxima semana.",
     );
   }
   return auth.user.id;
@@ -258,7 +258,8 @@ export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Pr
     }
 
     const chave = process.env["LOVABLE_API_KEY"];
-    if (!chave) throw new Error("Serviço de IA indisponível: configure GEMINI_API_KEY na Vercel.");
+    if (!chave)
+      throw new Error("A criação com IA está indisponível no momento. Tente novamente mais tarde.");
 
     const conteudo: unknown[] = [
       { type: "text", text: briefingEmTexto(entrada) },

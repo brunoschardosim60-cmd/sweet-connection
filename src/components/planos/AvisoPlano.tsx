@@ -26,7 +26,7 @@ const conteudo: Record<
     icone: <Sparkles size={18} aria-hidden="true" />,
     titulo: "Criação com IA indisponível",
     texto:
-      "A montagem automática com IA faz parte dos planos pagos. Ative um plano para gerar seções e textos automaticamente.",
+      "A montagem automática com IA está incluída nos planos Profissional e Catálogo. Escolha um deles para gerar seções e textos automaticamente.",
     acao: "Ver planos",
   },
 };

@@ -23,12 +23,14 @@ export function CriacaoIA({
   cliente,
   slug,
   desabilitado,
+  verificandoAcesso = false,
   onCriar,
   briefingInicial = "",
 }: {
   cliente: Cliente;
   slug: string;
   desabilitado?: string;
+  verificandoAcesso?: boolean;
   onCriar: (site: Site) => Promise<void>;
   briefingInicial?: string;
 }) {
@@ -469,7 +471,7 @@ export function CriacaoIA({
       <button
         type="button"
         onClick={() => void revisar()}
-        disabled={gerando}
+        disabled={gerando || verificandoAcesso}
         className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto"
       >
         {gerando ? (
@@ -477,15 +479,23 @@ export function CriacaoIA({
         ) : (
           <Wand2 size={16} aria-hidden />
         )}
-        {gerando ? "Gerando sugestão…" : plano ? "Gerar nova sugestão" : "Gerar sugestão com IA"}
+        {gerando
+          ? "Gerando sugestão…"
+          : verificandoAcesso
+            ? "Verificando acesso…"
+            : plano
+              ? "Gerar nova sugestão"
+              : "Gerar sugestão com IA"}
       </button>
 
       <p aria-live="polite" className="mt-2 min-h-5 text-xs text-muted-foreground">
-        {gerando
-          ? "A IA está montando a proposta com as informações enviadas. Isso pode levar alguns segundos."
-          : plano
-            ? "Sugestão pronta: revise abaixo antes de criar o mini-site."
-            : "Nada é criado nem publicado antes da sua aprovação."}
+        {verificandoAcesso
+          ? "Estamos confirmando os recursos incluídos no seu plano."
+          : gerando
+            ? "A IA está montando a proposta com as informações enviadas. Isso pode levar alguns segundos."
+            : plano
+              ? "Sugestão pronta: revise abaixo antes de criar o mini-site."
+              : "Nada é criado nem publicado antes da sua aprovação."}
       </p>
 
       {gerando && (
