@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList,
@@ -53,11 +53,7 @@ const acoesStatus = [
   "Cancelar",
 ];
 
-/**
- * Área operacional do Cardápio Digital. Os pedidos ainda não são persistidos:
- * toda a tela mostra estados vazios honestos e ações marcadas como
- * "Disponível após ativação" até a operação ser conectada.
- */
+/** Área operacional do Cardápio Digital, com pedidos e mesas persistidos no Supabase. */
 function PainelPedidos() {
   const { sites, pronto } = useNexa();
   const [aba, setAba] = useState<Aba>("pedidos");
@@ -441,7 +437,7 @@ function AbaMesas({
   const [mesas, setMesas] = useState<Mesa[]>([]);
   const [novaMesa, setNovaMesa] = useState("1");
   const [carregando, setCarregando] = useState(false);
-  const carregar = async () => {
+  const carregar = useCallback(async () => {
     if (!siteId) return;
     setCarregando(true);
     const { data, error } = await supabase
@@ -452,10 +448,10 @@ function AbaMesas({
     if (error) toast.error("Não foi possível carregar as mesas.");
     else setMesas(data ?? []);
     setCarregando(false);
-  };
+  }, [siteId]);
   useEffect(() => {
     void carregar();
-  }, [siteId]);
+  }, [carregar]);
   const criarMesa = async () => {
     const numero = Number(novaMesa);
     if (!siteId || !Number.isInteger(numero) || numero < 1 || numero > 200) {
