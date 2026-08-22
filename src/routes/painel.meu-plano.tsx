@@ -49,7 +49,11 @@ const nomes: Record<string, string> = {
 };
 
 const beneficios: Record<string, string[]> = {
-  none: ["1 rascunho salvo", "Prévia do mini-site", "Modelos para explorar"],
+  none: [
+    "1 projeto completo em rascunho",
+    "Editor, modelos e prévia para testar",
+    "Produtos, serviços, seções e aparência para montar",
+  ],
   essential: [
     "Publicação do mini-site",
     "Links, WhatsApp e redes",
@@ -72,7 +76,12 @@ const beneficios: Record<string, string[]> = {
 };
 
 const bloqueado: Record<string, string[]> = {
-  none: ["Publicar o mini-site", "Criação automática com IA", "Mais de um projeto"],
+  none: [
+    "Publicar o mini-site ou cardápio",
+    "Receber mensagens, pedidos e agendamentos reais",
+    "Criação automática com IA e integrações/API",
+    "Mais de um projeto",
+  ],
 };
 
 type PlanoContratavel = "essential" | "professional" | "catalog";

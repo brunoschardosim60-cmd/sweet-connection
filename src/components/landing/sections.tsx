@@ -1192,9 +1192,7 @@ export function Planos() {
             <p
               className={`mt-2 rounded-xl px-3 py-2 text-sm ${planoEmFoco.destaque ? "bg-ink-foreground/10" : "bg-secondary"}`}
             >
-              {cicloPlano === "annual"
-                ? "Cobrança única anual com renovação anual. A promoção de estreia não se aplica ao plano anual."
-                : planoEmFoco.nota}
+              {cicloPlano === "annual" ? "Cobrança anual com renovação anual." : planoEmFoco.nota}
             </p>
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
               {planoEmFoco.itens.map((item) => (

@@ -299,7 +299,15 @@ function PainelLayout() {
         }`}
       >
         <div className="flex items-center justify-between px-2 py-3">
-          {!recolhida && <Logo invertido />}
+          {!recolhida && (
+            <Link
+              to="/"
+              aria-label="Ir para a página inicial da Nexa"
+              className="rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+            >
+              <Logo invertido />
+            </Link>
+          )}
           <button
             type="button"
             aria-label={recolhida ? "Expandir menu lateral" : "Recolher menu lateral"}
@@ -547,7 +555,14 @@ function PainelLayout() {
               className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground"
             >
               <div className="flex items-center justify-between px-2 py-3">
-                <Logo invertido />
+                <Link
+                  to="/"
+                  onClick={() => setMenuMovel(false)}
+                  aria-label="Ir para a página inicial da Nexa"
+                  className="rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                >
+                  <Logo invertido />
+                </Link>
                 <button
                   type="button"
                   aria-label="Fechar menu de navegação"
