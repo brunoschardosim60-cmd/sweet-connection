@@ -174,6 +174,10 @@ export function CatalogoPagina({
       ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem, ranking),
     [site.produtos, busca, categoria, filtro, ordem, ranking],
   );
+  /** Catálogo sem nenhum item cadastrado — diferente de "filtro sem resultado". */
+  const catalogoVazio = !carregando && site.produtos.length === 0;
+
+
 
   const itens: ItemCarrinho[] = site.produtos
     .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
