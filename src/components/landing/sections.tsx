@@ -223,6 +223,16 @@ export function FaixaSegmentos() {
 export function Comparacao() {
   const marca = brand;
   const [pos, setPos] = useState(48);
+  const [arrastando, setArrastando] = useState(false);
+  const comparadorRef = useRef<HTMLDivElement>(null);
+
+  const atualizarPosicao = (clientX: number) => {
+    const area = comparadorRef.current?.getBoundingClientRect();
+    if (!area) return;
+    const proxima = ((clientX - area.left) / area.width) * 100;
+    setPos(Math.min(92, Math.max(8, proxima)));
+  };
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-20 md:py-28">
       <Reveal>
@@ -236,7 +246,21 @@ export function Comparacao() {
       </Reveal>
 
       <Reveal delay={80}>
-        <div className="relative mt-10 h-[520px] select-none overflow-hidden rounded-3xl border border-border bg-ink">
+        <div
+          ref={comparadorRef}
+          className="relative mt-10 h-[520px] select-none overflow-hidden rounded-3xl border border-border bg-ink"
+          onPointerDown={(event) => {
+            if ((event.target as HTMLElement).closest("[data-preview-phone]")) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setArrastando(true);
+            atualizarPosicao(event.clientX);
+          }}
+          onPointerMove={(event) => {
+            if (arrastando) atualizarPosicao(event.clientX);
+          }}
+          onPointerUp={() => setArrastando(false)}
+          onPointerCancel={() => setArrastando(false)}
+        >
           <div className="absolute inset-0 grid place-items-center bg-[#151515] p-8">
             <div className="w-full max-w-xs space-y-3">
               <div className="mx-auto h-16 w-16 rounded-full bg-white/10" />
@@ -259,7 +283,7 @@ export function Comparacao() {
             className="absolute inset-0 overflow-hidden bg-background"
             style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
           >
-            <div className="grid h-full place-items-center p-6">
+            <div data-preview-phone className="grid h-full place-items-center p-6">
               <PhoneFrame largura={280} altura={470}>
                 <MiniSite
                   site={siteDoModelo("restaurante-moderno")}
@@ -289,7 +313,7 @@ export function Comparacao() {
             value={pos}
             aria-label="Comparar antes e depois"
             onChange={(e) => setPos(Number(e.target.value))}
-            className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+            className="sr-only"
           />
         </div>
       </Reveal>
