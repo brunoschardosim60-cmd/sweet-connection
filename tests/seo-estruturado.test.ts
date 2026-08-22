@@ -15,6 +15,9 @@ describe("dados estruturados dos mini-sites", () => {
     expect(grafo.some((item) => item["@type"] === "Restaurant")).toBe(true);
     expect(grafo.some((item) => item["@type"] === "Menu")).toBe(true);
     expect(grafo.some((item) => item["@type"] === "Product")).toBe(true);
+    const pagina = grafo.find((item) => item["@type"] === "WebPage");
+    expect(String(pagina?.url)).toMatch(/^https:\/\//);
+    expect(String(pagina?.primaryImageOfPage)).toMatch(/^https:\/\//);
   });
 
   it("serializa JSON-LD sem permitir fechar a tag script por conteúdo editável", () => {

@@ -3,7 +3,7 @@ import { MiniSite } from "@/components/minisite/MiniSite";
 import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
-import { enderecoSite } from "@/lib/nexa/clipboard";
+import { enderecoSite, urlPublica } from "@/lib/nexa/clipboard";
 import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import { dadosEstruturadosDoSite, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/site/$slug")({
 
     const titulo = loaderData.seo.titulo || loaderData.conteudo.nome;
     const descricao = loaderData.seo.descricao || loaderData.conteudo.descricao;
-    const imagem = loaderData.seo.imagem || loaderData.conteudo.capa;
+    const imagem = urlPublica(loaderData.seo.imagem || loaderData.conteudo.capa);
     const canonical = enderecoSite(loaderData.slug);
 
     return {

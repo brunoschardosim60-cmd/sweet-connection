@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 function escapeXml(value: string) {
-  return value.replace(/[<>&'\"]/g, (character) => {
+  return value.replace(/[<>&'"]/g, (character) => {
     const entities: Record<string, string> = {
       "<": "&lt;",
       ">": "&gt;",
       "&": "&amp;",
       "'": "&apos;",
-      '\"': "&quot;",
+      '"': "&quot;",
     };
     return entities[character] ?? character;
   });

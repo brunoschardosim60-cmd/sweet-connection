@@ -61,10 +61,10 @@ function Privacidade() {
         <h2>4. Armazenamento e compartilhamento</h2>
         <p>
           Contas e dados operacionais são armazenados no Supabase externo conectado à plataforma.
-          As mídias ficam em bucket privado e são disponibilizadas por links temporários quando
-          necessárias ao mini-site. Ainda assim, conteúdos publicados são públicos por natureza e
-          não devem incluir documentos ou informações confidenciais. A Nexa não vende dados
-          pessoais.
+          Mídias enviadas para uso nos mini-sites são armazenadas em endereço público para que
+          imagens e vídeos possam ser exibidos aos visitantes. Não envie documentos, dados pessoais
+          sensíveis ou qualquer arquivo que não possa ficar acessível publicamente. A Nexa não vende
+          dados pessoais.
         </p>
       </section>
 

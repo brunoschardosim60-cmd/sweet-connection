@@ -1,4 +1,4 @@
-import { enderecoSite } from "./clipboard";
+import { enderecoSite, urlPublica } from "./clipboard";
 import { brand } from "./brand";
 import type { HorarioDia, Site } from "./types";
 
@@ -50,7 +50,7 @@ export function dadosEstruturadosDoSite(site: Site, opcoes?: { cardapio?: boolea
   const urlSite = enderecoSite(site.slug);
   const urlPagina = opcoes?.cardapio ? `${urlSite}/cardapio` : urlSite;
   const idNegocio = `${urlSite}#negocio`;
-  const imagem = site.seo.imagem || site.conteudo.capa;
+  const imagem = urlPublica(site.seo.imagem || site.conteudo.capa);
   const produtos = site.produtos.filter((produto) => produto.disponivel).slice(0, 40);
   const negocio: JsonLd = {
     "@type": tipoDoNegocio(site),
@@ -117,7 +117,7 @@ export function dadosEstruturadosDoSite(site: Site, opcoes?: { cardapio?: boolea
         "@type": "MenuItem",
         name: produto.nome,
         description: produto.descricao,
-        ...(produto.imagem ? { image: produto.imagem } : {}),
+        ...(produto.imagem ? { image: urlPublica(produto.imagem) } : {}),
         offers: {
           "@type": "Offer",
           priceCurrency: "BRL",
@@ -132,7 +132,7 @@ export function dadosEstruturadosDoSite(site: Site, opcoes?: { cardapio?: boolea
         "@id": `${urlSite}/cardapio#${encodeURIComponent(produto.id)}`,
         name: produto.nome,
         description: produto.descricao,
-        ...(produto.imagem ? { image: produto.imagem } : {}),
+        ...(produto.imagem ? { image: urlPublica(produto.imagem) } : {}),
         category: produto.categoria,
         brand: { "@id": idNegocio },
         offers: {
@@ -157,7 +157,7 @@ export function dadosEstruturadosDoSite(site: Site, opcoes?: { cardapio?: boolea
           "@type": "Service",
           name: servico.nome,
           description: servico.descricao,
-          ...(servico.imagem ? { image: servico.imagem } : {}),
+          ...(servico.imagem ? { image: urlPublica(servico.imagem) } : {}),
           provider: { "@id": idNegocio },
           ...(servico.preco > 0
             ? { offers: { "@type": "Offer", priceCurrency: "BRL", price: servico.preco } }

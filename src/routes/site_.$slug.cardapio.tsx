@@ -4,7 +4,7 @@ import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { perfilCatalogo } from "@/lib/nexa/catalogo";
 import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
-import { enderecoSite } from "@/lib/nexa/clipboard";
+import { enderecoSite, urlPublica } from "@/lib/nexa/clipboard";
 import { dadosEstruturadosDoSite, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 
 export const Route = createFileRoute("/site_/$slug/cardapio")({
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/site_/$slug/cardapio")({
     const descricao =
       loaderData.seo.descricao ||
       `${perfil.rotulo} de ${loaderData.conteudo.nome}: itens, preços e pedidos pelo WhatsApp.`;
-    const imagem = loaderData.seo.imagem || loaderData.conteudo.capa;
+    const imagem = urlPublica(loaderData.seo.imagem || loaderData.conteudo.capa);
     const canonical = ehModeloCardapio(loaderData.modeloId)
       ? enderecoSite(loaderData.slug)
       : `${enderecoSite(loaderData.slug)}/cardapio`;
