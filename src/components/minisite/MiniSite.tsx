@@ -98,6 +98,7 @@ export function MiniSite({
   rastrear = false,
   interacoesExternas = true,
   modoEdicao = false,
+  previewEstreita = false,
 }: {
   site: Site;
   compacto?: boolean;
@@ -108,6 +109,8 @@ export function MiniSite({
   interacoesExternas?: boolean;
   /** Exibe marcadores para seções ativas ainda sem itens, somente na prévia do editor. */
   modoEdicao?: boolean;
+  /** Ajusta grades e cartões para uma moldura demonstrativa mais estreita que um celular real. */
+  previewEstreita?: boolean;
 }) {
   const a = site.aparencia;
   const ativas = site.secoes.filter((s) => s.ativa);
@@ -161,7 +164,7 @@ export function MiniSite({
           <div
             style={style}
             data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
-            className="min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed"
+            className={`min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed${previewEstreita ? " mini-site-preview-estreita" : ""}`}
           >
             {tem("apresentacao") && <Capa site={site} aberto={aberto} compacto={compacto} />}
             <div
@@ -1149,7 +1152,7 @@ function BlocoCupons({ site, titulo }: { site: Site; titulo: string }) {
           return (
             <div
               key={c.id}
-              className="flex items-center justify-between gap-3 p-4"
+              className="nexa-cupom flex items-center justify-between gap-3 p-4"
               style={{
                 border: `1px dashed ${site.aparencia.corPrimaria}`,
                 borderRadius: "var(--ms-radius)",

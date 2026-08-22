@@ -176,6 +176,17 @@
   display: none;
 }
 
+/* A moldura da comparação da landing é mais estreita que um celular físico.
+   Sem este ajuste, grades de duas colunas comprimem textos e cupons. */
+.mini-site-preview-estreita .grid.grid-cols-2 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mini-site-preview-estreita .nexa-cupom {
+  align-items: flex-start !important;
+  flex-direction: column;
+}
+
 @utility surface {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);

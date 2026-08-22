@@ -284,12 +284,13 @@ export function Comparacao() {
             style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
           >
             <div data-preview-phone className="grid h-full place-items-center p-6">
-              <PhoneFrame largura={248} altura={470}>
+              <PhoneFrame largura={232} altura={520}>
                 <MiniSite
                   site={siteDoModelo("restaurante-moderno")}
                   compacto
                   botaoFlutuante={false}
                   interacoesExternas={false}
+                  previewEstreita
                 />
               </PhoneFrame>
             </div>
