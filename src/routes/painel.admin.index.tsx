@@ -429,6 +429,12 @@ function PainelAdmin() {
           >
             <ShieldCheck size={15} aria-hidden="true" /> Planos e auditoria
           </Link>
+          <Link
+            to="/painel/admin/operacoes"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary"
+          >
+            <AlertCircle size={15} aria-hidden="true" /> Operação
+          </Link>
           <button
             type="button"
             onClick={() => void recarregar()}

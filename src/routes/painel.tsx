@@ -72,6 +72,7 @@ type ItemBusca = {
   subtitulo: string;
 };
 type GrupoBusca = { rotulo: string; itens: ItemBusca[] };
+type AvisoPlataforma = { id: string; title: string; message: string };
 
 /** Realça a parte do texto que corresponde ao termo buscado. */
 function Destacar({ texto, termo }: { texto: string; termo: string }) {
@@ -101,6 +102,7 @@ function PainelLayout() {
   const usuarioAnteriorRef = useRef<string | null>(null);
   const [busca, setBusca] = useState("");
   const [ativo, setAtivo] = useState(-1);
+  const [avisos, setAvisos] = useState<AvisoPlataforma[]>([]);
   const opcoesRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
@@ -126,6 +128,35 @@ function PainelLayout() {
     void marcaStore.carregar().catch(() => undefined);
     void store.carregar(true);
   }, [store, user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    void (supabase as any)
+      .from("platform_announcements")
+      .select("id,title,message")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }: { data: AvisoPlataforma[] | null }) => setAvisos(data ?? []));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    let ativo = true;
+    void (supabase as any)
+      .from("profiles")
+      .select("admin_suspended_at")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(async ({ data }) => {
+        if (!ativo || !data?.admin_suspended_at) return;
+        await supabase.auth.signOut();
+        toast.error("Esta conta está temporariamente suspensa. Fale com o suporte.");
+        await navigate({ to: "/login", replace: true });
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [navigate, user]);
 
   /* Escape fecha o menu móvel, foco entra no drawer e o scroll de fundo trava. */
   useEffect(() => {
@@ -621,6 +652,15 @@ function PainelLayout() {
               Não foi possível carregar os dados: {erro}
             </p>
           )}
+          {avisos.map((aviso) => (
+            <aside
+              key={aviso.id}
+              className="mb-4 rounded-xl border border-lime/40 bg-lime/10 p-3 text-sm"
+            >
+              <p className="font-semibold">{aviso.title}</p>
+              <p className="mt-1 text-muted-foreground">{aviso.message}</p>
+            </aside>
+          ))}
           <Outlet />
         </main>
       </div>

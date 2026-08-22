@@ -36,6 +36,7 @@ import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
+import { Route as PainelAdminOperacoesRouteImport } from './routes/painel.admin.operacoes'
 import { Route as PainelAdminPapeisRouteImport } from './routes/painel.admin.papeis'
 import { Route as PainelEditorIdRouteImport } from './routes/painel.editor.$id'
 import { Route as SiteSlugCardapioRouteImport } from './routes/site_.$slug.cardapio'
@@ -180,6 +181,11 @@ const PainelAdminIndexRoute = PainelAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelAdminOperacoesRoute = PainelAdminOperacoesRouteImport.update({
+  id: '/admin/operacoes',
+  path: '/admin/operacoes',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelAdminPapeisRoute = PainelAdminPapeisRouteImport.update({
   id: '/admin/papeis',
   path: '/admin/papeis',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/painel/': typeof PainelIndexRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
+  '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/site/$slug/cardapio': typeof SiteSlugCardapioRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelIndexRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
+  '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/site/$slug/cardapio': typeof SiteSlugCardapioRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/painel/': typeof PainelIndexRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
+  '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
   '/painel/editor/$id': typeof PainelEditorIdRoute
   '/site_/$slug/cardapio': typeof SiteSlugCardapioRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
+    | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/site/$slug/cardapio'
@@ -388,6 +398,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
+    | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/site/$slug/cardapio'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
+    | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
     | '/painel/editor/$id'
     | '/site_/$slug/cardapio'
@@ -648,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelAdminIndexRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/admin/operacoes': {
+      id: '/painel/admin/operacoes'
+      path: '/admin/operacoes'
+      fullPath: '/painel/admin/operacoes'
+      preLoaderRoute: typeof PainelAdminOperacoesRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/admin/papeis': {
       id: '/painel/admin/papeis'
       path: '/admin/papeis'
@@ -712,6 +731,7 @@ interface PainelRouteChildren {
   PainelPedidosRoute: typeof PainelPedidosRoute
   PainelSolicitacoesRoute: typeof PainelSolicitacoesRoute
   PainelIndexRoute: typeof PainelIndexRoute
+  PainelAdminOperacoesRoute: typeof PainelAdminOperacoesRoute
   PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
   PainelEditorIdRoute: typeof PainelEditorIdRoute
   PainelAdminIndexRoute: typeof PainelAdminIndexRoute
@@ -729,6 +749,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelPedidosRoute: PainelPedidosRoute,
   PainelSolicitacoesRoute: PainelSolicitacoesRoute,
   PainelIndexRoute: PainelIndexRoute,
+  PainelAdminOperacoesRoute: PainelAdminOperacoesRoute,
   PainelAdminPapeisRoute: PainelAdminPapeisRoute,
   PainelEditorIdRoute: PainelEditorIdRoute,
   PainelAdminIndexRoute: PainelAdminIndexRoute,
