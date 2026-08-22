@@ -164,7 +164,7 @@ export function MiniSite({
           <div
             style={style}
             data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
-            className={`min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed${previewEstreita ? " mini-site-preview-estreita" : ""}`}
+            className={`@container min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed${previewEstreita ? " mini-site-preview-estreita" : ""}`}
           >
             {tem("apresentacao") && <Capa site={site} aberto={aberto} compacto={compacto} />}
             <div
