@@ -328,7 +328,6 @@ export function Comparacao() {
             </div>
           </div>
 
-
           <div
             className="absolute inset-0 grid place-items-center bg-background"
             style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
@@ -369,7 +368,6 @@ export function Comparacao() {
             </div>
           </div>
 
-
           <div
             className="pointer-events-none absolute inset-y-0 w-0.5 bg-lime"
             style={{ left: `${pos}%` }}
@@ -380,17 +378,17 @@ export function Comparacao() {
           </div>
         </div>
 
-        <label className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Comparar antes e depois</span>
-          <input
-            type="range"
-            min={6}
-            max={94}
-            value={Math.round(pos)}
-            onChange={(e) => setPos(Number(e.target.value))}
-            className="h-11 min-w-[200px] flex-1 cursor-pointer accent-[var(--color-lime)]"
-          />
-        </label>
+        {/* Mantém o ajuste disponível para teclado e leitores de tela sem
+            exibir uma barra redundante abaixo da interação por arraste. */}
+        <input
+          type="range"
+          min={6}
+          max={94}
+          value={Math.round(pos)}
+          aria-label="Comparar antes e depois"
+          onChange={(e) => setPos(Number(e.target.value))}
+          className="sr-only"
+        />
       </Reveal>
     </section>
   );
@@ -1151,10 +1149,7 @@ export function Planos() {
                 </button>
               ))}
             </div>
-            <span
-              aria-live="polite"
-              className="text-sm font-medium text-muted-foreground"
-            >
+            <span aria-live="polite" className="text-sm font-medium text-muted-foreground">
               {cicloPlano === "annual"
                 ? "Valores anuais, cobrados uma vez por ano."
                 : "Valores mensais, cancele quando quiser."}
@@ -1163,7 +1158,6 @@ export function Planos() {
         </Reveal>
 
         <ul className="mt-10 grid items-stretch gap-5 md:grid-cols-3">
-
           {planos.map((p, i) => (
             <li key={p.nome} className="h-full">
               <Reveal delay={i * 80} className="h-full">
@@ -1189,7 +1183,6 @@ export function Planos() {
                         {p.selo}
                       </span>
                     )}
-
                   </div>
                   <p
                     className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
