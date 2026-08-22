@@ -920,7 +920,7 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       {interacoesExternas && usarCarrinho && quantidadeNoCarrinho > 0 && (
         <a
           href={enderecoCardapio(site.slug)}
-          className="fixed inset-x-4 bottom-4 z-40 flex min-h-12 items-center justify-between gap-3 px-4 text-sm font-semibold shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:inset-x-auto lg:right-6 lg:w-80"
+          className="fixed inset-x-4 bottom-4 z-40 flex min-h-12 items-center justify-between gap-3 px-4 text-sm font-semibold shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 @5xl:inset-x-auto @5xl:right-6 @5xl:w-80"
           style={{
             background: site.aparencia.corPrimaria,
             color: contraste(site.aparencia.corPrimaria),
