@@ -220,17 +220,63 @@ export function FaixaSegmentos() {
 
 /* ----------------------------- COMPARAÇÃO ----------------------------- */
 
+/** Proporção de tela de um celular de referência (390 × 844). */
+const PROPORCAO_CELULAR = 844 / 390;
+const LARGURA_LOGICA = 390;
+
+/** Página de links tradicional usada como lado "antes" da comparação. */
+function PaginaDeLinks() {
+  return (
+    <div className="flex min-h-full flex-col items-center bg-[#151515] px-6 pb-10 pt-14">
+      <div className="h-16 w-16 rounded-full bg-white/10" />
+      <p className="mt-3 text-sm font-semibold text-white/70">@seunegocio</p>
+      <p className="mt-1 text-center text-xs text-white/35">Link na bio</p>
+      <div className="mt-6 w-full space-y-3">
+        {["WhatsApp", "Instagram", "Cardápio", "Endereço", "Site"].map((b) => (
+          <div
+            key={b}
+            className="rounded-xl border border-white/15 py-3 text-center text-sm text-white/70"
+          >
+            {b}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Comparacao() {
   const marca = brand;
-  const [pos, setPos] = useState(48);
+  const [pos, setPos] = useState(50);
   const [arrastando, setArrastando] = useState(false);
   const comparadorRef = useRef<HTMLDivElement>(null);
+  const [larguraTela, setLarguraTela] = useState(260);
+
+  // A moldura é dimensionada a partir do espaço real disponível para caber
+  // inteira, sempre mantendo a proporção de um celular — nunca larga demais.
+  useEffect(() => {
+    const el = comparadorRef.current;
+    if (!el) return;
+    const medir = () => {
+      const r = el.getBoundingClientRect();
+      const porLargura = Math.min(300, r.width - 56);
+      const porAltura = (r.height - 64) / PROPORCAO_CELULAR;
+      setLarguraTela(Math.max(190, Math.min(porLargura, porAltura)));
+    };
+    medir();
+    const obs = new ResizeObserver(medir);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const alturaTela = larguraTela * PROPORCAO_CELULAR;
+  const escala = larguraTela / LARGURA_LOGICA;
 
   const atualizarPosicao = (clientX: number) => {
     const area = comparadorRef.current?.getBoundingClientRect();
     if (!area) return;
     const proxima = ((clientX - area.left) / area.width) * 100;
-    setPos(Math.min(92, Math.max(8, proxima)));
+    setPos(Math.min(94, Math.max(6, proxima)));
   };
 
   return (
@@ -248,7 +294,7 @@ export function Comparacao() {
       <Reveal delay={80}>
         <div
           ref={comparadorRef}
-          className="relative mt-10 h-[520px] select-none overflow-hidden rounded-3xl border border-border bg-ink"
+          className="relative mt-10 h-[520px] touch-pan-y select-none overflow-hidden rounded-3xl border border-border bg-ink sm:h-[600px]"
           onPointerDown={(event) => {
             if ((event.target as HTMLElement).closest("[data-preview-phone]")) return;
             event.currentTarget.setPointerCapture(event.pointerId);
@@ -261,51 +307,47 @@ export function Comparacao() {
           onPointerUp={() => setArrastando(false)}
           onPointerCancel={() => setArrastando(false)}
         >
-          <div className="absolute inset-0 grid place-items-center bg-[#151515] p-8">
-            <div className="w-full max-w-xs space-y-3">
-              <div className="mx-auto h-16 w-16 rounded-full bg-white/10" />
-              <p className="text-center text-sm font-semibold text-white/70">@seunegocio</p>
-              {["WhatsApp", "Instagram", "Cardápio", "Endereço", "Site"].map((b) => (
-                <div
-                  key={b}
-                  className="rounded-lg border border-white/15 py-3 text-center text-sm text-white/70"
-                >
-                  {b}
-                </div>
-              ))}
+          {/* Camada "antes": mesmo palco central da camada "depois", para que a
+              divisória revele exatamente o mesmo recorte nos dois lados. */}
+          <div className="absolute inset-0 grid place-items-center bg-[#0f100f]">
+            <div data-preview-phone>
+              <PhoneFrame largura={larguraTela} altura={alturaTela}>
+                <PaginaDeLinks />
+              </PhoneFrame>
             </div>
-            <span className="absolute left-5 top-5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70">
+            <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70 sm:left-5 sm:top-5">
               Antes
             </span>
           </div>
 
           <div
-            className="absolute inset-0 overflow-hidden bg-background"
+            className="absolute inset-0 grid place-items-center bg-background"
             style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
           >
-            <div data-preview-phone className="grid h-full place-items-center p-6">
-              <PhoneFrame largura={246} altura={480}>
-                {/* A demonstração é visualmente menor que um mini-site real, mas o
-                    conteúdo continua sendo renderizado na largura de um celular
-                    normal. Assim textos, cards e botões não são espremidos. */}
-                <div
-                  className="min-h-full"
-                  style={{
-                    width: 360,
-                    transform: "scale(0.6833)",
-                    transformOrigin: "top left",
-                  }}
-                >
-                  <MiniSite
-                    site={siteDoModelo("restaurante-moderno")}
-                    compacto
-                    botaoFlutuante={false}
-                    interacoesExternas={false}
-                  />
+            <div data-preview-phone>
+              <PhoneFrame largura={larguraTela} altura={alturaTela}>
+                {/* O conteúdo é renderizado na largura lógica de um celular real
+                    e apenas reduzido visualmente: nada fica espremido ou cortado. */}
+                <div style={{ width: larguraTela, height: alturaTela, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      width: LARGURA_LOGICA,
+                      height: alturaTela / escala,
+                      transform: `scale(${escala})`,
+                      transformOrigin: "top left",
+                    }}
+                  >
+                    <MiniSite
+                      site={siteDoModelo("restaurante-moderno")}
+                      compacto
+                      botaoFlutuante={false}
+                      interacoesExternas={false}
+                    />
+                  </div>
                 </div>
               </PhoneFrame>
             </div>
-            <span className="absolute right-5 top-5 rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink">
+            <span className="absolute right-4 top-4 rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink sm:right-5 sm:top-5">
               Depois
             </span>
           </div>
@@ -315,19 +357,22 @@ export function Comparacao() {
             style={{ left: `${pos}%` }}
           >
             <span className="absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-lime text-ink shadow-lg">
-              <ArrowRight size={16} />
+              <ArrowRight size={16} aria-hidden="true" />
             </span>
           </div>
+        </div>
+
+        <label className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Comparar antes e depois</span>
           <input
             type="range"
-            min={8}
-            max={92}
-            value={pos}
-            aria-label="Comparar antes e depois"
+            min={6}
+            max={94}
+            value={Math.round(pos)}
             onChange={(e) => setPos(Number(e.target.value))}
-            className="sr-only"
+            className="h-11 min-w-[200px] flex-1 cursor-pointer accent-[var(--color-lime)]"
           />
-        </div>
+        </label>
       </Reveal>
     </section>
   );
