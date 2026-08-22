@@ -33,6 +33,7 @@ import { Route as PainelNovoRouteImport } from './routes/painel.novo'
 import { Route as PainelPedidosRouteImport } from './routes/painel.pedidos'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
+import { Route as ApiAdminAccountControlRouteImport } from './routes/api/admin/account-control'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
@@ -165,6 +166,11 @@ const SiteSlugRoute = SiteSlugRouteImport.update({
   path: '/site/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAccountControlRoute = ApiAdminAccountControlRouteImport.update({
+  id: '/api/admin/account-control',
+  path: '/api/admin/account-control',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsDispatchRoute =
   ApiNotificationsDispatchRouteImport.update({
     id: '/api/notifications/dispatch',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
+  '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/painel/solicitacoes': typeof PainelSolicitacoesRoute
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/api/admin/account-control'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel'
+    | '/api/admin/account-control'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/painel/solicitacoes'
     | '/site/$slug'
     | '/painel/'
+    | '/api/admin/account-control'
     | '/api/notifications/dispatch'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
@@ -460,6 +472,7 @@ export interface RootRouteChildren {
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
   DemonstracaoIaRoute: typeof DemonstracaoIaRoute
   SiteSlugRoute: typeof SiteSlugRoute
+  ApiAdminAccountControlRoute: typeof ApiAdminAccountControlRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
   SiteSlugCardapioRoute: typeof SiteSlugCardapioRoute
@@ -639,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/account-control': {
+      id: '/api/admin/account-control'
+      path: '/api/admin/account-control'
+      fullPath: '/api/admin/account-control'
+      preLoaderRoute: typeof ApiAdminAccountControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/notifications/dispatch': {
       id: '/api/notifications/dispatch'
       path: '/api/notifications/dispatch'
@@ -772,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
   DemonstracaoIaRoute: DemonstracaoIaRoute,
   SiteSlugRoute: SiteSlugRoute,
+  ApiAdminAccountControlRoute: ApiAdminAccountControlRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
   SiteSlugCardapioRoute: SiteSlugCardapioRoute,

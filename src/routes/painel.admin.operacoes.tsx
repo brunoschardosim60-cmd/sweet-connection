@@ -96,6 +96,20 @@ function OperacoesAdmin() {
       toast.error(falha.message);
       return;
     }
+    const { data: sessao } = await supabase.auth.getSession();
+    const resposta = await fetch("/api/admin/account-control", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(sessao.session ? { authorization: `Bearer ${sessao.session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ userId: conta, action: suspender ? "suspender" : "reativar" }),
+    });
+    if (!resposta.ok) {
+      const corpo = (await resposta.json().catch(() => null)) as { error?: string } | null;
+      toast.error(corpo?.error ?? "O estado foi registrado, mas o bloqueio de login falhou.");
+      return;
+    }
     setMotivo("");
     toast.success(suspender ? "Conta marcada como suspensa." : "Conta reativada.");
     await recarregar();
