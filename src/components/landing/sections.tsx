@@ -359,7 +359,16 @@ export function Comparacao() {
             <span className="absolute right-4 top-4 rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink sm:right-5 sm:top-5">
               Depois
             </span>
+            <div className="absolute bottom-6 right-6 hidden max-w-[230px] text-right md:block">
+              <p className="font-display text-lg font-bold">Mini-site {marca.nome}</p>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                <li>Cardápio, fotos e preços</li>
+                <li>Pedidos e agendamentos</li>
+                <li>Cara do seu negócio</li>
+              </ul>
+            </div>
           </div>
+
 
           <div
             className="pointer-events-none absolute inset-y-0 w-0.5 bg-lime"
