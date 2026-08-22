@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
@@ -12,6 +12,7 @@ import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
 import { importarDadosPublicos } from "@/lib/nexa/importar-dados";
+import { supabase } from "@/integrations/supabase/client";
 import type { Cliente, SegmentoId, Site } from "@/lib/nexa/types";
 
 interface NovoBusca {
@@ -296,6 +297,38 @@ function NovoSite() {
 
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
+  const [acessoIA, setAcessoIA] = useState<"carregando" | "permitido" | "bloqueado">("carregando");
+
+  useEffect(() => {
+    let ativo = true;
+
+    void (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) {
+        if (ativo) setAcessoIA("bloqueado");
+        return;
+      }
+
+      const [{ data: perfil }, { data: papel }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("subscription_tier,subscription_status")
+          .eq("id", auth.user.id)
+          .maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", auth.user.id).maybeSingle(),
+      ]);
+
+      if (!ativo) return;
+      const planoAtivo =
+        perfil?.subscription_status === "active" &&
+        (perfil.subscription_tier === "professional" || perfil.subscription_tier === "catalog");
+      setAcessoIA(planoAtivo || papel?.role === "admin" ? "permitido" : "bloqueado");
+    })();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   const [cliente, setCliente] = useState<Cliente>(() => ({
     empresa: search.empresa || "",
@@ -611,6 +644,16 @@ function NovoSite() {
                   : {
                       desabilitado: "Volte ao passo Cliente e informe nome da empresa e WhatsApp.",
                     })}
+                {...(cliente.empresa.trim().length > 1 &&
+                cliente.telefone.replace(/\D/g, "").length >= 10 &&
+                acessoIA !== "permitido"
+                  ? {
+                      desabilitado:
+                        acessoIA === "carregando"
+                          ? "Estamos verificando o seu plano. Aguarde alguns segundos e tente novamente."
+                          : "A criação automática com IA é exclusiva dos planos Profissional e Catálogo. Escolha um plano para liberar esta função.",
+                    }
+                  : {})}
                 onCriar={criarComSite}
               />
             </div>

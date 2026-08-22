@@ -52,6 +52,7 @@ export function CriacaoIA({
   const [estilo, setEstilo] = useState<EstiloIA>("automatico");
   const [tema, setTema] = useState<TemaIA>("automatico");
   const [plano, setPlano] = useState<PlanoIA | null>(null);
+  const [mostrarAvisoPlano, setMostrarAvisoPlano] = useState(false);
 
   const enviarImagens = async (
     arquivos: FileList | null,
@@ -140,6 +141,7 @@ export function CriacaoIA({
 
   const revisar = async () => {
     if (desabilitado) {
+      setMostrarAvisoPlano(true);
       toast.error(desabilitado);
       return;
     }
@@ -246,7 +248,9 @@ export function CriacaoIA({
         </ul>
       </div>
 
-      {desabilitado && <AvisoPlano motivo="sem-ia" mensagem={desabilitado} className="mb-4" />}
+      {desabilitado && mostrarAvisoPlano && (
+        <AvisoPlano motivo="sem-ia" mensagem={desabilitado} className="mb-4" />
+      )}
 
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">O que o negócio faz</span>
