@@ -318,7 +318,16 @@ export function Comparacao() {
             <span className="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70 sm:left-5 sm:top-5">
               Antes
             </span>
+            <div className="absolute bottom-6 left-6 hidden max-w-[220px] md:block">
+              <p className="font-display text-lg font-bold text-white/85">Página de links</p>
+              <ul className="mt-2 space-y-1 text-sm text-white/45">
+                <li>Só botões, sem contexto</li>
+                <li>Sem catálogo nem preços</li>
+                <li>Sem identidade do negócio</li>
+              </ul>
+            </div>
           </div>
+
 
           <div
             className="absolute inset-0 grid place-items-center bg-background"
