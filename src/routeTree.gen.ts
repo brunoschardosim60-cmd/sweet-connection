@@ -17,6 +17,7 @@ import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AgendamentoTokenRouteImport } from './routes/agendamento.$token'
 import { Route as DemonstracaoModeloRouteImport } from './routes/demonstracao.$modelo'
@@ -85,6 +86,11 @@ const PrivacidadeRoute = PrivacidadeRouteImport.update({
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosRoute = TermosRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/modelos': typeof ModelosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/agendamento/$token': typeof AgendamentoTokenRoute
   '/demonstracao/$modelo': typeof DemonstracaoModeloRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/privacidade'
     | '/recuperar-senha'
+    | '/sitemap.xml'
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/modelos'
     | '/privacidade'
     | '/recuperar-senha'
+    | '/sitemap.xml'
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/privacidade'
     | '/recuperar-senha'
+    | '/sitemap.xml'
     | '/termos'
     | '/agendamento/$token'
     | '/demonstracao/$modelo'
@@ -480,6 +492,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRouteWithChildren
   PrivacidadeRoute: typeof PrivacidadeRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   AgendamentoTokenRoute: typeof AgendamentoTokenRoute
   DemonstracaoModeloRoute: typeof DemonstracaoModeloRoute
@@ -552,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos': {
@@ -808,6 +828,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRouteWithChildren,
   PrivacidadeRoute: PrivacidadeRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   AgendamentoTokenRoute: AgendamentoTokenRoute,
   DemonstracaoModeloRoute: DemonstracaoModeloRoute,
