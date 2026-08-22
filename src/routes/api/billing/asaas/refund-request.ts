@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
+import { elegibilidadeReembolso, listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- table is added by the paired migration. */
@@ -35,33 +35,17 @@ export const Route = createFileRoute("/api/billing/asaas/refund-request")({
           if (!profile.billing_cancel_at_period_end)
             return json({ error: "Cancele a renovação antes de solicitar um reembolso." }, 400);
 
-          const payments = await listarPagamentosAsaas(profile.billing_subscription_id);
-          const payment = payments
-            .filter(
-              (item): item is Record<string, unknown> =>
-                !!item &&
-                typeof item === "object" &&
-                ["RECEIVED", "CONFIRMED"].includes(String(item["status"])) &&
-                typeof item["id"] === "string" &&
-                typeof item["value"] === "number" &&
-                item["value"] > 0,
-            )
-            .sort((a, b) =>
-              String(b["paymentDate"] ?? b["confirmedDate"] ?? b["dueDate"] ?? "").localeCompare(
-                String(a["paymentDate"] ?? a["confirmedDate"] ?? a["dueDate"] ?? ""),
-              ),
-            )[0];
-          if (!payment)
-            return json(
-              { error: "Não há pagamento confirmado elegível para análise de reembolso." },
-              400,
-            );
+          const eligibility = elegibilidadeReembolso(
+            await listarPagamentosAsaas(profile.billing_subscription_id),
+          );
+          if (!eligibility.eligible || !eligibility.payment)
+            return json({ error: eligibility.message }, 400);
 
           const { data: existing } = await (supabaseAdmin as any)
             .from("billing_refund_requests")
             .select("id,status,requested_at")
             .eq("provider", "asaas")
-            .eq("provider_payment_id", payment["id"])
+            .eq("provider_payment_id", eligibility.payment.id)
             .maybeSingle();
           if (existing) return json({ request: existing, alreadyExists: true });
 
@@ -70,8 +54,8 @@ export const Route = createFileRoute("/api/billing/asaas/refund-request")({
             .insert({
               owner_id: auth.user.id,
               provider: "asaas",
-              provider_payment_id: payment["id"],
-              amount: payment["value"],
+              provider_payment_id: eligibility.payment.id,
+              amount: eligibility.payment.value,
               reason,
             })
             .select("id,status,requested_at,amount")

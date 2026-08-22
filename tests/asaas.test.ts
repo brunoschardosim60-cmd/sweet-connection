@@ -3,6 +3,7 @@ import {
   FORMAS_PAGAMENTO_CHECKOUT,
   cicloCobranca,
   descontoBoasVindas,
+  elegibilidadeReembolso,
   idDaReferencia,
   planoPago,
   proximoVencimento,
@@ -54,5 +55,25 @@ describe("integração Asaas", () => {
 
   it("envia a data de assinatura no formato exigido pelo checkout", () => {
     expect(proximoVencimento()).toMatch(/^\d{4}-\d{2}-\d{2} 12:00:00$/);
+  });
+
+  it("aceita reembolso apenas da primeira cobrança em até 7 dias", () => {
+    const agora = new Date("2026-08-21T12:00:00.000Z");
+    const elegivel = elegibilidadeReembolso(
+      [
+        { id: "pay-2", value: 39, status: "RECEIVED", paymentDate: "2026-08-20T12:00:00.000Z" },
+        { id: "pay-1", value: 39, status: "CONFIRMED", paymentDate: "2026-08-15T12:00:00.000Z" },
+      ],
+      agora,
+    );
+    expect(elegivel.eligible).toBe(true);
+    expect(elegivel.payment?.id).toBe("pay-1");
+
+    const expirado = elegibilidadeReembolso(
+      [{ id: "pay-1", value: 39, status: "RECEIVED", paymentDate: "2026-08-14T11:59:59.000Z" }],
+      agora,
+    );
+    expect(expirado.eligible).toBe(false);
+    expect(expirado.message).toContain("7 dias");
   });
 });

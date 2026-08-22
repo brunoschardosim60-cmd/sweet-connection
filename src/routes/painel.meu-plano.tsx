@@ -47,6 +47,11 @@ type PedidoReembolso = {
   requested_at: string;
   resolution_note: string | null;
 };
+type ElegibilidadeReembolso = {
+  eligible: boolean;
+  message: string;
+  deadline: string | null;
+};
 
 const nomes: Record<string, string> = {
   none: "Teste grátis",
@@ -154,6 +159,8 @@ function MeuPlano() {
   const [motivoReembolso, setMotivoReembolso] = useState("");
   const [solicitandoReembolso, setSolicitandoReembolso] = useState(false);
   const [pedidoReembolso, setPedidoReembolso] = useState<PedidoReembolso | null>(null);
+  const [elegibilidadeReembolso, setElegibilidadeReembolso] =
+    useState<ElegibilidadeReembolso | null>(null);
 
   useEffect(() => {
     const parametros = new URLSearchParams(window.location.search);
@@ -191,6 +198,7 @@ function MeuPlano() {
           cycle?: Ciclo;
         };
         refundRequest?: PedidoReembolso | null;
+        refundEligibility?: ElegibilidadeReembolso | null;
       };
       setFaturas(dadosGerenciamento.invoices ?? []);
       if (dadosGerenciamento.subscription?.cycle)
@@ -200,6 +208,7 @@ function MeuPlano() {
       if (dadosGerenciamento.subscription?.cancelAtPeriodEnd)
         setFimCancelamento(dadosGerenciamento.subscription.currentPeriodEnd ?? null);
       setPedidoReembolso(dadosGerenciamento.refundRequest ?? null);
+      setElegibilidadeReembolso(dadosGerenciamento.refundEligibility ?? null);
     });
   }, []);
 
@@ -641,8 +650,14 @@ function MeuPlano() {
                     : ""}
                   {pedidoReembolso.resolution_note ? ` ${pedidoReembolso.resolution_note}` : ""}
                 </p>
-              ) : (
+              ) : elegibilidadeReembolso?.eligible ? (
                 <>
+                  {elegibilidadeReembolso.deadline && (
+                    <p className="mt-3 text-xs font-medium text-muted-foreground">
+                      Solicitação disponível até{" "}
+                      {new Date(elegibilidadeReembolso.deadline).toLocaleDateString("pt-BR")}.
+                    </p>
+                  )}
                   <label className="mt-3 block text-sm font-semibold">
                     Motivo do pedido
                     <textarea
@@ -665,6 +680,13 @@ function MeuPlano() {
                       : "Solicitar análise de reembolso"}
                   </button>
                 </>
+              ) : (
+                <p
+                  className="mt-3 rounded-xl bg-card p-3 text-sm text-muted-foreground"
+                  role="status"
+                >
+                  {elegibilidadeReembolso?.message ?? "Verificando a elegibilidade do reembolso…"}
+                </p>
               )}
             </div>
           )}

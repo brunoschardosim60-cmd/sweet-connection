@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
+import { elegibilidadeReembolso, listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 // The server-only billing columns are newer than the checked-in generated client types.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -32,6 +32,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
           if (error || !profile) throw new Error("Perfil não encontrado.");
 
           let invoices: Record<string, unknown>[] = [];
+          let refundEligibility = null;
           const { data: refundRequest } = await (supabaseAdmin as any)
             .from("billing_refund_requests")
             .select("id,status,amount,requested_at,resolution_note")
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
             invoices = pagamentos.filter(
               (item): item is Record<string, unknown> => !!item && typeof item === "object",
             );
+            refundEligibility = elegibilidadeReembolso(invoices);
             for (const payment of invoices) {
               const paymentId = typeof payment["id"] === "string" ? payment["id"] : null;
               if (!paymentId) continue;
@@ -84,6 +86,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
               invoiceUrl: payment["invoiceUrl"],
             })),
             refundRequest,
+            refundEligibility,
           });
         } catch (error) {
           console.error("[Asaas manage]", error);

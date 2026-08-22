@@ -22,6 +22,14 @@ export const PRECOS_PLANOS: Record<PlanoPago, string> = {
 
 export const FORMAS_PAGAMENTO_CHECKOUT = ["PIX", "CREDIT_CARD"] as const;
 const DESCONTO_BOAS_VINDAS_ESSENCIAL = 3400;
+const PRAZO_REEMBOLSO_MS = 7 * 24 * 60 * 60 * 1000;
+
+export type ElegibilidadeReembolso = {
+  eligible: boolean;
+  message: string;
+  deadline: string | null;
+  payment: { id: string; value: number; paidAt: string } | null;
+};
 
 export function planoPago(valor: unknown): PlanoPago | null {
   return valor === "essential" || valor === "professional" || valor === "catalog" ? valor : null;
@@ -96,6 +104,56 @@ export async function listarPagamentosAsaas(subscriptionId: string) {
     `/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=30&offset=0`,
   );
   return Array.isArray(resposta["data"]) ? resposta["data"] : [];
+}
+
+/** A Nexa aceita pedido apenas para a primeira cobrança confirmada, em até 7 dias. */
+export function elegibilidadeReembolso(
+  pagamentos: unknown[],
+  agora = new Date(),
+): ElegibilidadeReembolso {
+  const confirmados = pagamentos
+    .filter((item): item is Record<string, unknown> => {
+      if (!item || typeof item !== "object") return false;
+      const payment = item as Record<string, unknown>;
+      return (
+        ["RECEIVED", "CONFIRMED"].includes(String(payment["status"])) &&
+        typeof payment["id"] === "string" &&
+        typeof payment["value"] === "number" &&
+        payment["value"] > 0
+      );
+    })
+    .map((item) => ({
+      id: item["id"] as string,
+      value: item["value"] as number,
+      paidAt: String(item["paymentDate"] ?? item["confirmedDate"] ?? ""),
+    }))
+    .filter((payment) => !Number.isNaN(new Date(payment.paidAt).getTime()))
+    .sort((a, b) => new Date(a.paidAt).getTime() - new Date(b.paidAt).getTime());
+
+  const primeira = confirmados[0] ?? null;
+  if (!primeira)
+    return {
+      eligible: false,
+      message: "Não há uma primeira cobrança confirmada elegível para reembolso.",
+      deadline: null,
+      payment: null,
+    };
+
+  const deadline = new Date(new Date(primeira.paidAt).getTime() + PRAZO_REEMBOLSO_MS);
+  if (agora.getTime() > deadline.getTime())
+    return {
+      eligible: false,
+      message: "O prazo de 7 dias para solicitar reembolso da primeira cobrança encerrou.",
+      deadline: deadline.toISOString(),
+      payment: primeira,
+    };
+
+  return {
+    eligible: true,
+    message: "Você pode solicitar análise de reembolso até o prazo informado.",
+    deadline: deadline.toISOString(),
+    payment: primeira,
+  };
 }
 
 export async function criarCheckoutAsaas(args: {
