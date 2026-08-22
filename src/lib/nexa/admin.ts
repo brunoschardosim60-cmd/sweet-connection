@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Site } from "./types";
 
 export type PapelNexa = "admin";
 export type PlanoNexa = "pro" | "free";
@@ -355,4 +356,49 @@ export async function carregarProjetosUsuario(userId: string): Promise<AdminProj
   if (erroEnvios) throw new Error(mensagemErroAdmin(erroEnvios));
 
   return mapearProjetos(sites as unknown as LinhaMinisite[], envios ?? []);
+}
+
+export type MinisiteAdmin = {
+  id: string;
+  slug: string;
+  status: string;
+  nome: string;
+  atualizado_em: string;
+  publicado_em: string | null;
+  rascunho: Site;
+  publicado: Site | null;
+};
+
+/**
+ * Lê um mini-site completo (rascunho e versão publicada) para inspeção
+ * administrativa. Somente leitura — usa a política `minisites_admin_read`.
+ */
+export async function carregarMinisiteAdmin(id: string): Promise<MinisiteAdmin> {
+  const { data, error } = await supabase
+    .from("minisites")
+    .select(
+      "id, slug, status, updated_at, published_at, draft_content, published_content",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(mensagemErroAdmin(error));
+  if (!data) throw new Error("Mini-site não encontrado ou sem permissão de leitura.");
+
+  const comIdentidade = (conteudo: unknown): Site => ({
+    ...(conteudo as Site),
+    id: data.id,
+    slug: data.slug,
+    status: data.status,
+  });
+
+  return {
+    id: data.id,
+    slug: data.slug,
+    status: data.status,
+    nome: nomeDoProjeto(data.draft_content, data.published_content, data.slug),
+    atualizado_em: data.updated_at,
+    publicado_em: data.published_at,
+    rascunho: comIdentidade(data.draft_content),
+    publicado: data.published_content ? comIdentidade(data.published_content) : null,
+  };
 }
