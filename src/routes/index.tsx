@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/landing/SiteHeader";
+import { origemPublica } from "@/lib/nexa/clipboard";
 import { dadosEstruturadosDaNexa, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 import {
   ComoFunciona,
@@ -18,21 +19,26 @@ import {
 } from "@/components/landing/sections";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Nexa — Mini-sites profissionais para o seu negócio" },
-      {
-        name: "description",
-        content:
-          "Crie uma página profissional com WhatsApp, catálogo, serviços, agendamentos e localização. Mini-sites brasileiros prontos em minutos.",
-      },
-      { property: "og:title", content: "Nexa — Mini-sites profissionais para o seu negócio" },
-      {
-        property: "og:description",
-        content: "Seu negócio merece mais do que apenas um link. Conheça os modelos da Nexa.",
-      },
-    ],
-  }),
+  head: () => {
+    const url = origemPublica();
+    return {
+      links: [{ rel: "canonical", href: url }],
+      meta: [
+        { title: "Nexa — Mini-sites profissionais para o seu negócio" },
+        {
+          name: "description",
+          content:
+            "Crie uma página profissional com WhatsApp, catálogo, serviços, agendamentos e localização. Mini-sites brasileiros prontos em minutos.",
+        },
+        { property: "og:title", content: "Nexa — Mini-sites profissionais para o seu negócio" },
+        {
+          property: "og:description",
+          content: "Seu negócio merece mais do que apenas um link. Conheça os modelos da Nexa.",
+        },
+        { property: "og:url", content: url },
+      ],
+    };
+  },
   component: Index,
 });
 

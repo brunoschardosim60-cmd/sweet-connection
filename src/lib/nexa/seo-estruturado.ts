@@ -1,4 +1,4 @@
-import { enderecoSite, urlPublica } from "./clipboard";
+import { enderecoSite, origemPublica, urlPublica } from "./clipboard";
 import { brand } from "./brand";
 import type { HorarioDia, Site } from "./types";
 
@@ -199,7 +199,9 @@ export function serializarJsonLd(dados: JsonLd) {
 
 /** Dados estruturados da própria Nexa, separados dos dados de cada cliente. */
 export function dadosEstruturadosDaNexa(): JsonLd {
-  const url = `https://${brand.dominio}`;
+  // Usa o domínio efetivamente configurado para não anunciar um endereço
+  // diferente do que está publicado durante a fase de testes ou após migração.
+  const url = origemPublica();
   const organizacaoId = `${url}/#organizacao`;
   const planos = [
     { nome: "Essencial", preco: 39, url: `${url}/#planos` },
