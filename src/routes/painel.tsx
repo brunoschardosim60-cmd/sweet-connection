@@ -17,7 +17,6 @@ import {
   Users,
   X,
   BarChart3,
-  Globe,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -53,7 +52,7 @@ export const Route = createFileRoute("/painel")({
 });
 
 const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean }[] = [
-  { to: "/painel", rotulo: "Visão geral", icone: LayoutDashboard, exato: true },
+  { to: "/painel", rotulo: "Início", icone: LayoutDashboard, exato: true },
   { to: "/painel/clientes", rotulo: "Clientes", icone: Users },
   { to: "/painel/solicitacoes", rotulo: "Solicitações", icone: Inbox },
   { to: "/painel/agenda", rotulo: "Agenda", icone: CalendarDays },
@@ -61,7 +60,7 @@ const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean 
   { to: "/painel/modelos", rotulo: "Modelos", icone: LayoutGrid },
   { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },
-  { to: "/painel/configuracoes", rotulo: "Configurações", icone: Settings },
+  { to: "/painel/configuracoes", rotulo: "Minha conta", icone: Settings },
   { to: "/painel/meu-plano", rotulo: "Meu plano", icone: Crown },
 ];
 
@@ -182,6 +181,16 @@ function PainelLayout() {
   };
 
   const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
+  const nomeConta = String(
+    user.user_metadata?.["display_name"] ?? user.email?.split("@")[0] ?? "Conta",
+  );
+  const iniciaisConta =
+    nomeConta
+      .split(/[\s._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((parte) => parte[0]?.toUpperCase())
+      .join("") || "C";
 
   const termo = busca.trim().toLowerCase();
   const grupos: GrupoBusca[] = termo
@@ -321,13 +330,6 @@ function PainelLayout() {
           })}
         </nav>
 
-        <Link
-          to="/"
-          className="flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
-        >
-          <Globe size={17} className="shrink-0" />
-          {!recolhida && "Ver landing page"}
-        </Link>
         <button
           type="button"
           onClick={() => void sair()}
@@ -508,10 +510,11 @@ function PainelLayout() {
               <span className="sr-only lg:hidden">Criar novo mini-site</span>
             </Link>
             <span
-              aria-hidden="true"
+              aria-label={`Conta: ${nomeConta}`}
+              title={nomeConta}
               className="hidden h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-sm font-bold text-ink sm:grid"
             >
-              AD
+              {iniciaisConta}
             </span>
           </div>
         </header>
@@ -565,14 +568,6 @@ function PainelLayout() {
                 })}
               </nav>
 
-              <Link
-                to="/"
-                onClick={() => setMenuMovel(false)}
-                className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent"
-              >
-                <Globe size={17} className="shrink-0" />
-                Ver landing page
-              </Link>
               <button
                 type="button"
                 onClick={() => void sair()}

@@ -28,9 +28,10 @@ function Configuracoes() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold">Configurações</h1>
+        <h1 className="font-display text-2xl font-bold">Minha conta e marca</h1>
         <p className="text-sm text-muted-foreground">
-          Marca própria (white label), dados da plataforma e gestão da sua conta.
+          Ajuste sua marca, links de contato e os dados da sua conta. Isso não altera os mini-sites
+          já criados sem uma edição ou publicação deles.
         </p>
       </div>
 

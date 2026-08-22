@@ -430,7 +430,7 @@ function MeuPlano() {
             }`}
           >
             {ciclo === "annual"
-              ? `Cobrança anual de ${precosAnuais[opcaoSelecionada.tier]}. Renovação anual; a promoção de R$ 5 não se aplica ao anual.`
+              ? `Cobrança anual de ${precosAnuais[opcaoSelecionada.tier]}. Renovação anual.`
               : opcaoSelecionada.nota}
           </p>
 
