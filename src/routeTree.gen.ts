@@ -44,6 +44,7 @@ import { Route as SiteSlugCardapioRouteImport } from './routes/site_.$slug.carda
 import { Route as ApiBillingAsaasCancelRouteImport } from './routes/api/billing/asaas/cancel'
 import { Route as ApiBillingAsaasCheckoutRouteImport } from './routes/api/billing/asaas/checkout'
 import { Route as ApiBillingAsaasManageRouteImport } from './routes/api/billing/asaas/manage'
+import { Route as ApiBillingAsaasRefundRequestRouteImport } from './routes/api/billing/asaas/refund-request'
 import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -222,6 +223,12 @@ const ApiBillingAsaasManageRoute = ApiBillingAsaasManageRouteImport.update({
   path: '/api/billing/asaas/manage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBillingAsaasRefundRequestRoute =
+  ApiBillingAsaasRefundRequestRouteImport.update({
+    id: '/api/billing/asaas/refund-request',
+    path: '/api/billing/asaas/refund-request',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
   id: '/api/public/manifest/$slug',
   path: '/api/public/manifest/$slug',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
+  '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesByTo {
@@ -301,6 +309,7 @@ export interface FileRoutesByTo {
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
+  '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesById {
@@ -340,6 +349,7 @@ export interface FileRoutesById {
   '/api/billing/asaas/cancel': typeof ApiBillingAsaasCancelRoute
   '/api/billing/asaas/checkout': typeof ApiBillingAsaasCheckoutRoute
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
+  '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRouteTypes {
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
     | '/api/billing/asaas/manage'
+    | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
     | '/api/billing/asaas/manage'
+    | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
   id:
     | '__root__'
@@ -455,6 +467,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/cancel'
     | '/api/billing/asaas/checkout'
     | '/api/billing/asaas/manage'
+    | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -479,6 +492,7 @@ export interface RootRouteChildren {
   ApiBillingAsaasCancelRoute: typeof ApiBillingAsaasCancelRoute
   ApiBillingAsaasCheckoutRoute: typeof ApiBillingAsaasCheckoutRoute
   ApiBillingAsaasManageRoute: typeof ApiBillingAsaasManageRoute
+  ApiBillingAsaasRefundRequestRoute: typeof ApiBillingAsaasRefundRequestRoute
   ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
 }
 
@@ -729,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBillingAsaasManageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/billing/asaas/refund-request': {
+      id: '/api/billing/asaas/refund-request'
+      path: '/api/billing/asaas/refund-request'
+      fullPath: '/api/billing/asaas/refund-request'
+      preLoaderRoute: typeof ApiBillingAsaasRefundRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/manifest/$slug': {
       id: '/api/public/manifest/$slug'
       path: '/api/public/manifest/$slug'
@@ -799,6 +820,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBillingAsaasCancelRoute: ApiBillingAsaasCancelRoute,
   ApiBillingAsaasCheckoutRoute: ApiBillingAsaasCheckoutRoute,
   ApiBillingAsaasManageRoute: ApiBillingAsaasManageRoute,
+  ApiBillingAsaasRefundRequestRoute: ApiBillingAsaasRefundRequestRoute,
   ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
 }
 export const routeTree = rootRouteImport

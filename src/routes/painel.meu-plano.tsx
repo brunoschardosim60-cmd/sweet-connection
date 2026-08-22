@@ -40,6 +40,13 @@ type Fatura = {
   paymentDate: string | null;
   invoiceUrl: string | null;
 };
+type PedidoReembolso = {
+  id: string;
+  status: "requested" | "approved" | "rejected" | "refunded";
+  amount: number | null;
+  requested_at: string;
+  resolution_note: string | null;
+};
 
 const nomes: Record<string, string> = {
   none: "Teste grátis",
@@ -143,6 +150,10 @@ function MeuPlano() {
   const [faturas, setFaturas] = useState<Fatura[]>([]);
   const [fimCancelamento, setFimCancelamento] = useState<string | null>(null);
   const [cancelando, setCancelando] = useState(false);
+  const [mostrarCancelamento, setMostrarCancelamento] = useState(false);
+  const [motivoReembolso, setMotivoReembolso] = useState("");
+  const [solicitandoReembolso, setSolicitandoReembolso] = useState(false);
+  const [pedidoReembolso, setPedidoReembolso] = useState<PedidoReembolso | null>(null);
 
   useEffect(() => {
     const parametros = new URLSearchParams(window.location.search);
@@ -179,6 +190,7 @@ function MeuPlano() {
           cancelAtPeriodEnd?: boolean;
           cycle?: Ciclo;
         };
+        refundRequest?: PedidoReembolso | null;
       };
       setFaturas(dadosGerenciamento.invoices ?? []);
       if (dadosGerenciamento.subscription?.cycle)
@@ -187,6 +199,7 @@ function MeuPlano() {
         );
       if (dadosGerenciamento.subscription?.cancelAtPeriodEnd)
         setFimCancelamento(dadosGerenciamento.subscription.currentPeriodEnd ?? null);
+      setPedidoReembolso(dadosGerenciamento.refundRequest ?? null);
     });
   }, []);
 
@@ -261,12 +274,47 @@ function MeuPlano() {
       };
       if (!resposta.ok) throw new Error(retorno.error ?? "Não foi possível cancelar a assinatura.");
       setFimCancelamento(retorno.currentPeriodEnd ?? null);
+      setMostrarCancelamento(false);
     } catch (error) {
       setErroPagamento(
         error instanceof Error ? error.message : "Não foi possível cancelar a assinatura.",
       );
     } finally {
       setCancelando(false);
+    }
+  }
+
+  async function solicitarReembolso() {
+    if (motivoReembolso.trim().length < 10) {
+      setErroPagamento("Explique o motivo do reembolso em pelo menos 10 caracteres.");
+      return;
+    }
+    setSolicitandoReembolso(true);
+    setErroPagamento("");
+    try {
+      const { data: sessao } = await supabase.auth.getSession();
+      const resposta = await fetch("/api/billing/asaas/refund-request", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${sessao.session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({ reason: motivoReembolso.trim() }),
+      });
+      const retorno = (await resposta.json().catch(() => ({}))) as {
+        error?: string;
+        request?: PedidoReembolso;
+      };
+      if (!resposta.ok || !retorno.request)
+        throw new Error(retorno.error ?? "Não foi possível solicitar o reembolso.");
+      setPedidoReembolso(retorno.request);
+      setMotivoReembolso("");
+    } catch (error) {
+      setErroPagamento(
+        error instanceof Error ? error.message : "Não foi possível solicitar o reembolso.",
+      );
+    } finally {
+      setSolicitandoReembolso(false);
     }
   }
 
@@ -535,14 +583,90 @@ function MeuPlano() {
             </ul>
           )}
           {!fimCancelamento && (
-            <button
-              type="button"
-              onClick={() => void cancelarAssinatura()}
-              disabled={cancelando}
-              className="mt-4 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive disabled:opacity-60"
-            >
-              {cancelando ? "Cancelando…" : "Cancelar renovação"}
-            </button>
+            <>
+              {!mostrarCancelamento ? (
+                <button
+                  type="button"
+                  onClick={() => setMostrarCancelamento(true)}
+                  className="mt-4 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive"
+                >
+                  Cancelar assinatura
+                </button>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/5 p-4">
+                  <h3 className="font-semibold text-destructive">Cancelar renovação automática</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Seu acesso continuará ativo até o fim do período já pago. O reembolso, quando
+                    cabível, só poderá ser solicitado depois desta confirmação e passará por
+                    análise.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void cancelarAssinatura()}
+                      disabled={cancelando}
+                      className="min-h-11 rounded-full bg-destructive px-4 text-sm font-semibold text-white disabled:opacity-60"
+                    >
+                      {cancelando ? "Cancelando…" : "Confirmar cancelamento"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarCancelamento(false)}
+                      disabled={cancelando}
+                      className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold disabled:opacity-60"
+                    >
+                      Manter assinatura
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          {fimCancelamento && (
+            <div className="mt-4 rounded-2xl border border-border bg-secondary/30 p-4">
+              <h3 className="font-semibold">Precisa solicitar reembolso?</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                O pedido é analisado antes de qualquer estorno. Se aprovado, a devolução é
+                processada pelo Asaas na forma de pagamento original, quando suportada.
+              </p>
+              {pedidoReembolso ? (
+                <p className="mt-3 rounded-xl bg-card p-3 text-sm" role="status">
+                  Solicitação{" "}
+                  {pedidoReembolso.status === "requested"
+                    ? "recebida e em análise"
+                    : pedidoReembolso.status}
+                  .
+                  {pedidoReembolso.amount
+                    ? ` Valor solicitado: R$ ${pedidoReembolso.amount.toFixed(2).replace(".", ",")}.`
+                    : ""}
+                  {pedidoReembolso.resolution_note ? ` ${pedidoReembolso.resolution_note}` : ""}
+                </p>
+              ) : (
+                <>
+                  <label className="mt-3 block text-sm font-semibold">
+                    Motivo do pedido
+                    <textarea
+                      value={motivoReembolso}
+                      onChange={(event) => setMotivoReembolso(event.target.value)}
+                      maxLength={500}
+                      rows={3}
+                      placeholder="Conte brevemente o motivo da solicitação."
+                      className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => void solicitarReembolso()}
+                    disabled={solicitandoReembolso || motivoReembolso.trim().length < 10}
+                    className="mt-3 min-h-11 rounded-full border border-destructive px-4 text-sm font-semibold text-destructive disabled:opacity-60"
+                  >
+                    {solicitandoReembolso
+                      ? "Enviando solicitação…"
+                      : "Solicitar análise de reembolso"}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </section>
       )}

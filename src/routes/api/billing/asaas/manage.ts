@@ -32,6 +32,13 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
           if (error || !profile) throw new Error("Perfil não encontrado.");
 
           let invoices: Record<string, unknown>[] = [];
+          const { data: refundRequest } = await (supabaseAdmin as any)
+            .from("billing_refund_requests")
+            .select("id,status,amount,requested_at,resolution_note")
+            .eq("owner_id", user.id)
+            .order("requested_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
           if (profile.billing_provider === "asaas" && profile.billing_subscription_id) {
             const pagamentos = await listarPagamentosAsaas(profile.billing_subscription_id);
             invoices = pagamentos.filter(
@@ -76,6 +83,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
               paymentDate: payment["paymentDate"],
               invoiceUrl: payment["invoiceUrl"],
             })),
+            refundRequest,
           });
         } catch (error) {
           console.error("[Asaas manage]", error);
