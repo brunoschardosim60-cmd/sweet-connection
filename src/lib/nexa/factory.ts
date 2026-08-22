@@ -1,5 +1,6 @@
 import { modeloPorId } from "./modelos";
 import { ehModeloCardapio, presetsCardapio } from "./cardapio-modelos";
+import { marcaStore } from "./marca";
 import { diasSemana, uid } from "./utils";
 import type { Cliente, Secao, Site, TipoSecao } from "./types";
 
@@ -387,7 +388,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     criadoEm: agora,
     atualizadoEm: agora,
     expiraEm: null,
-    mostrarAssinaturaNexa: true,
+    mostrarAssinaturaNexa: marcaStore.get().mostrarAssinatura,
     cliente,
     conteudo: {
       nome: cliente.empresa,

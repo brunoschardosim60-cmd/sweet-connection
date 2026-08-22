@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { ExcluirConta } from "@/components/account/ExcluirConta";
-import { useNexa } from "@/lib/nexa/hooks";
+import { useMarca, useNexa } from "@/lib/nexa/hooks";
+import { marcaStore } from "@/lib/nexa/marca";
 
 export const Route = createFileRoute("/painel/configuracoes")({
   component: Configuracoes,
@@ -11,12 +12,14 @@ export const Route = createFileRoute("/painel/configuracoes")({
 
 function Configuracoes() {
   const { store, sites } = useNexa();
+  const preferenciaMarca = useMarca();
   const [salvandoAssinatura, setSalvandoAssinatura] = useState(false);
-  const mostrarAssinatura = sites.some((site) => site.mostrarAssinaturaNexa !== false);
+  const mostrarAssinatura = preferenciaMarca.mostrarAssinatura;
 
   async function alterarAssinatura(mostrar: boolean) {
     setSalvandoAssinatura(true);
     try {
+      await marcaStore.salvar({ mostrarAssinatura: mostrar });
       await Promise.all(
         sites.map((site) => store.atualizarSite(site.id, { mostrarAssinaturaNexa: mostrar })),
       );
@@ -59,7 +62,7 @@ function Configuracoes() {
           <input
             type="checkbox"
             checked={mostrarAssinatura}
-            disabled={salvandoAssinatura || sites.length === 0}
+            disabled={salvandoAssinatura}
             onChange={(e) => void alterarAssinatura(e.target.checked)}
             className="h-5 w-5 accent-lime"
           />

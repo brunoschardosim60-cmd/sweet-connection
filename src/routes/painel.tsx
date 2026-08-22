@@ -122,6 +122,7 @@ function PainelLayout() {
     midiaStore.reset();
     versaoStore.reset();
     modelosUsuarioStore.definirConta(id);
+    void marcaStore.carregar().catch(() => undefined);
     void store.carregar(true);
   }, [store, user?.id]);
 
