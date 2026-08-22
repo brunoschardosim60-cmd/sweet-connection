@@ -12,8 +12,8 @@ import {
 } from "../src/lib/nexa/asaas.server";
 
 describe("integração Asaas", () => {
-  it("oferece Pix e cartão no checkout", () => {
-    expect(FORMAS_PAGAMENTO_CHECKOUT).toEqual(["PIX", "CREDIT_CARD"]);
+  it("oferece cartão no checkout recorrente", () => {
+    expect(FORMAS_PAGAMENTO_CHECKOUT).toEqual(["CREDIT_CARD"]);
   });
 
   it("aplica R$ 34 de desconto somente no primeiro mês do Essencial", () => {
