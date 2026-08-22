@@ -432,7 +432,10 @@ export function CriacaoIA({
           </div>
         </div>
         <div>
-          <span className="mb-1.5 block text-sm font-medium">Paleta</span>
+          <span className="mb-1.5 block text-sm font-medium">Tema de cores</span>
+          <p className="mb-2 text-xs text-muted-foreground">
+            A escolha orienta as cores sugeridas pela IA; você poderá ajustá-las depois no editor.
+          </p>
           <div className="flex flex-wrap gap-2">
             {(
               [

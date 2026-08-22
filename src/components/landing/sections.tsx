@@ -991,6 +991,11 @@ export function Planos() {
     Profissional: "R$ 790",
     Catálogo: "R$ 1.190",
   };
+  const economiaAnual: Record<string, string> = {
+    Essencial: "Economize R$ 78 por ano",
+    Profissional: "Economize R$ 158 por ano",
+    Catálogo: "Economize R$ 238 por ano",
+  };
   const tierDoPlano: Record<string, string> = {
     Essencial: "essential",
     Profissional: "professional",
@@ -1189,10 +1194,17 @@ export function Planos() {
                 {cicloPlano === "annual" ? "/ano" : planoEmFoco.sufixo}
               </span>
             </p>
+            {cicloPlano === "annual" && (
+              <p className="mt-1 text-sm font-semibold text-lime">
+                {economiaAnual[planoEmFoco.nome]}
+              </p>
+            )}
             <p
               className={`mt-2 rounded-xl px-3 py-2 text-sm ${planoEmFoco.destaque ? "bg-ink-foreground/10" : "bg-secondary"}`}
             >
-              {cicloPlano === "annual" ? "Cobrança anual com renovação anual." : planoEmFoco.nota}
+              {cicloPlano === "annual"
+                ? `${economiaAnual[planoEmFoco.nome]} comparado a 12 mensalidades do valor padrão. Cobrança anual com renovação anual.`
+                : planoEmFoco.nota}
             </p>
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
               {planoEmFoco.itens.map((item) => (

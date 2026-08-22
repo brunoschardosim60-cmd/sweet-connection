@@ -551,13 +551,13 @@ function NovoSite() {
               <div className="sm:col-span-2 rounded-xl border border-border bg-secondary/30 p-3">
                 <label className="block">
                   <span className="text-sm font-semibold">
-                    Importar dados do Google ou Instagram
+                    Importar texto copiado do Google ou Instagram
                   </span>
                   <textarea
                     value={textoImportado}
                     onChange={(event) => setTextoImportado(event.target.value)}
                     rows={4}
-                    placeholder="Cole aqui nome, telefone, endereço, serviços, horários e avaliações. A revisão continuará sendo sua."
+                    placeholder="Cole um texto público com nome, telefone e endereço. A Nexa tenta preencher esses campos; revise tudo antes de continuar."
                     className="mt-2 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
                   />
                 </label>
@@ -579,7 +579,7 @@ function NovoSite() {
                   }}
                   className="mt-2 min-h-11 rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground disabled:opacity-50"
                 >
-                  Extrair e revisar dados
+                  Extrair dados do texto
                 </button>
               </div>
             </div>

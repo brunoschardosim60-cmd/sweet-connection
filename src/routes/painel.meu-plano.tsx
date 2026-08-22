@@ -91,6 +91,11 @@ const precosAnuais: Record<PlanoContratavel, string> = {
   professional: "R$ 790",
   catalog: "R$ 1.190",
 };
+const economiasAnuais: Record<PlanoContratavel, string> = {
+  essential: "Economize R$ 78 por ano",
+  professional: "Economize R$ 158 por ano",
+  catalog: "Economize R$ 238 por ano",
+};
 
 const opcoes: {
   tier: PlanoContratavel;
@@ -428,6 +433,11 @@ function MeuPlano() {
                     </span>
                   </span>
                   <span className="mt-1 block text-xs opacity-70">{opcao.descricao}</span>
+                  {ciclo === "annual" && (
+                    <span className="mt-1 text-xs font-semibold text-lime">
+                      {economiasAnuais[opcao.tier]}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -439,7 +449,7 @@ function MeuPlano() {
             }`}
           >
             {ciclo === "annual"
-              ? `Cobrança anual de ${precosAnuais[opcaoSelecionada.tier]}. Renovação anual.`
+              ? `${economiasAnuais[opcaoSelecionada.tier]} comparado a 12 mensalidades do valor padrão. Cobrança anual de ${precosAnuais[opcaoSelecionada.tier]} com renovação anual.`
               : opcaoSelecionada.nota}
           </p>
 
