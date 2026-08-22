@@ -284,14 +284,25 @@ export function Comparacao() {
             style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
           >
             <div data-preview-phone className="grid h-full place-items-center p-6">
-              <PhoneFrame largura={232} altura={520}>
-                <MiniSite
-                  site={siteDoModelo("restaurante-moderno")}
-                  compacto
-                  botaoFlutuante={false}
-                  interacoesExternas={false}
-                  previewEstreita
-                />
+              <PhoneFrame largura={246} altura={480}>
+                {/* A demonstração é visualmente menor que um mini-site real, mas o
+                    conteúdo continua sendo renderizado na largura de um celular
+                    normal. Assim textos, cards e botões não são espremidos. */}
+                <div
+                  className="min-h-full"
+                  style={{
+                    width: 360,
+                    transform: "scale(0.6833)",
+                    transformOrigin: "top left",
+                  }}
+                >
+                  <MiniSite
+                    site={siteDoModelo("restaurante-moderno")}
+                    compacto
+                    botaoFlutuante={false}
+                    interacoesExternas={false}
+                  />
+                </div>
               </PhoneFrame>
             </div>
             <span className="absolute right-5 top-5 rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink">
