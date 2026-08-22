@@ -39,6 +39,9 @@ function Midias() {
           <p className="text-sm text-muted-foreground">
             Arquivos próprios armazenados no Supabase e imagens incluídas no sistema.
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            As mídias podem ser usadas em páginas públicas. Não envie documentos ou dados sensíveis.
+          </p>
         </div>
         <button
           type="button"

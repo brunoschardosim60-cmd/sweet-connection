@@ -101,6 +101,10 @@ export function SeletorMidia({
           e.target.value = "";
         }}
       />
+      <p className="text-xs text-muted-foreground">
+        Envie apenas conteúdo que possa ser exibido publicamente. Não envie documentos ou dados
+        pessoais sensíveis.
+      </p>
 
       {valor ? (
         <div className="relative overflow-hidden rounded-xl border border-border bg-card">
