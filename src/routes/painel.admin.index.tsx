@@ -169,15 +169,25 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
             {dataCurta(p.atualizado_em)}
             {p.publicado_em ? ` · publicado ${dataCurta(p.publicado_em)}` : ""}
           </p>
-          {p.status === "publicado" && (
+          <div className="mt-2 flex flex-wrap gap-2">
             <Link
-              to="/site/$slug"
-              params={{ slug: p.slug }}
-              className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              to="/painel/admin/site/$id"
+              params={{ id: p.id }}
+              className="inline-flex min-h-11 items-center gap-1 rounded-full bg-ink px-3 text-xs font-semibold text-ink-foreground"
             >
-              <ExternalLink size={12} aria-hidden="true" /> Ver mini-site
+              <Eye size={12} aria-hidden="true" /> Abrir mini-site
             </Link>
-          )}
+            {p.status === "publicado" && (
+              <Link
+                to="/site/$slug"
+                params={{ slug: p.slug }}
+                className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              >
+                <ExternalLink size={12} aria-hidden="true" /> Ver publicado
+              </Link>
+            )}
+          </div>
+
         </li>
       ))}
     </ul>

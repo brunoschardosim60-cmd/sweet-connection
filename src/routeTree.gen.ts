@@ -47,6 +47,7 @@ import { Route as ApiBillingAsaasCheckoutRouteImport } from './routes/api/billin
 import { Route as ApiBillingAsaasManageRouteImport } from './routes/api/billing/asaas/manage'
 import { Route as ApiBillingAsaasRefundRequestRouteImport } from './routes/api/billing/asaas/refund-request'
 import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
+import { Route as PainelAdminSiteIdRouteImport } from './routes/painel.admin.site.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -240,6 +241,11 @@ const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
   path: '/api/public/manifest/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelAdminSiteIdRoute = PainelAdminSiteIdRouteImport.update({
+  id: '/admin/site/$id',
+  path: '/admin/site/$id',
+  getParentRoute: () => PainelRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
+  '/painel/admin/site/$id': typeof PainelAdminSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -319,6 +326,7 @@ export interface FileRoutesByTo {
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
+  '/painel/admin/site/$id': typeof PainelAdminSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/api/billing/asaas/manage': typeof ApiBillingAsaasManageRoute
   '/api/billing/asaas/refund-request': typeof ApiBillingAsaasRefundRequestRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
+  '/painel/admin/site/$id': typeof PainelAdminSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/manage'
     | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
+    | '/painel/admin/site/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/manage'
     | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
+    | '/painel/admin/site/$id'
   id:
     | '__root__'
     | '/'
@@ -481,6 +492,7 @@ export interface FileRouteTypes {
     | '/api/billing/asaas/manage'
     | '/api/billing/asaas/refund-request'
     | '/api/public/manifest/$slug'
+    | '/painel/admin/site/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -777,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/admin/site/$id': {
+      id: '/painel/admin/site/$id'
+      path: '/admin/site/$id'
+      fullPath: '/painel/admin/site/$id'
+      preLoaderRoute: typeof PainelAdminSiteIdRouteImport
+      parentRoute: typeof PainelRoute
+    }
   }
 }
 
@@ -796,6 +815,7 @@ interface PainelRouteChildren {
   PainelAdminPapeisRoute: typeof PainelAdminPapeisRoute
   PainelEditorIdRoute: typeof PainelEditorIdRoute
   PainelAdminIndexRoute: typeof PainelAdminIndexRoute
+  PainelAdminSiteIdRoute: typeof PainelAdminSiteIdRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
@@ -814,6 +834,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelAdminPapeisRoute: PainelAdminPapeisRoute,
   PainelEditorIdRoute: PainelEditorIdRoute,
   PainelAdminIndexRoute: PainelAdminIndexRoute,
+  PainelAdminSiteIdRoute: PainelAdminSiteIdRoute,
 }
 
 const PainelRouteWithChildren =
