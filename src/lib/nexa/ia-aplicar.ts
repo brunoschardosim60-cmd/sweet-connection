@@ -86,6 +86,7 @@ export function aplicarPlanoIA(
 
   const ativas = new Set<TipoSecao>(plano.secoes ?? []);
   if (produtos.length) ativas.add("produtos");
+  if (plano.segmento === "alimentacao" && produtos.length) ativas.add("cardapio");
   if (servicos.length) ativas.add("servicos");
   if (galeria.length) ativas.add("galeria");
   if (depoimentos.length) ativas.add("depoimentos");

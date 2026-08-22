@@ -20,8 +20,12 @@ export interface EntradaPlano {
 
 const MODELO_LOVABLE = "google/gemini-2.5-flash";
 const MODELO_GEMINI_PADRAO = "gemini-2.5-flash";
-const MAX_IMAGENS_REFERENCIA = 4;
+// Logo + capa + uma foto contextual bastam para direção de arte; as outras
+// imagens continuam no mini-site, mas não encarecem a análise multimodal.
+const MAX_IMAGENS_REFERENCIA = 3;
 const MAX_BYTES_POR_IMAGEM = 3 * 1024 * 1024;
+const LIMITE_SAIDA_TOKENS = 2_200;
+const ORCAMENTO_PENSAMENTO_TOKENS = 1_024;
 
 type UsoTokens = { prompt: number; completion: number; total: number };
 type RespostaGeracao = { plano: PlanoIA; uso: UsoTokens };
@@ -50,30 +54,31 @@ function extrairJson(texto: string): PlanoIA {
   return JSON.parse(limpo.slice(inicio, fim + 1)) as PlanoIA;
 }
 
-function instrucoesDoPlano() {
+function instrucoesDoPlano(entrada: EntradaPlano) {
+  const cardapio =
+    /restaurante|hamburg|pizza|pizzaria|lanch|bar\b|cafe|cafeter|doceria|confeitaria|delivery|comida|alimenta/i.test(
+      entrada.nicho,
+    );
   return [
-    "Você é uma especialista brasileira sênior em estratégia de marca, UX para pequenos negócios, copywriting de conversão e SEO local.",
-    "Monte um mini-site profissional, específico e útil para o negócio informado; evite frases genéricas e clichês.",
-    "Responda SOMENTE com JSON válido, sem comentários nem markdown.",
-    "Formato:",
+    "Você é diretora de arte e estrategista de marca para pequenos negócios brasileiros.",
+    "Crie uma primeira versão elegante, contemporânea e específica. Evite clichês, excessos e texto genérico.",
+    "Use logo e fotos como direção de arte: extraia o clima, contraste e cores predominantes; não redesenhe logo nem invente imagens.",
+    "Defina paleta com uma cor principal, fundo e texto com contraste legível. Priorize hierarquia: capa forte, CTA claro, seções curtas e ritmo visual coerente.",
+    "Responda SOMENTE JSON válido, sem markdown. Seja concisa: descrição até 28 palavras, até 6 produtos/serviços, até 4 FAQs e até 7 seções relevantes.",
+    "Nunca invente preço, endereço, horário, certificação, promoção, depoimento ou avaliação. Se não houver dado, omita o campo/seção.",
+    cardapio
+      ? "Este é um negócio de alimentação: ative cardapio e produtos; devolva itens com categorias úteis (ex.: Burgers, Pizzas, Bebidas), sem preço se não informado. A experiência deve parecer um cardápio digital, não uma página institucional genérica."
+      : "Escolha seções e CTA adequados ao segmento; produtos e serviços devem ter nomes concretos e descrições úteis.",
+    "Formato JSON:",
     '{"descricao":string(1-2 frases),"segmento":"alimentacao|beleza|comercio|servicos|saude|eventos|imoveis|transporte|profissionais",',
     '"cores":{"primaria":"#RRGGBB","fundo":"#RRGGBB","texto":"#RRGGBB"},"tema":"claro|escuro",',
     '"secoes":["apresentacao","links","produtos","servicos","cardapio","galeria","depoimentos","equipe","promocao","cupom","localizacao","horarios","faq","formulario","rodape"],',
     '"servicos":[{"nome":string,"descricao":string,"duracao":string,"preco":number}],',
     '"produtos":[{"nome":string,"descricao":string,"preco":number,"categoria":string}],',
     '"faq":[{"pergunta":string,"resposta":string}],',
-    '"depoimentos":[{"nome":string,"nota":number,"comentario":string}],',
     '"galeria":[{"titulo":string}],',
     '"formulario":{"tipo":"orcamento|contato|reserva|agendamento|cotacao","titulo":string},',
     '"seo":{"titulo":string,"descricao":string,"palavras":string}}',
-    "Não escolha nem reutilize um modelo pronto: monte o conteúdo e as seções do zero a partir do briefing.",
-    "A logo é uma referência visual: use suas cores, clima e nível de sofisticação para a paleta, sem tentar redesenhá-la nem inventar uma marca diferente.",
-    "Crie uma apresentação objetiva e persuasiva, 4 a 6 serviços ou produtos quando fizer sentido, uma FAQ realmente útil, CTA compatível com o segmento e SEO local natural.",
-    "Cada item deve ter nome específico e uma descrição concreta de 1 ou 2 frases; prefira qualidade e coerência a quantidade.",
-    "Para alimentação, priorize cardápio, pedido/reserva e categorias coerentes; para beleza, serviços, duração e agendamento; para saúde, contato/agendamento sem promessas clínicas; para eventos, pacotes sob orçamento; para imóveis, captação/visita sem imóveis fictícios; para transporte, rotas/cotação; para advocacia, atendimento e áreas sem promessa de resultado.",
-    "Use as imagens enviadas como referência do estilo e do que o negócio vende. Só inclua galeria quando houver fotos para ela.",
-    "Nunca invente preços, horários, endereço, certificações, promoções ou depoimentos. Se essas informações não existirem no briefing, omita o campo ou a seção.",
-    "Não crie depoimentos fictícios. Gere no máximo 6 itens por lista.",
   ].join(" ");
 }
 
@@ -146,14 +151,19 @@ async function gerarComGeminiDireto(
       method: "POST",
       headers: { "x-goog-api-key": chave, "Content-Type": "application/json" },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: instrucoesDoPlano() }] },
+        systemInstruction: { parts: [{ text: instrucoesDoPlano(entrada) }] },
         contents: [
           {
             role: "user",
             parts: [{ text: briefingEmTexto(entrada) }, ...(await partesDeImagemGemini(entrada))],
           },
         ],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.45 },
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.35,
+          maxOutputTokens: LIMITE_SAIDA_TOKENS,
+          thinkingConfig: { thinkingBudget: ORCAMENTO_PENSAMENTO_TOKENS },
+        },
       }),
     },
   );
@@ -263,7 +273,7 @@ export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Pr
         messages: [
           {
             role: "system",
-            content: instrucoesDoPlano(),
+            content: instrucoesDoPlano(entrada),
           },
           { role: "user", content: conteudo },
         ],

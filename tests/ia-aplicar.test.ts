@@ -84,6 +84,21 @@ describe("aplicarPlanoIA", () => {
     expect(outro.secoes.find((s) => s.tipo === "equipe")?.ativa).toBe(true);
     expect(outro.secoes.find((s) => s.tipo === "videos")?.ativa).toBe(true);
   });
+
+  it("ativa o cardápio para alimentação quando a IA devolve produtos categorizados", () => {
+    const restaurante = criarSite(
+      { ...cliente, empresa: "Forno Alto", segmento: "alimentacao" },
+      "personalizado",
+      "forno-alto",
+    );
+    const resultado = aplicarPlanoIA(restaurante, {
+      descricao: "Pizzaria de fermentação lenta.",
+      segmento: "alimentacao",
+      produtos: [{ nome: "Margherita", descricao: "Tomate e manjericão", categoria: "Pizzas" }],
+    });
+    expect(resultado.secoes.find((s) => s.tipo === "cardapio")?.ativa).toBe(true);
+    expect(resultado.produtos[0]?.categoria).toBe("Pizzas");
+  });
 });
 
 describe("preferências de estilo e paleta", () => {
