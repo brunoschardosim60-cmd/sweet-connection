@@ -729,6 +729,9 @@ function CartaoProduto({
           {produto.descricao && (
             <p className="mt-1 line-clamp-2 text-xs opacity-70">{produto.descricao}</p>
           )}
+          <span className="mt-1 inline-block text-[11px] font-semibold underline underline-offset-2 opacity-70">
+            Ver item
+          </span>
           {(produto.preco > 0 || produto.precoPromocional) && (
             <p className="mt-2 flex flex-wrap items-center gap-2">
               {produto.precoPromocional ? (
@@ -808,7 +811,7 @@ function Contador({
           outlineColor: primaria,
         }}
       >
-        <Plus size={15} aria-hidden /> Adicionar
+        <Plus size={15} aria-hidden /> Adicionar ao carrinho
       </button>
     );
   return (

@@ -1207,7 +1207,7 @@ export function Planos() {
                             : "bg-secondary text-foreground"
                         }`}
                       >
-                        Cobrança anual em uma parcela, com renovação anual.
+                        Cerca de 2 meses grátis · cobrança anual em uma parcela.
                       </p>
                     </>
                   ) : (
