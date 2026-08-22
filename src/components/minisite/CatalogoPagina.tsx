@@ -301,7 +301,7 @@ export function CatalogoPagina({
         </div>
 
         <div
-          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto px-4 pb-2 text-[11px]"
+          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto scrollbar-invisivel px-4 pb-2 text-[11px]"
           aria-label="Informações do estabelecimento"
         >
           <span
@@ -391,7 +391,7 @@ export function CatalogoPagina({
             <div
               role="group"
               aria-label="Filtros do catálogo"
-              className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+              className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
             >
               {filtrosCatalogo.map((f) => (
                 <Chip
@@ -433,7 +433,7 @@ export function CatalogoPagina({
               <div
                 role="group"
                 aria-label="Categorias"
-                className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+                className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
               >
                 {categorias.map((c) => (
                   <Chip
@@ -1198,7 +1198,7 @@ function PainelCarrinho({
       <div
         role="group"
         aria-label="Modalidade do pedido"
-        className="-mx-1 flex gap-2 overflow-x-auto px-1"
+        className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1"
       >
         {modalidades.map((op) => (
           <Chip key={op} ativo={entrega === op} cor={primaria} onClick={() => setEntrega(op)}>
