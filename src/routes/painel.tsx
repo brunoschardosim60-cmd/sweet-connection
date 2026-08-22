@@ -147,7 +147,7 @@ function PainelLayout() {
       .select("admin_suspended_at")
       .eq("id", user.id)
       .maybeSingle()
-      .then(async ({ data }) => {
+      .then(async ({ data }: { data: { admin_suspended_at: string | null } | null }) => {
         if (!ativo || !data?.admin_suspended_at) return;
         await supabase.auth.signOut();
         toast.error("Esta conta está temporariamente suspensa. Fale com o suporte.");
