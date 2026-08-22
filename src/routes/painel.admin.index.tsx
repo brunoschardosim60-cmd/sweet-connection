@@ -14,6 +14,7 @@ import {
   Search,
   ShieldCheck,
   Users,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GraficoArea, GraficoBarras } from "@/components/Graficos";
