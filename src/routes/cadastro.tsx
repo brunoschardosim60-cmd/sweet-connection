@@ -153,7 +153,7 @@ function Cadastro() {
                 className="h-5 w-5 shrink-0 rounded border-border"
               />
             </span>
-            <p className="text-muted-foreground">
+            <p className="pt-2.5 leading-6 text-muted-foreground">
               <label htmlFor="cad-termos" className="cursor-pointer">
                 Li e aceito os
               </label>{" "}
