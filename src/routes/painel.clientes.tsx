@@ -7,6 +7,7 @@ import {
   ExternalLink,
   LayoutGrid,
   Files,
+  FileSpreadsheet,
   Pause,
   PauseCircle,
   Pencil,
@@ -15,8 +16,17 @@ import {
   Rows3,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
+import {
+  exemploClientesCsv,
+  lerClientesCsv,
+  slugDoCliente,
+  type ClienteImportado,
+} from "@/lib/nexa/clientes-csv";
 import { duplicarImportacao, lerArquivo } from "@/lib/nexa/exportar";
+import { criarSite } from "@/lib/nexa/factory";
+import { modelosCriacao } from "@/lib/nexa/modelos";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useNexa } from "@/lib/nexa/hooks";
@@ -63,6 +73,9 @@ function Clientes() {
   const [visual, setVisual] = useState<"tabela" | "cards">("tabela");
   const [qr, setQr] = useState<Site | null>(null);
   const [excluir, setExcluir] = useState<Site | null>(null);
+  const [clientesCsv, setClientesCsv] = useState<ClienteImportado[]>([]);
+  const [errosCsv, setErrosCsv] = useState<string[]>([]);
+  const [importandoCsv, setImportandoCsv] = useState(false);
 
   const lista = sites.filter(
     (s) =>
@@ -94,6 +107,56 @@ function Clientes() {
       toast.error("Não foi possível duplicar", {
         description: error instanceof Error ? error.message : undefined,
       });
+    }
+  };
+
+  const baixarModeloCsv = () => {
+    const url = URL.createObjectURL(
+      new Blob([`\uFEFF${exemploClientesCsv}`], { type: "text/csv;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "modelo-clientes-nexa.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importarClientesCsv = async () => {
+    if (!clientesCsv.length) return;
+    setImportandoCsv(true);
+    const usados = new Set(sites.map((site) => site.slug));
+    let criados = 0;
+    const falhas: string[] = [];
+    for (const cliente of clientesCsv) {
+      let slug = slugDoCliente(cliente.slug || cliente.empresa);
+      let sequencia = 2;
+      while (usados.has(slug))
+        slug = `${slugDoCliente(cliente.slug || cliente.empresa)}-${sequencia++}`;
+      const modelo =
+        modelosCriacao.find((item) => item.id === cliente.modeloId)?.id ??
+        modelosCriacao.find((item) => item.segmento === cliente.segmento)?.id ??
+        "personalizado";
+      try {
+        await store.adicionarSite(criarSite(cliente, modelo, slug));
+        usados.add(slug);
+        criados += 1;
+      } catch (error) {
+        falhas.push(
+          `${cliente.empresa}: ${error instanceof Error ? error.message : "não foi possível criar o rascunho."}`,
+        );
+      }
+    }
+    setImportandoCsv(false);
+    if (criados) toast.success(`${criados} rascunho${criados === 1 ? " criado" : "s criados"}.`);
+    if (falhas.length) {
+      setErrosCsv(falhas);
+      setClientesCsv([]);
+      toast.error("Alguns clientes não foram importados.", {
+        description: "Veja os erros na prévia.",
+      });
+    } else {
+      setClientesCsv([]);
+      setErrosCsv([]);
     }
   };
 
@@ -250,9 +313,35 @@ function Clientes() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary">
+            <FileSpreadsheet size={13} aria-hidden="true" />
+            <span className="hidden sm:inline">Importar CSV</span>
+            <span className="sr-only sm:hidden">Importar CSV</span>
+            <input
+              type="file"
+              accept="text/csv,.csv"
+              className="sr-only"
+              onChange={async (e) => {
+                const arquivo = e.target.files?.[0];
+                e.target.value = "";
+                if (!arquivo) return;
+                const resultado = lerClientesCsv(await arquivo.text());
+                setClientesCsv(resultado.clientes);
+                setErrosCsv(resultado.erros);
+                if (resultado.clientes.length) {
+                  toast.success(
+                    `${resultado.clientes.length} cliente${resultado.clientes.length === 1 ? " encontrado" : "s encontrados"}.`,
+                    {
+                      description: "Revise a prévia antes de criar os rascunhos.",
+                    },
+                  );
+                } else toast.error("Não encontramos clientes válidos no CSV.");
+              }}
+            />
+          </label>
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary">
             <Upload size={13} aria-hidden="true" />{" "}
-            <span className="hidden sm:inline">Importar JSON</span>
-            <span className="sr-only sm:hidden">Importar JSON</span>
+            <span className="hidden sm:inline">Importar projeto</span>
+            <span className="sr-only sm:hidden">Importar projeto JSON</span>
             <input
               type="file"
               accept="application/json,.json,.nexa"
@@ -299,6 +388,91 @@ function Clientes() {
           </div>
         </div>
       </div>
+
+      {(clientesCsv.length > 0 || errosCsv.length > 0) && (
+        <section className="surface space-y-4 p-4" aria-live="polite">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Prévia da importação</h2>
+              <p className="text-sm text-muted-foreground">
+                Cada linha válida cria um mini-site em rascunho; nada é publicado automaticamente.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setClientesCsv([]);
+                setErrosCsv([]);
+              }}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-semibold hover:bg-secondary"
+            >
+              <X size={14} /> Limpar
+            </button>
+          </div>
+          {clientesCsv.length > 0 && (
+            <>
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full min-w-[560px] text-left text-sm">
+                  <thead className="bg-secondary/60 text-xs text-muted-foreground">
+                    <tr>
+                      <th className="p-3">Empresa</th>
+                      <th className="p-3">Contato</th>
+                      <th className="p-3">Cidade</th>
+                      <th className="p-3">Segmento</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {clientesCsv.slice(0, 10).map((cliente) => (
+                      <tr key={cliente.linha}>
+                        <td className="p-3 font-medium">{cliente.empresa}</td>
+                        <td className="p-3">{cliente.responsavel || cliente.telefone || "—"}</td>
+                        <td className="p-3">
+                          {cliente.cidade}/{cliente.estado}
+                        </td>
+                        <td className="p-3">{nomeSegmento(cliente.segmento)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {clientesCsv.length > 10 && (
+                <p className="text-xs text-muted-foreground">
+                  Mostrando 10 de {clientesCsv.length} clientes válidos.
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={importandoCsv}
+                  onClick={() => void importarClientesCsv()}
+                  className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground disabled:opacity-60"
+                >
+                  {importandoCsv
+                    ? "Criando rascunhos…"
+                    : `Criar ${clientesCsv.length} rascunho${clientesCsv.length === 1 ? "" : "s"}`}
+                </button>
+                <button
+                  type="button"
+                  onClick={baixarModeloCsv}
+                  className="min-h-11 text-sm font-semibold underline underline-offset-4"
+                >
+                  Baixar modelo CSV
+                </button>
+              </div>
+            </>
+          )}
+          {errosCsv.length > 0 && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              <p className="font-semibold">Linhas que precisam de ajuste</p>
+              <ul className="mt-1 list-disc pl-5">
+                {errosCsv.slice(0, 5).map((erro) => (
+                  <li key={erro}>{erro}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <label className="w-full sm:w-72">
