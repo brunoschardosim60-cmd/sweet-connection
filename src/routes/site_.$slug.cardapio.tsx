@@ -5,6 +5,7 @@ import { perfilCatalogo } from "@/lib/nexa/catalogo";
 import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
+import { dadosEstruturadosDoSite, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 
 export const Route = createFileRoute("/site_/$slug/cardapio")({
   loader: async ({ params }) => {
@@ -72,6 +73,12 @@ function CardapioPublico() {
   const site = Route.useLoaderData();
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializarJsonLd(dadosEstruturadosDoSite(site, { cardapio: true })),
+        }}
+      />
       <Rastreadores site={site} />
       <CatalogoPagina site={site} rastrear mostrarVoltar={!ehModeloCardapio(site.modeloId)} />
     </>

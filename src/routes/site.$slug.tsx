@@ -5,6 +5,7 @@ import { Rastreadores } from "@/components/minisite/Rastreadores";
 import { buscarMinisitePublicado } from "@/lib/nexa/public-api";
 import { enderecoSite } from "@/lib/nexa/clipboard";
 import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
+import { dadosEstruturadosDoSite, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 
 export const Route = createFileRoute("/site/$slug")({
   loader: async ({ params }) => {
@@ -72,38 +73,14 @@ function MinisiteNaoEncontrado() {
 
 function SitePublico() {
   const site = Route.useLoaderData();
-  const tipoSchema =
-    site.cliente.segmento === "alimentacao"
-      ? "Restaurant"
-      : site.cliente.segmento === "beleza"
-        ? "BarberShop"
-        : "LocalBusiness";
-  const dadosEstruturados = {
-    "@context": "https://schema.org",
-    "@type": tipoSchema,
-    name: site.conteudo.nome,
-    description: site.seo.descricao || site.conteudo.descricao,
-    url: enderecoSite(site.slug),
-    ...(site.conteudo.capa ? { image: site.conteudo.capa } : {}),
-    ...(site.conteudo.telefone ? { telephone: site.conteudo.telefone } : {}),
-    ...(site.conteudo.endereco || site.cliente.cidade
-      ? {
-          address: {
-            "@type": "PostalAddress",
-            ...(site.conteudo.endereco ? { streetAddress: site.conteudo.endereco } : {}),
-            addressLocality: site.cliente.cidade,
-            addressRegion: site.cliente.estado,
-            addressCountry: "BR",
-          },
-        }
-      : {}),
-    ...(site.conteudo.instagram ? { sameAs: [site.conteudo.instagram] } : {}),
-  };
+  const dadosEstruturados = dadosEstruturadosDoSite(site, {
+    cardapio: ehModeloCardapio(site.modeloId),
+  });
   return (
     <div className="min-h-screen">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(dadosEstruturados) }}
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(dadosEstruturados) }}
       />
       <Rastreadores site={site} />
       {ehModeloCardapio(site.modeloId) ? (

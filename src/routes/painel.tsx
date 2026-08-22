@@ -22,6 +22,7 @@ import {
   LogOut,
   ShieldCheck,
   ClipboardList,
+  Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -331,6 +332,15 @@ function PainelLayout() {
           })}
         </nav>
 
+        <Link
+          to="/"
+          title={recolhida ? "Página inicial" : undefined}
+          className="mb-1 flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        >
+          <Globe size={17} className="shrink-0" />
+          {!recolhida && "Página inicial"}
+        </Link>
+
         <button
           type="button"
           onClick={() => void sair()}
@@ -568,6 +578,15 @@ function PainelLayout() {
                   );
                 })}
               </nav>
+
+              <Link
+                to="/"
+                onClick={() => setMenuMovel(false)}
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                <Globe size={17} className="shrink-0" />
+                Página inicial
+              </Link>
 
               <button
                 type="button"
