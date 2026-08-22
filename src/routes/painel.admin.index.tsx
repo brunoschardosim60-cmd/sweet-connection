@@ -97,6 +97,15 @@ const CHIP_STATUS: Record<string, string> = {
   pausado: "bg-secondary text-foreground",
 };
 
+const TIERS = ["none", "essential", "professional", "catalog"] as const;
+type Tier = (typeof TIERS)[number];
+const rotuloTier: Record<Tier, string> = {
+  none: "Teste grátis",
+  essential: "Essencial",
+  professional: "Profissional",
+  catalog: "Catálogo",
+};
+
 function ProjetosDoUsuario({ userId, email }: { userId: string; email: string }) {
   const [estado, setEstado] = useState<EstadoProjetos>({
     carregando: true,
@@ -177,12 +186,16 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
 
 function LinhaUsuario({
   u,
+  tier,
+  statusAssinatura,
   alterando,
   onPlano,
 }: {
   u: AdminUsuario;
+  tier: Tier;
+  statusAssinatura: string;
   alterando: boolean;
-  onPlano: (plano: "pro" | "free") => void;
+  onPlano: (plano: Tier) => void;
 }) {
   const [aberto, setAberto] = useState(false);
   const identificacao = u.email ?? u.user_id;
@@ -232,10 +245,10 @@ function LinhaUsuario({
           <div
             className="flex shrink-0 items-center gap-1 rounded-full border border-border p-1"
             role="group"
-            aria-label={`Plano de ${identificacao}`}
+            aria-label={`Plano comercial de ${identificacao}`}
           >
-            {(["free", "pro"] as const).map((p) => {
-              const ativo = u.plano === p;
+            {TIERS.map((p) => {
+              const ativo = tier === p && (p === "none" || statusAssinatura === "active");
               return (
                 <button
                   key={p}
@@ -247,8 +260,8 @@ function LinhaUsuario({
                     ativo ? "bg-lime text-ink" : "text-muted-foreground hover:bg-secondary"
                   }`}
                 >
-                  {p === "pro" && <Crown size={12} aria-hidden="true" />}
-                  {p === "pro" ? "Pro" : "Gratuito"}
+                  {p !== "none" && <Crown size={12} aria-hidden="true" />}
+                  {rotuloTier[p]}
                 </button>
               );
             })}
@@ -269,28 +282,40 @@ function LinhaUsuario({
 function PainelAdmin() {
   const { admin, carregando: checando } = useIsAdmin();
   const [periodo, setPeriodo] = useState<Periodo>(30);
-  const { resumo, usuarios, serie, usoIa, financeiro, carregando, erro, recarregar, definirPlano } =
-    useAdminDados(periodo);
+  const {
+    resumo,
+    usuarios,
+    serie,
+    usoIa,
+    financeiro,
+    carregando,
+    erro,
+    recarregar,
+    definirAssinatura,
+  } = useAdminDados(periodo);
   const [busca, setBusca] = useState("");
-  const [plano, setPlano] = useState<"todos" | "pro" | "free">("todos");
+  const [plano, setPlano] = useState<"todos" | Tier>("todos");
   const [atividade, setAtividade] = useState<"todos" | "ativos" | "inativos">("todos");
   const [comSites, setComSites] = useState(false);
   const [alterando, setAlterando] = useState<string | null>(null);
   const [baixandoEnvios, setBaixandoEnvios] = useState(false);
 
+  const assinaturas = useMemo(() => new Map(usoIa.map((uso) => [uso.user_id, uso])), [usoIa]);
   const lista = useMemo(
-    () => filtrarUsuarios(usuarios, { busca, plano, atividade, comSites }),
-    [atividade, busca, comSites, plano, usuarios],
+    () =>
+      filtrarUsuarios(usuarios, { busca, atividade, comSites }).filter((usuario) => {
+        if (plano === "todos") return true;
+        return (assinaturas.get(usuario.user_id)?.tier ?? "none") === plano;
+      }),
+    [atividade, assinaturas, busca, comSites, plano, usuarios],
   );
   const totais = useMemo(() => somarSerie(serie), [serie]);
 
-  const trocarPlano = async (u: AdminUsuario, novo: "pro" | "free") => {
+  const trocarPlano = async (u: AdminUsuario, novo: Tier) => {
     setAlterando(u.user_id);
     try {
-      await definirPlano(u.user_id, novo);
-      toast.success(
-        `Plano de ${u.email ?? "usuário"} atualizado para ${novo === "pro" ? "Pro" : "Gratuito"}.`,
-      );
+      await definirAssinatura(u.user_id, novo, novo === "none" ? "inactive" : "active");
+      toast.success(`Plano de ${u.email ?? "usuário"} atualizado para ${rotuloTier[novo]}.`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível alterar o plano.");
     } finally {
@@ -304,7 +329,11 @@ function PainelAdmin() {
       montarCsv(lista, [
         { cabecalho: "E-mail", valor: (u) => u.email },
         { cabecalho: "Nome", valor: (u) => u.display_name },
-        { cabecalho: "Plano", valor: (u) => u.plano },
+        {
+          cabecalho: "Plano",
+          valor: (u) =>
+            rotuloTier[(assinaturas.get(u.user_id)?.tier as Tier | undefined) ?? "none"],
+        },
         { cabecalho: "Administrador", valor: (u) => (u.is_admin ? "sim" : "não") },
         { cabecalho: "Mini-sites", valor: (u) => u.sites },
         { cabecalho: "Publicados", valor: (u) => u.sites_publicados },
@@ -444,7 +473,7 @@ function PainelAdmin() {
           <Cartao
             rotulo="Visitas (30 dias)"
             valor={resumo.visitas_30d}
-            detalhe={`${resumo.planos?.["pro"] ?? 0} contas Pro · ${resumo.planos?.["free"] ?? 0} gratuitas`}
+            detalhe={`${financeiro?.active_subscriptions ?? 0} assinaturas ativas`}
             icone={BarChart3}
           />
         </div>
@@ -516,8 +545,9 @@ function PainelAdmin() {
               {usoIa.map((uso) => (
                 <tr key={uso.user_id} className="border-t border-border">
                   <td className="p-2">{uso.email ?? uso.user_id}</td>
-                  <td className="p-2 capitalize">
-                    {uso.tier} · {uso.subscription_status}
+                  <td className="p-2">
+                    {rotuloTier[(uso.tier as Tier) ?? "none"] ?? uso.tier} ·{" "}
+                    {uso.subscription_status === "active" ? "ativo" : "inativo"}
                   </td>
                   <td className="p-2 font-semibold">{uso.generations_7d}</td>
                   <td className="p-2 font-semibold">{numeroCompacto(uso.tokens_period)}</td>
@@ -637,7 +667,7 @@ function PainelAdmin() {
             role="group"
             aria-label="Filtrar por plano"
           >
-            {(["todos", "pro", "free"] as const).map((f) => (
+            {(["todos", ...TIERS] as const).map((f) => (
               <button
                 key={f}
                 type="button"
@@ -649,7 +679,7 @@ function PainelAdmin() {
                     : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                {f === "todos" ? "Todos" : f === "pro" ? "Pro" : "Gratuitos"}
+                {f === "todos" ? "Todos" : rotuloTier[f]}
               </button>
             ))}
           </div>
@@ -699,14 +729,19 @@ function PainelAdmin() {
             Nenhum usuário encontrado com esses filtros.
           </p>
         ) : (
-          lista.map((u) => (
-            <LinhaUsuario
-              key={u.user_id}
-              u={u}
-              alterando={alterando === u.user_id}
-              onPlano={(p) => void trocarPlano(u, p)}
-            />
-          ))
+          lista.map((u) => {
+            const assinatura = assinaturas.get(u.user_id);
+            return (
+              <LinhaUsuario
+                key={u.user_id}
+                u={u}
+                tier={(assinatura?.tier as Tier | undefined) ?? "none"}
+                statusAssinatura={assinatura?.subscription_status ?? "inactive"}
+                alterando={alterando === u.user_id}
+                onPlano={(p) => void trocarPlano(u, p)}
+              />
+            );
+          })
         )}
       </div>
     </section>
