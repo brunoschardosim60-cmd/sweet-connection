@@ -1124,9 +1124,46 @@ export function Planos() {
           <p className="mt-4 max-w-xl text-muted-foreground">
             Escolha mensal ou anual e avance para o pagamento seguro apenas quando estiver pronto.
           </p>
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div
+              role="group"
+              aria-label="Periodicidade dos planos"
+              className="inline-flex rounded-full border border-border bg-card p-1"
+            >
+              {(
+                [
+                  { id: "monthly", rotulo: "Mensal" },
+                  { id: "annual", rotulo: "Anual" },
+                ] as const
+              ).map((op) => (
+                <button
+                  key={op.id}
+                  type="button"
+                  aria-pressed={cicloPlano === op.id}
+                  onClick={() => setCicloPlano(op.id)}
+                  className={`min-h-11 rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+                    cicloPlano === op.id
+                      ? "bg-ink text-ink-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {op.rotulo}
+                </button>
+              ))}
+            </div>
+            <span
+              aria-live="polite"
+              className="text-sm font-medium text-muted-foreground"
+            >
+              {cicloPlano === "annual"
+                ? "Valores anuais, cobrados uma vez por ano."
+                : "Valores mensais, cancele quando quiser."}
+            </span>
+          </div>
         </Reveal>
 
         <ul className="mt-10 grid items-stretch gap-5 md:grid-cols-3">
+
           {planos.map((p, i) => (
             <li key={p.nome} className="h-full">
               <Reveal delay={i * 80} className="h-full">
