@@ -1184,11 +1184,12 @@ export function Planos() {
                         Mais escolhido
                       </span>
                     )}
-                    {p.selo && (
+                    {p.selo && cicloPlano === "monthly" && (
                       <span className="shrink-0 rounded-full border border-ink px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
                         {p.selo}
                       </span>
                     )}
+
                   </div>
                   <p
                     className={`mt-2 text-sm ${p.destaque ? "text-ink-muted" : "text-muted-foreground"}`}
