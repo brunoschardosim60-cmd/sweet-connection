@@ -141,16 +141,18 @@ function Cadastro() {
         />
 
         <div>
-          <div className="flex items-start gap-2.5 text-sm">
-            <input
-              id="cad-termos"
-              type="checkbox"
-              checked={termos}
-              onChange={(e) => setTermos(e.target.checked)}
-              aria-invalid={tocado && !!erros.termos}
-              aria-describedby={tocado && erros.termos ? "cad-termos-erro" : undefined}
-              className="mt-0.5 h-5 w-5 shrink-0 rounded border-border"
-            />
+          <div className="flex items-start gap-1 text-sm">
+            <span className="-ml-2.5 grid h-11 w-11 shrink-0 place-items-center">
+              <input
+                id="cad-termos"
+                type="checkbox"
+                checked={termos}
+                onChange={(e) => setTermos(e.target.checked)}
+                aria-invalid={tocado && !!erros.termos}
+                aria-describedby={tocado && erros.termos ? "cad-termos-erro" : undefined}
+                className="h-5 w-5 shrink-0 rounded border-border"
+              />
+            </span>
             <p className="text-muted-foreground">
               <label htmlFor="cad-termos" className="cursor-pointer">
                 Li e aceito os
