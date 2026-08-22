@@ -11,7 +11,6 @@ function mensagemErro(error: { message: string; code?: string }) {
   if (error.code === "PGRST202") {
     return "O banco ainda não recebeu as migrations da Nexa.";
   }
-  if (error.code === "42501") return "Sua conta não tem permissão para alterar estes dados.";
   if (error.message.includes("subscription_required"))
     return "Ative um plano para publicar este mini-site.";
   if (error.message.includes("published_site_limit_reached"))
@@ -24,6 +23,7 @@ function mensagemErro(error: { message: string; code?: string }) {
     return "Serviços, agenda, portfólio e depoimentos exigem o plano Profissional.";
   if (error.message.includes("white_label_requires_catalog"))
     return "Remover a assinatura Nexa do rodapé exige o plano Catálogo.";
+  if (error.code === "42501") return "Sua conta não tem permissão para alterar estes dados.";
   return error.message;
 }
 

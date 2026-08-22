@@ -298,6 +298,7 @@ function NovoSite() {
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
   const [acessoIA, setAcessoIA] = useState<"carregando" | "permitido" | "bloqueado">("carregando");
+  const [podeOcultarAssinatura, setPodeOcultarAssinatura] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -322,7 +323,12 @@ function NovoSite() {
       const planoAtivo =
         perfil?.subscription_status === "active" &&
         (perfil.subscription_tier === "professional" || perfil.subscription_tier === "catalog");
-      setAcessoIA(planoAtivo || papel?.role === "admin" ? "permitido" : "bloqueado");
+      const admin = papel?.role === "admin";
+      setAcessoIA(planoAtivo || admin ? "permitido" : "bloqueado");
+      setPodeOcultarAssinatura(
+        admin ||
+          (perfil?.subscription_tier === "catalog" && perfil.subscription_status === "active"),
+      );
     })();
 
     return () => {
@@ -426,7 +432,9 @@ function NovoSite() {
         : slugFinal.length > 2 && !slugEmUso;
 
   const criarComSite = async (site: Site) => {
-    const salvo = await store.adicionarSite(site);
+    const salvo = await store.adicionarSite(
+      podeOcultarAssinatura ? site : { ...site, mostrarAssinaturaNexa: true },
+    );
     toast.success("Mini-site gerado", { description: "Revise o conteúdo no editor." });
     void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
   };
@@ -450,7 +458,9 @@ function NovoSite() {
       },
     };
     try {
-      const salvo = await store.adicionarSite(site);
+      const salvo = await store.adicionarSite(
+        podeOcultarAssinatura ? site : { ...site, mostrarAssinaturaNexa: true },
+      );
       toast.success("Mini-site criado", { description: "Agora personalize no editor." });
       void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
     } catch (error) {
@@ -468,7 +478,7 @@ function NovoSite() {
         <div>
           <h1 className="font-display text-2xl font-bold">Criar novo mini-site</h1>
           <p className="text-sm text-muted-foreground">
-            Três passos rápidos e o cliente já pode ser editado e publicado.
+            Três passos rápidos para criar um rascunho. Você pode editar tudo antes de publicar.
           </p>
         </div>
         <Link
