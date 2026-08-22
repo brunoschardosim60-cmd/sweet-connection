@@ -1195,28 +1195,54 @@ export function Planos() {
                   >
                     {p.resumo}
                   </p>
-                  <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
-                    {p.precoAnterior && (
-                      <span className="text-2xl font-bold text-muted-foreground line-through decoration-2 opacity-70">
-                        {p.precoAnterior}
-                      </span>
-                    )}
-                    {p.preco}
-                    {p.sufixo && (
-                      <span className="text-base font-semibold opacity-70">{p.sufixo}</span>
-                    )}
-                  </p>
-                  {p.nota && (
-                    <p
-                      className={`mt-2 rounded-xl px-3 py-2 text-sm font-medium ${
-                        p.destaque
-                          ? "bg-ink-foreground/10 text-ink-foreground"
-                          : "bg-secondary text-foreground"
-                      }`}
-                    >
-                      {p.nota}
-                    </p>
+                  {cicloPlano === "annual" ? (
+                    <>
+                      <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
+                        {anual[p.nome]}
+                        <span className="text-base font-semibold opacity-70">/ano</span>
+                      </p>
+                      <p
+                        className={`mt-2 text-sm font-bold ${p.destaque ? "text-lime" : "text-ink"}`}
+                      >
+                        {economiaAnual[p.nome]}
+                      </p>
+                      <p
+                        className={`mt-2 rounded-xl px-3 py-2 text-sm font-medium ${
+                          p.destaque
+                            ? "bg-ink-foreground/10 text-ink-foreground"
+                            : "bg-secondary text-foreground"
+                        }`}
+                      >
+                        Equivale a {p.preco} por mês, cobrado uma vez por ano.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-4xl font-extrabold">
+                        {p.precoAnterior && (
+                          <span className="text-2xl font-bold line-through decoration-2 opacity-60">
+                            {p.precoAnterior}
+                          </span>
+                        )}
+                        {p.preco}
+                        {p.sufixo && (
+                          <span className="text-base font-semibold opacity-70">{p.sufixo}</span>
+                        )}
+                      </p>
+                      {p.nota && (
+                        <p
+                          className={`mt-2 rounded-xl px-3 py-2 text-sm font-medium ${
+                            p.destaque
+                              ? "bg-ink-foreground/10 text-ink-foreground"
+                              : "bg-secondary text-foreground"
+                          }`}
+                        >
+                          {p.nota}
+                        </p>
+                      )}
+                    </>
                   )}
+
                   <div
                     className={`mt-6 border-t pt-5 ${p.destaque ? "border-ink-foreground/15" : "border-border"}`}
                   >
