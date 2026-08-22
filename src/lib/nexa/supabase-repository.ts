@@ -22,6 +22,8 @@ function mensagemErro(error: { message: string; code?: string }) {
     return "Cardápio, cupons e promoções exigem o plano Catálogo.";
   if (error.message.includes("professional_feature_required"))
     return "Serviços, agenda, portfólio e depoimentos exigem o plano Profissional.";
+  if (error.message.includes("white_label_requires_catalog"))
+    return "Remover a assinatura Nexa do rodapé exige o plano Catálogo.";
   return error.message;
 }
 

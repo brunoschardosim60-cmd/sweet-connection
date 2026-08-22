@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { ExcluirConta } from "@/components/account/ExcluirConta";
 import { useMarca, useNexa } from "@/lib/nexa/hooks";
 import { marcaStore } from "@/lib/nexa/marca";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/painel/configuracoes")({
   component: Configuracoes,
@@ -14,9 +15,37 @@ function Configuracoes() {
   const { store, sites } = useNexa();
   const preferenciaMarca = useMarca();
   const [salvandoAssinatura, setSalvandoAssinatura] = useState(false);
+  const [planoCatalogo, setPlanoCatalogo] = useState(false);
+  const [carregandoPlano, setCarregandoPlano] = useState(true);
   const mostrarAssinatura = preferenciaMarca.mostrarAssinatura;
 
+  useEffect(() => {
+    let ativo = true;
+    void (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("subscription_tier,subscription_status")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      if (ativo) {
+        setPlanoCatalogo(
+          data?.subscription_tier === "catalog" && data.subscription_status === "active",
+        );
+        setCarregandoPlano(false);
+      }
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
   async function alterarAssinatura(mostrar: boolean) {
+    if (!mostrar && !planoCatalogo) {
+      toast.error("A remoção da assinatura Nexa é exclusiva do plano Catálogo.");
+      return;
+    }
     setSalvandoAssinatura(true);
     try {
       await marcaStore.salvar({ mostrarAssinatura: mostrar });
@@ -56,17 +85,25 @@ function Configuracoes() {
           <span>
             Exibir “Criado com Nexa” no rodapé
             <span className="mt-0.5 block text-xs text-muted-foreground">
-              Ao desligar, o rodapé público deixa de mostrar a assinatura da plataforma.
+              A remoção da assinatura é um benefício exclusivo do plano Catálogo.
             </span>
           </span>
           <input
             type="checkbox"
             checked={mostrarAssinatura}
-            disabled={salvandoAssinatura}
+            disabled={
+              salvandoAssinatura || carregandoPlano || (!mostrarAssinatura && !planoCatalogo)
+            }
             onChange={(e) => void alterarAssinatura(e.target.checked)}
             className="h-5 w-5 accent-lime"
           />
         </label>
+        {!planoCatalogo && !carregandoPlano && (
+          <p className="rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+            Mantenha a assinatura Nexa visível para divulgar a plataforma. Assine o plano Catálogo
+            para entregar mini-sites e cardápios sem essa assinatura.
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           A alteração é salva nos rascunhos. Para atualizar um endereço que já está publicado, abra
           o projeto e publique-o novamente.
