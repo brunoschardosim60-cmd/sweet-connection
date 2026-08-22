@@ -1451,7 +1451,7 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-70">
               1. Escolha o dia
             </p>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <div className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1">
               {dias.map((d) => {
                 const ativo = dia !== null && dataIso(d) === dataIso(dia);
                 const [nomeDia = "", numero = ""] = rotuloDia(d).split(" ");

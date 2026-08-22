@@ -301,7 +301,7 @@ export function CatalogoPagina({
         </div>
 
         <div
-          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto px-4 pb-2 text-[11px]"
+          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto scrollbar-invisivel px-4 pb-2 text-[11px]"
           aria-label="Informações do estabelecimento"
         >
           <span
@@ -391,7 +391,7 @@ export function CatalogoPagina({
             <div
               role="group"
               aria-label="Filtros do catálogo"
-              className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+              className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
             >
               {filtrosCatalogo.map((f) => (
                 <Chip
@@ -405,15 +405,39 @@ export function CatalogoPagina({
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <label htmlFor="ordem-catalogo" className="text-xs opacity-70">
+            {categorias.length > 1 && (
+              <div
+                role="group"
+                aria-label="Categorias"
+                className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
+              >
+                {categorias.map((c) => (
+                  <Chip
+                    key={c}
+                    ativo={categoria === c}
+                    cor={primaria}
+                    onClick={() => setCategoria(c)}
+                  >
+                    {c}
+                  </Chip>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p aria-live="polite" className="text-xs opacity-70">
+                {carregando
+                  ? "Carregando itens…"
+                  : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
+              </p>
+              <label htmlFor="ordem-catalogo" className="sr-only">
                 Ordenar por
               </label>
               <select
                 id="ordem-catalogo"
                 value={ordem}
                 onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
-                className="min-h-11 bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="min-h-11 max-w-full bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 style={{
                   border: "1px solid var(--ms-border)",
                   borderRadius: "999px",
@@ -429,30 +453,6 @@ export function CatalogoPagina({
               </select>
             </div>
 
-            {categorias.length > 1 && (
-              <div
-                role="group"
-                aria-label="Categorias"
-                className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
-              >
-                {categorias.map((c) => (
-                  <Chip
-                    key={c}
-                    ativo={categoria === c}
-                    cor={primaria}
-                    onClick={() => setCategoria(c)}
-                  >
-                    {c}
-                  </Chip>
-                ))}
-              </div>
-            )}
-
-            <p aria-live="polite" className="text-xs opacity-70">
-              {carregando
-                ? "Carregando itens…"
-                : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
-            </p>
           </div>
           )}
 
@@ -1198,7 +1198,7 @@ function PainelCarrinho({
       <div
         role="group"
         aria-label="Modalidade do pedido"
-        className="-mx-1 flex gap-2 overflow-x-auto px-1"
+        className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1"
       >
         {modalidades.map((op) => (
           <Chip key={op} ativo={entrega === op} cor={primaria} onClick={() => setEntrega(op)}>
