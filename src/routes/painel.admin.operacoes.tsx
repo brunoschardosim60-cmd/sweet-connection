@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+/* eslint-disable @typescript-eslint/no-explicit-any -- RPCs are added by the applied migration; generated Supabase types lag behind. */
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Megaphone, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";

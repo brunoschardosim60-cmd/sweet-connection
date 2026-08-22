@@ -1,4 +1,5 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+/* eslint-disable @typescript-eslint/no-explicit-any -- migration-backed announcement and suspension fields are newer than generated types. */
 import { useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
