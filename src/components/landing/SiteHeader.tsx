@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useMarca } from "@/lib/nexa/hooks";
 import { Logo } from "@/components/Logo";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const itens = [
   { rotulo: "Recursos", href: "/#recursos" },
@@ -13,6 +14,7 @@ const itens = [
 
 export function SiteHeader() {
   const marca = useMarca();
+  const { user } = useAuthSession();
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const botaoRef = useRef<HTMLButtonElement>(null);
@@ -80,7 +82,7 @@ export function SiteHeader() {
             to="/painel"
             className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-medium transition-colors hover:bg-secondary"
           >
-            Painel
+            {user ? "Voltar ao painel" : "Painel"}
           </Link>
           <Link
             to="/modelos"
@@ -136,7 +138,7 @@ export function SiteHeader() {
               onClick={() => setAberto(false)}
               className="mt-2 flex min-h-11 items-center justify-center rounded-full bg-ink px-4 text-center text-sm font-semibold text-ink-foreground"
             >
-              Abrir painel do {marca.nome}
+              {user ? "Voltar ao painel" : `Abrir painel do ${marca.nome}`}
             </Link>
           </nav>
         </div>
