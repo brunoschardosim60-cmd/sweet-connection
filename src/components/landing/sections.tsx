@@ -1213,7 +1213,7 @@ export function Planos() {
                             : "bg-secondary text-foreground"
                         }`}
                       >
-                        Equivale a {p.preco} por mês, cobrado uma vez por ano.
+                        Cobrança anual em uma parcela, com renovação anual.
                       </p>
                     </>
                   ) : (
