@@ -476,11 +476,16 @@ export function CatalogoPagina({
                 borderRadius: "var(--ms-radius)",
               }}
             >
-              <p className="text-sm font-semibold">Nenhum item encontrado</p>
+              <p className="text-sm font-semibold">
+                {catalogoVazio ? "Cardápio em preparação" : "Nenhum item encontrado"}
+              </p>
               <p className="mt-1 text-xs opacity-70">
-                Ajuste a busca, a categoria ou os filtros para ver mais opções.
+                {catalogoVazio
+                  ? "Os itens ainda não foram cadastrados. Fale com o estabelecimento para conhecer as opções."
+                  : "Ajuste a busca, a categoria ou os filtros para ver mais opções."}
               </p>
             </div>
+
           ) : (
             <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
               {lista.map((p) => (
