@@ -31,8 +31,7 @@ import { PhoneFrame } from "@/components/PhoneFrame";
 import { Reveal } from "@/components/Reveal";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { Logo } from "@/components/Logo";
-import { whatsappLink } from "@/lib/nexa/brand";
-import { useMarca } from "@/lib/nexa/hooks";
+import { brand, whatsappLink } from "@/lib/nexa/brand";
 import { modelos } from "@/lib/nexa/modelos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { segmentos } from "@/lib/nexa/segmentos";
@@ -222,7 +221,7 @@ export function FaixaSegmentos() {
 /* ----------------------------- COMPARAÇÃO ----------------------------- */
 
 export function Comparacao() {
-  const marca = useMarca();
+  const marca = brand;
   const [pos, setPos] = useState(48);
   return (
     <section className="mx-auto max-w-6xl px-5 py-20 md:py-28">
@@ -1274,7 +1273,7 @@ const duvidasDe = (nome: string) => [
 ];
 
 export function Duvidas() {
-  const marca = useMarca();
+  const marca = brand;
   const [aberta, setAberta] = useState<number | null>(0);
   return (
     <section id="duvidas" className="mx-auto max-w-3xl px-5 py-20 md:py-28">
@@ -1306,7 +1305,7 @@ export function Duvidas() {
 /* ------------------------------ CTA FINAL ------------------------------ */
 
 export function CtaFinal() {
-  const marca = useMarca();
+  const marca = brand;
   return (
     <section className="grain bg-ink py-24 text-ink-foreground">
       <div className="mx-auto max-w-3xl px-5 text-center">
@@ -1346,7 +1345,7 @@ export function CtaFinal() {
 /* ------------------------------- RODAPÉ ------------------------------- */
 
 export function SiteFooter() {
-  const marca = useMarca();
+  const marca = brand;
   const colunas = [
     { titulo: "Produto", itens: ["Recursos", "Modelos", "Planos"] },
     { titulo: "Segmentos", itens: ["Alimentação", "Beleza", "Comércio", "Serviços"] },

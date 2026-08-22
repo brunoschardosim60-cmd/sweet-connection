@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { useMarca } from "@/lib/nexa/hooks";
+import { brand } from "@/lib/nexa/brand";
 import { Logo } from "@/components/Logo";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
@@ -13,7 +13,6 @@ const itens = [
 ];
 
 export function SiteHeader() {
-  const marca = useMarca();
   const { user } = useAuthSession();
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -138,7 +137,7 @@ export function SiteHeader() {
               onClick={() => setAberto(false)}
               className="mt-2 flex min-h-11 items-center justify-center rounded-full bg-ink px-4 text-center text-sm font-semibold text-ink-foreground"
             >
-              {user ? "Voltar ao painel" : `Abrir painel do ${marca.nome}`}
+              {user ? "Voltar ao painel" : `Abrir painel do ${brand.nome}`}
             </Link>
           </nav>
         </div>

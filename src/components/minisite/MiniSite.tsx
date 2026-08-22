@@ -15,7 +15,7 @@ import {
   Star,
   Youtube,
 } from "lucide-react";
-import { whatsappLink } from "@/lib/nexa/brand";
+import { brand, whatsappLink } from "@/lib/nexa/brand";
 import {
   agendarHorario,
   dataIso,
@@ -27,7 +27,6 @@ import {
   proximosDias,
   rotuloDia,
 } from "@/lib/nexa/agenda";
-import { useMarca } from "@/lib/nexa/hooks";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { urlEmbed } from "@/lib/nexa/media";
 import { secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/secoes";
@@ -1861,7 +1860,6 @@ function BlocoFormulario({ site }: { site: Site }) {
 }
 
 function Rodape({ site }: { site: Site }) {
-  const marca = useMarca();
   return (
     <footer
       className="mt-8 px-5 py-8 text-center text-xs opacity-60"
@@ -1869,7 +1867,7 @@ function Rodape({ site }: { site: Site }) {
     >
       <p className="font-medium">{site.conteudo.nome}</p>
       <p className="mt-1">{site.conteudo.endereco}</p>
-      {marca.mostrarAssinatura && <p className="mt-3">{marca.assinatura}</p>}
+      {site.mostrarAssinaturaNexa !== false && <p className="mt-3">{brand.assinatura}</p>}
     </footer>
   );
 }

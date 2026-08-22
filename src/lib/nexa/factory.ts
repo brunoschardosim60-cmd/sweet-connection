@@ -387,6 +387,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     criadoEm: agora,
     atualizadoEm: agora,
     expiraEm: null,
+    mostrarAssinaturaNexa: true,
     cliente,
     conteudo: {
       nome: cliente.empresa,

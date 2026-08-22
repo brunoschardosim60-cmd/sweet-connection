@@ -266,6 +266,8 @@ export interface Site {
   atualizadoEm: string;
   /** Data/hora limite da publicação. Nulo significa que não expira. */
   expiraEm?: string | null;
+  /** Assinatura discreta da Nexa no rodapé público do mini-site ou cardápio. */
+  mostrarAssinaturaNexa?: boolean;
   cliente: Cliente;
   conteudo: Conteudo;
   aparencia: Aparencia;

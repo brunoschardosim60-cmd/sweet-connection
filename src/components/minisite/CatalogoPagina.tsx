@@ -516,6 +516,15 @@ export function CatalogoPagina({
         </aside>
       </div>
 
+      {site.mostrarAssinaturaNexa !== false && (
+        <footer
+          className="mx-auto w-full max-w-5xl px-4 pb-28 text-center text-xs opacity-60 lg:pb-8"
+          style={{ color: site.aparencia.corTexto }}
+        >
+          Criado com Nexa
+        </footer>
+      )}
+
       {quantidadeTotal > 0 && (
         <div
           className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 lg:hidden"
