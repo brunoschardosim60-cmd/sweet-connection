@@ -40,7 +40,7 @@ function PainelModelos() {
       <div
         role="tablist"
         aria-label="Filtrar modelos"
-        className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+        className="scrollbar-invisivel -mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
       >
         {filtros.map((opcao) => (
           <button
