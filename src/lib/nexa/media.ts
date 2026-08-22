@@ -28,6 +28,7 @@ const MIME_PERMITIDOS = new Set([
 type MediaRow = Database["public"]["Tables"]["media"]["Row"];
 let cache: Midia[] = [];
 let carregando = false;
+let ownerId: string | null = null;
 const ouvintes = new Set<() => void>();
 const notificar = () => ouvintes.forEach((fn) => fn());
 
@@ -52,6 +53,15 @@ export const midiaStore = {
   get: () => cache,
   getServer: () => [] as Midia[],
   async carregar(forcar = false) {
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente.");
+    if (ownerId !== auth.user.id) {
+      // URLs de objetos públicos são sensíveis no contexto da conta: nunca
+      // reutilize a biblioteca que ficou em memória após troca de usuário.
+      ownerId = auth.user.id;
+      cache = [];
+      notificar();
+    }
     if (carregando || (!forcar && cache.length > 0)) return;
     carregando = true;
     try {
@@ -100,6 +110,7 @@ export const midiaStore = {
   },
   reset() {
     cache = [];
+    ownerId = null;
     carregando = false;
     notificar();
   },

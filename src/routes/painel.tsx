@@ -32,6 +32,7 @@ import { marcaStore } from "@/lib/nexa/marca";
 import { analytics } from "@/lib/nexa/analytics";
 import { midiaStore } from "@/lib/nexa/media";
 import { versaoStore } from "@/lib/nexa/versoes";
+import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { useIsAdmin } from "@/lib/nexa/admin";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,13 +111,18 @@ function PainelLayout() {
     }
   }, [carregandoSessao, navigate, user]);
 
-  // Trocar de conta no mesmo navegador jamais pode mostrar por um instante os
-  // mini-sites que ainda estavam na memória da conta anterior.
+  // Trocar de conta no mesmo navegador jamais pode mostrar por um instante
+  // conteúdo, métricas, mídias ou modelos que ficaram na memória da anterior.
   useEffect(() => {
     const id = user?.id ?? null;
     if (!id || usuarioAnteriorRef.current === id) return;
     usuarioAnteriorRef.current = id;
     store.reset();
+    marcaStore.reset();
+    analytics.reset();
+    midiaStore.reset();
+    versaoStore.reset();
+    modelosUsuarioStore.definirConta(id);
     void store.carregar(true);
   }, [store, user?.id]);
 
@@ -171,6 +177,7 @@ function PainelLayout() {
     analytics.reset();
     midiaStore.reset();
     versaoStore.reset();
+    modelosUsuarioStore.reset();
     await navigate({ to: "/login", replace: true });
   };
 
