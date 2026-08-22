@@ -405,30 +405,6 @@ export function CatalogoPagina({
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <label htmlFor="ordem-catalogo" className="text-xs opacity-70">
-                Ordenar por
-              </label>
-              <select
-                id="ordem-catalogo"
-                value={ordem}
-                onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
-                className="min-h-11 bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "999px",
-                  color: "inherit",
-                  outlineColor: primaria,
-                }}
-              >
-                {ordenacoesCatalogo.map((o) => (
-                  <option key={o.id} value={o.id} style={{ color: "#111" }}>
-                    {o.rotulo}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {categorias.length > 1 && (
               <div
                 role="group"
@@ -448,11 +424,35 @@ export function CatalogoPagina({
               </div>
             )}
 
-            <p aria-live="polite" className="text-xs opacity-70">
-              {carregando
-                ? "Carregando itens…"
-                : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p aria-live="polite" className="text-xs opacity-70">
+                {carregando
+                  ? "Carregando itens…"
+                  : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
+              </p>
+              <label htmlFor="ordem-catalogo" className="sr-only">
+                Ordenar por
+              </label>
+              <select
+                id="ordem-catalogo"
+                value={ordem}
+                onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
+                className="min-h-11 max-w-full bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "999px",
+                  color: "inherit",
+                  outlineColor: primaria,
+                }}
+              >
+                {ordenacoesCatalogo.map((o) => (
+                  <option key={o.id} value={o.id} style={{ color: "#111" }}>
+                    {o.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
           )}
 
