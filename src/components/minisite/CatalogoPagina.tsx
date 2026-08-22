@@ -244,7 +244,7 @@ export function CatalogoPagina({
   return (
     <div
       style={estiloMiniSite(site)}
-      className="min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed"
+      className="@container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed"
     >
       <header
         className="sticky top-0 z-30 w-full backdrop-blur"
@@ -262,7 +262,7 @@ export function CatalogoPagina({
               style={{ outlineColor: primaria }}
             >
               <ArrowLeft size={16} aria-hidden />
-              <span className="hidden sm:inline">Voltar ao site</span>
+              <span className="hidden @2xl:inline">Voltar ao site</span>
             </a>
           ) : (
             <span aria-hidden className="block w-2" />
@@ -352,13 +352,13 @@ export function CatalogoPagina({
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 pb-32 pt-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:pb-10">
+      <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 pb-32 pt-5 @5xl:grid-cols-[minmax(0,1fr)_320px] @5xl:pb-10">
         <main className="min-w-0">
           <h1 className="text-2xl font-semibold">{perfil.rotulo}</h1>
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 
           <div
-            className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur lg:top-[72px]"
+            className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
             style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
           >
             <label className="sr-only" htmlFor="busca-catalogo">
@@ -451,7 +451,7 @@ export function CatalogoPagina({
           </div>
 
           {carregando ? (
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
               {[0, 1, 2, 3].map((i) => (
                 <li
                   key={i}
@@ -478,7 +478,7 @@ export function CatalogoPagina({
               </p>
             </div>
           ) : (
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
               {lista.map((p) => (
                 <li key={p.id}>
                   <CartaoProduto
@@ -494,7 +494,7 @@ export function CatalogoPagina({
           )}
         </main>
 
-        <aside className="hidden lg:block">
+        <aside className="hidden @5xl:block">
           <div className="sticky top-20">
             <PainelCarrinho
               site={site}
@@ -521,7 +521,7 @@ export function CatalogoPagina({
 
       {site.mostrarAssinaturaNexa !== false && (
         <footer
-          className="mx-auto w-full max-w-5xl px-4 pb-28 text-center text-xs opacity-60 lg:pb-8"
+          className="mx-auto w-full max-w-5xl px-4 pb-28 text-center text-xs opacity-60 @5xl:pb-8"
           style={{ color: site.aparencia.corTexto }}
         >
           Criado com Nexa
@@ -530,7 +530,7 @@ export function CatalogoPagina({
 
       {quantidadeTotal > 0 && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:hidden"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <button
@@ -600,7 +600,7 @@ function DrawerCarrinho({
   const ref = useFocoModal(true, onFechar);
   const primaria = site.aparencia.corPrimaria;
   return (
-    <div className="fixed inset-0 z-40 lg:hidden">
+    <div className="fixed inset-0 z-40 @5xl:hidden">
       <button
         type="button"
         tabIndex={-1}
@@ -872,7 +872,7 @@ function DetalheProduto({
   const refModal = useFocoModal(true, onFechar);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center @2xl:items-center">
       <button
         type="button"
         tabIndex={-1}
@@ -885,7 +885,7 @@ function DetalheProduto({
         role="dialog"
         aria-modal="true"
         aria-label={produto.nome}
-        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto p-4 sm:rounded-2xl"
+        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto p-4 @2xl:rounded-2xl"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
@@ -1010,8 +1010,8 @@ function DetalheProduto({
           }}
         />
 
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="sm:w-40">
+        <div className="mt-4 flex flex-col gap-2 @2xl:flex-row @2xl:items-center">
+          <div className="@2xl:w-40">
             <Contador
               site={site}
               quantidade={quantidade}
@@ -1202,10 +1202,10 @@ function PainelCarrinho({
       </div>
 
       {entrega === "mesa" && (
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2 @2xl:grid-cols-2">
           {campo("mesa", "Número da mesa", "Ex.: 12")}
           {campo("pessoas", "Quantas pessoas?", "Ex.: 4")}
-          <div className="sm:col-span-2">{campo("observacao", "Observações do pedido")}</div>
+          <div className="@2xl:col-span-2">{campo("observacao", "Observações do pedido")}</div>
         </div>
       )}
 

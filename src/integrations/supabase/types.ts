@@ -1181,6 +1181,10 @@ export type Database = {
         }
         Returns: Json
       }
+      nexa_plan_allows_public_site: {
+        Args: { requested_user_id: string }
+        Returns: boolean
+      }
       nexa_plan_allows_publish: {
         Args: { requested_user_id: string }
         Returns: boolean
