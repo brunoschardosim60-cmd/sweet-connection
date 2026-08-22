@@ -160,6 +160,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generation_events: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          estimated_cost_brl: number
+          id: string
+          model: string
+          owner_id: string
+          prompt_tokens: number | null
+          provider: string
+          total_tokens: number | null
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          estimated_cost_brl?: number
+          id?: string
+          model: string
+          owner_id: string
+          prompt_tokens?: number | null
+          provider: string
+          total_tokens?: number | null
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          estimated_cost_brl?: number
+          id?: string
+          model?: string
+          owner_id?: string
+          prompt_tokens?: number | null
+          provider?: string
+          total_tokens?: number | null
+        }
+        Relationships: []
+      }
       ai_generation_weekly_usage: {
         Row: {
           generations: number
@@ -315,6 +351,57 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_refund_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          owner_id: string
+          provider: string
+          provider_payment_id: string
+          provider_refund_id: string | null
+          reason: string
+          requested_at: string
+          resolution_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          owner_id: string
+          provider: string
+          provider_payment_id: string
+          provider_refund_id?: string | null
+          reason: string
+          requested_at?: string
+          resolution_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          owner_id?: string
+          provider?: string
+          provider_payment_id?: string
+          provider_refund_id?: string | null
+          reason?: string
+          requested_at?: string
+          resolution_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string
@@ -428,6 +515,47 @@ export type Database = {
         }
         Relationships: []
       }
+      mesas_cardapio: {
+        Row: {
+          ativa: boolean
+          created_at: string
+          estado: string
+          id: string
+          minisite_id: string
+          nome: string | null
+          numero: number
+          updated_at: string
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string
+          estado?: string
+          id?: string
+          minisite_id: string
+          nome?: string | null
+          numero: number
+          updated_at?: string
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string
+          estado?: string
+          id?: string
+          minisite_id?: string
+          nome?: string | null
+          numero?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mesas_cardapio_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       minisite_versions: {
         Row: {
           content: Json
@@ -516,12 +644,6 @@ export type Database = {
           },
         ]
       }
-      mesas_cardapio: {
-        Row: { ativa: boolean; created_at: string; estado: string; id: string; minisite_id: string; nome: string | null; numero: number; updated_at: string }
-        Insert: { ativa?: boolean; created_at?: string; estado?: string; id?: string; minisite_id: string; nome?: string | null; numero: number; updated_at?: string }
-        Update: { ativa?: boolean; created_at?: string; estado?: string; id?: string; minisite_id?: string; nome?: string | null; numero?: number; updated_at?: string }
-        Relationships: [{ foreignKeyName: "mesas_cardapio_minisite_id_fkey"; columns: ["minisite_id"]; isOneToOne: false; referencedRelation: "minisites"; referencedColumns: ["id"] }]
-      }
       notification_deliveries: {
         Row: {
           channel: string
@@ -559,10 +681,133 @@ export type Database = {
         Relationships: []
       }
       pedidos_cardapio: {
-        Row: { bairro: string | null; chave_idempotencia: string | null; codigo: number; complemento: string | null; created_at: string; endereco: string | null; horario_preferido: string | null; id: string; itens: Json; mesa_id: string | null; minisite_id: string; modalidade: string; nome: string; observacao: string | null; pagamento: string | null; pessoas: number | null; referencia: string | null; status: string; subtotal: number; taxa_entrega: number; telefone: string; total: number; troco: string | null; updated_at: string }
-        Insert: { bairro?: string | null; chave_idempotencia?: string | null; codigo?: never; complemento?: string | null; created_at?: string; endereco?: string | null; horario_preferido?: string | null; id?: string; itens: Json; mesa_id?: string | null; minisite_id: string; modalidade: string; nome: string; observacao?: string | null; pagamento?: string | null; pessoas?: number | null; referencia?: string | null; status?: string; subtotal: number; taxa_entrega?: number; telefone: string; total: number; troco?: string | null; updated_at?: string }
-        Update: { bairro?: string | null; chave_idempotencia?: string | null; codigo?: never; complemento?: string | null; created_at?: string; endereco?: string | null; horario_preferido?: string | null; id?: string; itens?: Json; mesa_id?: string | null; minisite_id?: string; modalidade?: string; nome?: string; observacao?: string | null; pagamento?: string | null; pessoas?: number | null; referencia?: string | null; status?: string; subtotal?: number; taxa_entrega?: number; telefone?: string; total?: number; troco?: string | null; updated_at?: string }
-        Relationships: [{ foreignKeyName: "pedidos_cardapio_mesa_id_fkey"; columns: ["mesa_id"]; isOneToOne: false; referencedRelation: "mesas_cardapio"; referencedColumns: ["id"] }, { foreignKeyName: "pedidos_cardapio_minisite_id_fkey"; columns: ["minisite_id"]; isOneToOne: false; referencedRelation: "minisites"; referencedColumns: ["id"] }]
+        Row: {
+          bairro: string | null
+          chave_idempotencia: string | null
+          codigo: number
+          complemento: string | null
+          created_at: string
+          endereco: string | null
+          horario_preferido: string | null
+          id: string
+          itens: Json
+          mesa_id: string | null
+          minisite_id: string
+          modalidade: string
+          nome: string
+          observacao: string | null
+          pagamento: string | null
+          pessoas: number | null
+          referencia: string | null
+          status: string
+          subtotal: number
+          taxa_entrega: number
+          telefone: string
+          total: number
+          troco: string | null
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          chave_idempotencia?: string | null
+          codigo?: never
+          complemento?: string | null
+          created_at?: string
+          endereco?: string | null
+          horario_preferido?: string | null
+          id?: string
+          itens: Json
+          mesa_id?: string | null
+          minisite_id: string
+          modalidade: string
+          nome: string
+          observacao?: string | null
+          pagamento?: string | null
+          pessoas?: number | null
+          referencia?: string | null
+          status?: string
+          subtotal: number
+          taxa_entrega?: number
+          telefone: string
+          total: number
+          troco?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          chave_idempotencia?: string | null
+          codigo?: never
+          complemento?: string | null
+          created_at?: string
+          endereco?: string | null
+          horario_preferido?: string | null
+          id?: string
+          itens?: Json
+          mesa_id?: string | null
+          minisite_id?: string
+          modalidade?: string
+          nome?: string
+          observacao?: string | null
+          pagamento?: string | null
+          pessoas?: number | null
+          referencia?: string | null
+          status?: string
+          subtotal?: number
+          taxa_entrega?: number
+          telefone?: string
+          total?: number
+          troco?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_cardapio_mesa_id_fkey"
+            columns: ["mesa_id"]
+            isOneToOne: false
+            referencedRelation: "mesas_cardapio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_cardapio_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          message: string
+          starts_at: string
+          target_tier: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          message: string
+          starts_at?: string
+          target_tier?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          message?: string
+          starts_at?: string
+          target_tier?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       platform_settings: {
         Row: {
@@ -587,10 +832,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_suspended_at: string | null
+          admin_suspension_reason: string | null
           billing_cancel_at_period_end: boolean
-          billing_cycle: string
           billing_current_period_end: string | null
           billing_customer_id: string | null
+          billing_cycle: string
           billing_provider: string | null
           billing_subscription_id: string | null
           billing_updated_at: string | null
@@ -609,10 +856,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_suspended_at?: string | null
+          admin_suspension_reason?: string | null
           billing_cancel_at_period_end?: boolean
-          billing_cycle?: string
           billing_current_period_end?: string | null
           billing_customer_id?: string | null
+          billing_cycle?: string
           billing_provider?: string | null
           billing_subscription_id?: string | null
           billing_updated_at?: string | null
@@ -631,10 +880,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_suspended_at?: string | null
+          admin_suspension_reason?: string | null
           billing_cancel_at_period_end?: boolean
-          billing_cycle?: string
           billing_current_period_end?: string | null
           billing_customer_id?: string | null
+          billing_cycle?: string
           billing_provider?: string | null
           billing_subscription_id?: string | null
           billing_updated_at?: string | null
@@ -780,8 +1031,8 @@ export type Database = {
         Returns: {
           email: string
           estimated_cost_brl_period: number
-          generations_period: number
           generations_7d: number
+          generations_period: number
           last_generation_at: string
           subscription_status: string
           tier: string
@@ -804,7 +1055,19 @@ export type Database = {
           target_user_id: string
         }[]
       }
-      nexa_admin_overview: { Args: never; Returns: Json }
+      nexa_admin_create_announcement: {
+        Args: {
+          requested_ends_at?: string
+          requested_message: string
+          requested_target_tier?: string
+          requested_title: string
+        }
+        Returns: string
+      }
+      nexa_admin_export_account: {
+        Args: { requested_user_id: string }
+        Returns: Json
+      }
       nexa_admin_finance: {
         Args: { requested_days?: number }
         Returns: {
@@ -818,6 +1081,8 @@ export type Database = {
           revenue_received_brl: number
         }[]
       }
+      nexa_admin_health: { Args: never; Returns: Json }
+      nexa_admin_overview: { Args: never; Returns: Json }
       nexa_admin_series: {
         Args: { requested_days?: number }
         Returns: {
@@ -827,6 +1092,14 @@ export type Database = {
           usuarios: number
           visitas: number
         }[]
+      }
+      nexa_admin_set_account_suspension: {
+        Args: {
+          requested_reason?: string
+          requested_suspended: boolean
+          requested_user_id: string
+        }
+        Returns: undefined
       }
       nexa_admin_set_plan: {
         Args: { requested_plan: string; requested_user_id: string }
@@ -882,6 +1155,10 @@ export type Database = {
         }
         Returns: Json
       }
+      nexa_atualizar_status_pedido: {
+        Args: { requested_id: string; requested_status: string }
+        Returns: Json
+      }
       nexa_cancelar_agendamento: {
         Args: { requested_token: string }
         Returns: boolean
@@ -895,24 +1172,25 @@ export type Database = {
         }[]
       }
       nexa_criar_pedido_cardapio: {
-        Args: { requested_chave?: string; requested_dados?: Json; requested_items: Json; requested_modalidade: string; requested_slug: string }
+        Args: {
+          requested_chave?: string
+          requested_dados?: Json
+          requested_items: Json
+          requested_modalidade: string
+          requested_slug: string
+        }
         Returns: Json
-      }
-      nexa_atualizar_status_pedido: {
-        Args: { requested_id: string; requested_status: string }
-        Returns: Json
-      }
-      nexa_ranking_produtos_cardapio: {
-        Args: { requested_slug: string }
-        Returns: { produto_id: string; pedidos: number }[]
       }
       nexa_plan_allows_publish: {
         Args: { requested_user_id: string }
         Returns: boolean
       }
-      nexa_refund_ai_generation: {
-        Args: { requested_user_id: string }
-        Returns: undefined
+      nexa_ranking_produtos_cardapio: {
+        Args: { requested_slug: string }
+        Returns: {
+          pedidos: number
+          produto_id: string
+        }[]
       }
       nexa_record_ai_generation: {
         Args: {
@@ -924,6 +1202,10 @@ export type Database = {
           requested_total_tokens: number
           requested_user_id: string
         }
+        Returns: undefined
+      }
+      nexa_refund_ai_generation: {
+        Args: { requested_user_id: string }
         Returns: undefined
       }
       nexa_reservar_hospedagem: {
@@ -1060,9 +1342,12 @@ export type Database = {
       touch_nexa_activity: {
         Args: never
         Returns: {
+          admin_suspended_at: string | null
+          admin_suspension_reason: string | null
           billing_cancel_at_period_end: boolean
           billing_current_period_end: string | null
           billing_customer_id: string | null
+          billing_cycle: string
           billing_provider: string | null
           billing_subscription_id: string | null
           billing_updated_at: string | null
@@ -1090,9 +1375,12 @@ export type Database = {
       update_nexa_profile: {
         Args: { requested_display_name: string }
         Returns: {
+          admin_suspended_at: string | null
+          admin_suspension_reason: string | null
           billing_cancel_at_period_end: boolean
           billing_current_period_end: string | null
           billing_customer_id: string | null
+          billing_cycle: string
           billing_provider: string | null
           billing_subscription_id: string | null
           billing_updated_at: string | null
