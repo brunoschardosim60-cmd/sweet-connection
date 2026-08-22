@@ -20,7 +20,13 @@ export const PRECOS_PLANOS: Record<PlanoPago, string> = {
   catalog: "119,00",
 };
 
-export const FORMAS_PAGAMENTO_CHECKOUT = ["PIX", "CREDIT_CARD"] as const;
+/**
+ * O checkout RECURRENT do Asaas nesta integração aceita cartão de crédito.
+ * Pix recorrente depende de recursos específicos da conta e é recusado pelo
+ * endpoint de checkout quando combinado com RECURRENT. Pix poderá voltar em
+ * uma jornada de cobrança avulsa/manual, sem prometer renovação automática.
+ */
+export const FORMAS_PAGAMENTO_CHECKOUT = ["CREDIT_CARD"] as const;
 const DESCONTO_BOAS_VINDAS_ESSENCIAL = 3400;
 const PRAZO_REEMBOLSO_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -178,8 +184,6 @@ export async function criarCheckoutAsaas(args: {
   const data = await requisicaoAsaas("/checkouts", {
     method: "POST",
     body: JSON.stringify({
-      // Para a recorrência por Pix, a disponibilidade final depende da
-      // habilitação de Pix Automático na conta do recebedor.
       billingTypes: FORMAS_PAGAMENTO_CHECKOUT,
       chargeTypes: ["RECURRENT"],
       minutesToExpire: 30,
