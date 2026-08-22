@@ -988,8 +988,8 @@ export function Planos() {
   const planoEmFoco = planoAberto === null ? null : planos[planoAberto];
   const anual: Record<string, string> = {
     Essencial: "R$ 390",
-    Profissional: "R$ 855",
-    Catálogo: "R$ 1.300",
+    Profissional: "R$ 790",
+    Catálogo: "R$ 1.190",
   };
   const tierDoPlano: Record<string, string> = {
     Essencial: "essential",

@@ -10,8 +10,8 @@ const PRECO_CENTAVOS: Record<PlanoPago, number> = {
 };
 const PRECO_ANUAL_CENTAVOS: Record<PlanoPago, number> = {
   essential: 39000,
-  professional: 85500,
-  catalog: 130000,
+  professional: 79000,
+  catalog: 119000,
 };
 
 export const PRECOS_PLANOS: Record<PlanoPago, string> = {

@@ -42,7 +42,7 @@ type Fatura = {
 };
 
 const nomes: Record<string, string> = {
-  none: "Sem plano",
+  none: "Teste grátis",
   essential: "Essencial",
   professional: "Profissional",
   catalog: "Catálogo",
@@ -88,8 +88,8 @@ type PlanoContratavel = "essential" | "professional" | "catalog";
 type Ciclo = "monthly" | "annual";
 const precosAnuais: Record<PlanoContratavel, string> = {
   essential: "R$ 390",
-  professional: "R$ 855",
-  catalog: "R$ 1.300",
+  professional: "R$ 790",
+  catalog: "R$ 1.190",
 };
 
 const opcoes: {

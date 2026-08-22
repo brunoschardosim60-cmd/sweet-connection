@@ -20,6 +20,8 @@ function mensagemErro(error: { message: string; code?: string }) {
     return "Você atingiu o limite de projetos do seu plano.";
   if (error.message.includes("catalog_feature_required"))
     return "Cardápio, cupons e promoções exigem o plano Catálogo.";
+  if (error.message.includes("professional_feature_required"))
+    return "Serviços, agenda, portfólio e depoimentos exigem o plano Profissional.";
   return error.message;
 }
 
