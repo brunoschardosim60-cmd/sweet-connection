@@ -33,7 +33,7 @@ export function PaginaLegal({
         </p>
         <h1 className="mt-3 font-display text-3xl font-bold md:text-5xl">{titulo}</h1>
         <p className="mt-4 max-w-2xl text-muted-foreground">{descricao}</p>
-        <p className="mt-3 text-xs text-muted-foreground">Atualizado em 16 de agosto de 2026.</p>
+        <p className="mt-3 text-xs text-muted-foreground">Atualizado em 21 de agosto de 2026.</p>
 
         <article className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:mt-2 [&_strong]:text-foreground">
           {children}

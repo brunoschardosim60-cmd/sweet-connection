@@ -61,13 +61,27 @@ function Privacidade() {
         <h2>4. Armazenamento e compartilhamento</h2>
         <p>
           Contas e dados operacionais são armazenados no Supabase externo conectado à plataforma.
-          Imagens destinadas aos mini-sites ficam em armazenamento público e, portanto, não devem
-          conter documentos ou informações confidenciais. A Nexa não vende dados pessoais.
+          As mídias ficam em bucket privado e são disponibilizadas por links temporários quando
+          necessárias ao mini-site. Ainda assim, conteúdos publicados são públicos por natureza e
+          não devem incluir documentos ou informações confidenciais. A Nexa não vende dados
+          pessoais.
         </p>
       </section>
 
       <section>
-        <h2>5. Dados no navegador</h2>
+        <h2>5. Bases, direitos e contato</h2>
+        <p>
+          O tratamento ocorre conforme a finalidade aplicável, como execução do serviço, cumprimento
+          de obrigações legais, prevenção a fraude e consentimento quando solicitado. A pessoa pode
+          pedir confirmação de tratamento, acesso, correção, eliminação, portabilidade, informação
+          sobre compartilhamentos ou revisão de consentimento pelo canal de contato divulgado pela
+          plataforma. O responsável pela conta continua sendo responsável pelos dados que coleta em
+          seus próprios formulários públicos.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Dados no navegador</h2>
         <p>
           O navegador mantém a sessão autenticada e a preferência de tema. Nos mini-sites públicos,
           um identificador aleatório é guardado somente durante a sessão para limitar envios
@@ -76,7 +90,7 @@ function Privacidade() {
       </section>
 
       <section>
-        <h2>6. Retenção e exclusão</h2>
+        <h2>7. Retenção e exclusão</h2>
         <p>
           Os dados permanecem enquanto forem necessários para prestar o serviço ou cumprir obrigação
           legal. O administrador pode usar <strong>Apagar tudo</strong> para excluir clientes,
@@ -90,7 +104,7 @@ function Privacidade() {
       </section>
 
       <section>
-        <h2>7. Segurança e responsabilidades</h2>
+        <h2>8. Segurança e responsabilidades</h2>
         <p>
           A plataforma aplica autenticação e políticas de isolamento por conta. Ainda assim, nenhum
           serviço conectado à internet elimina totalmente os riscos. Usuários devem proteger sua
@@ -100,7 +114,7 @@ function Privacidade() {
       </section>
 
       <section>
-        <h2>8. Alterações</h2>
+        <h2>9. Alterações</h2>
         <p>
           Esta política pode ser atualizada quando o produto ou as obrigações aplicáveis mudarem. A
           data da revisão mais recente permanece visível no início do documento.

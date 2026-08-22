@@ -41,6 +41,8 @@ VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
+# Somente no servidor (Vercel/Edge Functions); nunca prefixe com VITE_.
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_sua_chave_servidor
 VITE_PUBLIC_SITE_URL=https://seu-host-de-producao.com
 GEMINI_API_KEY=sua_chave_do_google_ai_studio
 # Opcional: padrão gemini-2.5-flash
@@ -91,11 +93,13 @@ VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_sua_chave
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_sua_chave_servidor
 VITE_PUBLIC_SITE_URL=https://seu-projeto.vercel.app
 GEMINI_API_KEY=sua_chave_do_google_ai_studio
 ```
 
-Não configure `service_role` na Vercel. Depois do primeiro deploy, inclua a URL `.vercel.app` em
+`SUPABASE_SERVICE_ROLE_KEY` é exigida apenas pelas rotas de backend e deve permanecer marcada como
+sensível na Vercel; nunca use o prefixo `VITE_` nem a exponha ao navegador. Depois do primeiro deploy, inclua a URL `.vercel.app` em
 **Supabase Auth → URL Configuration** e nos Redirect URLs com `/recuperar-senha`.
 
 ### Exclusão por inatividade
