@@ -18,6 +18,7 @@ import { copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 import { rotulosModalidade, rotulosPagamento, type Modalidade } from "@/lib/nexa/catalogo";
 import { moeda } from "@/lib/nexa/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/painel/pedidos")({
   head: () => ({
@@ -320,8 +321,14 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
       </div>
 
       {carregando ? (
-        <div className="surface p-8 text-center text-sm text-muted-foreground">
-          Carregando pedidos…
+        <div className="space-y-3" aria-busy="true" aria-label="Carregando pedidos">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="surface space-y-3 p-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-64 max-w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          ))}
         </div>
       ) : visiveis.length === 0 ? (
         <div className="surface grid place-items-center gap-2 px-4 py-12 text-center">

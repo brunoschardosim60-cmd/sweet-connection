@@ -1207,7 +1207,7 @@ export function Planos() {
                             : "bg-secondary text-foreground"
                         }`}
                       >
-                        Cerca de 2 meses grátis · cobrança anual em uma parcela.
+                        2 meses grátis · cobrança anual em uma parcela.
                       </p>
                     </>
                   ) : (

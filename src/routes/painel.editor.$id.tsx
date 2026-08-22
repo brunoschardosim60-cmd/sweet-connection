@@ -89,6 +89,9 @@ const abas: { id: Aba; rotulo: string }[] = [
   { id: "versoes", rotulo: "Versões" },
 ];
 
+const abasPermitidas = new Set<Aba>(abas.map((aba) => aba.id));
+const dispositivosPermitidos = new Set<Dispositivo>(["celular", "tablet", "desktop"]);
+
 function Editor() {
   const { id } = Route.useParams();
   const { sites, pronto, store } = useNexa();
@@ -111,13 +114,40 @@ function Editor() {
   const [previaMovel, setPreviaMovel] = useState(false);
   const [destinoPendente, setDestinoPendente] = useState<DestinoEditor | null>(null);
   const revisaoRef = useRef(0);
+  const preferenciasRestauradas = useRef(false);
 
   useEffect(() => {
     if (original && !rascunho) {
       setRascunho(structuredClone(original));
-      if (ehModeloCardapio(original.modeloId)) setAba("cardapio");
+      if (!preferenciasRestauradas.current) {
+        preferenciasRestauradas.current = true;
+        try {
+          const salvo = JSON.parse(
+            localStorage.getItem(`nexa:editor-preferencias:${id}`) ?? "{}",
+          ) as {
+            aba?: Aba;
+            dispositivo?: Dispositivo;
+          };
+          if (salvo.aba && abasPermitidas.has(salvo.aba)) setAba(salvo.aba);
+          else if (ehModeloCardapio(original.modeloId)) setAba("cardapio");
+          if (salvo.dispositivo && dispositivosPermitidos.has(salvo.dispositivo)) {
+            setDispositivo(salvo.dispositivo);
+          }
+        } catch {
+          if (ehModeloCardapio(original.modeloId)) setAba("cardapio");
+        }
+      }
     }
-  }, [original, rascunho]);
+  }, [id, original, rascunho]);
+
+  useEffect(() => {
+    if (!preferenciasRestauradas.current) return;
+    try {
+      localStorage.setItem(`nexa:editor-preferencias:${id}`, JSON.stringify({ aba, dispositivo }));
+    } catch {
+      /* Preferências são opcionais: o editor segue funcionando sem armazenamento local. */
+    }
+  }, [aba, dispositivo, id]);
 
   /** O editor ocupa uma tela fixa; somente seus painéis internos devem rolar. */
   useEffect(() => {

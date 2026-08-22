@@ -357,7 +357,10 @@ export function CatalogoPagina({
           <h1 className="text-2xl font-semibold">{perfil.rotulo}</h1>
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 
-          <div className="mt-4 flex flex-col gap-3">
+          <div
+            className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur lg:top-[72px]"
+            style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
+          >
             <label className="sr-only" htmlFor="busca-catalogo">
               Buscar por nome, descrição ou categoria
             </label>

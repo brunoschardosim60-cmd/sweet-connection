@@ -690,6 +690,15 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   if (site.produtos.length === 0) return null;
 
   const catalogo = site.aparencia.layout === "catalogo" || site.aparencia.layout === "colorido";
+  const quantidadeNoCarrinho = Object.values(carrinho).reduce(
+    (total, quantidade) => total + quantidade,
+    0,
+  );
+  const totalNoCarrinho = site.produtos.reduce(
+    (total, produto) =>
+      total + (carrinho[produto.id] ?? 0) * (produto.precoPromocional ?? produto.preco),
+    0,
+  );
 
   return (
     <section>
@@ -908,6 +917,24 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
             </Cartao>
           );
         })()}
+      {interacoesExternas && usarCarrinho && quantidadeNoCarrinho > 0 && (
+        <a
+          href={enderecoCardapio(site.slug)}
+          className="fixed inset-x-4 bottom-4 z-40 flex min-h-12 items-center justify-between gap-3 px-4 text-sm font-semibold shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:inset-x-auto lg:right-6 lg:w-80"
+          style={{
+            background: site.aparencia.corPrimaria,
+            color: contraste(site.aparencia.corPrimaria),
+            borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
+            outlineColor: site.aparencia.corPrimaria,
+          }}
+          onClick={() => registrar("Carrinho: ver pedido")}
+        >
+          <span>
+            {quantidadeNoCarrinho} {quantidadeNoCarrinho === 1 ? "item" : "itens"}
+          </span>
+          <span>Ver pedido · {moeda(totalNoCarrinho)}</span>
+        </a>
+      )}
     </section>
   );
 }
