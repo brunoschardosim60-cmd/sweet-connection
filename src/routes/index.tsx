@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/landing/SiteHeader";
+import { dadosEstruturadosDaNexa, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
 import {
   ComoFunciona,
   Comparacao,
@@ -36,8 +37,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const dadosEstruturados = dadosEstruturadosDaNexa();
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(dadosEstruturados) }}
+      />
       <SiteHeader />
       <main>
         <Hero />

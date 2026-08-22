@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
-import { dadosEstruturadosDoSite, serializarJsonLd } from "@/lib/nexa/seo-estruturado";
+import {
+  dadosEstruturadosDaNexa,
+  dadosEstruturadosDoSite,
+  serializarJsonLd,
+} from "@/lib/nexa/seo-estruturado";
 
 describe("dados estruturados dos mini-sites", () => {
   it("inclui negócio, página e itens de cardápio em Schema.org", () => {
@@ -18,5 +22,12 @@ describe("dados estruturados dos mini-sites", () => {
     const texto = serializarJsonLd({ ...dados, exemplo: "</script><script>alert(1)</script>" });
     expect(texto).not.toContain("</script>");
     expect(texto).toContain("\\u003c/script>");
+  });
+
+  it("descreve a Nexa como plataforma, site e planos", () => {
+    const grafo = dadosEstruturadosDaNexa()["@graph"] as Array<Record<string, unknown>>;
+    expect(grafo.some((item) => item["@type"] === "Organization")).toBe(true);
+    expect(grafo.some((item) => item["@type"] === "SoftwareApplication")).toBe(true);
+    expect(grafo.some((item) => item["@type"] === "FAQPage")).toBe(true);
   });
 });

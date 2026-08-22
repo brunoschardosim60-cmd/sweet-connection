@@ -1,4 +1,5 @@
 import { enderecoSite } from "./clipboard";
+import { brand } from "./brand";
 import type { HorarioDia, Site } from "./types";
 
 type JsonLd = Record<string, unknown>;
@@ -194,4 +195,81 @@ export function dadosEstruturadosDoSite(site: Site, opcoes?: { cardapio?: boolea
 /** Evita que conteúdo inserido pelo usuário feche a tag script de JSON-LD. */
 export function serializarJsonLd(dados: JsonLd) {
   return JSON.stringify(dados).replace(/</g, "\\u003c");
+}
+
+/** Dados estruturados da própria Nexa, separados dos dados de cada cliente. */
+export function dadosEstruturadosDaNexa(): JsonLd {
+  const url = `https://${brand.dominio}`;
+  const organizacaoId = `${url}/#organizacao`;
+  const planos = [
+    { nome: "Essencial", preco: 39, url: `${url}/#planos` },
+    { nome: "Profissional", preco: 79, url: `${url}/#planos` },
+    { nome: "Catálogo", preco: 119, url: `${url}/#planos` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizacaoId,
+        name: brand.nome,
+        url,
+        email: brand.emailContato,
+        sameAs: [`https://www.instagram.com/${brand.instagram}`],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${url}/#website`,
+        url,
+        name: brand.nome,
+        description: brand.slogan,
+        inLanguage: "pt-BR",
+        publisher: { "@id": organizacaoId },
+      },
+      {
+        "@type": "SoftwareApplication",
+        name: "Nexa",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        url,
+        description:
+          "Plataforma brasileira para criar mini-sites profissionais, cardápios digitais, catálogos, formulários e agendamentos.",
+        provider: { "@id": organizacaoId },
+        offers: planos.map((plano) => ({
+          "@type": "Offer",
+          name: `Nexa ${plano.nome}`,
+          price: plano.preco,
+          priceCurrency: "BRL",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: plano.preco,
+            priceCurrency: "BRL",
+            billingDuration: "P1M",
+          },
+          url: plano.url,
+        })),
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Preciso instalar algum aplicativo?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Não. A Nexa funciona pelo navegador no computador ou celular.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Posso criar um cardápio digital?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Sim. A Nexa possui modelos de cardápio digital com produtos, carrinho e pedidos para o estabelecimento.",
+            },
+          },
+        ],
+      },
+    ],
+  };
 }
