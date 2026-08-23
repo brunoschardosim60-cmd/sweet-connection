@@ -492,7 +492,11 @@ export function CatalogoPagina({
               style={{ background: situacao.aberto ? primaria : "currentColor" }}
             />
             {situacao.rotulo}
+            {situacao.detalhe && (
+              <span className="font-medium opacity-80">· {situacao.detalhe}</span>
+            )}
           </span>
+
           {perfil.prazo && (
             <span
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80"
