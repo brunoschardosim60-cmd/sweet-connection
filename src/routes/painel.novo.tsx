@@ -299,6 +299,7 @@ function NovoSite() {
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
   const [acessoIA, setAcessoIA] = useState<"carregando" | "permitido" | "bloqueado">("carregando");
+  const [acessoOcr, setAcessoOcr] = useState(false);
   const [podeOcultarAssinatura, setPodeOcultarAssinatura] = useState(false);
 
   useEffect(() => {
@@ -326,6 +327,10 @@ function NovoSite() {
         (perfil.subscription_tier === "professional" || perfil.subscription_tier === "catalog");
       const admin = papel?.role === "admin";
       setAcessoIA(planoAtivo || admin ? "permitido" : "bloqueado");
+      setAcessoOcr(
+        admin ||
+          (perfil?.subscription_tier === "catalog" && perfil.subscription_status === "active"),
+      );
       setPodeOcultarAssinatura(
         admin ||
           (perfil?.subscription_tier === "catalog" && perfil.subscription_status === "active"),
@@ -354,6 +359,7 @@ function NovoSite() {
   const [modoCriacao, setModoCriacao] = useState<"modelo" | "ia">(() =>
     search.modo === "ia" ? "ia" : "modelo",
   );
+  const [ocrSolicitado, setOcrSolicitado] = useState(false);
   const [meuModeloId, setMeuModeloId] = useState<string | null>(null);
   const meusModelos = useSyncExternalStore(
     modelosUsuarioStore.subscribe,
@@ -665,7 +671,10 @@ function NovoSite() {
                 cliente={cliente}
                 briefingInicial={textoImportado}
                 slug={slugFinal || slugify(cliente.empresa) || "meu-site"}
+                modeloBaseId={modeloId}
+                iniciarOcr={ocrSolicitado}
                 verificandoAcesso={acessoIA === "carregando"}
+                ocrDisponivel={acessoOcr}
                 {...(cliente.empresa.trim().length > 1 &&
                 cliente.telefone.replace(/\D/g, "").length >= 10
                   ? {}
@@ -690,6 +699,27 @@ function NovoSite() {
               <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={15} /> Modelos recomendados para este segmento
               </p>
+              {familiaFiltro === "cardapio" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOcrSolicitado(true);
+                    setModoCriacao("ia");
+                  }}
+                  className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-lime-700/30 bg-lime/15 p-4 text-left transition-colors hover:bg-lime/25"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lime text-ink">
+                    <Wand2 size={18} aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">Digitalizar cardápio físico</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">
+                      Envie uma foto e receba produtos, preços e categorias editáveis no modelo
+                      escolhido.
+                    </span>
+                  </span>
+                </button>
+              )}
               <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <button
                   type="button"
@@ -831,6 +861,7 @@ function NovoSite() {
                         type="button"
                         onClick={() => {
                           setModoCriacao("modelo");
+                          setOcrSolicitado(false);
                           setModeloId(m.id);
                         }}
                         aria-pressed={ativo}

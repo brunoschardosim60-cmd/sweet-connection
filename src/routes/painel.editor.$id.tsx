@@ -39,6 +39,7 @@ import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import { NotaEstrelas } from "@/components/editor/NotaEstrelas";
 import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamento";
 import { AvisoPlano, type MotivoBloqueio } from "@/components/planos/AvisoPlano";
+import { normalizarCategoria } from "@/lib/nexa/catalogo";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
 import { modelosCriacao } from "@/lib/nexa/modelos";
 import { paletasProntas } from "@/lib/nexa/paletas";
@@ -1288,11 +1289,30 @@ function AbaSecoes({
 
 /* ------------------------------ itens ------------------------------ */
 
-function LinhaItem({ children, onRemover }: { children: React.ReactNode; onRemover: () => void }) {
+function LinhaItem({
+  children,
+  onRemover,
+  onDuplicar,
+}: {
+  children: React.ReactNode;
+  onRemover: () => void;
+  onDuplicar?: () => void;
+}) {
   return (
     <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       {children}
-      <BotaoRemover onConfirmar={onRemover} descricao="Remover este item?" />
+      <div className="flex flex-wrap items-center gap-2">
+        {onDuplicar && (
+          <button
+            type="button"
+            onClick={onDuplicar}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"
+          >
+            <Copy size={14} aria-hidden /> Duplicar
+          </button>
+        )}
+        <BotaoRemover onConfirmar={onRemover} descricao="Remover este item?" />
+      </div>
     </div>
   );
 }
@@ -1313,15 +1333,18 @@ function EntradaSimples({
   valor,
   onChange,
   placeholder,
+  list,
 }: {
   valor: string;
   onChange: (v: string) => void;
   placeholder: string;
+  list?: string;
 }) {
   return (
     <input
       value={valor}
       placeholder={placeholder}
+      list={list}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
     />
@@ -1439,6 +1462,20 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             onRemover={() =>
               aplicar((s) => ({ ...s, produtos: s.produtos.filter((x) => x.id !== p.id) }))
             }
+            onDuplicar={() =>
+              aplicar((s) => {
+                const indice = s.produtos.findIndex((x) => x.id === p.id);
+                const copia = { ...p, id: uid("prd"), nome: `${p.nome} (cópia)` };
+                return {
+                  ...s,
+                  produtos: [
+                    ...s.produtos.slice(0, indice + 1),
+                    copia,
+                    ...s.produtos.slice(indice + 1),
+                  ],
+                };
+              })
+            }
           >
             <EntradaSimples
               valor={p.nome}
@@ -1476,11 +1513,24 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
               <EntradaSimples
                 valor={p.categoria}
                 placeholder="Categoria"
+                list="categorias-produtos"
                 onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    produtos: s.produtos.map((x) => (x.id === p.id ? { ...x, categoria: v } : x)),
-                  }))
+                  aplicar((s) => {
+                    const categorias = Array.from(
+                      new Set(
+                        s.produtos
+                          .filter((x) => x.id !== p.id)
+                          .map((x) => x.categoria)
+                          .filter(Boolean),
+                      ),
+                    );
+                    return {
+                      ...s,
+                      produtos: s.produtos.map((x) =>
+                        x.id === p.id ? { ...x, categoria: normalizarCategoria(v, categorias) } : x,
+                      ),
+                    };
+                  })
                 }
               />
             </div>
@@ -1571,6 +1621,13 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             </div>
           </LinhaItem>
         ))}
+        <datalist id="categorias-produtos">
+          {Array.from(
+            new Set(site.produtos.map((produto) => produto.categoria).filter(Boolean)),
+          ).map((categoria) => (
+            <option key={categoria} value={categoria} />
+          ))}
+        </datalist>
         <BotaoAdicionar
           rotulo="Adicionar produto"
           onClick={() =>

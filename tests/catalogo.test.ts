@@ -6,6 +6,7 @@ import {
   filtrarCatalogo,
   itensDestaque,
   mensagemPedido,
+  normalizarCategoria,
   perfilCatalogo,
   totaisCarrinho,
 } from "@/lib/nexa/catalogo";
@@ -33,6 +34,10 @@ const produto = (over: Partial<Produto> & { id: string; nome: string }): Produto
 });
 
 describe("catálogo do mini-site", () => {
+  it("reutiliza a categoria existente ignorando caixa e espaços", () => {
+    expect(normalizarCategoria("  PIZZAS  ", ["Pizzas", "Bebidas"])).toBe("Pizzas");
+    expect(normalizarCategoria("Sobremesas", ["Pizzas"])).toBe("Sobremesas");
+  });
   const site = criarSite(cliente, "pizzaria", "pizzaria-teste");
 
   it("usa o rótulo de cardápio para alimentação", () => {

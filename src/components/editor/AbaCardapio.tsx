@@ -15,6 +15,7 @@ import {
   enderecoCardapio,
   perfilCatalogo,
   precoFinal,
+  normalizarCategoria,
 } from "@/lib/nexa/catalogo";
 import { moeda } from "@/lib/nexa/utils";
 import type { Produto, Site } from "@/lib/nexa/types";
@@ -95,10 +96,17 @@ export function AbaCardapio({
     });
 
   const definirCategoria = (id: string, categoria: string) =>
-    aplicar((s) => ({
-      ...s,
-      produtos: s.produtos.map((x) => (x.id === id ? { ...x, categoria } : x)),
-    }));
+    aplicar((s) => {
+      const categoriasAtuais = categoriasDeProdutos(s.produtos).filter(
+        (nome) => !s.produtos.some((produto) => produto.id === id && produto.categoria === nome),
+      );
+      return {
+        ...s,
+        produtos: s.produtos.map((x) =>
+          x.id === id ? { ...x, categoria: normalizarCategoria(categoria, categoriasAtuais) } : x,
+        ),
+      };
+    });
 
   const renomearCategoria = (antiga: string, nova: string) => {
     const limpo = nova.trim();
@@ -444,6 +452,7 @@ export function AbaCardapio({
                         Categoria
                         <input
                           value={p.categoria}
+                          list="categorias-cardapio"
                           onChange={(e) => definirCategoria(p.id, e.target.value)}
                           placeholder="Ex.: Entradas"
                           className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
@@ -475,6 +484,11 @@ export function AbaCardapio({
           </section>
         );
       })}
+      <datalist id="categorias-cardapio">
+        {categorias.map((categoria) => (
+          <option key={categoria} value={categoria} />
+        ))}
+      </datalist>
     </div>
   );
 }

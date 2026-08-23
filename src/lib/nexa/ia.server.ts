@@ -16,6 +16,8 @@ export interface EntradaPlano {
   estilo?: EstiloIA;
   /** Tema pedido pela pessoa (claro/escuro). */
   tema?: TemaIA;
+  /** Solicita extração estruturada de produtos a partir de uma foto de cardápio. */
+  ocrCardapio?: boolean;
 }
 
 const MODELO_LOVABLE = "google/gemini-2.5-flash";
@@ -56,6 +58,7 @@ function extrairJson(texto: string): PlanoIA {
 
 function instrucoesDoPlano(entrada: EntradaPlano) {
   const cardapio =
+    entrada.ocrCardapio === true ||
     /restaurante|hamburg|pizza|pizzaria|lanch|bar\b|cafe|cafeter|doceria|confeitaria|delivery|comida|alimenta/i.test(
       entrada.nicho,
     );
@@ -69,6 +72,9 @@ function instrucoesDoPlano(entrada: EntradaPlano) {
     cardapio
       ? "Este é um negócio de alimentação: ative cardapio e produtos; devolva itens com categorias úteis (ex.: Burgers, Pizzas, Bebidas), sem preço se não informado. A experiência deve parecer um cardápio digital, não uma página institucional genérica."
       : "Escolha seções e CTA adequados ao segmento; produtos e serviços devem ter nomes concretos e descrições úteis.",
+    entrada.ocrCardapio
+      ? "A foto enviada é um cardápio físico. Leia nomes, descrições, preços e categorias visíveis; não invente itens nem preços ilegíveis. Devolva os pratos reconhecidos em produtos e preserve a categoria escrita."
+      : "",
     "Formato JSON:",
     '{"descricao":string(1-2 frases),"segmento":"alimentacao|beleza|comercio|servicos|saude|eventos|imoveis|transporte|profissionais",',
     '"cores":{"primaria":"#RRGGBB","fundo":"#RRGGBB","texto":"#RRGGBB"},"tema":"claro|escuro",',
@@ -196,10 +202,25 @@ async function gerarComGeminiDireto(
 }
 
 /** Gera o plano de conteúdo do mini-site a partir da descrição do negócio. */
-async function reservarGeracao(accessToken: string) {
+async function reservarGeracao(accessToken: string, ocrCardapio = false) {
   const { data: auth, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
   if (authError || !auth.user)
     throw new Error("Sua sessão expirou. Entre novamente para usar a IA.");
+
+  if (ocrCardapio) {
+    const { data: perfil, error: perfilError } = await supabaseAdmin
+      .from("profiles")
+      .select("subscription_tier,subscription_status")
+      .eq("id", auth.user.id)
+      .maybeSingle();
+    if (
+      perfilError ||
+      perfil?.subscription_status !== "active" ||
+      perfil.subscription_tier !== "catalog"
+    ) {
+      throw new Error("menu_ocr_requires_catalog");
+    }
+  }
 
   const { data, error } = await supabaseAdmin.rpc("nexa_consume_ai_generation", {
     requested_user_id: auth.user.id,
@@ -243,7 +264,7 @@ async function registrarUso(
 
 /** Gera um plano somente para uma sessão Supabase autenticada e com saldo diário. */
 export async function gerarPlano(entrada: EntradaPlano, accessToken: string): Promise<PlanoIA> {
-  const ownerId = await reservarGeracao(accessToken);
+  const ownerId = await reservarGeracao(accessToken, entrada.ocrCardapio === true);
   try {
     const chaveGemini = process.env["GEMINI_API_KEY"];
     if (chaveGemini) {

@@ -106,6 +106,15 @@ export function descontoPercentual(p: Produto) {
 
 export const categoriasDeProdutos = (produtos: Produto[]) =>
   Array.from(new Set(produtos.map((p) => p.categoria).filter(Boolean)));
+/** Mantém a grafia já usada e evita categorias duplicadas por caixa/espaços. */
+export function normalizarCategoria(valor: string, categorias: string[] = []) {
+  const limpa = valor.trim().replace(/\s+/g, " ");
+  if (!limpa) return "Geral";
+  const existente = categorias.find(
+    (categoria) => categoria.toLocaleLowerCase("pt-BR") === limpa.toLocaleLowerCase("pt-BR"),
+  );
+  return existente ?? limpa;
+}
 
 /** Seleção compacta exibida na página principal: destaques e promoções primeiro. */
 export function itensDestaque(produtos: Produto[], max = 6) {

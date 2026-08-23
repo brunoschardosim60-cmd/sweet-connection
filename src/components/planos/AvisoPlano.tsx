@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Crown, Lock, Sparkles, TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type MotivoBloqueio = "sem-plano" | "limite-sites" | "sem-ia";
+export type MotivoBloqueio = "sem-plano" | "limite-sites" | "sem-ia" | "menu-ocr";
 
 const conteudo: Record<
   MotivoBloqueio,
@@ -28,6 +28,13 @@ const conteudo: Record<
     texto:
       "A montagem automática com IA está incluída nos planos Profissional e Catálogo. Escolha um deles para gerar seções e textos automaticamente.",
     acao: "Ver planos",
+  },
+  "menu-ocr": {
+    icone: <Sparkles size={18} aria-hidden="true" />,
+    titulo: "Digitalização de cardápio bloqueada",
+    texto:
+      "Transformar uma foto do cardápio físico em produtos, preços e categorias é um recurso exclusivo do plano Catálogo.",
+    acao: "Conhecer o Catálogo",
   },
 };
 

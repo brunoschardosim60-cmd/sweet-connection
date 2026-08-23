@@ -26,6 +26,9 @@ export function CriacaoIA({
   verificandoAcesso = false,
   onCriar,
   briefingInicial = "",
+  ocrDisponivel = false,
+  iniciarOcr = false,
+  modeloBaseId = "personalizado",
 }: {
   cliente: Cliente;
   slug: string;
@@ -33,8 +36,12 @@ export function CriacaoIA({
   verificandoAcesso?: boolean;
   onCriar: (site: Site) => Promise<void>;
   briefingInicial?: string;
+  ocrDisponivel?: boolean;
+  iniciarOcr?: boolean;
+  modeloBaseId?: string;
 }) {
   const entradaProdutos = useRef<HTMLInputElement>(null);
+  const entradaOcr = useRef<HTMLInputElement>(null);
   const entradaLogo = useRef<HTMLInputElement>(null);
   const entradaCapa = useRef<HTMLInputElement>(null);
   const entradaGaleria = useRef<HTMLInputElement>(null);
@@ -55,6 +62,8 @@ export function CriacaoIA({
   const [tema, setTema] = useState<TemaIA>("automatico");
   const [plano, setPlano] = useState<PlanoIA | null>(null);
   const [mostrarAvisoPlano, setMostrarAvisoPlano] = useState(false);
+  const [mostrarAvisoOcr, setMostrarAvisoOcr] = useState(false);
+  const [ocrCardapio, setOcrCardapio] = useState(iniciarOcr);
 
   const enviarImagens = async (
     arquivos: FileList | null,
@@ -151,6 +160,11 @@ export function CriacaoIA({
       toast.error("Descreva o negócio com um pouco mais de detalhe.");
       return;
     }
+    if (ocrCardapio && !ocrDisponivel) {
+      setMostrarAvisoOcr(true);
+      toast.error("Digitalizar cardápio por foto exige o plano Catálogo.");
+      return;
+    }
     setGerando(true);
     try {
       const entrada = {
@@ -167,6 +181,7 @@ export function CriacaoIA({
         ],
         estilo,
         tema,
+        ...(ocrCardapio ? { ocrCardapio: true } : {}),
       };
       const emCache = await buscarPlanoEmCache(entrada);
       if (emCache) {
@@ -184,7 +199,13 @@ export function CriacaoIA({
       void guardarPlanoEmCache(entrada, sugestao);
       setPlano(sugestao);
     } catch (e) {
-      toast.error("Não foi possível gerar a sugestão", { description: (e as Error).message });
+      const mensagem = e instanceof Error ? e.message : "Tente novamente em instantes.";
+      if (mensagem.includes("menu_ocr_requires_catalog")) setMostrarAvisoOcr(true);
+      toast.error("Não foi possível gerar a sugestão", {
+        description: mensagem.includes("menu_ocr_requires_catalog")
+          ? "Digitalizar cardápio por foto exige o plano Catálogo."
+          : mensagem,
+      });
     } finally {
       setGerando(false);
     }
@@ -195,7 +216,7 @@ export function CriacaoIA({
     try {
       const base = criarSite(
         { ...cliente, segmento: aprovado.segmento ?? cliente.segmento },
-        "personalizado",
+        modeloBaseId,
         slug,
       );
       await onCriar(
@@ -300,6 +321,24 @@ export function CriacaoIA({
           }
         />
         <input
+          ref={entradaOcr}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) =>
+            void enviarImagens(
+              e.target.files,
+              (urls) => {
+                setFotosProdutos((atual) => [...atual, ...urls].slice(0, 8));
+                setOcrCardapio(true);
+              },
+              1,
+            ).finally(() => {
+              e.currentTarget.value = "";
+            })
+          }
+        />
+        <input
           ref={entradaGaleria}
           type="file"
           accept="image/*"
@@ -340,6 +379,20 @@ export function CriacaoIA({
           >
             {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
             Logo
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!ocrDisponivel) {
+                setMostrarAvisoOcr(true);
+                return;
+              }
+              entradaOcr.current?.click();
+            }}
+            disabled={enviando}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-lime-700/40 bg-lime/20 px-4 text-sm font-semibold hover:bg-lime/30 disabled:opacity-60"
+          >
+            <ImagePlus size={15} /> Digitalizar cardápio
           </button>
           <button
             type="button"
@@ -386,6 +439,14 @@ export function CriacaoIA({
           </button>
         </div>
       </div>
+
+      {mostrarAvisoOcr && !ocrDisponivel && (
+        <AvisoPlano
+          motivo="menu-ocr"
+          mensagem="Digitalizar cardápio por foto exige o plano Catálogo. Faça upgrade para transformar a foto em produtos, preços e categorias editáveis."
+          className="mt-3"
+        />
+      )}
 
       <ResumoMidias
         logo={logo}

@@ -18,6 +18,7 @@ function entradaNormalizada(entrada: EntradaPlano) {
     imagens: [...(entrada.imagens ?? [])].slice(0, 3),
     estilo: entrada.estilo ?? "automatico",
     tema: entrada.tema ?? "automatico",
+    ocrCardapio: entrada.ocrCardapio ?? false,
   });
 }
 
