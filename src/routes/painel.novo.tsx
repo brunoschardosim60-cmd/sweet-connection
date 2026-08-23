@@ -708,6 +708,41 @@ function NovoSite() {
 
           {passo === 1 && modoCriacao === "modelo" && (
             <div>
+              <div className="mb-5 grid gap-2 rounded-2xl border border-border bg-secondary/30 p-2 sm:grid-cols-2">
+                {(
+                  [
+                    ["minisite", "Mini-sites", "Serviços, equipe, portfólio e contato"],
+                    ["cardapio", "Cardápios digitais", "Produtos, categorias e pedidos"],
+                  ] as const
+                ).map(([id, titulo, descricao]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setFamiliaFiltro(id);
+                      if (
+                        !listaBase.some(
+                          (modelo) =>
+                            modelo.id === modeloId &&
+                            (id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia),
+                        )
+                      ) {
+                        const primeiro = listaBase.find((modelo) =>
+                          id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia,
+                        );
+                        if (primeiro) setModeloId(primeiro.id);
+                      }
+                    }}
+                    aria-pressed={familiaFiltro === id}
+                    className={`rounded-xl px-4 py-3 text-left transition-colors ${
+                      familiaFiltro === id ? "bg-ink text-ink-foreground" : "hover:bg-card"
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold">{titulo}</span>
+                    <span className="mt-1 block text-xs opacity-75">{descricao}</span>
+                  </button>
+                ))}
+              </div>
               <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={15} /> Modelos recomendados para este segmento
               </p>
@@ -827,41 +862,6 @@ function NovoSite() {
                     </div>
                   </div>
                 )}
-                <div className="grid gap-2 rounded-2xl border border-border bg-secondary/30 p-2 sm:col-span-2 sm:grid-cols-2 xl:col-span-3">
-                  {(
-                    [
-                      ["minisite", "Mini-sites", "Serviços, equipe, portfólio e contato"],
-                      ["cardapio", "Cardápios digitais", "Produtos, categorias e pedidos"],
-                    ] as const
-                  ).map(([id, titulo, descricao]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => {
-                        setFamiliaFiltro(id);
-                        if (
-                          !listaBase.some(
-                            (modelo) =>
-                              modelo.id === modeloId &&
-                              (id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia),
-                          )
-                        ) {
-                          const primeiro = listaBase.find((modelo) =>
-                            id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia,
-                          );
-                          if (primeiro) setModeloId(primeiro.id);
-                        }
-                      }}
-                      aria-pressed={familiaFiltro === id}
-                      className={`rounded-xl px-4 py-3 text-left transition-colors ${
-                        familiaFiltro === id ? "bg-ink text-ink-foreground" : "hover:bg-card"
-                      }`}
-                    >
-                      <span className="block text-sm font-semibold">{titulo}</span>
-                      <span className="mt-1 block text-xs opacity-75">{descricao}</span>
-                    </button>
-                  ))}
-                </div>
                 {lista.map((m) => {
                   const ativo = modoCriacao === "modelo" && modeloId === m.id;
                   return (
