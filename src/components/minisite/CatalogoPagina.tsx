@@ -39,6 +39,7 @@ import {
   salvarRascunhoPedido,
   limparRascunhoPedido,
   totaisCarrinho,
+  whatsappValido,
   type Entrega,
   type OrdemCatalogo,
   type FiltroCatalogo,
@@ -1127,6 +1128,7 @@ function PainelCarrinho({
 }) {
   const primaria = site.aparencia.corPrimaria;
   const modalidades: Entrega[] = perfilCatalogo(site).modalidades ?? ["entrega", "retirada"];
+  const contatoValido = whatsappValido(campos.whatsapp);
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
@@ -1141,6 +1143,36 @@ function PainelCarrinho({
           outlineColor: primaria,
         }}
       />
+    </label>
+  );
+
+  const campoWhatsapp = (
+    <label className="block text-xs font-medium opacity-80">
+      WhatsApp para contato
+      <input
+        type="tel"
+        inputMode="numeric"
+        autoComplete="tel"
+        value={campos.whatsapp}
+        onChange={(e) =>
+          setCampos((c) => ({ ...c, whatsapp: e.target.value.replace(/\D/g, "").slice(0, 13) }))
+        }
+        maxLength={13}
+        placeholder="(00) 00000-0000"
+        aria-invalid={Boolean(campos.whatsapp) && !contatoValido}
+        aria-describedby="aviso-whatsapp-pedido"
+        className="mt-1 min-h-11 w-full bg-transparent px-3 text-sm outline-none focus-visible:outline focus-visible:outline-2"
+        style={{
+          border: "1px solid var(--ms-border)",
+          borderRadius: "var(--ms-radius)",
+          outlineColor: primaria,
+        }}
+      />
+      <span id="aviso-whatsapp-pedido" className="mt-1 block text-[11px] opacity-70">
+        {campos.whatsapp && !contatoValido
+          ? "Informe um WhatsApp válido com DDD."
+          : "Use apenas números, com DDD. DDI 55 é opcional."}
+      </span>
     </label>
   );
 
@@ -1243,7 +1275,7 @@ function PainelCarrinho({
 
       <div className="grid gap-2">
         {campo("nome", "Seu nome")}
-        {campo("whatsapp", "WhatsApp para contato", "(00) 00000-0000")}
+        {campoWhatsapp}
       </div>
 
       {entrega === "mesa" && (
@@ -1346,7 +1378,7 @@ function PainelCarrinho({
       ) : (
         <button
           type="button"
-          disabled={enviando || !pedidosAtivos}
+          disabled={enviando || !pedidosAtivos || !contatoValido || campos.nome.trim().length < 2}
           onClick={onEnviar}
           className="inline-flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
@@ -1354,7 +1386,10 @@ function PainelCarrinho({
             color: contraste(primaria),
             borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
             outlineColor: primaria,
-            opacity: enviando || !pedidosAtivos ? 0.65 : 1,
+            opacity:
+              enviando || !pedidosAtivos || !contatoValido || campos.nome.trim().length < 2
+                ? 0.65
+                : 1,
           }}
         >
           <ShoppingBag size={15} aria-hidden />{" "}

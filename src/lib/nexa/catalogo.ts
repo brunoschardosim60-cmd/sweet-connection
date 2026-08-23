@@ -166,6 +166,16 @@ export function situacaoAtendimento(site: Site) {
 }
 export type Pagamento = "pix" | "cartao" | "dinheiro" | "balcao";
 
+/**
+ * Aceita telefone brasileiro com 10/11 dígitos, opcionalmente antecedido do DDI 55.
+ * O campo público armazena somente números para evitar dados inconsistentes no pedido.
+ */
+export function whatsappValido(valor: string) {
+  const numeros = valor.replace(/\D/g, "");
+  if (numeros.startsWith("55")) return numeros.length === 12 || numeros.length === 13;
+  return numeros.length === 10 || numeros.length === 11;
+}
+
 export const rotulosPagamento: Record<Pagamento, string> = {
   pix: "Pix",
   cartao: "Cartão",

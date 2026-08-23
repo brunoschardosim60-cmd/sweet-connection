@@ -9,6 +9,7 @@ import {
   normalizarCategoria,
   perfilCatalogo,
   totaisCarrinho,
+  whatsappValido,
 } from "@/lib/nexa/catalogo";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import type { Produto } from "@/lib/nexa/types";
@@ -86,5 +87,12 @@ describe("catálogo do mini-site", () => {
     const site = siteDoModelo("cardapio-pizzaria");
     expect(site.comercio?.carrinho).toBe(true);
     expect(site.produtos.length).toBeGreaterThan(0);
+  });
+
+  it("aceita apenas números de WhatsApp brasileiros com DDD", () => {
+    expect(whatsappValido("11999998888")).toBe(true);
+    expect(whatsappValido("5511999998888")).toBe(true);
+    expect(whatsappValido("1199999")).toBe(false);
+    expect(whatsappValido("55119999998888")).toBe(false);
   });
 });
