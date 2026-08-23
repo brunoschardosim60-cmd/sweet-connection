@@ -104,10 +104,13 @@ export function MolduraPrevia({
   dispositivo,
   children,
   controles = true,
+  className = "",
 }: {
   dispositivo: Dispositivo;
   children: ReactNode;
   controles?: boolean;
+  /** Classes extras para usar a mesma moldura em palcos diferentes, como a demonstração pública. */
+  className?: string;
 }) {
   const areaRef = useRef<HTMLDivElement>(null);
   const [orientacao, setOrientacao] = useState<Orientacao>("vertical");
@@ -136,7 +139,7 @@ export function MolduraPrevia({
   return (
     <div
       ref={areaRef}
-      className="relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden bg-secondary/40 data-[cheia=true]:bg-background data-[cheia=true]:p-4"
+      className={`relative flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden bg-secondary/40 data-[cheia=true]:bg-background data-[cheia=true]:p-4 ${className}`}
       data-cheia={telaCheia}
     >
       {controles && (
