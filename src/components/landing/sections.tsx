@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -248,9 +248,17 @@ function PaginaDeLinks() {
 export function Comparacao() {
   const marca = brand;
   const [pos, setPos] = useState(50);
-  const [arrastando, setArrastando] = useState(false);
   const comparadorRef = useRef<HTMLDivElement>(null);
+  const arrastandoRef = useRef(false);
+  const posicaoRef = useRef(pos);
   const [larguraTela, setLarguraTela] = useState(260);
+
+  // Durante o arraste não atualizamos o React a cada pixel: o mini-site é
+  // relativamente complexo e deve continuar estável enquanto só a máscara muda.
+  useEffect(() => {
+    posicaoRef.current = pos;
+    comparadorRef.current?.style.setProperty("--comparacao-pos", `${pos}%`);
+  }, [pos]);
 
   // A moldura é dimensionada a partir do espaço real disponível para caber
   // inteira, sempre mantendo a proporção de um celular — nunca larga demais.
@@ -276,7 +284,9 @@ export function Comparacao() {
     const area = comparadorRef.current?.getBoundingClientRect();
     if (!area) return;
     const proxima = ((clientX - area.left) / area.width) * 100;
-    setPos(Math.min(94, Math.max(6, proxima)));
+    const limitada = Math.min(94, Math.max(6, proxima));
+    posicaoRef.current = limitada;
+    comparadorRef.current?.style.setProperty("--comparacao-pos", `${limitada}%`);
   };
 
   return (
@@ -295,22 +305,28 @@ export function Comparacao() {
         <div
           ref={comparadorRef}
           className="relative mt-10 h-[520px] touch-pan-y select-none overflow-hidden rounded-3xl border border-border bg-ink sm:h-[600px]"
+          style={{ "--comparacao-pos": `${pos}%` } as CSSProperties}
           onPointerDown={(event) => {
-            if ((event.target as HTMLElement).closest("[data-preview-phone]")) return;
             event.currentTarget.setPointerCapture(event.pointerId);
-            setArrastando(true);
+            arrastandoRef.current = true;
             atualizarPosicao(event.clientX);
           }}
           onPointerMove={(event) => {
-            if (arrastando) atualizarPosicao(event.clientX);
+            if (arrastandoRef.current) atualizarPosicao(event.clientX);
           }}
-          onPointerUp={() => setArrastando(false)}
-          onPointerCancel={() => setArrastando(false)}
+          onPointerUp={() => {
+            arrastandoRef.current = false;
+            setPos(posicaoRef.current);
+          }}
+          onPointerCancel={() => {
+            arrastandoRef.current = false;
+            setPos(posicaoRef.current);
+          }}
         >
           {/* Camada "antes": mesmo palco central da camada "depois", para que a
               divisória revele exatamente o mesmo recorte nos dois lados. */}
           <div className="absolute inset-0 grid place-items-center bg-[#0f100f]">
-            <div data-preview-phone>
+            <div data-preview-phone className="pointer-events-none">
               <PhoneFrame largura={larguraTela} altura={alturaTela}>
                 <PaginaDeLinks />
               </PhoneFrame>
@@ -330,9 +346,9 @@ export function Comparacao() {
 
           <div
             className="absolute inset-0 grid place-items-center bg-background"
-            style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
+            style={{ clipPath: "inset(0 0 0 var(--comparacao-pos))" }}
           >
-            <div data-preview-phone>
+            <div data-preview-phone className="pointer-events-none">
               <PhoneFrame largura={larguraTela} altura={alturaTela}>
                 {/* O conteúdo é renderizado na largura lógica de um celular real
                     e apenas reduzido visualmente: nada fica espremido ou cortado. */}
@@ -370,7 +386,7 @@ export function Comparacao() {
 
           <div
             className="pointer-events-none absolute inset-y-0 w-0.5 bg-lime"
-            style={{ left: `${pos}%` }}
+            style={{ left: "var(--comparacao-pos)" }}
           >
             <span className="absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-lime text-ink shadow-lg">
               <ArrowRight size={16} aria-hidden="true" />
