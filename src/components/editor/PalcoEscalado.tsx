@@ -45,7 +45,7 @@ export function PalcoEscalado({
   return (
     <div
       ref={ref}
-      className={`flex min-h-0 w-full flex-1 items-center justify-center overflow-auto ${className}`}
+      className={`scrollbar-invisivel flex min-h-0 w-full flex-1 items-center justify-center overflow-auto ${className}`}
     >
       <div
         style={{

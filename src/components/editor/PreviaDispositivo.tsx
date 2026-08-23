@@ -198,7 +198,7 @@ export function MolduraPrevia({
           ) : (
             <div
               style={seguro}
-              className="h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
+              className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
             >
               {children}
             </div>
@@ -206,7 +206,7 @@ export function MolduraPrevia({
         </PalcoEscalado>
       ) : (
         <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-          <div className="h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="scrollbar-invisivel h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
             {children}
           </div>
         </div>

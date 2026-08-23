@@ -538,7 +538,7 @@ function Editor() {
 
           <div
             ref={painelConfiguracoesRef}
-            className="mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-24 pr-1 lg:pb-4"
+            className="scrollbar-invisivel mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-24 pr-1 lg:pb-4"
           >
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}

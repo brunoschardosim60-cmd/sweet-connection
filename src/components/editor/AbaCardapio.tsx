@@ -494,7 +494,7 @@ export function AbaCardapio({
           </p>
           <div
             aria-label="Prévia do cardápio"
-            className="mt-3 max-h-[520px] overflow-y-auto rounded-2xl border border-border"
+            className="scrollbar-invisivel mt-3 max-h-[520px] overflow-y-auto rounded-2xl border border-border"
           >
             <CatalogoPagina
               key={versaoDestaquePrevia}

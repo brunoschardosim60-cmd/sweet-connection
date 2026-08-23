@@ -426,7 +426,7 @@ function PainelLayout() {
               />
             </label>
             {termo.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-[70vh] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card shadow-lg">
+              <div className="scrollbar-invisivel absolute left-0 right-0 top-full z-40 mt-2 max-h-[70vh] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card shadow-lg">
                 <div
                   id="resultados-busca-painel"
                   role="listbox"
@@ -583,7 +583,7 @@ function PainelLayout() {
               role="dialog"
               aria-modal="true"
               aria-label="Menu de navegação"
-              className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground"
+              className="scrollbar-invisivel absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground"
             >
               <div className="flex items-center justify-between px-2 py-3">
                 <Link

@@ -863,7 +863,7 @@ function DrawerMeusPedidos({
         role="dialog"
         aria-modal="true"
         aria-label="Meus pedidos"
-        className="relative max-h-[88dvh] w-full max-w-lg overflow-y-auto p-5 shadow-2xl"
+        className="scrollbar-invisivel relative max-h-[88dvh] w-full max-w-lg overflow-y-auto p-5 shadow-2xl"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
@@ -1478,7 +1478,7 @@ function DetalheProduto({
         role="dialog"
         aria-modal="true"
         aria-label={produto.nome}
-        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto p-4 @2xl:rounded-2xl"
+        className="scrollbar-invisivel relative max-h-[92vh] w-full max-w-lg overflow-y-auto p-4 @2xl:rounded-2xl"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
