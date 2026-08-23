@@ -435,7 +435,7 @@ export const criarSecoes = (modeloId?: string): Secao[] => {
   });
 };
 
-function camposFormulario(tipo: Site["formulario"]["tipo"]): Site["formulario"]["campos"] {
+export function camposFormulario(tipo: Site["formulario"]["tipo"]): Site["formulario"]["campos"] {
   const campos: Site["formulario"]["campos"] = [
     { id: uid("c"), rotulo: "Nome", tipo: "texto", obrigatorio: true },
     { id: uid("c"), rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },

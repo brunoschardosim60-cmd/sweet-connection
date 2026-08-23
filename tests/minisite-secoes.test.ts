@@ -3,6 +3,7 @@ import { grupoDeSecao, secaoTemConteudo, secoesSemDuplicadas } from "@/lib/nexa/
 import { modelos } from "@/lib/nexa/modelos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { extrasPorModelo } from "@/lib/nexa/demo-extras";
+import { presetsModelo } from "@/lib/nexa/factory";
 
 const tipos = (secoes: { tipo: string }[]) => secoes.map((s) => s.tipo);
 
@@ -72,6 +73,30 @@ describe("conteúdo complementar dos modelos", () => {
   it("cada modelo tem nome e destaque próprios", () => {
     const nomes = new Set(modelos.map((m) => m.nome));
     expect(nomes.size).toBe(modelos.length);
+  });
+
+  it("usa o formulário do preset nos novos modelos premium", () => {
+    const modelosPremium = [
+      "nutricionista-clinico",
+      "psicologia-terapia",
+      "estetica-spa",
+      "nail-designer",
+      "escola-idiomas",
+      "autoescola",
+      "contabilidade",
+      "agencia-marketing",
+      "floricultura",
+      "assistencia-tecnica",
+      "estetica-automotiva",
+      "turismo-passeios",
+    ];
+
+    for (const id of modelosPremium) {
+      const preset = presetsModelo[id]!;
+      const site = siteDoModelo(id);
+      expect(site.formulario.tipo, `tipo ${id}`).toBe(preset.formulario);
+      expect(site.formulario.titulo, `título ${id}`).toBe(preset.tituloFormulario);
+    }
   });
 });
 

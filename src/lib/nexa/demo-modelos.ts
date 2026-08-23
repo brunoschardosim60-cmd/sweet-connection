@@ -2,7 +2,13 @@ import { extrasPorModelo } from "./demo-extras";
 import { conteudoNovosModelos } from "./demo-novos";
 import { conteudoModelosPremium } from "./demo-premium";
 import { conteudoCardapioModelos, ehModeloCardapio } from "./cardapio-modelos";
-import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
+import {
+  camposFormulario,
+  criarSecoes,
+  horariosPadrao,
+  metricasPadrao,
+  presetsModelo,
+} from "./factory";
 import { imagens } from "./images";
 import { modeloPorId, modelos } from "./modelos";
 import type { Site, TipoSecao } from "./types";
@@ -1255,6 +1261,7 @@ function ordenarSecoes(ordem: TipoSecao[], modeloId?: string): Site["secoes"] {
 export function siteDoModelo(modeloId: string): Site {
   const modelo = modeloPorId(modeloId);
   const base = conteudoPorModelo["prestador-servicos"]!;
+  const preset = presetsModelo[modelo.id] ?? presetsModelo["prestador-servicos"]!;
   const nomes: Record<string, string> = {
     petshop: "Clube do Pet",
     odontologia: "Odonto Sorriso",
@@ -1384,13 +1391,9 @@ export function siteDoModelo(modeloId: string): Site {
       },
     ],
     formulario: c.formulario ?? {
-      tipo: "orcamento",
-      titulo: "Peça um orçamento",
-      campos: [
-        { id: "c1", rotulo: "Nome", tipo: "texto", obrigatorio: true },
-        { id: "c2", rotulo: "WhatsApp", tipo: "telefone", obrigatorio: true },
-        { id: "c3", rotulo: "Mensagem", tipo: "textarea", obrigatorio: false },
-      ],
+      tipo: preset.formulario,
+      titulo: preset.tituloFormulario,
+      campos: camposFormulario(preset.formulario),
     },
     seo: { titulo: c.nome, descricao: c.descricao, imagem: modelo.imagem, palavras: modelo.nome },
     integracoes: {
