@@ -358,6 +358,27 @@ export function CatalogoPagina({
 
       <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 pb-32 pt-5 @5xl:grid-cols-[minmax(0,1fr)_320px] @5xl:pb-10">
         <main className="min-w-0">
+          {site.conteudo.capa && (
+            <div
+              className="relative mb-5 h-40 overflow-hidden"
+              style={{ borderRadius: "var(--ms-radius)", border: "1px solid var(--ms-border)" }}
+            >
+              <img
+                src={site.conteudo.capa}
+                alt={`Ambiente de ${site.conteudo.nome}`}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                <p className="text-lg font-semibold leading-tight">{site.conteudo.nome}</p>
+                {site.conteudo.descricao && (
+                  <p className="mt-1 line-clamp-2 text-xs text-white/85">
+                    {site.conteudo.descricao}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           <h1 className="text-2xl font-semibold">{perfil.rotulo}</h1>
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 

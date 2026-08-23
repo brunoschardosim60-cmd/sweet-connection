@@ -50,10 +50,7 @@ describe("prévia do cardápio em várias larguras de container", () => {
   for (const dispositivo of ["celular", "tablet"] as const) {
     for (const largura of larguras) {
       it(`${dispositivo} cabe em ${largura}px de container`, () => {
-        const caixa = calcularPrevia(
-          { largura, altura: 640 },
-          dimensoesDispositivo[dispositivo],
-        );
+        const caixa = calcularPrevia({ largura, altura: 640 }, dimensoesDispositivo[dispositivo]);
         expect(caixa.largura).toBeLessThanOrEqual(largura + 0.01);
         expect(caixa.altura).toBeLessThanOrEqual(640.01);
         expect(caixa.largura).toBeGreaterThan(0);

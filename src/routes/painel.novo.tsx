@@ -416,16 +416,28 @@ function NovoSite() {
             slugFinal || "previa",
           )
         : siteDoModelo(modeloId);
+    const empresa = cliente.empresa.trim() || base.cliente.empresa;
+    const telefone = cliente.telefone.trim() || base.cliente.telefone;
+    const cidade = cliente.cidade.trim() || base.cliente.cidade;
+    const estado = cliente.estado.trim() || base.cliente.estado;
     return {
       ...base,
-      cliente: { ...base.cliente, ...cliente, empresa: cliente.empresa || base.cliente.empresa },
+      slug: slugFinal || "previa",
+      cliente: {
+        ...base.cliente,
+        ...cliente,
+        empresa,
+        telefone,
+        cidade,
+        estado,
+      },
       conteudo: {
         ...base.conteudo,
-        nome: cliente.empresa || base.conteudo.nome,
-        telefone: cliente.telefone || base.conteudo.telefone,
-        whatsapp: cliente.telefone || base.conteudo.whatsapp,
-        email: cliente.email || base.conteudo.email,
-        endereco: enderecoPersonalizado || `${cliente.cidade} - ${cliente.estado}`,
+        nome: empresa,
+        telefone,
+        whatsapp: telefone,
+        email: cliente.email.trim() || base.conteudo.email,
+        endereco: enderecoPersonalizado || `${cidade} - ${estado}`,
         ...(logoUrl ? { logo: logoUrl } : {}),
       },
       aparencia: {
@@ -746,7 +758,7 @@ function NovoSite() {
                   Todos os modelos
                 </button>
               </div>
-              {meusModelos.length > 0 && (
+              {familiaFiltro === "minisite" && meusModelos.length > 0 && (
                 <div className="mt-3">
                   <p className="mb-2 text-xs font-semibold text-muted-foreground">
                     Meus modelos salvos (aplicam cores e formas por cima do modelo escolhido)
@@ -783,34 +795,38 @@ function NovoSite() {
                 </div>
               )}
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                <div className="overflow-hidden rounded-2xl border border-border transition-all hover:-translate-y-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setModoCriacao("ia")}
-                    aria-pressed={false}
-                    className="block w-full text-left"
-                  >
-                    <span className="relative grid h-36 place-items-center overflow-hidden bg-ink text-ink-foreground">
-                      <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)]" />
-                      <span className="relative grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
-                        <Wand2 size={22} />
+                {familiaFiltro === "minisite" && (
+                  <div className="overflow-hidden rounded-2xl border border-border transition-all hover:-translate-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setModoCriacao("ia")}
+                      aria-pressed={false}
+                      className="block w-full text-left"
+                    >
+                      <span className="relative grid h-36 place-items-center overflow-hidden bg-ink text-ink-foreground">
+                        <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)]" />
+                        <span className="relative grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
+                          <Wand2 size={22} />
+                        </span>
                       </span>
-                    </span>
-                    <span className="block p-3">
-                      <span className="block text-sm font-semibold">Criação automática com IA</span>
-                      <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
-                        Descreva o negócio e envie fotos. A IA sugere modelo, cores, textos e
-                        seções.
+                      <span className="block p-3">
+                        <span className="block text-sm font-semibold">
+                          Criação automática com IA
+                        </span>
+                        <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
+                          Descreva o negócio e envie fotos. A IA sugere modelo, cores, textos e
+                          seções.
+                        </span>
+                        <span className="mt-2 inline-block rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">
+                          IA + fotos
+                        </span>
                       </span>
-                      <span className="mt-2 inline-block rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium">
-                        IA + fotos
-                      </span>
-                    </span>
-                  </button>
-                  <div className="border-t border-border p-2 text-center text-xs text-muted-foreground">
-                    Gera uma sugestão para você revisar
+                    </button>
+                    <div className="border-t border-border p-2 text-center text-xs text-muted-foreground">
+                      Gera uma sugestão para você revisar
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className="grid gap-2 rounded-2xl border border-border bg-secondary/30 p-2 sm:col-span-2 sm:grid-cols-2 xl:col-span-3">
                   {(
                     [

@@ -188,7 +188,6 @@ function ProjetosDoUsuario({ userId, email }: { userId: string; email: string })
               </Link>
             )}
           </div>
-
         </li>
       ))}
     </ul>

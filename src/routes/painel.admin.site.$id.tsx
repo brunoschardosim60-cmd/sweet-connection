@@ -57,7 +57,11 @@ function AdminVerSite() {
   }
   if (!admin) return <p className="surface p-6 text-center">Área restrita.</p>;
 
-  const site = dados ? (versao === "publicado" ? (dados.publicado ?? dados.rascunho) : dados.rascunho) : null;
+  const site = dados
+    ? versao === "publicado"
+      ? (dados.publicado ?? dados.rascunho)
+      : dados.rascunho
+    : null;
 
   return (
     <div className="flex min-h-0 flex-col gap-4">

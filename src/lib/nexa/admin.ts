@@ -376,9 +376,7 @@ export type MinisiteAdmin = {
 export async function carregarMinisiteAdmin(id: string): Promise<MinisiteAdmin> {
   const { data, error } = await supabase
     .from("minisites")
-    .select(
-      "id, slug, status, updated_at, published_at, draft_content, published_content",
-    )
+    .select("id, slug, status, updated_at, published_at, draft_content, published_content")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(mensagemErroAdmin(error));
