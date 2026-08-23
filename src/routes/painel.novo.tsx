@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { CriacaoIA } from "@/components/painel/CriacaoIA";
 import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
@@ -382,14 +383,13 @@ function NovoSite() {
     () => search.endereco || null,
   );
 
-  const sugeridos = useMemo(
-    () => modelos.filter((m) => m.segmento === cliente.segmento),
-    [cliente.segmento],
-  );
   const listaBase =
-    filtro === "todos" || sugeridos.length === 0
+    filtro === "todos"
       ? modelosCriacao
-      : [modeloPersonalizado, ...sugeridos];
+      : [
+          modeloPersonalizado,
+          ...modelosCriacao.filter((modelo) => modelo.segmento === cliente.segmento),
+        ];
   const lista = listaBase.filter((modelo) =>
     familiaFiltro === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia,
   );
@@ -1023,7 +1023,16 @@ function NovoSite() {
 
         <div className="hidden justify-center lg:sticky lg:top-20 lg:flex lg:self-start">
           <PhoneFrame largura={240} altura={496}>
-            <MiniSite site={previa} compacto botaoFlutuante={false} />
+            {previa.modeloId.startsWith("cardapio-") ? (
+              <CatalogoPagina
+                site={previa}
+                interacoesExternas={false}
+                mostrarVoltar={false}
+                previewEstreita
+              />
+            ) : (
+              <MiniSite site={previa} compacto botaoFlutuante={false} />
+            )}
           </PhoneFrame>
         </div>
       </div>

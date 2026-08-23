@@ -75,12 +75,14 @@ export function CatalogoPagina({
   rastrear = false,
   interacoesExternas = true,
   mostrarVoltar = true,
+  previewEstreita = false,
 }: {
   site: Site;
   rastrear?: boolean;
   interacoesExternas?: boolean;
   /** Cardápios digitais usam esta página como entrada principal. */
   mostrarVoltar?: boolean;
+  previewEstreita?: boolean;
 }) {
   const perfil = perfilCatalogo(site);
   const primaria = site.aparencia.corPrimaria;
@@ -176,8 +178,6 @@ export function CatalogoPagina({
   );
   /** Catálogo sem nenhum item cadastrado — diferente de "filtro sem resultado". */
   const catalogoVazio = !carregando && site.produtos.length === 0;
-
-
 
   const itens: ItemCarrinho[] = site.produtos
     .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
@@ -362,98 +362,105 @@ export function CatalogoPagina({
           <p className="mt-1 text-sm opacity-75">{perfil.apoio}</p>
 
           {!catalogoVazio && (
-          <div
-            className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
-            style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
-          >
-            <label className="sr-only" htmlFor="busca-catalogo">
-              Buscar por nome, descrição ou categoria
-            </label>
             <div
-              className="flex min-h-11 items-center gap-2 px-3 py-2"
-              style={{
-                background: "var(--ms-surface)",
-                border: "1px solid var(--ms-border)",
-                borderRadius: "var(--ms-radius)",
-              }}
+              className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
+              style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
             >
-              <Search size={15} className="opacity-60" aria-hidden />
-              <input
-                id="busca-catalogo"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar por nome, descrição ou categoria"
-                className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
-                style={{ color: "inherit" }}
-              />
-            </div>
+              <label className="sr-only" htmlFor="busca-catalogo">
+                Buscar por nome, descrição ou categoria
+              </label>
+              <div
+                className="flex min-h-11 items-center gap-2 px-3 py-2"
+                style={{
+                  background: "var(--ms-surface)",
+                  border: "1px solid var(--ms-border)",
+                  borderRadius: "var(--ms-radius)",
+                }}
+              >
+                <Search size={15} className="opacity-60" aria-hidden />
+                <input
+                  id="busca-catalogo"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar por nome, descrição ou categoria"
+                  className="w-full bg-transparent text-sm outline-none placeholder:opacity-50"
+                  style={{ color: "inherit" }}
+                />
+              </div>
 
-            <div
-              role="group"
-              aria-label="Filtros do catálogo"
-              className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
-            >
-              {filtrosCatalogo.map((f) => (
-                <Chip
-                  key={f.id}
-                  ativo={filtro === f.id}
-                  cor={primaria}
-                  onClick={() => setFiltro(f.id)}
-                >
-                  {f.rotulo}
-                </Chip>
-              ))}
-            </div>
-
-            {categorias.length > 1 && (
               <div
                 role="group"
-                aria-label="Categorias"
+                aria-label="Filtros do catálogo"
                 className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
               >
-                {categorias.map((c) => (
+                {filtrosCatalogo.map((f) => (
                   <Chip
-                    key={c}
-                    ativo={categoria === c}
+                    key={f.id}
+                    ativo={filtro === f.id}
                     cor={primaria}
-                    onClick={() => setCategoria(c)}
+                    onClick={() => setFiltro(f.id)}
                   >
-                    {c}
+                    {f.rotulo}
                   </Chip>
                 ))}
               </div>
-            )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p aria-live="polite" className="text-xs opacity-70">
-                {carregando
-                  ? "Carregando itens…"
-                  : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
-              </p>
-              <label htmlFor="ordem-catalogo" className="sr-only">
-                Ordenar por
-              </label>
-              <select
-                id="ordem-catalogo"
-                value={ordem}
-                onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
-                className="min-h-11 max-w-full bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "999px",
-                  color: "inherit",
-                  outlineColor: primaria,
-                }}
-              >
-                {ordenacoesCatalogo.map((o) => (
-                  <option key={o.id} value={o.id} style={{ color: "#111" }}>
-                    {o.rotulo}
-                  </option>
-                ))}
-              </select>
+              {categorias.length > 1 && (
+                <div
+                  role="group"
+                  aria-label="Categorias"
+                  className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
+                >
+                  {categorias.map((c) => (
+                    <Chip
+                      key={c}
+                      ativo={categoria === c}
+                      cor={primaria}
+                      onClick={() => setCategoria(c)}
+                    >
+                      {c}
+                    </Chip>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p aria-live="polite" className="text-xs opacity-70">
+                  {carregando
+                    ? "Carregando itens…"
+                    : `${lista.length} ${lista.length === 1 ? "item encontrado" : "itens encontrados"}`}
+                </p>
+                <label htmlFor="ordem-catalogo" className="sr-only">
+                  Ordenar por
+                </label>
+                <select
+                  id="ordem-catalogo"
+                  value={ordem}
+                  onChange={(e) => setOrdem(e.target.value as OrdemCatalogo)}
+                  className="min-h-11 max-w-full bg-transparent px-3 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{
+                    border: "1px solid var(--ms-border)",
+                    borderRadius: "999px",
+                    color: "inherit",
+                    colorScheme: site.aparencia.tema === "escuro" ? "dark" : "light",
+                    outlineColor: primaria,
+                  }}
+                >
+                  {ordenacoesCatalogo.map((o) => (
+                    <option
+                      key={o.id}
+                      value={o.id}
+                      style={{
+                        backgroundColor: site.aparencia.corFundo,
+                        color: site.aparencia.corTexto,
+                      }}
+                    >
+                      {o.rotulo}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-          </div>
           )}
 
           {carregando ? (
@@ -487,20 +494,30 @@ export function CatalogoPagina({
                   : "Ajuste a busca, a categoria ou os filtros para ver mais opções."}
               </p>
             </div>
-
           ) : (
-            <ul className="mt-4 grid gap-3 @2xl:grid-cols-2">
-              {lista.map((p) => (
-                <li key={p.id}>
-                  <CartaoProduto
-                    site={site}
-                    produto={p}
-                    quantidade={carrinho[p.id]?.quantidade ?? 0}
-                    onAbrir={() => setDetalhe(p)}
-                    onAlterar={(d) => alterar(p, d)}
-                  />
-                </li>
-              ))}
+            <ul
+              className={`mt-4 grid gap-5 ${previewEstreita ? "grid-cols-1" : "@2xl:grid-cols-2"}`}
+            >
+              {Array.from(new Set(lista.map((produto) => produto.categoria || "Geral"))).map(
+                (categoria) => (
+                  <li key={categoria} className="contents">
+                    <h2 className="col-span-full text-sm font-semibold opacity-80">{categoria}</h2>
+                    {lista
+                      .filter((produto) => (produto.categoria || "Geral") === categoria)
+                      .map((p) => (
+                        <div key={p.id}>
+                          <CartaoProduto
+                            site={site}
+                            produto={p}
+                            quantidade={carrinho[p.id]?.quantidade ?? 0}
+                            onAbrir={() => setDetalhe(p)}
+                            onAlterar={(d) => alterar(p, d)}
+                          />
+                        </div>
+                      ))}
+                  </li>
+                ),
+              )}
             </ul>
           )}
         </main>

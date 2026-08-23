@@ -41,7 +41,7 @@ import { PreviaCompartilhamento } from "@/components/editor/PreviaCompartilhamen
 import { AvisoPlano, type MotivoBloqueio } from "@/components/planos/AvisoPlano";
 import { normalizarCategoria } from "@/lib/nexa/catalogo";
 import { useHistorico, useNexa } from "@/lib/nexa/hooks";
-import { modelosCriacao } from "@/lib/nexa/modelos";
+import { modeloPorId, modelosCriacao } from "@/lib/nexa/modelos";
 import { paletasProntas } from "@/lib/nexa/paletas";
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { baixarJson, lerArquivo, mesclarImportacao } from "@/lib/nexa/exportar";
@@ -119,7 +119,16 @@ function Editor() {
 
   useEffect(() => {
     if (original && !rascunho) {
-      setRascunho(structuredClone(original));
+      const modelo = modeloPorId(original.modeloId);
+      const capa = original.conteudo.capa || (modelo.id !== "personalizado" ? modelo.imagem : "");
+      setRascunho({
+        ...structuredClone(original),
+        conteudo: { ...original.conteudo, ...(capa ? { capa } : {}) },
+        aparencia: {
+          ...original.aparencia,
+          ...(capa && original.aparencia.capaTipo === "cor" ? { capaTipo: "imagem" } : {}),
+        },
+      });
       if (!preferenciasRestauradas.current) {
         preferenciasRestauradas.current = true;
         try {
