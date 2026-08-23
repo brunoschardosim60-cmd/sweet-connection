@@ -374,7 +374,7 @@ export function CatalogoPagina({
   return (
     <div
       style={estiloMiniSite(site)}
-      className="@container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed"
+      className={`nexa-catalogo ${interacoesExternas ? "nexa-catalogo-publico" : ""} @container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed`}
     >
       <header
         className="sticky top-0 z-30 w-full backdrop-blur"
@@ -383,7 +383,7 @@ export function CatalogoPagina({
           borderBottom: "1px solid var(--ms-border)",
         }}
       >
-        <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 pb-2 pt-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 pb-2 pt-3">
           {mostrarVoltar ? (
             <a
               href={interacoesExternas ? `/site/${site.slug}` : undefined}
@@ -449,7 +449,7 @@ export function CatalogoPagina({
         </div>
 
         <div
-          className="mx-auto flex w-full max-w-5xl items-center gap-1.5 overflow-x-auto px-4 pb-3 text-[11px] scrollbar-invisivel"
+          className="mx-auto flex w-full max-w-7xl items-center gap-1.5 overflow-x-auto px-4 pb-3 text-[11px] scrollbar-invisivel"
           aria-label="Informações do estabelecimento"
         >
           <span
@@ -504,7 +504,7 @@ export function CatalogoPagina({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 @5xl:pb-10">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 @5xl:pb-10">
         <main className="min-w-0">
           {site.conteudo.capa && (
             <div
@@ -660,7 +660,7 @@ export function CatalogoPagina({
             </div>
           ) : (
             <ul
-              className={`mt-4 grid gap-5 ${previewEstreita ? "grid-cols-1" : "@2xl:grid-cols-2"}`}
+              className={`mt-4 grid gap-5 ${previewEstreita ? "grid-cols-1" : "@2xl:grid-cols-2 @5xl:grid-cols-3"}`}
             >
               {Array.from(new Set(lista.map((produto) => produto.categoria || "Geral"))).map(
                 (categoria) => (
@@ -689,7 +689,7 @@ export function CatalogoPagina({
 
       {site.mostrarAssinaturaNexa !== false && (
         <footer
-          className="mx-auto w-full max-w-5xl px-4 pb-28 text-center text-xs opacity-60 @5xl:pb-8"
+          className="mx-auto w-full max-w-7xl px-4 pb-28 text-center text-xs opacity-60 @5xl:pb-8"
           style={{ color: site.aparencia.corTexto }}
         >
           Criado com Nexa

@@ -176,6 +176,18 @@
   display: none;
 }
 
+/* O cardápio público continua rolável, mas não exibe a barra do navegador. */
+html:has(.nexa-catalogo-publico),
+body:has(.nexa-catalogo-publico) {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html:has(.nexa-catalogo-publico)::-webkit-scrollbar,
+body:has(.nexa-catalogo-publico)::-webkit-scrollbar {
+  display: none;
+}
+
 /* A moldura da comparação da landing é mais estreita que um celular físico.
    Sem este ajuste, grades de duas colunas comprimem textos e cupons. */
 .mini-site-preview-estreita .grid.grid-cols-2 {
