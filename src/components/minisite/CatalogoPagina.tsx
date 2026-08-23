@@ -185,7 +185,9 @@ export function CatalogoPagina({
     if (!interacoesExternas) return;
     setAtualizandoPedidos(true);
     try {
-      setMeusPedidos(await buscarMeusPedidosPublicos(site.slug));
+      const recebidos = await buscarMeusPedidosPublicos(site.slug);
+      // Não apaga da tela um pedido recém-confirmado caso a réplica pública ainda não o retorne.
+      setMeusPedidos((anteriores) => (recebidos.length > 0 ? recebidos : anteriores));
     } catch {
       // O pedido continua salvo no estabelecimento; a atualização pode ser tentada de novo.
     } finally {
@@ -348,11 +350,27 @@ export function CatalogoPagina({
       });
       limparRascunhoPedido(site.slug);
       guardarAcompanhamentoPedido(site.slug, pedido.trackingToken);
+      const pedidoParaAcompanhar: PedidoPublico = {
+        id: pedido.id,
+        codigo: pedido.codigo,
+        status: pedido.status,
+        modalidade: entrega,
+        total: pedido.total,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        itens: itens.map(({ nome, quantidade, preco }) => ({ nome, quantidade, preco })),
+        trackingToken: pedido.trackingToken,
+      };
+      // Exibe o pedido recém-confirmado imediatamente, mesmo se a leitura de acompanhamento atrasar.
+      setMeusPedidos((anteriores) => [
+        pedidoParaAcompanhar,
+        ...anteriores.filter((anterior) => anterior.id !== pedido.id),
+      ]);
       setCarrinho({});
       setCarrinhoAberto(false);
       void buscarEstoquePublicado(site.slug).then(setEstoqueAtual);
       setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
-      await atualizarMeusPedidos();
+      void atualizarMeusPedidos();
       setPedidoConfirmado({ codigo: pedido.codigo, total: pedido.total, modalidade: entrega });
       setPedidosAbertos(true);
       eventoMarketing("iniciar_checkout", {
@@ -419,7 +437,7 @@ export function CatalogoPagina({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {meusPedidos.length > 0 && (
+            {interacoesExternas && (
               <button
                 type="button"
                 onClick={() => setPedidosAbertos(true)}
