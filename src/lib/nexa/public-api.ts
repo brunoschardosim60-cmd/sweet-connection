@@ -98,6 +98,14 @@ export async function criarPedidoPublicado(
     if (codigo.includes("rate_limit_exceeded"))
       throw new Error("Aguarde alguns minutos antes de enviar outro pedido.");
     if (codigo.includes("invalid_address")) throw new Error("Informe o endereço para a entrega.");
+    if (codigo.includes("invalid_items") || codigo.includes("invalid_product"))
+      throw new Error("Revise os itens do pedido e tente novamente.");
+    if (codigo.includes("invalid_quantity"))
+      throw new Error("A quantidade de um dos itens não é permitida.");
+    if (codigo.includes("invalid_modality"))
+      throw new Error("Escolha uma modalidade de entrega válida.");
+    if (codigo.includes("minisite_not_found"))
+      throw new Error("Este cardápio não está publicado ou não está disponível no momento.");
     if (codigo.includes("invalid_table"))
       throw new Error("Esta mesa não está disponível. Leia o QR Code da mesa novamente.");
     if (codigo.includes("invalid_contact"))

@@ -212,6 +212,10 @@ export function CatalogoPagina({
     setCarrinho((atual) => (atual[id] ? { ...atual, [id]: { ...atual[id], observacao } } : atual));
 
   const confirmarPedido = async () => {
+    if (!interacoesExternas) {
+      setRetornoPedido("Esta é uma prévia. Publique o cardápio para receber pedidos reais.");
+      return;
+    }
     setRetornoPedido("");
     setEnviandoPedido(true);
     try {
@@ -562,7 +566,7 @@ export function CatalogoPagina({
                 const p = site.produtos.find((x) => x.id === id);
                 if (p) alterar(p, d);
               }}
-              onObservacao={definirObservacao}
+              pedidosAtivos={interacoesExternas}
               enviando={enviandoPedido}
               retorno={retornoPedido}
               onEnviar={() => void confirmarPedido()}
@@ -628,7 +632,7 @@ export function CatalogoPagina({
               const p = site.produtos.find((x) => x.id === id);
               if (p) alterar(p, d);
             }}
-            onObservacao={definirObservacao}
+            pedidosAtivos={interacoesExternas}
             enviando={enviandoPedido}
             retorno={retornoPedido}
             onEnviar={() => void confirmarPedido()}
@@ -1101,7 +1105,7 @@ function PainelCarrinho({
   campos,
   setCampos,
   onAlterar,
-  onObservacao,
+  pedidosAtivos,
   enviando,
   retorno,
   onEnviar,
@@ -1116,7 +1120,7 @@ function PainelCarrinho({
   campos: CamposEntrega;
   setCampos: React.Dispatch<React.SetStateAction<CamposEntrega>>;
   onAlterar: (id: string, delta: number) => void;
-  onObservacao: (id: string, valor: string) => void;
+  pedidosAtivos: boolean;
   enviando: boolean;
   retorno: string;
   onEnviar: () => void;
@@ -1219,19 +1223,8 @@ function PainelCarrinho({
               >
                 <Trash2 size={14} aria-hidden />
               </button>
-              <input
-                value={i.observacao ?? ""}
-                onChange={(e) => onObservacao(i.produtoId, e.target.value)}
-                aria-label={`Observação para ${i.nome}`}
-                placeholder="Observação"
-                className="min-h-11 min-w-0 flex-1 bg-transparent px-3 text-xs outline-none focus-visible:outline focus-visible:outline-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "var(--ms-radius)",
-                  outlineColor: primaria,
-                }}
-              />
             </div>
+            {i.observacao && <p className="text-xs opacity-70">Item: {i.observacao}</p>}
           </li>
         ))}
       </ul>
@@ -1341,6 +1334,11 @@ function PainelCarrinho({
           {retorno}
         </p>
       )}
+      {!pedidosAtivos && !retorno && (
+        <p className="text-xs opacity-75">
+          Esta é uma prévia. A confirmação de pedidos fica disponível no cardápio publicado.
+        </p>
+      )}
       {totais.abaixoDoMinimo ? (
         <p className="text-xs opacity-75">
           Pedido mínimo de {moeda(totais.minimo)} para enviar pelo WhatsApp.
@@ -1348,7 +1346,7 @@ function PainelCarrinho({
       ) : (
         <button
           type="button"
-          disabled={enviando}
+          disabled={enviando || !pedidosAtivos}
           onClick={onEnviar}
           className="inline-flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
@@ -1356,11 +1354,15 @@ function PainelCarrinho({
             color: contraste(primaria),
             borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
             outlineColor: primaria,
-            opacity: enviando ? 0.65 : 1,
+            opacity: enviando || !pedidosAtivos ? 0.65 : 1,
           }}
         >
           <ShoppingBag size={15} aria-hidden />{" "}
-          {enviando ? "Confirmando pedido…" : "Confirmar pedido"}
+          {enviando
+            ? "Confirmando pedido…"
+            : pedidosAtivos
+              ? "Confirmar pedido"
+              : "Publique para receber pedidos"}
         </button>
       )}
       <p className="text-[11px] opacity-70">
