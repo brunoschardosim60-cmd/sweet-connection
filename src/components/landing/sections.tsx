@@ -550,38 +550,47 @@ export function Recursos() {
 
 export function GaleriaModelos({ limite }: { limite?: number }) {
   const [filtro, setFiltro] = useState<string>("todos");
-  const lista = modelos.filter((m) =>
-    filtro === "todos"
+  const casaNoFiltro = (m: (typeof modelos)[number], id: string) =>
+    id === "todos"
       ? true
-      : filtro === "cardapio"
+      : id === "cardapio"
         ? m.familia === "cardapio"
-        : m.segmento === filtro && m.familia !== "cardapio",
-  );
+        : m.segmento === id && m.familia !== "cardapio";
+  const lista = modelos.filter((m) => casaNoFiltro(m, filtro));
   const visiveis = limite ? lista.slice(0, limite) : lista;
+  const abas = [{ id: "todos", nome: "Todos" }, { id: "cardapio", nome: "Cardápio digital" }, ...segmentos];
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
-        {[
-          { id: "todos", nome: "Todos" },
-          { id: "cardapio", nome: "Cardápio digital" },
-          ...segmentos,
-        ].map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setFiltro(s.id)}
-            aria-pressed={filtro === s.id}
-            className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
-              filtro === s.id
-                ? "border-ink bg-ink text-ink-foreground"
-                : "border-border bg-card text-muted-foreground hover:bg-secondary"
-            }`}
-          >
-            {s.nome}
-          </button>
-        ))}
+      <div className="scrollbar-invisivel -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+        {abas.map((s) => {
+          const total = modelos.filter((m) => casaNoFiltro(m, s.id)).length;
+          if (!total) return null;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setFiltro(s.id)}
+              aria-pressed={filtro === s.id}
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+                filtro === s.id
+                  ? "border-ink bg-ink text-ink-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              {s.nome}
+              <span
+                className={`rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${
+                  filtro === s.id ? "bg-ink-foreground/15" : "bg-secondary"
+                }`}
+              >
+                {total}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {visiveis.map((m, i) => (
