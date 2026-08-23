@@ -374,7 +374,7 @@ export function CatalogoPagina({
   return (
     <div
       style={estiloMiniSite(site)}
-      className={`nexa-catalogo ${interacoesExternas ? "nexa-catalogo-publico" : ""} @container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed`}
+      className={`nexa-catalogo ${interacoesExternas ? "nexa-catalogo-publico" : ""} relative @container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed`}
     >
       <header
         className="sticky top-0 z-30 w-full backdrop-blur"
@@ -762,6 +762,7 @@ export function CatalogoPagina({
         <DestaqueAbertura
           site={site}
           destaque={destaque}
+          contido={forcarDestaqueInicial}
           onAbrirProduto={(produto) => setDetalhe(produto)}
           onAbrirCategoria={(novaCategoria) => setCategoria(novaCategoria)}
           onFechar={() => {
@@ -1045,12 +1046,15 @@ function DrawerMeusPedidos({
 function DestaqueAbertura({
   site,
   destaque,
+  contido = false,
   onAbrirProduto,
   onAbrirCategoria,
   onFechar,
 }: {
   site: Site;
   destaque: NonNullable<NonNullable<Site["comercio"]>["destaqueAbertura"]>;
+  /** Na prévia do editor, o destaque precisa ficar dentro da moldura — não sobre o painel inteiro. */
+  contido?: boolean;
   onAbrirProduto: (produto: Produto) => void;
   onAbrirCategoria: (categoria: string) => void;
   onFechar: () => void;
@@ -1066,7 +1070,7 @@ function DestaqueAbertura({
     onFechar();
   };
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className={`${contido ? "absolute" : "fixed"} inset-0 z-50 bg-black`}>
       <button
         type="button"
         tabIndex={-1}
@@ -1077,7 +1081,7 @@ function DestaqueAbertura({
       <section
         ref={ref}
         role="dialog"
-        aria-modal="true"
+        aria-modal={contido ? undefined : "true"}
         aria-labelledby="titulo-destaque-cardapio"
         aria-describedby="legenda-destaque-cardapio"
         onPointerDown={(event) => setInicio(event.clientY)}
