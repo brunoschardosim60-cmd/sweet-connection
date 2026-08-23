@@ -515,6 +515,30 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_reports: {
+        Row: {
+          id: string
+          owner_id: string
+          payload: Json
+          reference_month: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          payload?: Json
+          reference_month: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          payload?: Json
+          reference_month?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       mesas_cardapio: {
         Row: {
           ativa: boolean

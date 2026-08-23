@@ -155,6 +155,7 @@ type Pedido = {
   total: number;
   pagamento: string | null;
   mesa_id: string | null;
+  mesa_numero?: number | null;
   created_at: string;
   itens: { nome: string; quantidade: number }[];
 };
@@ -193,10 +194,19 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
     setCarregando(true);
     const { data } = await supabase
       .from("pedidos_cardapio")
-      .select("id,codigo,status,modalidade,nome,telefone,total,pagamento,mesa_id,created_at,itens")
+      .select(
+        "id,codigo,status,modalidade,nome,telefone,total,pagamento,mesa_id,created_at,itens,mesas_cardapio(numero)",
+      )
       .eq("minisite_id", siteId)
       .order("created_at", { ascending: false });
-    const novos = (data ?? []) as unknown as Pedido[];
+    const novos = (data ?? []).map((pedido) => {
+      const bruto = pedido as unknown as Record<string, unknown>;
+      const mesaRelacionada = bruto["mesas_cardapio"] as { numero?: number } | null;
+      return {
+        ...bruto,
+        mesa_numero: typeof mesaRelacionada?.numero === "number" ? mesaRelacionada.numero : null,
+      } as Pedido;
+    });
     if (
       somAtivo &&
       idsAnteriores.current &&
@@ -248,6 +258,7 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
       dentroDoPeriodo(p) &&
       (tipo === "todos" || p.modalidade === tipo) &&
       (pagamento === "todos" || p.pagamento === pagamento) &&
+      (!mesa.trim() || String(p.mesa_numero ?? "").includes(mesa.trim())) &&
       `${p.codigo} ${p.nome} ${p.telefone}`.toLowerCase().includes(busca.toLowerCase()),
   );
   const mudarStatus = async (id: string, novo: string) => {
@@ -422,6 +433,7 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {rotulosModalidade[p.modalidade as Modalidade] ?? p.modalidade} · {p.telefone} ·{" "}
+                  {p.mesa_numero ? `Mesa ${p.mesa_numero} · ` : ""}
                   {new Date(p.created_at).toLocaleString("pt-BR")}
                 </p>
                 <p className="mt-1 text-xs">

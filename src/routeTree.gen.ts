@@ -36,6 +36,7 @@ import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicita
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as ApiAdminAccountControlRouteImport } from './routes/api/admin/account-control'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
+import { Route as ApiReportsMonthlyRouteImport } from './routes/api/reports/monthly'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminOperacoesRouteImport } from './routes/painel.admin.operacoes'
@@ -185,6 +186,11 @@ const ApiNotificationsDispatchRoute =
     path: '/api/notifications/dispatch',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiReportsMonthlyRoute = ApiReportsMonthlyRouteImport.update({
+  id: '/api/reports/monthly',
+  path: '/api/reports/monthly',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWebhooksAsaasRoute = ApiWebhooksAsaasRouteImport.update({
   id: '/api/webhooks/asaas',
   path: '/api/webhooks/asaas',
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/painel/': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -357,6 +365,7 @@ export interface FileRoutesById {
   '/painel/': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/api/admin/account-control'
     | '/api/notifications/dispatch'
+    | '/api/reports/monthly'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/api/admin/account-control'
     | '/api/notifications/dispatch'
+    | '/api/reports/monthly'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -481,6 +492,7 @@ export interface FileRouteTypes {
     | '/painel/'
     | '/api/admin/account-control'
     | '/api/notifications/dispatch'
+    | '/api/reports/monthly'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -512,6 +524,7 @@ export interface RootRouteChildren {
   SiteSlugRoute: typeof SiteSlugRoute
   ApiAdminAccountControlRoute: typeof ApiAdminAccountControlRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
+  ApiReportsMonthlyRoute: typeof ApiReportsMonthlyRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
   SiteSlugCardapioRoute: typeof SiteSlugCardapioRoute
   ApiBillingAsaasCancelRoute: typeof ApiBillingAsaasCancelRoute
@@ -712,6 +725,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/reports/monthly': {
+      id: '/api/reports/monthly'
+      path: '/api/reports/monthly'
+      fullPath: '/api/reports/monthly'
+      preLoaderRoute: typeof ApiReportsMonthlyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/asaas': {
       id: '/api/webhooks/asaas'
       path: '/api/webhooks/asaas'
@@ -857,6 +877,7 @@ const rootRouteChildren: RootRouteChildren = {
   SiteSlugRoute: SiteSlugRoute,
   ApiAdminAccountControlRoute: ApiAdminAccountControlRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
+  ApiReportsMonthlyRoute: ApiReportsMonthlyRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
   SiteSlugCardapioRoute: SiteSlugCardapioRoute,
   ApiBillingAsaasCancelRoute: ApiBillingAsaasCancelRoute,
