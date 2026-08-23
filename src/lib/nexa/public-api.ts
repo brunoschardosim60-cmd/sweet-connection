@@ -119,6 +119,8 @@ export async function criarPedidoPublicado(
       throw new Error("A quantidade de um dos itens não é permitida.");
     if (codigo.includes("invalid_modality"))
       throw new Error("Escolha uma modalidade de entrega válida.");
+    if (codigo.includes("invalid_payment"))
+      throw new Error("Escolha uma forma de pagamento aceita pelo estabelecimento.");
     if (codigo.includes("minisite_not_found"))
       throw new Error("Este cardápio não está publicado ou não está disponível no momento.");
     if (codigo.includes("invalid_table"))
