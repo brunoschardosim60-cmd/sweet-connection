@@ -43,6 +43,7 @@ export function AbaCardapio({
   const [renomeando, setRenomeando] = useState<string | null>(null);
   const [novoNome, setNovoNome] = useState("");
   const [previa, setPrevia] = useState(true);
+  const [versaoDestaquePrevia, setVersaoDestaquePrevia] = useState(0);
   const [arrastando, setArrastando] = useState<
     { tipo: "produto"; id: string } | { tipo: "categoria"; nome: string } | null
   >(null);
@@ -475,7 +476,18 @@ export function AbaCardapio({
 
       {previa && (
         <section className="rounded-2xl border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold">Prévia da página do cardápio</h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold">Prévia da página do cardápio</h3>
+            {comercio.destaqueAbertura?.ativo && comercio.destaqueAbertura.imagem && (
+              <button
+                type="button"
+                onClick={() => setVersaoDestaquePrevia((versao) => versao + 1)}
+                className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold"
+              >
+                Ver destaque de abertura
+              </button>
+            )}
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Reflete em tempo real a ordem, as categorias e os selos exibidos em{" "}
             {enderecoCardapio(site.slug)}. Nesta prévia os links externos ficam desativados.
@@ -484,7 +496,12 @@ export function AbaCardapio({
             aria-label="Prévia do cardápio"
             className="mt-3 max-h-[520px] overflow-y-auto rounded-2xl border border-border"
           >
-            <CatalogoPagina site={site} interacoesExternas={false} />
+            <CatalogoPagina
+              key={versaoDestaquePrevia}
+              site={site}
+              interacoesExternas={false}
+              forcarDestaqueInicial={versaoDestaquePrevia > 0}
+            />
           </div>
         </section>
       )}

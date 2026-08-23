@@ -80,6 +80,7 @@ export function CatalogoPagina({
   interacoesExternas = true,
   mostrarVoltar = true,
   previewEstreita = false,
+  forcarDestaqueInicial = false,
 }: {
   site: Site;
   rastrear?: boolean;
@@ -87,6 +88,8 @@ export function CatalogoPagina({
   /** Cardápios digitais usam esta página como entrada principal. */
   mostrarVoltar?: boolean;
   previewEstreita?: boolean;
+  /** Usado somente pela prévia do editor para revisar o destaque sem publicar. */
+  forcarDestaqueInicial?: boolean;
 }) {
   const perfil = perfilCatalogo(site);
   const primaria = site.aparencia.corPrimaria;
@@ -166,7 +169,12 @@ export function CatalogoPagina({
   }, [atualizarMeusPedidos]);
 
   useEffect(() => {
-    if (!interacoesExternas || !destaque?.ativo || !destaque.imagem) return;
+    if ((!interacoesExternas && !forcarDestaqueInicial) || !destaque?.ativo || !destaque.imagem)
+      return;
+    if (forcarDestaqueInicial) {
+      setDestaqueAberto(true);
+      return;
+    }
     try {
       if (!window.sessionStorage.getItem(`nexa:menu-highlight:${site.slug}`)) {
         setDestaqueAberto(true);
@@ -174,7 +182,20 @@ export function CatalogoPagina({
     } catch {
       setDestaqueAberto(true);
     }
-  }, [destaque?.ativo, destaque?.imagem, interacoesExternas, site.slug]);
+  }, [destaque?.ativo, destaque?.imagem, forcarDestaqueInicial, interacoesExternas, site.slug]);
+
+  useEffect(() => {
+    if (!interacoesExternas || meusPedidos.length === 0) return;
+    const atualizarQuandoVisivel = () => {
+      if (document.visibilityState === "visible") void atualizarMeusPedidos();
+    };
+    const intervalo = window.setInterval(atualizarQuandoVisivel, 45_000);
+    document.addEventListener("visibilitychange", atualizarQuandoVisivel);
+    return () => {
+      window.clearInterval(intervalo);
+      document.removeEventListener("visibilitychange", atualizarQuandoVisivel);
+    };
+  }, [atualizarMeusPedidos, interacoesExternas, meusPedidos.length]);
 
   useEffect(() => {
     if (!restaurado) return;
