@@ -84,6 +84,7 @@ const beneficios: Record<string, string[]> = {
     "Catálogo e cardápio",
     "Cupons e promoções",
     "Pedidos via WhatsApp",
+    "Projetos ilimitados",
   ],
 };
 
