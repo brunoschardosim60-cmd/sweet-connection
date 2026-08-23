@@ -673,6 +673,7 @@ export function CatalogoPagina({
                           <CartaoProduto
                             site={site}
                             produto={p}
+                            compacto={previewEstreita}
                             quantidade={carrinho[p.id]?.quantidade ?? 0}
                             onAbrir={() => setDetalhe(p)}
                             onAlterar={(d, origem) => alterar(p, d, undefined, origem)}
@@ -1264,12 +1265,15 @@ function FaixaRolavel({ ariaLabel, children }: { ariaLabel: string; children: Re
 function CartaoProduto({
   site,
   produto,
+  compacto = false,
   quantidade,
   onAbrir,
   onAlterar,
 }: {
   site: Site;
   produto: Produto;
+  /** Prévia lateral: evita comprimir foto, texto e CTA em uma linha estreita. */
+  compacto?: boolean;
   quantidade: number;
   onAbrir: () => void;
   onAlterar: (delta: number, origem?: HTMLElement) => void;
@@ -1290,7 +1294,9 @@ function CartaoProduto({
       <button
         type="button"
         onClick={onAbrir}
-        className="flex flex-1 gap-3 p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2"
+        className={`flex flex-1 p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
+          compacto ? "flex-col gap-2" : "gap-3"
+        }`}
         style={{ outlineColor: primaria }}
         aria-label={`Ver detalhes de ${produto.nome}`}
       >
@@ -1299,7 +1305,7 @@ function CartaoProduto({
             src={produto.imagem}
             alt=""
             loading="lazy"
-            className="h-24 w-24 shrink-0 rounded-lg object-cover"
+            className={`shrink-0 rounded-lg object-cover ${compacto ? "h-24 w-full" : "h-24 w-24"}`}
           />
         )}
         <div className="min-w-0 flex-1">
