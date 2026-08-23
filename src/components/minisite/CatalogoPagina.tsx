@@ -508,19 +508,28 @@ export function CatalogoPagina({
         <main className="min-w-0">
           {site.conteudo.capa && (
             <div
-              className="relative mb-5 h-40 overflow-hidden"
+              className="relative mb-5 h-[clamp(7.5rem,18vw,18rem)] overflow-hidden bg-black"
               style={{ borderRadius: "var(--ms-radius)", border: "1px solid var(--ms-border)" }}
             >
               <img
                 src={site.conteudo.capa}
-                alt={`Ambiente de ${site.conteudo.nome}`}
-                className="h-full w-full object-cover"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-2xl"
                 style={{
                   objectPosition: (site.aparencia.capaPosicao ?? "centro").replaceAll("-", " "),
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+              <img
+                src={site.conteudo.capa}
+                alt={`Ambiente de ${site.conteudo.nome}`}
+                className="relative z-[1] h-full w-full object-contain"
+                style={{
+                  objectPosition: (site.aparencia.capaPosicao ?? "centro").replaceAll("-", " "),
+                }}
+              />
+              <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 z-[3] p-4 text-white">
                 <p className="text-lg font-semibold leading-tight">{site.conteudo.nome}</p>
                 {site.conteudo.descricao && (
                   <p className="mt-1 line-clamp-2 text-xs text-white/85">
