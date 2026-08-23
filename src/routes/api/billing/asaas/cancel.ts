@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { cancelarAssinaturaAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-// The server-only billing columns are newer than the checked-in generated client types.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 function json(body: unknown, status = 200) {
   return Response.json(body, { status });
 }
@@ -28,7 +25,7 @@ export const Route = createFileRoute("/api/billing/asaas/cancel")({
           const due =
             typeof subscription["nextDueDate"] === "string" ? subscription["nextDueDate"] : null;
           const end = due && /^\d{4}-\d\d-\d\d$/.test(due) ? `${due}T23:59:59.999Z` : null;
-          await (supabaseAdmin as any)
+          await supabaseAdmin
             .from("profiles")
             .update({
               billing_cancel_at_period_end: true,

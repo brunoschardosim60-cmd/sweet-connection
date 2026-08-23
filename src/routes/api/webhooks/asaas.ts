@@ -5,9 +5,6 @@ import {
   statusAssinaturaAsaas,
 } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-// Billing invoice fields are server-only and absent from the older generated client type.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 type EventoAsaas = { payment?: { id?: unknown } };
 
 export const Route = createFileRoute("/api/webhooks/asaas")({
@@ -44,7 +41,7 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
             typeof payment["subscription"] === "string" ? payment["subscription"] : null;
           const checkoutStatus =
             state === "active" ? "paid" : state === "past_due" ? "past_due" : "cancelled";
-          await (supabaseAdmin as any).from("billing_invoices").upsert(
+          await supabaseAdmin.from("billing_invoices").upsert(
             {
               owner_id: checkout.owner_id,
               provider: "asaas",

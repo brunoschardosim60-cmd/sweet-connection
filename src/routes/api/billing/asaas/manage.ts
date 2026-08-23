@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { elegibilidadeReembolso, listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-// The server-only billing columns are newer than the checked-in generated client types.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 function json(body: unknown, status = 200) {
   return Response.json(body, { status });
 }
@@ -22,7 +19,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
         try {
           const user = await usuarioAutenticado(request);
           if (!user) return json({ error: "Sua sessão expirou." }, 401);
-          const { data: profile, error } = await (supabaseAdmin as any)
+          const { data: profile, error } = await supabaseAdmin
             .from("profiles")
             .select(
               "subscription_tier,subscription_status,billing_cycle,billing_provider,billing_subscription_id,billing_cancel_at_period_end,billing_current_period_end",
@@ -33,7 +30,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
 
           let invoices: Record<string, unknown>[] = [];
           let refundEligibility = null;
-          const { data: refundRequest } = await (supabaseAdmin as any)
+          const { data: refundRequest } = await supabaseAdmin
             .from("billing_refund_requests")
             .select("id,status,amount,requested_at,resolution_note")
             .eq("owner_id", user.id)
@@ -49,7 +46,7 @@ export const Route = createFileRoute("/api/billing/asaas/manage")({
             for (const payment of invoices) {
               const paymentId = typeof payment["id"] === "string" ? payment["id"] : null;
               if (!paymentId) continue;
-              await (supabaseAdmin as any).from("billing_invoices").upsert(
+              await supabaseAdmin.from("billing_invoices").upsert(
                 {
                   owner_id: user.id,
                   provider: "asaas",

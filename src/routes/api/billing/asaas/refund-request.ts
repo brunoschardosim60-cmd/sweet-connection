@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { elegibilidadeReembolso, listarPagamentosAsaas } from "@/lib/nexa/asaas.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any -- table is added by the paired migration. */
-
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
 export const Route = createFileRoute("/api/billing/asaas/refund-request")({
@@ -21,7 +19,7 @@ export const Route = createFileRoute("/api/billing/asaas/refund-request")({
           if (reason.length < 10 || reason.length > 500)
             return json({ error: "Explique o motivo do pedido entre 10 e 500 caracteres." }, 400);
 
-          const { data: profile, error: profileError } = await (supabaseAdmin as any)
+          const { data: profile, error: profileError } = await supabaseAdmin
             .from("profiles")
             .select("billing_provider,billing_subscription_id,billing_cancel_at_period_end")
             .eq("id", auth.user.id)
@@ -41,7 +39,7 @@ export const Route = createFileRoute("/api/billing/asaas/refund-request")({
           if (!eligibility.eligible || !eligibility.payment)
             return json({ error: eligibility.message }, 400);
 
-          const { data: existing } = await (supabaseAdmin as any)
+          const { data: existing } = await supabaseAdmin
             .from("billing_refund_requests")
             .select("id,status,requested_at")
             .eq("provider", "asaas")
@@ -49,7 +47,7 @@ export const Route = createFileRoute("/api/billing/asaas/refund-request")({
             .maybeSingle();
           if (existing) return json({ request: existing, alreadyExists: true });
 
-          const { data: refundRequest, error: insertError } = await (supabaseAdmin as any)
+          const { data: refundRequest, error: insertError } = await supabaseAdmin
             .from("billing_refund_requests")
             .insert({
               owner_id: auth.user.id,

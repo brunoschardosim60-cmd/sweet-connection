@@ -1,5 +1,4 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
-/* eslint-disable @typescript-eslint/no-explicit-any -- migration-backed announcement and suspension fields are newer than generated types. */
 import { useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
@@ -132,7 +131,7 @@ function PainelLayout() {
 
   useEffect(() => {
     if (!user) return;
-    void (supabase as any)
+    void supabase
       .from("platform_announcements")
       .select("id,title,message")
       .order("created_at", { ascending: false })
@@ -143,7 +142,7 @@ function PainelLayout() {
   useEffect(() => {
     if (!user) return;
     let ativo = true;
-    void (supabase as any)
+    void supabase
       .from("profiles")
       .select("admin_suspended_at")
       .eq("id", user.id)

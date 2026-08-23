@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-// Dynamic source tables are selected from a closed allow-list above.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type Tipo = "formulario" | "agendamento" | "reserva" | "pedido";
 const tipos = new Set<Tipo>(["formulario", "agendamento", "reserva", "pedido"]);
+type FonteNotificacao = Record<string, unknown> & { minisite_id: string };
+
+function whatsappDoConteudoPublicado(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const conteudo = (value as Record<string, unknown>)["conteudo"];
+  if (!conteudo || typeof conteudo !== "object" || Array.isArray(conteudo)) return "";
+  const whatsapp = (conteudo as Record<string, unknown>)["whatsapp"];
+  return typeof whatsapp === "string" ? whatsapp : "";
+}
 
 function textoSeguro(value: unknown) {
   return String(value ?? "")
@@ -67,20 +74,21 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
                 : type === "reserva"
                   ? "reservas_hospedagem"
                   : "pedidos_cardapio";
-          const { data: source, error } = await (supabaseAdmin as any)
+          const { data: fonte, error } = await supabaseAdmin
             .from(table)
             .select("*")
             .eq("id", id)
             .maybeSingle();
-          if (error || !source)
+          if (error || !fonte)
             return Response.json({ error: "Item não encontrado." }, { status: 404 });
+          const source = fonte as FonteNotificacao;
           const { data: site } = await supabaseAdmin
             .from("minisites")
             .select("owner_id,slug,published_content")
             .eq("id", source.minisite_id)
             .maybeSingle();
           if (!site) return Response.json({ error: "Mini-site não encontrado." }, { status: 404 });
-          const delivery = await (supabaseAdmin as any)
+          const delivery = await supabaseAdmin
             .from("notification_deliveries")
             .insert({ source_type: type, source_id: id, channel: "email" })
             .select("id")
@@ -88,19 +96,20 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
           if (delivery.error?.code === "23505")
             return Response.json({ status: "already_processed" }, { status: 202 });
           if (delivery.error) throw delivery.error;
+          if (!delivery.data) throw new Error("Entrega de notificação não foi criada.");
           const { data: owner } = await supabaseAdmin.auth.admin.getUserById(site.owner_id);
           const email = owner.user?.email;
           if (!email) throw new Error("Destinatário não encontrado.");
           const resumo =
             type === "formulario"
-              ? `Novo formulário em /site/${site.slug}\n\n${JSON.stringify(source.payload ?? {}, null, 2)}`
+              ? `Novo formulário em /site/${site.slug}\n\n${JSON.stringify(source["payload"] ?? {}, null, 2)}`
               : type === "agendamento"
-                ? `Novo agendamento em /site/${site.slug}\n${textoSeguro(source.nome)} — ${textoSeguro(source.data)} às ${textoSeguro(source.hora)}`
+                ? `Novo agendamento em /site/${site.slug}\n${textoSeguro(source["nome"])} — ${textoSeguro(source["data"])} às ${textoSeguro(source["hora"])}`
                 : type === "reserva"
-                  ? `Nova reserva em /site/${site.slug}\n${textoSeguro(source.nome)} — ${textoSeguro(source.check_in)} até ${textoSeguro(source.check_out)} · ${textoSeguro(source.hospedes)} hóspede(s)`
-                  : `Novo pedido #${textoSeguro(source.codigo)} em /site/${site.slug}\n${textoSeguro(source.nome)} · ${textoSeguro(source.modalidade)} · R$ ${textoSeguro(source.total)}`;
+                  ? `Nova reserva em /site/${site.slug}\n${textoSeguro(source["nome"])} — ${textoSeguro(source["check_in"])} até ${textoSeguro(source["check_out"])} · ${textoSeguro(source["hospedes"])} hóspede(s)`
+                  : `Novo pedido #${textoSeguro(source["codigo"])} em /site/${site.slug}\n${textoSeguro(source["nome"])} · ${textoSeguro(source["modalidade"])} · R$ ${textoSeguro(source["total"])}`;
           const result = await enviarEmail(email, `Nexa: nova ${type} no seu mini-site`, resumo);
-          await (supabaseAdmin as any)
+          await supabaseAdmin
             .from("notification_deliveries")
             .update({
               status: result.status,
@@ -108,8 +117,8 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
               sent_at: result.status === "sent" ? new Date().toISOString() : null,
             })
             .eq("id", delivery.data.id);
-          const whatsapp = (site.published_content as any)?.conteudo?.whatsapp;
-          const whatsappDelivery = await (supabaseAdmin as any)
+          const whatsapp = whatsappDoConteudoPublicado(site.published_content);
+          const whatsappDelivery = await supabaseAdmin
             .from("notification_deliveries")
             .insert({ source_type: type, source_id: id, channel: "whatsapp" })
             .select("id")
@@ -117,7 +126,7 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
           if (whatsappDelivery.data) {
             try {
               const whatsResult = await enviarWhatsapp(String(whatsapp ?? ""), resumo);
-              await (supabaseAdmin as any)
+              await supabaseAdmin
                 .from("notification_deliveries")
                 .update({
                   status: whatsResult.status,
@@ -126,7 +135,7 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
                 })
                 .eq("id", whatsappDelivery.data.id);
             } catch (whatsappError) {
-              await (supabaseAdmin as any)
+              await supabaseAdmin
                 .from("notification_deliveries")
                 .update({ status: "failed", last_error: textoSeguro(whatsappError) })
                 .eq("id", whatsappDelivery.data.id);

@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-/* eslint-disable @typescript-eslint/no-explicit-any -- RPCs are added by the applied migration; generated Supabase types lag behind. */
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Megaphone, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -52,7 +51,7 @@ function OperacoesAdmin() {
   );
 
   const carregarSaude = async () => {
-    const { data, error: falha } = await (supabase as any).rpc("nexa_admin_health");
+    const { data, error: falha } = await supabase.rpc("nexa_admin_health");
     if (falha) {
       toast.error(falha.message);
       return;
@@ -67,7 +66,7 @@ function OperacoesAdmin() {
   const exportarConta = async () => {
     if (!conta) return;
     setOcupado(true);
-    const { data, error: falha } = await (supabase as any).rpc("nexa_admin_export_account", {
+    const { data, error: falha } = await supabase.rpc("nexa_admin_export_account", {
       requested_user_id: conta,
     });
     setOcupado(false);
@@ -86,10 +85,10 @@ function OperacoesAdmin() {
       return;
     }
     setOcupado(true);
-    const { error: falha } = await (supabase as any).rpc("nexa_admin_set_account_suspension", {
+    const { error: falha } = await supabase.rpc("nexa_admin_set_account_suspension", {
       requested_user_id: conta,
       requested_suspended: suspender,
-      requested_reason: motivo.trim() || null,
+      ...(motivo.trim() ? { requested_reason: motivo.trim() } : {}),
     });
     setOcupado(false);
     if (falha) {
@@ -122,11 +121,10 @@ function OperacoesAdmin() {
       return;
     }
     setOcupado(true);
-    const { error: falha } = await (supabase as any).rpc("nexa_admin_create_announcement", {
+    const { error: falha } = await supabase.rpc("nexa_admin_create_announcement", {
       requested_title: titulo.trim(),
       requested_message: mensagem.trim(),
-      requested_target_tier: destino || null,
-      requested_ends_at: null,
+      ...(destino ? { requested_target_tier: destino } : {}),
     });
     setOcupado(false);
     if (falha) {

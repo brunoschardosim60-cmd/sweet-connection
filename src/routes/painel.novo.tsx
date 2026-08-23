@@ -7,6 +7,7 @@ import { CriacaoIA } from "@/components/painel/CriacaoIA";
 import { MiniSite } from "@/components/minisite/MiniSite";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
+import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos";
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
@@ -362,6 +363,11 @@ function NovoSite() {
   const [slug, setSlug] = useState("");
   const [tocado, setTocado] = useState(false);
   const [filtro, setFiltro] = useState<"recomendados" | "todos">("recomendados");
+  const [familiaFiltro, setFamiliaFiltro] = useState<"minisite" | "cardapio">(() =>
+    modelosCriacao.find((modelo) => modelo.id === search.modelo)?.familia === "cardapio"
+      ? "cardapio"
+      : "minisite",
+  );
   const [logoFormato, setLogoFormato] = useState<"redondo" | "quadrado">("redondo");
 
   const [corPersonalizada, setCorPersonalizada] = useState<string | null>(() => corInicial || null);
@@ -374,10 +380,13 @@ function NovoSite() {
     () => modelos.filter((m) => m.segmento === cliente.segmento),
     [cliente.segmento],
   );
-  const lista =
+  const listaBase =
     filtro === "todos" || sugeridos.length === 0
       ? modelosCriacao
       : [modeloPersonalizado, ...sugeridos];
+  const lista = listaBase.filter((modelo) =>
+    familiaFiltro === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia,
+  );
 
   /** Aparência salva pelo usuário, aplicada por cima do modelo escolhido. */
   const meuModelo = meusModelos.find((m) => m.id === meuModeloId);
@@ -393,17 +402,25 @@ function NovoSite() {
   const slugEmUso = sites.some((s) => s.slug === slugFinal);
 
   const previa = useMemo(() => {
-    const base = criarSite(
-      { ...cliente, empresa: cliente.empresa || "Seu negócio" },
-      modoCriacao === "ia" ? modeloPersonalizado.id : modeloId,
-      slugFinal || "previa",
-    );
+    const base =
+      modoCriacao === "ia"
+        ? criarSite(
+            { ...cliente, empresa: cliente.empresa || "Seu negócio" },
+            modeloPersonalizado.id,
+            slugFinal || "previa",
+          )
+        : siteDoModelo(modeloId);
     return {
       ...base,
+      cliente: { ...base.cliente, ...cliente, empresa: cliente.empresa || base.cliente.empresa },
       conteudo: {
         ...base.conteudo,
+        nome: cliente.empresa || base.conteudo.nome,
+        telefone: cliente.telefone || base.conteudo.telefone,
+        whatsapp: cliente.telefone || base.conteudo.whatsapp,
+        email: cliente.email || base.conteudo.email,
+        endereco: enderecoPersonalizado || `${cliente.cidade} - ${cliente.estado}`,
         ...(logoUrl ? { logo: logoUrl } : {}),
-        ...(enderecoPersonalizado ? { endereco: enderecoPersonalizado } : {}),
       },
       aparencia: {
         ...base.aparencia,
@@ -763,6 +780,41 @@ function NovoSite() {
                   <div className="border-t border-border p-2 text-center text-xs text-muted-foreground">
                     Gera uma sugestão para você revisar
                   </div>
+                </div>
+                <div className="grid gap-2 rounded-2xl border border-border bg-secondary/30 p-2 sm:col-span-2 sm:grid-cols-2 xl:col-span-3">
+                  {(
+                    [
+                      ["minisite", "Mini-sites", "Serviços, equipe, portfólio e contato"],
+                      ["cardapio", "Cardápios digitais", "Produtos, categorias e pedidos"],
+                    ] as const
+                  ).map(([id, titulo, descricao]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        setFamiliaFiltro(id);
+                        if (
+                          !listaBase.some(
+                            (modelo) =>
+                              modelo.id === modeloId &&
+                              (id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia),
+                          )
+                        ) {
+                          const primeiro = listaBase.find((modelo) =>
+                            id === "cardapio" ? modelo.familia === "cardapio" : !modelo.familia,
+                          );
+                          if (primeiro) setModeloId(primeiro.id);
+                        }
+                      }}
+                      aria-pressed={familiaFiltro === id}
+                      className={`rounded-xl px-4 py-3 text-left transition-colors ${
+                        familiaFiltro === id ? "bg-ink text-ink-foreground" : "hover:bg-card"
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold">{titulo}</span>
+                      <span className="mt-1 block text-xs opacity-75">{descricao}</span>
+                    </button>
+                  ))}
                 </div>
                 {lista.map((m) => {
                   const ativo = modoCriacao === "modelo" && modeloId === m.id;
