@@ -6,7 +6,7 @@ import type { EnvioFormulario, Site, StatusSite } from "./types";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function mensagemErro(error: {
+export function mensagemErro(error: {
   message: string;
   code?: string;
   details?: string | null;
