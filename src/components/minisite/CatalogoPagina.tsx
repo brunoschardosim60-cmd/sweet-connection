@@ -1057,13 +1057,13 @@ function DestaqueAbertura({
     onFechar();
   };
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4">
+    <div className="fixed inset-0 z-50 bg-black">
       <button
         type="button"
         tabIndex={-1}
         aria-hidden
         onClick={onFechar}
-        className="absolute inset-0"
+        className="absolute inset-0 bg-black/20"
       />
       <section
         ref={ref}
@@ -1076,29 +1076,27 @@ function DestaqueAbertura({
           if (inicio !== null && event.clientY - inicio > 80) onFechar();
           setInicio(null);
         }}
-        className="relative w-full max-w-sm overflow-hidden shadow-2xl"
+        className="relative h-full w-full overflow-hidden shadow-2xl"
         style={{
-          background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
-          borderRadius: "var(--ms-radius)",
-          border: "1px solid var(--ms-border)",
         }}
       >
+        <img
+          src={destaque.imagem}
+          alt={destaque.titulo || `Destaque de ${site.conteudo.nome}`}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/10" />
         <button
           type="button"
           onClick={onFechar}
           aria-label="Fechar destaque"
-          className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-white focus-visible:outline focus-visible:outline-2"
+          className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-black/50 text-white backdrop-blur-sm focus-visible:outline focus-visible:outline-2"
           style={{ outlineColor: primaria }}
         >
           <X size={18} aria-hidden />
         </button>
-        <img
-          src={destaque.imagem}
-          alt={destaque.titulo || `Destaque de ${site.conteudo.nome}`}
-          className="h-52 w-full object-cover"
-        />
-        <div className="p-5">
+        <div className="absolute inset-x-0 bottom-0 z-10 p-[clamp(1.25rem,3vw,2rem)] pb-[max(clamp(1.5rem,3vw,2rem),env(safe-area-inset-bottom))] text-white">
           <p
             className="text-xs font-semibold uppercase tracking-[0.16em]"
             style={{ color: primaria }}
@@ -1109,7 +1107,7 @@ function DestaqueAbertura({
             {destaque.titulo || "Confira nossa novidade"}
           </h2>
           {destaque.legenda && (
-            <p id="legenda-destaque-cardapio" className="mt-2 text-sm opacity-80">
+            <p id="legenda-destaque-cardapio" className="mt-2 max-w-lg text-sm text-white/85">
               {destaque.legenda}
             </p>
           )}
@@ -1117,7 +1115,7 @@ function DestaqueAbertura({
             <button
               type="button"
               onClick={abrir}
-              className="mt-4 min-h-11 w-full px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
+              className="mt-5 min-h-11 w-full max-w-sm px-4 text-sm font-semibold shadow-lg focus-visible:outline focus-visible:outline-2"
               style={{
                 background: primaria,
                 color: contraste(primaria),
@@ -1128,7 +1126,7 @@ function DestaqueAbertura({
               Ver agora
             </button>
           )}
-          <p className="mt-3 text-center text-[11px] opacity-60">
+          <p className="mt-4 text-[11px] text-white/70">
             Deslize para baixo ou toque no X para fechar.
           </p>
         </div>
