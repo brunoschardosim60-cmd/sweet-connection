@@ -289,7 +289,22 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_cardapio_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_cardapio_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "pedidos_cardapio"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       billing_checkout_sessions: {
         Row: {
@@ -477,6 +492,35 @@ export type Database = {
         }
         Relationships: []
       }
+      estoque_cardapio: {
+        Row: {
+          minisite_id: string
+          produto_id: string
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          minisite_id: string
+          produto_id: string
+          quantidade: number
+          updated_at?: string
+        }
+        Update: {
+          minisite_id?: string
+          produto_id?: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estoque_cardapio_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           created_at: string
@@ -545,51 +589,6 @@ export type Database = {
           original_name?: string
           owner_id?: string
           size_bytes?: number
-        }
-        Relationships: []
-      }
-      monthly_reports: {
-        Row: {
-          id: string
-          owner_id: string
-          payload: Json
-          reference_month: string
-          sent_at: string
-        }
-        Insert: {
-          id?: string
-          owner_id: string
-          payload?: Json
-          reference_month: string
-          sent_at?: string
-        }
-        Update: {
-          id?: string
-          owner_id?: string
-          payload?: Json
-          reference_month?: string
-          sent_at?: string
-        }
-        Relationships: []
-      }
-      estoque_cardapio: {
-        Row: {
-          minisite_id: string
-          produto_id: string
-          quantidade: number
-          updated_at: string
-        }
-        Insert: {
-          minisite_id: string
-          produto_id: string
-          quantidade: number
-          updated_at?: string
-        }
-        Update: {
-          minisite_id?: string
-          produto_id?: string
-          quantidade?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -721,6 +720,30 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
+      }
+      monthly_reports: {
+        Row: {
+          id: string
+          owner_id: string
+          payload: Json
+          reference_month: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          payload?: Json
+          reference_month: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          payload?: Json
+          reference_month?: string
+          sent_at?: string
+        }
+        Relationships: []
       }
       notification_deliveries: {
         Row: {
@@ -1240,6 +1263,15 @@ export type Database = {
         Args: { requested_id: string; requested_status: string }
         Returns: Json
       }
+      nexa_avaliar_pedido_cardapio: {
+        Args: {
+          requested_comentario?: string
+          requested_nota: number
+          requested_slug: string
+          requested_token: string
+        }
+        Returns: Json
+      }
       nexa_cancelar_agendamento: {
         Args: { requested_token: string }
         Returns: boolean
@@ -1264,15 +1296,6 @@ export type Database = {
       }
       nexa_estoque_publico_cardapio: {
         Args: { requested_slug: string }
-        Returns: Json
-      }
-      nexa_avaliar_pedido_cardapio: {
-        Args: {
-          requested_comentario?: string
-          requested_nota: number
-          requested_slug: string
-          requested_token: string
-        }
         Returns: Json
       }
       nexa_meus_pedidos_cardapio: {
