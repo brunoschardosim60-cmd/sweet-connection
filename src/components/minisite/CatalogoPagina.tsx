@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
+  CircleCheck,
   Clock,
   MapPin,
   MessageCircle,
@@ -143,6 +144,11 @@ export function CatalogoPagina({
   const carrinhoFlutuanteRef = useRef<HTMLButtonElement>(null);
   const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
   const [pedidosAbertos, setPedidosAbertos] = useState(false);
+  const [pedidoConfirmado, setPedidoConfirmado] = useState<{
+    codigo: number;
+    total: number;
+    modalidade: Entrega;
+  } | null>(null);
   const [atualizandoPedidos, setAtualizandoPedidos] = useState(false);
   const destaque = site.comercio?.destaqueAbertura;
   const [destaqueAberto, setDestaqueAberto] = useState(false);
@@ -347,6 +353,7 @@ export function CatalogoPagina({
       void buscarEstoquePublicado(site.slug).then(setEstoqueAtual);
       setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
       await atualizarMeusPedidos();
+      setPedidoConfirmado({ codigo: pedido.codigo, total: pedido.total, modalidade: entrega });
       setPedidosAbertos(true);
       eventoMarketing("iniciar_checkout", {
         value: pedido.total,
@@ -779,9 +786,13 @@ export function CatalogoPagina({
         <DrawerMeusPedidos
           site={site}
           pedidos={meusPedidos}
+          pedidoConfirmado={pedidoConfirmado}
           atualizando={atualizandoPedidos}
           onAtualizar={() => void atualizarMeusPedidos()}
-          onFechar={() => setPedidosAbertos(false)}
+          onFechar={() => {
+            setPedidosAbertos(false);
+            setPedidoConfirmado(null);
+          }}
         />
       )}
 
@@ -828,12 +839,14 @@ function rotuloStatusPedido(status: string) {
 function DrawerMeusPedidos({
   site,
   pedidos,
+  pedidoConfirmado,
   atualizando,
   onAtualizar,
   onFechar,
 }: {
   site: Site;
   pedidos: PedidoPublico[];
+  pedidoConfirmado: { codigo: number; total: number; modalidade: Entrega } | null;
   atualizando: boolean;
   onAtualizar: () => void;
   onFechar: () => void;
@@ -913,6 +926,35 @@ function DrawerMeusPedidos({
             {atualizando ? "Atualizando…" : "Atualizar status"}
           </button>
         </div>
+        {pedidoConfirmado && (
+          <section
+            role="status"
+            className="mb-4 rounded-xl border p-4"
+            style={{
+              borderColor: hexToRgba(primaria, 0.45),
+              background: hexToRgba(primaria, 0.1),
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <CircleCheck
+                size={22}
+                className="mt-0.5 shrink-0"
+                style={{ color: primaria }}
+                aria-hidden
+              />
+              <div>
+                <h3 className="font-semibold">Pedido confirmado!</h3>
+                <p className="mt-1 text-sm opacity-80">
+                  Pedido #{pedidoConfirmado.codigo} ·{" "}
+                  {rotulosModalidade[pedidoConfirmado.modalidade]} · {moeda(pedidoConfirmado.total)}
+                </p>
+                <p className="mt-1 text-xs opacity-75">
+                  A equipe recebeu seu pedido. Acompanhe as atualizações logo abaixo.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
         {pedidos.length === 0 ? (
           <p
             className="rounded-xl border border-dashed p-4 text-sm opacity-75"
@@ -1944,8 +1986,8 @@ function PainelCarrinho({
       )}
       <p className="text-[11px] opacity-70">
         {entrega === "mesa"
-          ? "Seu pedido será registrado para a equipe do estabelecimento."
-          : "Seu pedido é registrado para a equipe. O pagamento é combinado diretamente com o estabelecimento."}
+          ? "Ao confirmar, seu pedido será enviado para a equipe do estabelecimento."
+          : "Ao confirmar, seu pedido será enviado para a equipe. O pagamento é combinado diretamente com o estabelecimento."}
       </p>
     </div>
   );
