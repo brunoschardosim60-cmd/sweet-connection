@@ -44,8 +44,8 @@ describe("deduplicação de seções do mini-site", () => {
 });
 
 describe("conteúdo complementar dos modelos", () => {
-  it("existem 31 modelos publicados", () => {
-    expect(modelos.length).toBe(31);
+  it("existem 43 modelos publicados", () => {
+    expect(modelos.length).toBe(43);
   });
 
   it("todo modelo demonstrativo tem CTA, formulário, depoimentos e FAQ", () => {

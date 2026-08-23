@@ -1,5 +1,6 @@
 import { extrasPorModelo } from "./demo-extras";
 import { conteudoNovosModelos } from "./demo-novos";
+import { conteudoModelosPremium } from "./demo-premium";
 import { conteudoCardapioModelos, ehModeloCardapio } from "./cardapio-modelos";
 import { criarSecoes, horariosPadrao, metricasPadrao, presetsModelo } from "./factory";
 import { imagens } from "./images";
@@ -1216,6 +1217,7 @@ const conteudoPorModelo: Record<
     ],
   },
   ...conteudoNovosModelos,
+  ...conteudoModelosPremium,
   ...conteudoCardapioModelos,
 };
 

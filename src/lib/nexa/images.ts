@@ -25,6 +25,18 @@ import bar from "@/assets/seg-bar.webp";
 import cafeteria from "@/assets/seg-cafeteria.webp";
 import acai from "@/assets/seg-acai.webp";
 import marmita from "@/assets/seg-marmita.webp";
+import nutricao from "@/assets/seg-nutricao.jpg";
+import psicologia from "@/assets/seg-psicologia.jpg";
+import spa from "@/assets/seg-spa.jpg";
+import nail from "@/assets/seg-nail.jpg";
+import idiomas from "@/assets/seg-idiomas.jpg";
+import autoescola from "@/assets/seg-autoescola.jpg";
+import contabilidade from "@/assets/seg-contabilidade.jpg";
+import agencia from "@/assets/seg-agencia.jpg";
+import floricultura from "@/assets/seg-floricultura.jpg";
+import assistencia from "@/assets/seg-assistencia.jpg";
+import automotiva from "@/assets/seg-automotiva.jpg";
+import turismo from "@/assets/seg-turismo.jpg";
 
 export const imagens = {
   restaurante,
@@ -54,6 +66,18 @@ export const imagens = {
   cafeteria,
   acai,
   marmita,
+  nutricao,
+  psicologia,
+  spa,
+  nail,
+  idiomas,
+  autoescola,
+  contabilidade,
+  agencia,
+  floricultura,
+  assistencia,
+  automotiva,
+  turismo,
 } as const;
 
 export type ImagemKey = keyof typeof imagens;
