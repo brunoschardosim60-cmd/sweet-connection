@@ -16,6 +16,78 @@ const BASE: TipoSecao[] = ["apresentacao", "links"];
 const FINAL: TipoSecao[] = ["localizacao", "horarios", "rodape"];
 
 export const presetsModelo: Record<string, PresetModelo> = {
+  "nutricionista-clinico": {
+    secoes: [...BASE, "servicos", "equipe", "agenda", "depoimentos", "galeria", "faq", "formulario", ...FINAL],
+    formulario: "agendamento",
+    tituloFormulario: "Agende sua consulta",
+    titulos: { servicos: "Consultas e planos", equipe: "Nutricionistas" },
+  },
+  "psicologia-terapia": {
+    secoes: [...BASE, "servicos", "equipe", "agenda", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "agendamento",
+    tituloFormulario: "Agende uma sessão",
+    titulos: { servicos: "Modalidades de atendimento", equipe: "Psicólogos" },
+  },
+  "estetica-spa": {
+    secoes: [...BASE, "servicos", "galeria", "agenda", "depoimentos", "cupom", "formulario", ...FINAL],
+    formulario: "agendamento",
+    tituloFormulario: "Reserve seu horário",
+    titulos: { servicos: "Protocolos e rituais", galeria: "O espaço" },
+  },
+  "nail-designer": {
+    secoes: [...BASE, "servicos", "galeria", "agenda", "depoimentos", "cupom", "formulario", ...FINAL],
+    formulario: "agendamento",
+    tituloFormulario: "Agende sua manicure",
+    titulos: { servicos: "Tabela de serviços", galeria: "Portfólio de unhas" },
+  },
+  "escola-idiomas": {
+    secoes: [...BASE, "servicos", "produtos", "equipe", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "contato",
+    tituloFormulario: "Faça o nivelamento grátis",
+    titulos: { servicos: "Cursos", produtos: "Planos e valores" },
+  },
+  "autoescola": {
+    secoes: [...BASE, "servicos", "promocao", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "orcamento",
+    tituloFormulario: "Simule sua matrícula",
+    titulos: { servicos: "Categorias e serviços" },
+  },
+  "contabilidade": {
+    secoes: [...BASE, "servicos", "equipe", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "orcamento",
+    tituloFormulario: "Peça uma proposta",
+    titulos: { servicos: "Serviços contábeis" },
+  },
+  "agencia-marketing": {
+    secoes: [...BASE, "servicos", "galeria", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "orcamento",
+    tituloFormulario: "Solicite um diagnóstico",
+    titulos: { servicos: "O que fazemos", galeria: "Cases" },
+  },
+  "floricultura": {
+    secoes: [...BASE, "produtos", "promocao", "galeria", "depoimentos", "cupom", "formulario", ...FINAL],
+    formulario: "contato",
+    tituloFormulario: "Peça pelo WhatsApp",
+    titulos: { produtos: "Buquês e arranjos" },
+  },
+  "assistencia-tecnica": {
+    secoes: [...BASE, "servicos", "promocao", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "orcamento",
+    tituloFormulario: "Peça um orçamento",
+    titulos: { servicos: "Serviços por aparelho" },
+  },
+  "estetica-automotiva": {
+    secoes: [...BASE, "servicos", "galeria", "agenda", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "agendamento",
+    tituloFormulario: "Agende seu serviço",
+    titulos: { servicos: "Serviços de detalhamento", galeria: "Antes e depois" },
+  },
+  "turismo-passeios": {
+    secoes: [...BASE, "produtos", "galeria", "depoimentos", "faq", "formulario", ...FINAL],
+    formulario: "reserva",
+    tituloFormulario: "Reserve seu passeio",
+    titulos: { produtos: "Passeios e roteiros", galeria: "Destinos" },
+  },
   "restaurante-moderno": {
     secoes: [
       ...BASE,
