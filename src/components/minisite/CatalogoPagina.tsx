@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
   Clock,
@@ -75,6 +75,14 @@ interface LinhaCarrinho {
   observacao: string;
 }
 
+interface ProdutoAnimado {
+  imagem: string;
+  inicioX: number;
+  inicioY: number;
+  destinoX: number;
+  destinoY: number;
+}
+
 /**
  * Página pública de catálogo/cardápio do mini-site.
  * Usa apenas os produtos já cadastrados; nada é inventado ou salvo automaticamente.
@@ -130,8 +138,10 @@ export function CatalogoPagina({
   const [retornoPedido, setRetornoPedido] = useState<string>("");
   const [ranking, setRanking] = useState<Record<string, number>>({});
   const [estoqueAtual, setEstoqueAtual] = useState<Record<string, number>>({});
-  const [produtoAnimado, setProdutoAnimado] = useState<Produto | null>(null);
+  const [produtoAnimado, setProdutoAnimado] = useState<ProdutoAnimado | null>(null);
   const [contadorAnimado, setContadorAnimado] = useState(false);
+  const carrinhoCabecalhoRef = useRef<HTMLButtonElement>(null);
+  const carrinhoFlutuanteRef = useRef<HTMLButtonElement>(null);
   const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
   const [pedidosAbertos, setPedidosAbertos] = useState(false);
   const [atualizandoPedidos, setAtualizandoPedidos] = useState(false);
@@ -281,13 +291,30 @@ export function CatalogoPagina({
   const situacao = situacaoAtendimento(site);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
-  const alterar = (p: Produto, delta: number, observacao?: string) => {
+  const alterar = (p: Produto, delta: number, observacao?: string, origem?: HTMLElement) => {
     if (delta > 0) {
       eventoMarketing("add_to_cart", { item_id: p.id, quantidade: delta });
-      setProdutoAnimado(p);
       setContadorAnimado(true);
-      window.setTimeout(() => setProdutoAnimado(null), 560);
       window.setTimeout(() => setContadorAnimado(false), 380);
+
+      // A imagem sai do botão acionado e termina no carrinho que o cliente está vendo.
+      if (mostrarCarrinhoFlutuante && origem && p.imagem) {
+        window.requestAnimationFrame(() => {
+          const inicio = origem.getBoundingClientRect();
+          const destino = (
+            carrinhoFlutuanteRef.current ?? carrinhoCabecalhoRef.current
+          )?.getBoundingClientRect();
+          if (!destino) return;
+          setProdutoAnimado({
+            imagem: p.imagem!,
+            inicioX: inicio.left + inicio.width / 2 - 20,
+            inicioY: inicio.top + inicio.height / 2 - 20,
+            destinoX: destino.left + destino.width / 2 - (inicio.left + inicio.width / 2),
+            destinoY: destino.top + destino.height / 2 - (inicio.top + inicio.height / 2),
+          });
+          window.setTimeout(() => setProdutoAnimado(null), 560);
+        });
+      }
     }
     setCarrinho((atual) => {
       const linha = atual[p.id] ?? { quantidade: 0, observacao: "" };
@@ -397,10 +424,13 @@ export function CatalogoPagina({
               </button>
             )}
             <button
+              ref={carrinhoCabecalhoRef}
               type="button"
               onClick={() => setCarrinhoAberto(true)}
               aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none ${
+                contadorAnimado ? "scale-110" : "scale-100"
+              }`}
               style={{
                 ...botaoPrimario,
                 opacity: quantidadeTotal > 0 ? 1 : 0.85,
@@ -645,7 +675,7 @@ export function CatalogoPagina({
                             produto={p}
                             quantidade={carrinho[p.id]?.quantidade ?? 0}
                             onAbrir={() => setDetalhe(p)}
-                            onAlterar={(d) => alterar(p, d)}
+                            onAlterar={(d, origem) => alterar(p, d, undefined, origem)}
                           />
                         </div>
                       ))}
@@ -672,9 +702,12 @@ export function CatalogoPagina({
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <button
+            ref={carrinhoFlutuanteRef}
             type="button"
             onClick={() => setCarrinhoAberto(true)}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold shadow-lg transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none ${
+              contadorAnimado ? "scale-[1.02]" : "scale-100"
+            }`}
             style={{ ...botaoPrimario, outlineColor: primaria }}
           >
             <span className="inline-flex items-center gap-2">
@@ -698,10 +731,18 @@ export function CatalogoPagina({
         />
       )}
 
-      {produtoAnimado?.imagem && (
+      {produtoAnimado && (
         <div
           aria-hidden
-          className="nexa-produto-voando fixed right-5 top-16 z-50 overflow-hidden rounded-lg shadow-lg"
+          className="nexa-produto-voando fixed z-50 overflow-hidden rounded-lg shadow-lg"
+          style={
+            {
+              left: produtoAnimado.inicioX,
+              top: produtoAnimado.inicioY,
+              "--nexa-voo-x": `${produtoAnimado.destinoX}px`,
+              "--nexa-voo-y": `${produtoAnimado.destinoY}px`,
+            } as CSSProperties
+          }
         >
           <img src={produtoAnimado.imagem} alt="" className="h-full w-full object-cover" />
         </div>
@@ -1231,7 +1272,7 @@ function CartaoProduto({
   produto: Produto;
   quantidade: number;
   onAbrir: () => void;
-  onAlterar: (delta: number) => void;
+  onAlterar: (delta: number, origem?: HTMLElement) => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
   const desconto = descontoPercentual(produto);
@@ -1309,7 +1350,7 @@ function CartaoProduto({
             quantidade={quantidade}
             rotulo={produto.nome}
             onAlterar={onAlterar}
-            onAdicionar={() => onAlterar(1)}
+            onAdicionar={(origem) => onAlterar(1, origem)}
           />
         ) : (
           <button
@@ -1347,8 +1388,8 @@ function Contador({
   site: Site;
   quantidade: number;
   rotulo: string;
-  onAlterar: (delta: number) => void;
-  onAdicionar: () => void;
+  onAlterar: (delta: number, origem?: HTMLElement) => void;
+  onAdicionar: (origem?: HTMLElement) => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
   const radius = site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)";
@@ -1356,7 +1397,7 @@ function Contador({
     return (
       <button
         type="button"
-        onClick={onAdicionar}
+        onClick={(event) => onAdicionar(event.currentTarget)}
         className="inline-flex min-h-11 w-full items-center justify-center gap-2 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transform-none motion-reduce:transition-none"
         style={{
           background: primaria,
@@ -1388,7 +1429,7 @@ function Contador({
       <button
         type="button"
         aria-label={`Adicionar uma unidade de ${rotulo}`}
-        onClick={() => onAlterar(1)}
+        onClick={(event) => onAlterar(1, event.currentTarget)}
         className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
         style={{ outlineColor: primaria }}
       >

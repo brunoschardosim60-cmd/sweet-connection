@@ -249,7 +249,7 @@
   }
   to {
     opacity: 0;
-    transform: translate3d(20vw, -18vh, 0) scale(0.18);
+    transform: translate3d(var(--nexa-voo-x), var(--nexa-voo-y), 0) scale(0.2);
   }
 }
 
