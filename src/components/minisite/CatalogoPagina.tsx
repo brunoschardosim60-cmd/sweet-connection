@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Clock,
@@ -525,11 +525,7 @@ export function CatalogoPagina({
                 />
               </div>
 
-              <div
-                role="group"
-                aria-label="Filtros do catálogo"
-                className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
-              >
+              <FaixaRolavel ariaLabel="Filtros do catálogo">
                 {filtrosCatalogo.map((f) => (
                   <Chip
                     key={f.id}
@@ -540,14 +536,10 @@ export function CatalogoPagina({
                     {f.rotulo}
                   </Chip>
                 ))}
-              </div>
+              </FaixaRolavel>
 
               {categorias.length > 1 && (
-                <div
-                  role="group"
-                  aria-label="Categorias"
-                  className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1 pb-1"
-                >
+                <FaixaRolavel ariaLabel="Categorias">
                   {categorias.map((c) => (
                     <Chip
                       key={c}
@@ -558,7 +550,7 @@ export function CatalogoPagina({
                       {c}
                     </Chip>
                   ))}
-                </div>
+                </FaixaRolavel>
               )}
 
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1178,6 +1170,48 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * Fila de chips navegável por toque e também por clique + arraste no desktop.
+ * Isso mantém os últimos filtros acessíveis dentro da prévia escalada.
+ */
+function FaixaRolavel({ ariaLabel, children }: { ariaLabel: string; children: React.ReactNode }) {
+  const faixaRef = useRef<HTMLDivElement>(null);
+  const inicioRef = useRef<{ x: number; scroll: number } | null>(null);
+
+  return (
+    <div
+      ref={faixaRef}
+      role="group"
+      aria-label={ariaLabel}
+      onPointerDown={(event) => {
+        const faixa = faixaRef.current;
+        if (!faixa || faixa.scrollWidth <= faixa.clientWidth) return;
+        inicioRef.current = { x: event.clientX, scroll: faixa.scrollLeft };
+        faixa.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        const faixa = faixaRef.current;
+        const inicio = inicioRef.current;
+        if (!faixa || !inicio) return;
+        faixa.scrollLeft = inicio.scroll - (event.clientX - inicio.x);
+      }}
+      onPointerUp={(event) => {
+        inicioRef.current = null;
+        if (faixaRef.current?.hasPointerCapture(event.pointerId)) {
+          faixaRef.current.releasePointerCapture(event.pointerId);
+        }
+      }}
+      onPointerCancel={() => {
+        inicioRef.current = null;
+      }}
+      className="-mx-1 flex cursor-grab gap-2 overflow-x-auto overscroll-x-contain px-1 pb-1 scrollbar-invisivel active:cursor-grabbing"
+      style={{ touchAction: "pan-x" }}
+    >
+      {children}
+    </div>
   );
 }
 

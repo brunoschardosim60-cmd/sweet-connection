@@ -73,10 +73,7 @@ function Demonstracao() {
               Explore o modelo como ele aparece para os clientes.
             </p>
           </div>
-          <MolduraPrevia
-            dispositivo={disp}
-            className="bg-transparent"
-          >
+          <MolduraPrevia dispositivo={disp} className="bg-transparent">
             {ehModeloCardapio(site.modeloId) ? (
               <CatalogoPagina site={site} interacoesExternas={false} mostrarVoltar={false} />
             ) : (
