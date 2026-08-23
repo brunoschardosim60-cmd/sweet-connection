@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { escalaPrevia, type Caixa } from "@/lib/nexa/previa";
 
 /**
- * Renderiza o conteúdo no tamanho real do dispositivo e o reduz para caber
- * no espaço disponível. Usa CSS zoom em vez de transform: scale, pois o
- * navegador recalcula texto e ícones com mais nitidez nas prévias pequenas.
+ * Renderiza o conteúdo no tamanho real do dispositivo e apenas reduz
+ * visualmente para caber no espaço disponível. Assim o layout interno é
+ * idêntico ao de um celular/tablet real, inclusive a moldura do aparelho.
  */
 export function PalcoEscalado({
   dispositivo,
@@ -58,7 +58,8 @@ export function PalcoEscalado({
           style={{
             width: dispositivo.largura,
             height: dispositivo.altura,
-            zoom: escala,
+            transform: `scale(${escala})`,
+            transformOrigin: "top left",
           }}
           className="absolute left-0 top-0"
         >
