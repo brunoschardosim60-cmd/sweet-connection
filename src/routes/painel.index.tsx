@@ -83,6 +83,45 @@ function VisaoGeral() {
   ];
   const concluidos = passosInicio.filter((passo) => passo.feito).length;
 
+  if (sites.length === 0)
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold">Visão geral</h1>
+          <p className="text-sm text-muted-foreground">
+            Assim que o primeiro mini-site existir, os números aparecem aqui.
+          </p>
+        </div>
+        <section className="surface flex flex-col items-start gap-4 p-6 sm:p-8">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-lime/20">
+            <Globe size={22} aria-hidden />
+          </span>
+          <div>
+            <h2 className="font-display text-xl font-bold">Crie seu primeiro mini-site</h2>
+            <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+              Escolha um modelo pronto do seu segmento ou descreva o negócio e deixe a criação
+              automática montar a primeira versão. Visitas, cliques no WhatsApp e solicitações
+              passam a ser medidos depois da publicação.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/painel/novo"
+              className="inline-flex min-h-11 items-center rounded-xl bg-foreground px-4 text-sm font-semibold text-background"
+            >
+              Criar mini-site
+            </Link>
+            <Link
+              to="/modelos"
+              className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary"
+            >
+              Ver modelos
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+
   return (
     <div className="space-y-6">
       <div>
@@ -93,14 +132,17 @@ function VisaoGeral() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => (
           <div key={c.r} className="surface p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">{c.r}</p>
-              <c.i size={16} className="text-muted-foreground" />
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                <c.i size={15} className="text-muted-foreground" aria-hidden />
+              </span>
             </div>
-            <p className="mt-2 font-display text-3xl font-bold">{c.v}</p>
+            <p className="mt-2 font-display text-3xl font-bold tabular-nums">{c.v}</p>
           </div>
         ))}
       </div>
+
 
       {concluidos < passosInicio.length && (
         <section className="surface p-5" aria-labelledby="checklist-inicial">

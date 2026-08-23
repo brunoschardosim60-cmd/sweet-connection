@@ -119,7 +119,14 @@ function PainelPedidos() {
         ))}
       </div>
 
-      {!pronto && <p className="text-sm text-muted-foreground">Carregando seus mini-sites…</p>}
+      {!pronto && (
+        <div className="space-y-3" aria-live="polite" aria-busy="true">
+          <span className="sr-only">Carregando seus mini-sites…</span>
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-20 w-full rounded-2xl" />
+        </div>
+      )}
+
 
       {aba === "pedidos" && <AbaPedidos siteId={site?.id} />}
       {aba === "mesas" && (
