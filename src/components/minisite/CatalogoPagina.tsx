@@ -589,9 +589,10 @@ export function CatalogoPagina({
 
           {!catalogoVazio && (
             <div
-              className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
-              style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
+              className="sticky z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur"
+              style={{ background: hexToRgba(site.aparencia.corFundo, 0.96), top: alturaCabecalho }}
             >
+
               <label className="sr-only" htmlFor="busca-catalogo">
                 Buscar por nome, descrição ou categoria
               </label>
