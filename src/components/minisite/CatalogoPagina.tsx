@@ -142,6 +142,18 @@ export function CatalogoPagina({
   const [contadorAnimado, setContadorAnimado] = useState(false);
   const carrinhoCabecalhoRef = useRef<HTMLButtonElement>(null);
   const carrinhoFlutuanteRef = useRef<HTMLButtonElement>(null);
+  const cabecalhoRef = useRef<HTMLElement>(null);
+  // O cabeçalho muda de altura conforme o dispositivo/moldura; medir evita filtros escondidos.
+  const [alturaCabecalho, setAlturaCabecalho] = useState(104);
+  useEffect(() => {
+    const alvo = cabecalhoRef.current;
+    if (!alvo || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(() => setAlturaCabecalho(alvo.offsetHeight));
+    observador.observe(alvo);
+    setAlturaCabecalho(alvo.offsetHeight);
+    return () => observador.disconnect();
+  }, []);
+
   const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
   const [pedidosAbertos, setPedidosAbertos] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState<{
