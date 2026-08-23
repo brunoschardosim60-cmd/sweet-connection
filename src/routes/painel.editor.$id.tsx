@@ -51,6 +51,7 @@ import { dataHora, slugify, telefoneMask, uid } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { grupoDeSecao, secaoTemConteudo } from "@/lib/nexa/secoes";
 import { ehModeloCardapio } from "@/lib/nexa/cardapio-modelos";
+import { enviarArquivo } from "@/lib/nexa/media";
 import {
   dataDoCampo,
   dataParaExpiracao,
@@ -1343,17 +1344,20 @@ function EntradaSimples({
   onChange,
   placeholder,
   list,
+  onKeyDown,
 }: {
   valor: string;
   onChange: (v: string) => void;
   placeholder: string;
   list?: string;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {
   return (
     <input
       value={valor}
       placeholder={placeholder}
       list={list}
+      onKeyDown={onKeyDown}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
     />
@@ -1460,11 +1464,241 @@ function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; apli
 }
 
 function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+  const [textoLote, setTextoLote] = useState("");
+  const [ajustePercentual, setAjustePercentual] = useState("");
+  const [ajusteFixo, setAjusteFixo] = useState("");
+  const [categoriaAjuste, setCategoriaAjuste] = useState("Todas");
+  const [enviandoFotos, setEnviandoFotos] = useState(false);
+  const entradaFotos = useRef<HTMLInputElement>(null);
+
+  const adicionarProduto = (categoria = "Geral") =>
+    aplicar((s) => ({
+      ...s,
+      produtos: [
+        ...s.produtos,
+        {
+          id: uid("prd"),
+          nome: "Novo produto",
+          descricao: "",
+          preco: 0,
+          categoria,
+          variacoes: [],
+          disponivel: true,
+          destaque: false,
+        },
+      ],
+    }));
+
+  const importarProdutos = () => {
+    const produtos = textoLote.split("\n").flatMap((linha) => {
+      const partes = linha.split("=").map((parte) => parte.trim());
+      const preco = Number((partes[1] ?? "").replace(",", "."));
+      if (!partes[0] || !Number.isFinite(preco) || preco < 0) return [];
+      return [{ nome: partes[0], preco, categoria: normalizarCategoria(partes[2] || "Geral") }];
+    });
+    if (!produtos.length) return;
+    aplicar((s) => {
+      const categorias = s.produtos.map((produto) => produto.categoria).filter(Boolean);
+      return {
+        ...s,
+        produtos: [
+          ...s.produtos,
+          ...produtos.map((produto) => ({
+            ...produto,
+            id: uid("prd"),
+            categoria: normalizarCategoria(produto.categoria, categorias),
+            descricao: "",
+            variacoes: [],
+            disponivel: true,
+            destaque: false,
+          })),
+        ],
+      };
+    });
+    setTextoLote("");
+  };
+
+  const reajustarPrecos = () => {
+    const percentual = Number(ajustePercentual.replace(",", "."));
+    const fixo = Number(ajusteFixo.replace(",", "."));
+    const percentualValido = Number.isFinite(percentual) ? percentual : 0;
+    const fixoValido = Number.isFinite(fixo) ? fixo : 0;
+    if (percentualValido === 0 && fixoValido === 0) return;
+    aplicar((s) => ({
+      ...s,
+      produtos: s.produtos.map((produto) =>
+        categoriaAjuste !== "Todas" && produto.categoria !== categoriaAjuste
+          ? produto
+          : {
+              ...produto,
+              preco: Math.max(
+                0,
+                Math.round((produto.preco * (1 + percentualValido / 100) + fixoValido) * 100) / 100,
+              ),
+              ...(produto.precoPromocional
+                ? {
+                    precoPromocional: Math.max(
+                      0,
+                      Math.round(
+                        (produto.precoPromocional * (1 + percentualValido / 100) + fixoValido) *
+                          100,
+                      ) / 100,
+                    ),
+                  }
+                : {}),
+            },
+      ),
+    }));
+    setAjustePercentual("");
+    setAjusteFixo("");
+  };
+
+  const normalizarNome = (valor: string) =>
+    valor
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("pt-BR")
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  const associarFotos = async (arquivos: FileList | null) => {
+    if (!arquivos?.length) return;
+    setEnviandoFotos(true);
+    try {
+      const carregadas = await Promise.all(
+        Array.from(arquivos).map(async (arquivo) => ({
+          nome: normalizarNome(arquivo.name),
+          url: (await enviarArquivo(arquivo)).url,
+        })),
+      );
+      aplicar((s) => ({
+        ...s,
+        produtos: s.produtos.map((produto) => {
+          const nome = normalizarNome(produto.nome);
+          const foto = nome
+            ? carregadas.find(
+                (item) =>
+                  item.nome === nome || item.nome.includes(nome) || nome.includes(item.nome),
+              )
+            : undefined;
+          return foto ? { ...produto, imagem: foto.url } : produto;
+        }),
+      }));
+    } catch (error) {
+      toast.error("Não foi possível associar as fotos", {
+        description: error instanceof Error ? error.message : "Tente novamente.",
+      });
+    } finally {
+      setEnviandoFotos(false);
+      if (entradaFotos.current) entradaFotos.current.value = "";
+    }
+  };
+
+  const categoriasSugeridas =
+    site.cliente.segmento === "alimentacao"
+      ? ["Pizzas salgadas", "Pizzas doces", "Bebidas", "Bordas"]
+      : site.cliente.segmento === "comercio"
+        ? ["Novidades", "Mais vendidos", "Promoções"]
+        : ["Serviços principais", "Destaques", "Outros"];
+
   return (
     <>
       <BlocoLinksEditor site={site} aplicar={aplicar} />
 
       <Bloco titulo="Produtos" id="bloco-produtos">
+        <div className="mb-4 grid gap-3 rounded-2xl border border-dashed border-border bg-secondary/20 p-3">
+          <label className="block text-xs text-muted-foreground">
+            Adicionar produtos em lote
+            <textarea
+              value={textoLote}
+              onChange={(e) => setTextoLote(e.target.value)}
+              rows={4}
+              placeholder="Pizza Margherita = 45 = Pizzas"
+              className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={importarProdutos}
+              className="min-h-11 rounded-full bg-ink px-4 text-xs font-semibold text-ink-foreground"
+            >
+              Adicionar produtos
+            </button>
+            <input
+              ref={entradaFotos}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(e) => void associarFotos(e.target.files)}
+            />
+            <button
+              type="button"
+              onClick={() => entradaFotos.current?.click()}
+              disabled={enviandoFotos}
+              className="min-h-11 rounded-full border border-border px-4 text-xs font-semibold disabled:opacity-60"
+            >
+              {enviandoFotos ? "Associando fotos..." : "Fotos em lote por nome"}
+            </button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-[auto_1fr_auto] sm:items-end">
+            <label className="text-xs text-muted-foreground">
+              Reajuste (%):
+              <input
+                value={ajustePercentual}
+                onChange={(e) => setAjustePercentual(e.target.value)}
+                placeholder="Ex.: 10"
+                className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Somar (R$):
+              <input
+                value={ajusteFixo}
+                onChange={(e) => setAjusteFixo(e.target.value)}
+                placeholder="Ex.: 2,50"
+                className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Categoria:
+              <select
+                value={categoriaAjuste}
+                onChange={(e) => setCategoriaAjuste(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+              >
+                <option>Todas</option>
+                {Array.from(new Set(site.produtos.map((produto) => produto.categoria))).map(
+                  (categoria) => (
+                    <option key={categoria}>{categoria}</option>
+                  ),
+                )}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={reajustarPrecos}
+              className="min-h-11 rounded-full border border-border px-4 text-xs font-semibold"
+            >
+              Aplicar reajuste
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>Categorias sugeridas:</span>
+            {categoriasSugeridas.map((categoria) => (
+              <button
+                key={categoria}
+                type="button"
+                onClick={() => adicionarProduto(categoria)}
+                className="rounded-full border border-border px-2.5 py-1 hover:bg-secondary"
+              >
+                + {categoria}
+              </button>
+            ))}
+          </div>
+        </div>
         {site.produtos.map((p) => (
           <LinhaItem
             key={p.id}
@@ -1495,6 +1729,12 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                   produtos: s.produtos.map((x) => (x.id === p.id ? { ...x, nome: v } : x)),
                 }))
               }
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === "Tab") && !e.shiftKey) {
+                  e.preventDefault();
+                  adicionarProduto(p.categoria || "Geral");
+                }
+              }}
             />
             <EntradaSimples
               valor={p.descricao}
@@ -1637,27 +1877,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
             <option key={categoria} value={categoria} />
           ))}
         </datalist>
-        <BotaoAdicionar
-          rotulo="Adicionar produto"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              produtos: [
-                ...s.produtos,
-                {
-                  id: uid("prd"),
-                  nome: "Novo produto",
-                  descricao: "",
-                  preco: 0,
-                  categoria: "Geral",
-                  variacoes: [],
-                  disponivel: true,
-                  destaque: false,
-                },
-              ],
-            }))
-          }
-        />
+        <BotaoAdicionar rotulo="Adicionar produto" onClick={() => adicionarProduto()} />
       </Bloco>
 
       <Bloco titulo="Serviços" id="bloco-servicos">
