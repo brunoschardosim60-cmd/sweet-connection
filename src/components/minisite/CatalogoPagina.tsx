@@ -47,6 +47,7 @@ import {
   limparRascunhoPedido,
   totaisCarrinho,
   whatsappValido,
+  formatarTelefonePedido,
   type Entrega,
   type OrdemCatalogo,
   type FiltroCatalogo,
@@ -1638,11 +1639,17 @@ function PainelCarrinho({
         type="tel"
         inputMode="numeric"
         autoComplete="tel"
-        value={campos.whatsapp}
+        value={formatarTelefonePedido(campos.whatsapp)}
         onChange={(e) =>
-          setCampos((c) => ({ ...c, whatsapp: e.target.value.replace(/\D/g, "").slice(0, 13) }))
+          setCampos((c) => ({
+            ...c,
+            whatsapp: e.target.value
+              .replace(/\D/g, "")
+              .replace(/^55(?=\d{10,11}$)/, "")
+              .slice(0, 11),
+          }))
         }
-        maxLength={13}
+        maxLength={15}
         placeholder="(00) 00000-0000"
         aria-invalid={Boolean(campos.whatsapp) && !contatoValido}
         aria-describedby="aviso-whatsapp-pedido"
@@ -1656,7 +1663,7 @@ function PainelCarrinho({
       <span id="aviso-whatsapp-pedido" className="mt-1 block text-[11px] opacity-70">
         {campos.whatsapp && !contatoValido
           ? "Informe um WhatsApp válido com DDD."
-          : "Use apenas números, com DDD. DDI 55 é opcional."}
+          : "Informe seu WhatsApp com DDD."}
       </span>
     </label>
   );

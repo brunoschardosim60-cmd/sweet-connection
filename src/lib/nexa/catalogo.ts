@@ -11,6 +11,20 @@ export const filtrosCatalogo: { id: FiltroCatalogo; rotulo: string }[] = [
   { id: "disponiveis", rotulo: "Disponíveis" },
 ];
 
+/** Exibição amigável para telefone brasileiro; o valor armazenado continua somente com dígitos. */
+export function formatarTelefonePedido(valor: string) {
+  const numeros = valor
+    .replace(/\D/g, "")
+    .replace(/^55(?=\d{10,11}$)/, "")
+    .slice(0, 11);
+  if (numeros.length <= 2) return numeros ? `(${numeros}` : "";
+  const ddd = numeros.slice(0, 2);
+  const restante = numeros.slice(2);
+  if (restante.length <= 4) return `(${ddd}) ${restante}`;
+  if (restante.length <= 8) return `(${ddd}) ${restante.slice(0, 4)}-${restante.slice(4)}`;
+  return `(${ddd}) ${restante.slice(0, 5)}-${restante.slice(5)}`;
+}
+
 /** Disponibilidade que o visitante enxerga; a confirmação final é repetida no banco. */
 export function produtoDisponivelAgora(produto: Produto, agora = new Date()) {
   if (!produto.disponivel || (produto.estoque !== undefined && produto.estoque <= 0)) return false;
