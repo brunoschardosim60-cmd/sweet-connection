@@ -469,7 +469,7 @@ export function CatalogoPagina({
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 pb-32 pt-5 @5xl:grid-cols-[minmax(0,1fr)_320px] @5xl:pb-10">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 md:pb-10">
         <main className="min-w-0">
           {site.conteudo.capa && (
             <div
@@ -658,30 +658,6 @@ export function CatalogoPagina({
             </ul>
           )}
         </main>
-
-        <aside className="hidden @5xl:block">
-          <div className="sticky top-20">
-            <PainelCarrinho
-              site={site}
-              itens={itens}
-              totais={totais}
-              entrega={entrega}
-              setEntrega={setEntrega}
-              pagamento={pagamento}
-              setPagamento={setPagamento}
-              campos={campos}
-              setCampos={setCampos}
-              onAlterar={(id, d) => {
-                const p = produtosPublicos.find((x) => x.id === id);
-                if (p) alterar(p, d);
-              }}
-              pedidosAtivos={interacoesExternas}
-              enviando={enviandoPedido}
-              retorno={retornoPedido}
-              onEnviar={() => void confirmarPedido()}
-            />
-          </div>
-        </aside>
       </div>
 
       {site.mostrarAssinaturaNexa !== false && (
@@ -695,7 +671,7 @@ export function CatalogoPagina({
 
       {quantidadeTotal > 0 && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:hidden"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <button
@@ -1122,7 +1098,7 @@ function DestaqueAbertura({
   );
 }
 
-/** Drawer do carrinho no celular, com foco preso e Escape para fechar. */
+/** Carrinho sob demanda: ocupa a lateral no desktop e sobe no celular. */
 function DrawerCarrinho({
   site,
   onFechar,
@@ -1135,7 +1111,7 @@ function DrawerCarrinho({
   const ref = useFocoModal(true, onFechar);
   const primaria = site.aparencia.corPrimaria;
   return (
-    <div className="fixed inset-0 z-40 @5xl:hidden">
+    <div className="fixed inset-0 z-40">
       <button
         type="button"
         tabIndex={-1}
@@ -1148,7 +1124,7 @@ function DrawerCarrinho({
         role="dialog"
         aria-modal="true"
         aria-label="Seu pedido"
-        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4"
+        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[min(440px,100vw)] md:border-l md:border-t-0 motion-safe:md:slide-in-from-right"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
