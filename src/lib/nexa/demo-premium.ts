@@ -33,6 +33,8 @@ const secoesAgenda: ConteudoDemo["secoes"] = [
   "rodape",
 ];
 
+const secoesAgendaSimples: ConteudoDemo["secoes"] = secoesAgenda.filter((s) => s !== "equipe");
+
 const secoesCatalogo: ConteudoDemo["secoes"] = [
   "apresentacao",
   "produtos",
@@ -176,7 +178,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
     endereco: "Rua Oscar Freire, 620 - Jardins, São Paulo - SP",
     cta: "Reservar horário",
     logoFormato: "redondo",
-    secoes: secoesAgenda,
+    secoes: secoesAgendaSimples,
     servicos: [
       {
         id: "s1",
@@ -231,7 +233,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
     endereco: "Rua T-55, 340 - Setor Bueno, Goiânia - GO",
     cta: "Agendar manicure",
     logoFormato: "redondo",
-    secoes: secoesAgenda,
+    secoes: secoesAgendaSimples,
     servicos: [
       {
         id: "s1",
@@ -268,7 +270,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
     instagram: "fluencylab.demo",
     endereco: "Av. Independência, 780 - Moinhos de Vento, Porto Alegre - RS",
     cta: "Fazer nivelamento grátis",
-    secoes: secoesAgenda,
+    secoes: secoesAgendaSimples,
     servicos: [
       {
         id: "s1",
@@ -562,7 +564,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
     endereco: "Rua XV de Novembro, 1320 - América, Joinville - SC",
     cta: "Agendar serviço",
     logoFormato: "quadrado",
-    secoes: secoesAgenda,
+    secoes: secoesAgendaSimples,
     servicos: [
       {
         id: "s1",
