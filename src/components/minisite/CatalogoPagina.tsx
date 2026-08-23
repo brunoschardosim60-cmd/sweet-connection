@@ -469,7 +469,7 @@ export function CatalogoPagina({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 md:pb-10">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 @5xl:pb-10">
         <main className="min-w-0">
           {site.conteudo.capa && (
             <div
@@ -671,7 +671,7 @@ export function CatalogoPagina({
 
       {quantidadeTotal > 0 && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:hidden"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <button
@@ -1124,7 +1124,7 @@ function DrawerCarrinho({
         role="dialog"
         aria-modal="true"
         aria-label="Seu pedido"
-        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[min(440px,100vw)] md:border-l md:border-t-0 motion-safe:md:slide-in-from-right"
+        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom @5xl:inset-y-0 @5xl:left-auto @5xl:right-0 @5xl:max-h-none @5xl:w-[min(440px,100vw)] @5xl:border-l @5xl:border-t-0"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
