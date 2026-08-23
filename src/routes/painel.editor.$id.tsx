@@ -1404,12 +1404,16 @@ function EntradaSimples({
   placeholder,
   list,
   onKeyDown,
+  inputMode,
+  maxLength,
 }: {
   valor: string;
   onChange: (v: string) => void;
   placeholder: string;
   list?: string;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"] | undefined;
+  maxLength?: number | undefined;
 }) {
   return (
     <input
@@ -1417,6 +1421,8 @@ function EntradaSimples({
       placeholder={placeholder}
       list={list}
       onKeyDown={onKeyDown}
+      inputMode={inputMode}
+      maxLength={maxLength}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ink"
     />
@@ -2882,6 +2888,12 @@ const tiposLink: { id: TipoLink; rotulo: string; dica: string }[] = [
   { id: "personalizado", rotulo: "Personalizado", dica: "https://..." },
 ];
 
+/** Número brasileiro com DDI opcional: 10/11 dígitos locais ou 55 + DDD + número. */
+function limitarWhatsAppLink(valor: string) {
+  const digitos = valor.replace(/\D/g, "");
+  return digitos.startsWith("55") ? digitos.slice(0, 13) : digitos.slice(0, 11);
+}
+
 function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   const atualizar = (id: string, patch: Partial<Site["links"][number]>) =>
     aplicar((s) => ({ ...s, links: s.links.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
@@ -2938,7 +2950,13 @@ function BlocoLinksEditor({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           <EntradaSimples
             valor={l.valor}
             placeholder={tiposLink.find((t) => t.id === l.tipo)?.dica ?? "URL"}
-            onChange={(v) => atualizar(l.id, { valor: v })}
+            onChange={(v) =>
+              atualizar(l.id, {
+                valor: l.tipo === "whatsapp" ? limitarWhatsAppLink(v) : v,
+              })
+            }
+            inputMode={l.tipo === "whatsapp" ? "numeric" : undefined}
+            maxLength={l.tipo === "whatsapp" ? 13 : undefined}
           />
           {l.tipo === "whatsapp" && (
             <EntradaSimples
