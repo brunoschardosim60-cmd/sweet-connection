@@ -150,7 +150,12 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
       },
     ],
     equipe: [
-      { id: "e1", nome: "Ana Beatriz Lima", funcao: "Psicóloga · CRP 04/12345", foto: imagens.psicologia },
+      {
+        id: "e1",
+        nome: "Ana Beatriz Lima",
+        funcao: "Psicóloga · CRP 04/12345",
+        foto: imagens.psicologia,
+      },
       { id: "e2", nome: "Thiago Menezes", funcao: "Psicólogo infantojuvenil · CRP 04/67890" },
     ],
     faq: [
@@ -244,8 +249,20 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         imagem: imagens.nail,
       },
       { id: "s2", nome: "Manutenção", descricao: "A cada 21 dias.", duracao: "1h40", preco: 130 },
-      { id: "s3", nome: "Esmaltação em gel", descricao: "Nas unhas naturais.", duracao: "1h", preco: 90 },
-      { id: "s4", nome: "Nail art autoral", descricao: "Por unha decorada.", duracao: "15 min", preco: 15 },
+      {
+        id: "s3",
+        nome: "Esmaltação em gel",
+        descricao: "Nas unhas naturais.",
+        duracao: "1h",
+        preco: 90,
+      },
+      {
+        id: "s4",
+        nome: "Nail art autoral",
+        descricao: "Por unha decorada.",
+        duracao: "15 min",
+        preco: 15,
+      },
     ],
     galeria: [
       { id: "g1", url: imagens.nail, titulo: "Nail art francesinha" },
@@ -280,8 +297,20 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 0,
         imagem: imagens.idiomas,
       },
-      { id: "s2", nome: "Conversação", descricao: "Turmas temáticas semanais.", duracao: "1h", preco: 0 },
-      { id: "s3", nome: "Inglês para negócios", descricao: "Reuniões, e-mails e apresentações.", duracao: "1h30", preco: 0 },
+      {
+        id: "s2",
+        nome: "Conversação",
+        descricao: "Turmas temáticas semanais.",
+        duracao: "1h",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Inglês para negócios",
+        descricao: "Reuniões, e-mails e apresentações.",
+        duracao: "1h30",
+        preco: 0,
+      },
     ],
     produtos: [
       {
@@ -336,8 +365,20 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 0,
         imagem: imagens.autoescola,
       },
-      { id: "s2", nome: "Adição de categoria", descricao: "Para quem já tem CNH.", duracao: "Consulte", preco: 0 },
-      { id: "s3", nome: "Aula avulsa de direção", descricao: "Para recuperar confiança ao volante.", duracao: "50 min", preco: 120 },
+      {
+        id: "s2",
+        nome: "Adição de categoria",
+        descricao: "Para quem já tem CNH.",
+        duracao: "Consulte",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Aula avulsa de direção",
+        descricao: "Para recuperar confiança ao volante.",
+        duracao: "50 min",
+        preco: 120,
+      },
     ],
     faq: [
       {
@@ -374,9 +415,27 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 0,
         imagem: imagens.contabilidade,
       },
-      { id: "s2", nome: "Contabilidade mensal", descricao: "Guias, folha e obrigações em dia.", duracao: "Mensal", preco: 0 },
-      { id: "s3", nome: "Planejamento tributário", descricao: "Análise do melhor regime para reduzir impostos.", duracao: "Sob análise", preco: 0 },
-      { id: "s4", nome: "Imposto de renda PF", descricao: "Declaração completa com revisão.", duracao: "Anual", preco: 0 },
+      {
+        id: "s2",
+        nome: "Contabilidade mensal",
+        descricao: "Guias, folha e obrigações em dia.",
+        duracao: "Mensal",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Planejamento tributário",
+        descricao: "Análise do melhor regime para reduzir impostos.",
+        duracao: "Sob análise",
+        preco: 0,
+      },
+      {
+        id: "s4",
+        nome: "Imposto de renda PF",
+        descricao: "Declaração completa com revisão.",
+        duracao: "Anual",
+        preco: 0,
+      },
     ],
     formulario: {
       tipo: "orcamento",
@@ -418,8 +477,20 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 0,
         imagem: imagens.agencia,
       },
-      { id: "s2", nome: "Social media", descricao: "Planejamento, design e publicação.", duracao: "Mensal", preco: 0 },
-      { id: "s3", nome: "Identidade visual", descricao: "Logo, paleta e manual de marca.", duracao: "3 semanas", preco: 0 },
+      {
+        id: "s2",
+        nome: "Social media",
+        descricao: "Planejamento, design e publicação.",
+        duracao: "Mensal",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Identidade visual",
+        descricao: "Logo, paleta e manual de marca.",
+        duracao: "3 semanas",
+        preco: 0,
+      },
     ],
     depoimentos: [
       {
@@ -442,8 +513,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
 
   floricultura: {
     nome: "Casa Flora (demonstração)",
-    descricao:
-      "Buquês, arranjos e plantas com entrega no mesmo dia e cartão personalizado.",
+    descricao: "Buquês, arranjos e plantas com entrega no mesmo dia e cartão personalizado.",
     cidade: "Niterói",
     estado: "RJ",
     whatsapp: "5521990660990",
@@ -516,8 +586,7 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
 
   "assistencia-tecnica": {
     nome: "TechFix Assistência (demonstração)",
-    descricao:
-      "Conserto de celulares e notebooks com diagnóstico gratuito e 90 dias de garantia.",
+    descricao: "Conserto de celulares e notebooks com diagnóstico gratuito e 90 dias de garantia.",
     cidade: "Fortaleza",
     estado: "CE",
     whatsapp: "5585994770110",
@@ -535,9 +604,27 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 0,
         imagem: imagens.assistencia,
       },
-      { id: "s2", nome: "Troca de bateria", descricao: "Com teste de saúde antes e depois.", duracao: "1h", preco: 0 },
-      { id: "s3", nome: "Reparo de placa", descricao: "Microssoldagem para danos por líquido e queda.", duracao: "2 a 5 dias", preco: 0 },
-      { id: "s4", nome: "Limpeza de notebook", descricao: "Troca de pasta térmica e higienização.", duracao: "3h", preco: 149 },
+      {
+        id: "s2",
+        nome: "Troca de bateria",
+        descricao: "Com teste de saúde antes e depois.",
+        duracao: "1h",
+        preco: 0,
+      },
+      {
+        id: "s3",
+        nome: "Reparo de placa",
+        descricao: "Microssoldagem para danos por líquido e queda.",
+        duracao: "2 a 5 dias",
+        preco: 0,
+      },
+      {
+        id: "s4",
+        nome: "Limpeza de notebook",
+        descricao: "Troca de pasta térmica e higienização.",
+        duracao: "3h",
+        preco: 149,
+      },
     ],
     faq: [
       {
@@ -574,9 +661,27 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
         preco: 690,
         imagem: imagens.automotiva,
       },
-      { id: "s2", nome: "Vitrificação de pintura", descricao: "Proteção cerâmica com durabilidade de 12 meses.", duracao: "1 dia", preco: 1490 },
-      { id: "s3", nome: "Higienização interna", descricao: "Bancos, carpetes, teto e ar-condicionado.", duracao: "4h", preco: 450 },
-      { id: "s4", nome: "Lavagem detalhada", descricao: "Método dos dois baldes e cera de carnaúba.", duracao: "1h30", preco: 160 },
+      {
+        id: "s2",
+        nome: "Vitrificação de pintura",
+        descricao: "Proteção cerâmica com durabilidade de 12 meses.",
+        duracao: "1 dia",
+        preco: 1490,
+      },
+      {
+        id: "s3",
+        nome: "Higienização interna",
+        descricao: "Bancos, carpetes, teto e ar-condicionado.",
+        duracao: "4h",
+        preco: 450,
+      },
+      {
+        id: "s4",
+        nome: "Lavagem detalhada",
+        descricao: "Método dos dois baldes e cera de carnaúba.",
+        duracao: "1h30",
+        preco: 160,
+      },
     ],
     depoimentos: [
       {

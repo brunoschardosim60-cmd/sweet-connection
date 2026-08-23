@@ -301,8 +301,6 @@ export function TrilhasProduto() {
   );
 }
 
-
-
 /* ----------------------------- COMPARAÇÃO ----------------------------- */
 
 /** Proporção de tela de um celular de referência (390 × 844). */
@@ -643,7 +641,11 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
         : m.segmento === id && m.familia !== "cardapio";
   const lista = modelos.filter((m) => casaNoFiltro(m, filtro));
   const visiveis = limite ? lista.slice(0, limite) : lista;
-  const abas = [{ id: "todos", nome: "Todos" }, { id: "cardapio", nome: "Cardápio digital" }, ...segmentos];
+  const abas = [
+    { id: "todos", nome: "Todos" },
+    { id: "cardapio", nome: "Cardápio digital" },
+    ...segmentos,
+  ];
 
   return (
     <div>
@@ -675,7 +677,6 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
           );
         })}
       </div>
-
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {visiveis.map((m, i) => (

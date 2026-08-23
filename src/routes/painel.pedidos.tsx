@@ -127,7 +127,6 @@ function PainelPedidos() {
         </div>
       )}
 
-
       {aba === "pedidos" && <AbaPedidos siteId={site?.id} />}
       {aba === "mesas" && (
         <AbaMesas siteId={site?.id} slug={site?.slug} nome={site?.conteudo.nome} />

@@ -451,7 +451,6 @@ export function CatalogoPagina({
                 </p>
               )}
             </div>
-
           </div>
           <div className="flex items-center gap-1.5">
             {interacoesExternas && (
@@ -592,7 +591,6 @@ export function CatalogoPagina({
               className="sticky z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur"
               style={{ background: hexToRgba(site.aparencia.corFundo, 0.96), top: alturaCabecalho }}
             >
-
               <label className="sr-only" htmlFor="busca-catalogo">
                 Buscar por nome, descrição ou categoria
               </label>

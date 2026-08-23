@@ -143,7 +143,6 @@ function VisaoGeral() {
         ))}
       </div>
 
-
       {concluidos < passosInicio.length && (
         <section className="surface p-5" aria-labelledby="checklist-inicial">
           <div className="flex flex-wrap items-center justify-between gap-2">
