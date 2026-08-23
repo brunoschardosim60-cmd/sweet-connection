@@ -1162,7 +1162,7 @@ function DrawerCarrinho({
         role="dialog"
         aria-modal="true"
         aria-label="Seu pedido"
-        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom @5xl:inset-y-0 @5xl:left-auto @5xl:right-0 @5xl:max-h-none @5xl:w-[min(440px,100vw)] @5xl:border-l @5xl:border-t-0"
+        className="scrollbar-invisivel absolute inset-x-0 bottom-0 max-h-[88vh] touch-pan-y overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom @5xl:inset-y-0 @5xl:left-auto @5xl:right-0 @5xl:max-h-none @5xl:w-[min(440px,100vw)] @5xl:border-l @5xl:border-t-0"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
