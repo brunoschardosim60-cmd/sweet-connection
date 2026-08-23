@@ -1686,7 +1686,10 @@ function PainelCarrinho({
   onEnviar: () => void;
 }) {
   const primaria = site.aparencia.corPrimaria;
-  const modalidades: Entrega[] = perfilCatalogo(site).modalidades ?? ["entrega", "retirada"];
+  const modalidades: Entrega[] = site.comercio?.modalidadesPedido?.length
+    ? site.comercio.modalidadesPedido
+    : (perfilCatalogo(site).modalidades ?? ["entrega", "retirada"]);
+  const entregaAtiva = modalidades.includes(entrega) ? entrega : (modalidades[0] ?? "retirada");
   const contatoValido = whatsappValido(campos.whatsapp);
   const dadosObrigatoriosOk = contatoValido && campos.nome.trim().length >= 2;
   const podeConfirmar = pedidosAtivos && dadosObrigatoriosOk && !enviando;
@@ -1834,7 +1837,7 @@ function PainelCarrinho({
         className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1"
       >
         {modalidades.map((op) => (
-          <Chip key={op} ativo={entrega === op} cor={primaria} onClick={() => setEntrega(op)}>
+          <Chip key={op} ativo={entregaAtiva === op} cor={primaria} onClick={() => setEntrega(op)}>
             {rotulosModalidade[op]}
           </Chip>
         ))}
@@ -1845,7 +1848,7 @@ function PainelCarrinho({
         {campoWhatsapp}
       </div>
 
-      {entrega === "mesa" && (
+      {entregaAtiva === "mesa" && (
         <div className="grid gap-2 @2xl:grid-cols-2">
           {campo("mesa", "Número da mesa", "Ex.: 12")}
           {campo("pessoas", "Quantas pessoas?", "Ex.: 4")}
@@ -1853,7 +1856,7 @@ function PainelCarrinho({
         </div>
       )}
 
-      {entrega === "retirada" && (
+      {entregaAtiva === "retirada" && (
         <div className="grid gap-2">
           {campo("horarioPreferido", "Horário preferido para retirar", "Ex.: 19h30")}
           {campo("observacao", "Observações do pedido")}

@@ -215,6 +215,8 @@ export interface Comercio {
   carrinho: boolean;
   taxaEntrega: number;
   pedidoMinimo: number;
+  /** Modalidades de atendimento liberadas pelo estabelecimento no carrinho. */
+  modalidadesPedido?: ("entrega" | "retirada" | "mesa")[];
   /** Taxas por bairro para delivery. Nunca contém dados do visitante. */
   taxasPorBairro?: { bairro: string; taxa: number }[];
   /** Formas escolhidas e dados de recebimento pertencem ao estabelecimento. */

@@ -238,6 +238,46 @@ export function AbaCardapio({
         </label>
         <fieldset className="mt-4">
           <legend className="text-xs font-medium text-muted-foreground">
+            Como o cliente pode receber
+          </legend>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Escolha as opções que aparecerão no carrinho. Mantenha pelo menos uma ativa.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-3 text-xs">
+            {(
+              [
+                ["entrega", "Entrega"],
+                ["retirada", "Retirada no local"],
+                ["mesa", "Mesa / comanda"],
+              ] as const
+            ).map(([tipo, rotulo]) => {
+              const modalidades = comercio.modalidadesPedido ??
+                perfil.modalidades ?? ["entrega", "retirada"];
+              const marcada = modalidades.includes(tipo);
+              return (
+                <label key={tipo} className="flex min-h-11 items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={marcada}
+                    onChange={(e) => {
+                      const proximas = e.target.checked
+                        ? [...modalidades, tipo]
+                        : modalidades.filter((modalidade) => modalidade !== tipo);
+                      if (!proximas.length) return;
+                      aplicar((s) => ({
+                        ...s,
+                        comercio: { ...comercio, ...s.comercio, modalidadesPedido: proximas },
+                      }));
+                    }}
+                  />
+                  {rotulo}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+        <fieldset className="mt-4">
+          <legend className="text-xs font-medium text-muted-foreground">
             Formas de pagamento aceitas
           </legend>
           <div className="mt-2 flex flex-wrap gap-3 text-xs">
