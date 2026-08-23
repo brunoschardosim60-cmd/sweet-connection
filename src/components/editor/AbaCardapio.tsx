@@ -1,14 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  FolderPen,
-  GripVertical,
-} from "lucide-react";
-import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
+import { ArrowDown, ArrowUp, ExternalLink, FolderPen, GripVertical } from "lucide-react";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import {
   categoriasDeProdutos,
@@ -42,8 +33,6 @@ export function AbaCardapio({
   const semCategoria = site.produtos.filter((p) => !p.categoria);
   const [renomeando, setRenomeando] = useState<string | null>(null);
   const [novoNome, setNovoNome] = useState("");
-  const [previa, setPrevia] = useState(true);
-  const [versaoDestaquePrevia, setVersaoDestaquePrevia] = useState(0);
   const [arrastando, setArrastando] = useState<
     { tipo: "produto"; id: string } | { tipo: "categoria"; nome: string } | null
   >(null);
@@ -150,25 +139,14 @@ export function AbaCardapio({
               6 itens em destaque.
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPrevia((v) => !v)}
-              aria-pressed={previa}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
-            >
-              {previa ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
-              {previa ? "Ocultar prévia" : "Ver prévia"}
-            </button>
-            <a
-              href={enderecoCardapio(site.slug)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
-            >
-              <ExternalLink size={14} aria-hidden /> Abrir página
-            </a>
-          </div>
+          <a
+            href={enderecoCardapio(site.slug)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
+          >
+            <ExternalLink size={14} aria-hidden /> Abrir página
+          </a>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Grupos de opção sugeridos para este segmento: {perfil.gruposOpcao.join(" · ")}.
@@ -513,39 +491,6 @@ export function AbaCardapio({
           </div>
         )}
       </section>
-
-      {previa && (
-        <section className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold">Prévia da página do cardápio</h3>
-            {comercio.destaqueAbertura?.ativo && comercio.destaqueAbertura.imagem && (
-              <button
-                type="button"
-                onClick={() => setVersaoDestaquePrevia((versao) => versao + 1)}
-                className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold"
-              >
-                Ver destaque de abertura
-              </button>
-            )}
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Reflete em tempo real a ordem, as categorias e os selos exibidos em{" "}
-            {enderecoCardapio(site.slug)}. Nesta prévia os links externos ficam desativados.
-          </p>
-          <div
-            aria-label="Prévia do cardápio"
-            className="scrollbar-invisivel mt-3 max-h-[520px] overflow-y-auto rounded-2xl border border-border"
-          >
-            <CatalogoPagina
-              key={versaoDestaquePrevia}
-              site={site}
-              interacoesExternas={false}
-              forcarDestaqueInicial={versaoDestaquePrevia > 0}
-              mostrarCarrinhoFlutuante={false}
-            />
-          </div>
-        </section>
-      )}
 
       <p className="text-xs text-muted-foreground">
         Arraste pelo apoio <GripVertical size={12} className="inline" aria-hidden /> para reordenar
