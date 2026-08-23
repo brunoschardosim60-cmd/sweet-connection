@@ -413,7 +413,9 @@ export function CatalogoPagina({
       className={`nexa-catalogo ${interacoesExternas ? "nexa-catalogo-publico" : ""} relative @container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed`}
     >
       <header
+        ref={cabecalhoRef}
         className="sticky top-0 z-30 w-full backdrop-blur"
+
         style={{
           background: hexToRgba(site.aparencia.corFundo, 0.92),
           borderBottom: "1px solid var(--ms-border)",
