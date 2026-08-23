@@ -16,6 +16,7 @@ import {
   RecursosPorSegmento,
   SecaoModelos,
   SiteFooter,
+  TrilhasProduto,
 } from "@/components/landing/sections";
 
 export const Route = createFileRoute("/")({
@@ -54,6 +55,7 @@ function Index() {
       <main>
         <Hero />
         <FaixaSegmentos />
+        <TrilhasProduto />
         <Comparacao />
         <Recursos />
         <SecaoModelos />
