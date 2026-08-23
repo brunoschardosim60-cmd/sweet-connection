@@ -2839,11 +2839,24 @@ function AbaSeo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           placeholder="GTM-XXXXXXX"
         />
         <Texto
-          rotulo="Domínio próprio (em breve)"
+          rotulo="Domínio próprio"
           valor={site.integracoes.dominio}
-          onChange={(v) => setInt({ dominio: v })}
+          onChange={(v) =>
+            setInt({
+              dominio: v
+                .trim()
+                .toLowerCase()
+                .replace(/^https?:\/\//, "")
+                .replace(/\/$/, ""),
+            })
+          }
           placeholder="www.cliente.com.br"
         />
+        <p className="text-xs text-muted-foreground">
+          Salve o domínio para preparar a configuração. Para ele abrir este mini-site, conecte-o ao
+          projeto Nexa na Vercel e aponte o DNS conforme o provedor do domínio; a verificação final
+          depende dessas etapas externas.
+        </p>
       </Bloco>
     </>
   );

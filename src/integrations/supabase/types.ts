@@ -258,6 +258,39 @@ export type Database = {
           },
         ]
       }
+      avaliacoes_cardapio: {
+        Row: {
+          comentario: string
+          created_at: string
+          id: string
+          minisite_id: string
+          nota: number
+          pedido_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          minisite_id: string
+          nota: number
+          pedido_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          minisite_id?: string
+          nota?: number
+          pedido_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       billing_checkout_sessions: {
         Row: {
           billing_cycle: string
@@ -536,6 +569,27 @@ export type Database = {
           payload?: Json
           reference_month?: string
           sent_at?: string
+        }
+        Relationships: []
+      }
+      estoque_cardapio: {
+        Row: {
+          minisite_id: string
+          produto_id: string
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          minisite_id: string
+          produto_id: string
+          quantidade: number
+          updated_at?: string
+        }
+        Update: {
+          minisite_id?: string
+          produto_id?: string
+          quantidade?: number
+          updated_at?: string
         }
         Relationships: []
       }

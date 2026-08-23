@@ -22,6 +22,7 @@ import { rotulosModalidade, rotulosPagamento, type Modalidade } from "@/lib/nexa
 import { moeda } from "@/lib/nexa/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Site } from "@/lib/nexa/types";
 
 export const Route = createFileRoute("/painel/pedidos")({
   head: () => ({
@@ -124,7 +125,7 @@ function PainelPedidos() {
       {aba === "mesas" && (
         <AbaMesas siteId={site?.id} slug={site?.slug} nome={site?.conteudo.nome} />
       )}
-      {aba === "operacao" && <AbaOperacao siteId={site?.id} />}
+      {aba === "operacao" && <AbaOperacao site={site} />}
     </div>
   );
 }
@@ -685,11 +686,16 @@ function AbaMesas({
   );
 }
 
-function AbaOperacao({ siteId }: { siteId?: string | undefined }) {
+function AbaOperacao({ site }: { site?: Site | undefined }) {
+  const siteId = site?.id;
   const [periodo, setPeriodo] = useState("hoje");
   const [pedidos, setPedidos] = useState<
     { total: number; modalidade: string; created_at: string }[]
   >([]);
+  const [avaliacoes, setAvaliacoes] = useState<
+    { id: string; nota: number; comentario: string; status: string; created_at: string }[]
+  >([]);
+  const [estoque, setEstoque] = useState<Record<string, number>>({});
   useEffect(() => {
     if (!siteId) {
       setPedidos([]);
@@ -704,6 +710,59 @@ function AbaOperacao({ siteId }: { siteId?: string | undefined }) {
         setPedidos((data ?? []) as { total: number; modalidade: string; created_at: string }[]),
       );
   }, [siteId]);
+  const carregarComplementos = useCallback(async () => {
+    if (!siteId) {
+      setAvaliacoes([]);
+      setEstoque({});
+      return;
+    }
+    const [avaliacoesResult, estoqueResult] = await Promise.all([
+      supabase
+        .from("avaliacoes_cardapio")
+        .select("id,nota,comentario,status,created_at")
+        .eq("minisite_id", siteId)
+        .order("created_at", { ascending: false })
+        .limit(12),
+      supabase.from("estoque_cardapio").select("produto_id,quantidade").eq("minisite_id", siteId),
+    ]);
+    if (avaliacoesResult.error) toast.error("Não foi possível carregar as avaliações.");
+    else setAvaliacoes(avaliacoesResult.data ?? []);
+    if (estoqueResult.error) toast.error("Não foi possível carregar o estoque.");
+    else
+      setEstoque(
+        Object.fromEntries(
+          (estoqueResult.data ?? []).map((item) => [item.produto_id, item.quantidade]),
+        ),
+      );
+  }, [siteId]);
+  useEffect(() => {
+    void carregarComplementos();
+  }, [carregarComplementos]);
+  const salvarEstoque = async (produtoId: string, quantidade: number) => {
+    if (!siteId || !Number.isInteger(quantidade) || quantidade < 0) {
+      toast.error("Informe uma quantidade inteira igual ou maior que zero.");
+      return;
+    }
+    const { error } = await supabase.from("estoque_cardapio").upsert({
+      minisite_id: siteId,
+      produto_id: produtoId,
+      quantidade,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) toast.error("Não foi possível atualizar o estoque.");
+    else {
+      setEstoque((atual) => ({ ...atual, [produtoId]: quantidade }));
+      toast.success("Estoque atualizado.");
+    }
+  };
+  const moderarAvaliacao = async (id: string, status: "aprovada" | "oculta") => {
+    const { error } = await supabase.from("avaliacoes_cardapio").update({ status }).eq("id", id);
+    if (error) toast.error("Não foi possível atualizar a avaliação.");
+    else {
+      setAvaliacoes((atual) => atual.map((a) => (a.id === id ? { ...a, status } : a)));
+      toast.success(status === "aprovada" ? "Avaliação aprovada." : "Avaliação ocultada.");
+    }
+  };
   const limite = periodo === "hoje" ? 1 : Number(periodo);
   const recentes = pedidos.filter(
     (p) => Date.now() - new Date(p.created_at).getTime() <= limite * 86400000,
@@ -745,6 +804,93 @@ function AbaOperacao({ siteId }: { siteId?: string | undefined }) {
           </li>
         ))}
       </ul>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="surface p-4" aria-labelledby="estoque-operacao">
+          <h2 id="estoque-operacao" className="font-semibold">
+            Estoque disponível
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ajustes entram em vigor no cardápio publicado imediatamente. Produto sem controle de
+            estoque continua ilimitado.
+          </p>
+          {site?.produtos.filter((produto) => produto.estoque !== undefined).length ? (
+            <ul className="mt-3 space-y-2">
+              {site.produtos
+                .filter((produto) => produto.estoque !== undefined)
+                .map((produto) => (
+                  <li
+                    key={produto.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border p-3"
+                  >
+                    <span className="min-w-0 truncate text-sm font-medium">{produto.nome}</span>
+                    <input
+                      aria-label={`Estoque de ${produto.nome}`}
+                      type="number"
+                      min={0}
+                      value={estoque[produto.id] ?? produto.estoque ?? 0}
+                      onChange={(e) => {
+                        const valor = e.target.value === "" ? 0 : Number(e.target.value);
+                        setEstoque((atual) => ({ ...atual, [produto.id]: valor }));
+                      }}
+                      onBlur={(e) => void salvarEstoque(produto.id, Number(e.target.value))}
+                      className="min-h-11 w-20 rounded-xl border border-border bg-card px-2 text-sm"
+                    />
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Defina o estoque de cada item na aba Itens do editor.
+            </p>
+          )}
+        </section>
+
+        <section className="surface p-4" aria-labelledby="avaliacoes-operacao">
+          <h2 id="avaliacoes-operacao" className="font-semibold">
+            Avaliações pós-pedido
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Aprove apenas as avaliações que deseja usar como prova social.
+          </p>
+          {avaliacoes.length ? (
+            <ul className="mt-3 space-y-2">
+              {avaliacoes.map((avaliacao) => (
+                <li key={avaliacao.id} className="rounded-xl border border-border p-3 text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <strong>
+                      {"★".repeat(avaliacao.nota)}
+                      {"☆".repeat(5 - avaliacao.nota)}
+                    </strong>
+                    <span className="text-xs text-muted-foreground">{avaliacao.status}</span>
+                  </div>
+                  {avaliacao.comentario && (
+                    <p className="mt-1 text-muted-foreground">{avaliacao.comentario}</p>
+                  )}
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void moderarAvaliacao(avaliacao.id, "aprovada")}
+                      className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold"
+                    >
+                      Aprovar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void moderarAvaliacao(avaliacao.id, "oculta")}
+                      className="min-h-11 rounded-full border border-border px-3 text-xs font-semibold"
+                    >
+                      Ocultar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">Nenhuma avaliação recebida ainda.</p>
+          )}
+        </section>
+      </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
         {["Itens mais pedidos", "Horários de maior movimento", "Pedidos por modalidade"].map(
