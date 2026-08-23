@@ -105,7 +105,9 @@ export async function criarPedidoPublicado(
     requested_chave: chave,
   });
   if (error) {
-    const codigo = error.message;
+    // PostgREST pode devolver a exceção da RPC em message, details ou hint,
+    // conforme a versão do gateway. Todos precisam ser considerados.
+    const codigo = [error.code, error.message, error.details, error.hint].filter(Boolean).join(" ");
     if (codigo.includes("minimum_not_reached"))
       throw new Error("O pedido ainda não atingiu o mínimo do estabelecimento.");
     if (codigo.includes("rate_limit_exceeded"))
@@ -123,6 +125,18 @@ export async function criarPedidoPublicado(
       throw new Error("Esta mesa não está disponível. Leia o QR Code da mesa novamente.");
     if (codigo.includes("invalid_contact"))
       throw new Error("Informe seu nome e WhatsApp para confirmar o pedido.");
+    if (codigo.includes("42501") || /permission|policy|not allowed/i.test(codigo))
+      throw new Error(
+        "O cardápio não está autorizado a receber pedidos agora. Avise o estabelecimento.",
+      );
+    if (/PGRST202|function.*not found/i.test(codigo))
+      throw new Error("O cardápio está sendo atualizado. Recarregue a página e tente novamente.");
+    console.error("[Nexa pedido] Falha ao confirmar", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new Error("Não foi possível confirmar o pedido. Tente novamente.");
   }
   return data as unknown as {
