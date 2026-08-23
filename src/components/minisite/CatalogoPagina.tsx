@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import {
   ArrowLeft,
   Clock,
-  Info,
   MapPin,
   MessageCircle,
   Minus,
@@ -1473,7 +1472,6 @@ function DetalheProduto({
   onAlterar: (delta: number, observacao?: string) => void;
   onFechar: () => void;
 }) {
-  const perfil = perfilCatalogo(site);
   const primaria = site.aparencia.corPrimaria;
   const [nota, setNota] = useState(observacao);
   const desconto = descontoPercentual(produto);
@@ -1552,18 +1550,12 @@ function DetalheProduto({
           )}
         </p>
 
-        <section
-          className="mt-4 p-3"
-          style={{
-            background: "var(--ms-surface)",
-            border: "1px solid var(--ms-border)",
-            borderRadius: "var(--ms-radius)",
-          }}
-        >
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold">
-            <Info size={14} aria-hidden /> Opções do item
-          </h3>
-          {produto.variacoes.length > 0 ? (
+        {produto.variacoes.length > 0 && (
+          <section className="mt-4">
+            <h3 className="text-sm font-semibold">Variações disponíveis</h3>
+            <p className="mt-1 text-xs opacity-70">
+              Escolha e descreva sua preferência na observação.
+            </p>
             <ul className="mt-2 flex flex-wrap gap-2">
               {produto.variacoes.map((v) => (
                 <li
@@ -1575,30 +1567,8 @@ function DetalheProduto({
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="mt-1 text-xs opacity-70">
-              Opções disponíveis conforme o cardápio do estabelecimento.
-            </p>
-          )}
-          <p className="mt-3 text-[11px] uppercase tracking-wide opacity-60">
-            Personalizações combinadas no WhatsApp
-          </p>
-          <ul className="mt-1 flex flex-wrap gap-1.5">
-            {perfil.gruposOpcao.map((g) => (
-              <li
-                key={g}
-                className="rounded-full px-2.5 py-1 text-[11px] opacity-75"
-                style={{ border: "1px dashed var(--ms-border)" }}
-              >
-                {g}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-[11px] opacity-70">
-            Estas escolhas ainda não são registradas automaticamente: descreva na observação abaixo
-            e confirme com o estabelecimento.
-          </p>
-        </section>
+          </section>
+        )}
 
         <label className="mt-4 block text-sm font-medium" htmlFor="obs-item">
           Observação
