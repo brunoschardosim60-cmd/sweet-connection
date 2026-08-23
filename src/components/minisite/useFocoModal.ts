@@ -10,6 +10,13 @@ const SELETOR =
  */
 export function useFocoModal(aberto: boolean, aoFechar: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const aoFecharRef = useRef(aoFechar);
+
+  // Os drawers recebem callbacks criados na renderização. Mantê-los em uma ref
+  // evita reiniciar o efeito (e devolver o foco ao X) a cada tecla digitada.
+  useEffect(() => {
+    aoFecharRef.current = aoFechar;
+  }, [aoFechar]);
 
   useEffect(() => {
     if (!aberto) return;
@@ -26,7 +33,7 @@ export function useFocoModal(aberto: boolean, aoFechar: () => void) {
     const aoTeclar = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        aoFechar();
+        aoFecharRef.current();
         return;
       }
       if (e.key !== "Tab" || !ref.current) return;
@@ -53,7 +60,7 @@ export function useFocoModal(aberto: boolean, aoFechar: () => void) {
       document.body.style.overflow = overflow;
       anterior?.focus?.();
     };
-  }, [aberto, aoFechar]);
+  }, [aberto]);
 
   return ref;
 }

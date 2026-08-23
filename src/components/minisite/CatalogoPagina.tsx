@@ -1671,6 +1671,8 @@ function PainelCarrinho({
   const primaria = site.aparencia.corPrimaria;
   const modalidades: Entrega[] = perfilCatalogo(site).modalidades ?? ["entrega", "retirada"];
   const contatoValido = whatsappValido(campos.whatsapp);
+  const dadosObrigatoriosOk = contatoValido && campos.nome.trim().length >= 2;
+  const podeConfirmar = pedidosAtivos && dadosObrigatoriosOk && !enviando;
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
@@ -1914,6 +1916,11 @@ function PainelCarrinho({
           {retorno}
         </p>
       )}
+      {pedidosAtivos && !enviando && !dadosObrigatoriosOk && (
+        <p role="status" className="text-xs opacity-75">
+          Informe seu nome e um WhatsApp válido com DDD para confirmar.
+        </p>
+      )}
       {!pedidosAtivos && !retorno && (
         <p className="text-xs opacity-75">
           Esta é uma prévia. A confirmação de pedidos fica disponível no cardápio publicado.
@@ -1926,7 +1933,7 @@ function PainelCarrinho({
       ) : (
         <button
           type="button"
-          disabled={enviando || !pedidosAtivos || !contatoValido || campos.nome.trim().length < 2}
+          disabled={!podeConfirmar}
           onClick={onEnviar}
           className="inline-flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
@@ -1934,10 +1941,7 @@ function PainelCarrinho({
             color: contraste(primaria),
             borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
             outlineColor: primaria,
-            opacity:
-              enviando || !pedidosAtivos || !contatoValido || campos.nome.trim().length < 2
-                ? 0.65
-                : 1,
+            opacity: podeConfirmar ? 1 : 0.65,
           }}
         >
           <ShoppingBag size={15} aria-hidden />{" "}
