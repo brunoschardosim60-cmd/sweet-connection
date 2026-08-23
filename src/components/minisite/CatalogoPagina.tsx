@@ -714,23 +714,37 @@ export function CatalogoPagina({
 
       {mostrarCarrinhoFlutuante && quantidadeTotal > 0 && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:inset-x-auto @5xl:bottom-6 @5xl:right-6 @5xl:p-0"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
           <button
             ref={carrinhoFlutuanteRef}
             type="button"
             onClick={() => setCarrinhoAberto(true)}
-            className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold shadow-lg transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none ${
+            aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}, total de ${moeda(totais.total)}`}
+            className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold shadow-lg transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none @5xl:relative @5xl:h-14 @5xl:w-14 @5xl:justify-center @5xl:rounded-full @5xl:p-0 ${
               contadorAnimado ? "scale-[1.02]" : "scale-100"
             }`}
             style={{ ...botaoPrimario, outlineColor: primaria }}
           >
             <span className="inline-flex items-center gap-2">
               <ShoppingBag size={16} aria-hidden />
-              {quantidadeTotal} {quantidadeTotal === 1 ? "item" : "itens"}
+              <span className="@5xl:hidden">
+                {quantidadeTotal} {quantidadeTotal === 1 ? "item" : "itens"}
+              </span>
             </span>
-            <span>{moeda(totais.total)}</span>
+            <span className="@5xl:hidden">{moeda(totais.total)}</span>
+            <span
+              aria-hidden
+              className="hidden @5xl:absolute @5xl:-right-1 @5xl:-top-1 @5xl:grid @5xl:min-h-5 @5xl:min-w-5 @5xl:place-items-center @5xl:rounded-full @5xl:px-1 @5xl:text-[10px] @5xl:font-bold"
+              style={{
+                background: site.aparencia.corFundo,
+                color: primaria,
+                border: `1px solid ${primaria}`,
+              }}
+            >
+              {quantidadeTotal > 99 ? "99+" : quantidadeTotal}
+            </span>
           </button>
         </div>
       )}
