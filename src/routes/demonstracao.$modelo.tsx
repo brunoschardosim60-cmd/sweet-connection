@@ -63,9 +63,10 @@ function Demonstracao() {
       >
         <section
           aria-label="Prévia interativa do modelo"
+          data-dispositivo={disp}
           className="relative flex min-h-[720px] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-border/80 bg-background/45 shadow-[0_20px_70px_rgba(24,20,13,0.08)]"
         >
-          <div className="pointer-events-none absolute left-6 top-6 z-10 hidden max-w-48 lg:block">
+          <div className="pointer-events-none absolute left-6 top-6 z-10 hidden max-w-48 lg:block data-[dispositivo=desktop]:hidden">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Prévia interativa
             </p>
