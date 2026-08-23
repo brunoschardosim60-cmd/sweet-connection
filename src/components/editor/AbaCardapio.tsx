@@ -501,6 +501,7 @@ export function AbaCardapio({
               site={site}
               interacoesExternas={false}
               forcarDestaqueInicial={versaoDestaquePrevia > 0}
+              mostrarCarrinhoFlutuante={false}
             />
           </div>
         </section>

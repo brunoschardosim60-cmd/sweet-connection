@@ -86,6 +86,7 @@ export function CatalogoPagina({
   mostrarVoltar = true,
   previewEstreita = false,
   forcarDestaqueInicial = false,
+  mostrarCarrinhoFlutuante = true,
 }: {
   site: Site;
   rastrear?: boolean;
@@ -95,6 +96,8 @@ export function CatalogoPagina({
   previewEstreita?: boolean;
   /** Usado somente pela prévia do editor para revisar o destaque sem publicar. */
   forcarDestaqueInicial?: boolean;
+  /** Desliga a barra fixa quando o catálogo está dentro de outra tela, como o editor. */
+  mostrarCarrinhoFlutuante?: boolean;
 }) {
   const perfil = perfilCatalogo(site);
   const primaria = site.aparencia.corPrimaria;
@@ -661,7 +664,7 @@ export function CatalogoPagina({
         </footer>
       )}
 
-      {quantidadeTotal > 0 && (
+      {mostrarCarrinhoFlutuante && quantidadeTotal > 0 && (
         <div
           className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 @5xl:hidden"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}

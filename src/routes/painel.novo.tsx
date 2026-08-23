@@ -1045,6 +1045,7 @@ function NovoSite() {
                 interacoesExternas={false}
                 mostrarVoltar={false}
                 previewEstreita
+                mostrarCarrinhoFlutuante={false}
               />
             ) : (
               <MiniSite site={previa} compacto botaoFlutuante={false} />

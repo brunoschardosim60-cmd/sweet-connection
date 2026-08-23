@@ -575,7 +575,12 @@ function Editor() {
           <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
           <MolduraPrevia dispositivo={dispositivo}>
             {cardapioDigital ? (
-              <CatalogoPagina site={rascunho} interacoesExternas={false} mostrarVoltar={false} />
+              <CatalogoPagina
+                site={rascunho}
+                interacoesExternas={false}
+                mostrarVoltar={false}
+                mostrarCarrinhoFlutuante={false}
+              />
             ) : (
               <MiniSite site={rascunho} botaoFlutuante={false} modoEdicao />
             )}

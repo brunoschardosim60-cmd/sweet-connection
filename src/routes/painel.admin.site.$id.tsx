@@ -114,7 +114,12 @@ function AdminVerSite() {
         ) : site ? (
           <MolduraPrevia dispositivo={disp}>
             {ehModeloCardapio(site.modeloId) ? (
-              <CatalogoPagina site={site} interacoesExternas={false} mostrarVoltar={false} />
+              <CatalogoPagina
+                site={site}
+                interacoesExternas={false}
+                mostrarVoltar={false}
+                mostrarCarrinhoFlutuante={false}
+              />
             ) : (
               <MiniSite site={site} botaoFlutuante={false} interacoesExternas={false} />
             )}
