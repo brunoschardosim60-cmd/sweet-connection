@@ -7,6 +7,9 @@ import { PreviaMidia, useMidias } from "@/components/editor/SeletorMidia";
 import { biblioteca } from "@/lib/nexa/images";
 import { enviarArquivo, midiaStore } from "@/lib/nexa/media";
 
+const tamanhoLegivel = (bytes: number) =>
+  bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
 export const Route = createFileRoute("/painel/midias")({
   component: Midias,
 });
@@ -21,7 +24,11 @@ function Midias() {
     setEnviando(true);
     try {
       const midia = await enviarArquivo(arquivo);
-      toast.success("Mídia enviada", { description: midia.nome });
+      toast.success("Mídia enviada", {
+        description: midia.otimizacao
+          ? `Otimizada: ${tamanhoLegivel(midia.otimizacao.original)} → ${tamanhoLegivel(midia.otimizacao.final)} (${midia.otimizacao.percentual}% menor).`
+          : midia.nome,
+      });
     } catch (error) {
       toast.error("Falha no envio", {
         description: error instanceof Error ? error.message : undefined,

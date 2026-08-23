@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { otimizarImagem } from "./otimizar-imagem";
+import { otimizarImagem, resumoOtimizacao, type ResultadoOtimizacao } from "./otimizar-imagem";
 
 export type TipoMidia = "imagem" | "video";
 
@@ -12,6 +12,8 @@ export interface Midia {
   tamanho: number;
   criadoEm: string;
   caminho: string;
+  /** Presente apenas no retorno imediato após um upload otimizado. */
+  otimizacao?: ResultadoOtimizacao;
 }
 
 const BUCKET = "nexa-media";
@@ -164,6 +166,8 @@ export async function enviarArquivo(original: File): Promise<Midia> {
   }
 
   const midia = paraMidia(created.data);
+  const otimizacao = resumoOtimizacao(original.size, arquivo.size);
+  if (otimizacao) midia.otimizacao = otimizacao;
   midiaStore.adicionar(midia);
   return midia;
 }

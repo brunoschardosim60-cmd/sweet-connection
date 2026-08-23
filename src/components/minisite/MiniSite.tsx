@@ -213,6 +213,7 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
     .slice(0, 2)
     .map((p) => p[0])
     .join("");
+  const posicaoCapa = (a.capaPosicao ?? "centro").replaceAll("-", " ");
 
   return (
     <header className="relative">
@@ -222,6 +223,7 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
             src={conteudo.capa}
             alt={`Capa de ${conteudo.nome}`}
             className="h-full w-full object-cover"
+            style={{ objectPosition: posicaoCapa }}
           />
         ) : a.capaTipo === "gradiente" ? (
           <div

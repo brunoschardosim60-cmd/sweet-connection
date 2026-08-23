@@ -180,6 +180,17 @@ export interface Aparencia {
   capaTipo: "imagem" | "cor" | "gradiente";
   /** Altura da capa do mini-site. Padrão: media. */
   capaAltura?: "baixa" | "media" | "alta";
+  /** Parte da foto de capa que deve permanecer visível quando ela for cortada. */
+  capaPosicao?:
+    | "superior-esquerda"
+    | "superior"
+    | "superior-direita"
+    | "esquerda"
+    | "centro"
+    | "direita"
+    | "inferior-esquerda"
+    | "inferior"
+    | "inferior-direita";
   /** Formato do ícone de perfil do mini-site. Padrão: redondo. */
   logoFormato?: "redondo" | "quadrado";
 }

@@ -799,6 +799,60 @@ function AbaConteudo({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
           valor={site.conteudo.capa ?? ""}
           onChange={(v) => set({ capa: v })}
         />
+        {site.conteudo.capa && (
+          <div className="space-y-2 rounded-xl border border-border bg-card p-3">
+            <p className="text-sm font-medium">Enquadramento da capa</p>
+            <p className="text-xs text-muted-foreground">
+              Escolha a parte da imagem que deve continuar visível quando a capa for cortada.
+            </p>
+            <div
+              className="grid grid-cols-3 gap-1.5"
+              role="group"
+              aria-label="Enquadramento da capa"
+            >
+              {[
+                ["superior-esquerda", "Superior esquerdo"],
+                ["superior", "Superior"],
+                ["superior-direita", "Superior direito"],
+                ["esquerda", "Esquerda"],
+                ["centro", "Centro"],
+                ["direita", "Direita"],
+                ["inferior-esquerda", "Inferior esquerdo"],
+                ["inferior", "Inferior"],
+                ["inferior-direita", "Inferior direito"],
+              ].map(([valor, rotulo]) => {
+                const ativo = (site.aparencia.capaPosicao ?? "centro") === valor;
+                return (
+                  <button
+                    key={valor}
+                    type="button"
+                    aria-label={rotulo}
+                    aria-pressed={ativo}
+                    onClick={() =>
+                      aplicar((s) => ({
+                        ...s,
+                        aparencia: {
+                          ...s.aparencia,
+                          capaPosicao: valor as NonNullable<Site["aparencia"]["capaPosicao"]>,
+                        },
+                      }))
+                    }
+                    className={`grid min-h-11 place-items-center rounded-lg border text-xs font-semibold transition-colors ${
+                      ativo
+                        ? "border-ink bg-ink text-ink-foreground"
+                        : "border-border hover:bg-secondary"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`h-2.5 w-2.5 rounded-full ${ativo ? "bg-lime" : "bg-muted-foreground/50"}`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </Bloco>
 
       <Bloco titulo="Horários" id="bloco-horarios">

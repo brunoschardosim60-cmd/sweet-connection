@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import { biblioteca } from "@/lib/nexa/images";
 import { enviarArquivo, midiaStore, urlEmbed, type TipoMidia } from "@/lib/nexa/media";
 
+const tamanhoLegivel = (bytes: number) =>
+  bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
 export function useMidias() {
   const midias = useSyncExternalStore(midiaStore.subscribe, midiaStore.get, midiaStore.getServer);
   useEffect(() => {
@@ -61,7 +64,11 @@ export function SeletorMidia({
     try {
       const midia = await enviarArquivo(arquivo);
       onChange(midia.url);
-      toast.success("Mídia enviada", { description: midia.nome });
+      toast.success("Mídia enviada", {
+        description: midia.otimizacao
+          ? `Otimizada: ${tamanhoLegivel(midia.otimizacao.original)} → ${tamanhoLegivel(midia.otimizacao.final)} (${midia.otimizacao.percentual}% menor).`
+          : midia.nome,
+      });
     } catch (e) {
       toast.error("Falha no envio", { description: (e as Error).message });
     } finally {

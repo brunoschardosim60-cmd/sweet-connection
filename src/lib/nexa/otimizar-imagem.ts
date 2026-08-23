@@ -3,6 +3,21 @@ export const LARGURA_MAXIMA = 1600;
 
 const OTIMIZAVEIS = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+export interface ResultadoOtimizacao {
+  original: number;
+  final: number;
+  economia: number;
+  percentual: number;
+}
+
+/** Dados seguros para explicar a redução de peso ao dono da imagem. */
+export function resumoOtimizacao(original: number, final: number): ResultadoOtimizacao | null {
+  if (!Number.isFinite(original) || !Number.isFinite(final) || original <= 0 || final >= original)
+    return null;
+  const economia = original - final;
+  return { original, final, economia, percentual: Math.round((economia / original) * 100) };
+}
+
 const suporta = (tipo: string) => {
   try {
     return document.createElement("canvas").toDataURL(tipo).startsWith(`data:${tipo}`);
