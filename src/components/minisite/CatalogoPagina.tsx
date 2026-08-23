@@ -356,7 +356,7 @@ export function CatalogoPagina({
           borderBottom: "1px solid var(--ms-border)",
         }}
       >
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
+        <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 pb-2 pt-3">
           {mostrarVoltar ? (
             <a
               href={interacoesExternas ? `/site/${site.slug}` : undefined}
@@ -367,10 +367,8 @@ export function CatalogoPagina({
               <ArrowLeft size={16} aria-hidden />
               <span className="hidden @2xl:inline">Voltar ao site</span>
             </a>
-          ) : (
-            <span aria-hidden className="block w-2" />
-          )}
-          <div className="flex min-w-0 items-center gap-2">
+          ) : null}
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             {site.conteudo.logo && (
               <img
                 src={site.conteudo.logo}
@@ -379,8 +377,12 @@ export function CatalogoPagina({
               />
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{site.conteudo.nome}</p>
-              <p className="truncate text-[11px] opacity-70">{perfil.rotulo}</p>
+              <p className="truncate text-[13px] font-semibold leading-tight @md:text-sm">
+                {site.conteudo.nome}
+              </p>
+              <p className="mt-0.5 truncate text-[10px] leading-tight opacity-70 @md:text-[11px]">
+                {perfil.rotulo}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -417,7 +419,7 @@ export function CatalogoPagina({
         </div>
 
         <div
-          className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-x-auto scrollbar-invisivel px-4 pb-2 text-[11px]"
+          className="mx-auto flex w-full max-w-5xl items-center gap-1.5 overflow-x-auto px-4 pb-3 text-[11px] scrollbar-invisivel"
           aria-label="Informações do estabelecimento"
         >
           <span
@@ -451,7 +453,7 @@ export function CatalogoPagina({
               }
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2"
+              className="hidden min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2 @md:inline-flex"
               style={{ border: "1px solid var(--ms-border)", outlineColor: primaria }}
             >
               <MapPin size={12} aria-hidden /> Como chegar
@@ -463,7 +465,7 @@ export function CatalogoPagina({
               target="_blank"
               rel="noreferrer"
               onClick={() => registrar("Cardápio: WhatsApp do cabeçalho", true)}
-              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2"
+              className="hidden min-h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80 focus-visible:outline focus-visible:outline-2 @lg:inline-flex"
               style={{ border: "1px solid var(--ms-border)", outlineColor: primaria }}
             >
               <MessageCircle size={12} aria-hidden /> WhatsApp
