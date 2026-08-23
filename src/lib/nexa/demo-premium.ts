@@ -90,10 +90,10 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
       {
         id: "e1",
         nome: "Dra. Marina Alves",
-        cargo: "Nutricionista clínica · CRN 12345",
+        funcao: "Nutricionista clínica · CRN 12345",
         foto: imagens.nutricao,
       },
-      { id: "e2", nome: "Dr. Rafael Prado", cargo: "Nutrição esportiva · CRN 54321" },
+      { id: "e2", nome: "Dr. Rafael Prado", funcao: "Nutrição esportiva · CRN 54321" },
     ],
     faq: [
       {
@@ -148,8 +148,8 @@ export const conteudoModelosPremium: Record<string, ConteudoDemo> = {
       },
     ],
     equipe: [
-      { id: "e1", nome: "Ana Beatriz Lima", cargo: "Psicóloga · CRP 04/12345", foto: imagens.psicologia },
-      { id: "e2", nome: "Thiago Menezes", cargo: "Psicólogo infantojuvenil · CRP 04/67890" },
+      { id: "e1", nome: "Ana Beatriz Lima", funcao: "Psicóloga · CRP 04/12345", foto: imagens.psicologia },
+      { id: "e2", nome: "Thiago Menezes", funcao: "Psicólogo infantojuvenil · CRP 04/67890" },
     ],
     faq: [
       {
