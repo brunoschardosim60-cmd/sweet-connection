@@ -122,6 +122,7 @@ function Editor() {
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [autosave, setAutosave] = useState(true);
   const [previaMovel, setPreviaMovel] = useState(false);
+  const [versaoDestaquePrevia, setVersaoDestaquePrevia] = useState(0);
   const [destinoPendente, setDestinoPendente] = useState<DestinoEditor | null>(null);
   const revisaoRef = useRef(0);
   const preferenciasRestauradas = useRef(false);
@@ -566,6 +567,7 @@ function Editor() {
                 site={rascunho}
                 aplicar={aplicar}
                 onIrParaItens={() => setAba("itens")}
+                onVerDestaque={() => setVersaoDestaquePrevia((versao) => versao + 1)}
               />
             )}
             {aba === "aparencia" && (
@@ -596,9 +598,11 @@ function Editor() {
           <MolduraPrevia dispositivo={dispositivo}>
             {cardapioDigital ? (
               <CatalogoPagina
+                key={versaoDestaquePrevia}
                 site={rascunho}
                 interacoesExternas={false}
                 mostrarVoltar={false}
+                forcarDestaqueInicial={versaoDestaquePrevia > 0}
                 mostrarCarrinhoFlutuante={false}
               />
             ) : (

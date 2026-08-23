@@ -22,10 +22,12 @@ export function AbaCardapio({
   site,
   aplicar,
   onIrParaItens,
+  onVerDestaque,
 }: {
   site: Site;
   aplicar: Aplicar;
   onIrParaItens?: () => void;
+  onVerDestaque?: () => void;
 }) {
   const perfil = perfilCatalogo(site);
   const comercio = site.comercio ?? { carrinho: false, taxaEntrega: 0, pedidoMinimo: 0 };
@@ -139,14 +141,25 @@ export function AbaCardapio({
               6 itens em destaque.
             </p>
           </div>
-          <a
-            href={enderecoCardapio(site.slug)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
-          >
-            <ExternalLink size={14} aria-hidden /> Abrir página
-          </a>
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            {comercio.destaqueAbertura?.ativo && comercio.destaqueAbertura.imagem && (
+              <button
+                type="button"
+                onClick={onVerDestaque}
+                className="inline-flex min-h-11 items-center rounded-full border border-border px-3 text-xs font-semibold"
+              >
+                Ver destaque de abertura
+              </button>
+            )}
+            <a
+              href={enderecoCardapio(site.slug)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold"
+            >
+              <ExternalLink size={14} aria-hidden /> Abrir página
+            </a>
+          </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Grupos de opção sugeridos para este segmento: {perfil.gruposOpcao.join(" · ")}.
