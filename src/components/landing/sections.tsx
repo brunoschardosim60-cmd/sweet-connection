@@ -218,6 +218,91 @@ export function FaixaSegmentos() {
   );
 }
 
+/* --------------------------- TRILHAS DE PRODUTO --------------------------- */
+
+/** Três caminhos de entrada: mini-site, cardápio digital e criação com IA. */
+export function TrilhasProduto() {
+  const totalMini = modelos.filter((m) => m.familia !== "cardapio").length;
+  const totalCardapio = modelos.filter((m) => m.familia === "cardapio").length;
+
+  const trilhas = [
+    {
+      id: "minisite",
+      icone: Globe,
+      titulo: "Mini-site profissional",
+      texto: "Apresentação, serviços, galeria, contato e localização em uma página só.",
+      selo: `${totalMini} modelos`,
+      itens: ["WhatsApp em destaque", "Agenda e formulários", "SEO e compartilhamento"],
+      acao: { rotulo: "Ver modelos", para: "/modelos" as const },
+    },
+    {
+      id: "cardapio",
+      icone: Utensils,
+      titulo: "Cardápio digital",
+      texto: "Catálogo completo com carrinho, entrega, retirada e pedido em mesa por QR Code.",
+      selo: `${totalCardapio} modelos`,
+      itens: ["Carrinho e checkout", "Aberto/fechado em tempo real", "QR Code por mesa"],
+      acao: { rotulo: "Ver cardápios", para: "/modelos" as const },
+    },
+    {
+      id: "ia",
+      icone: Sparkles,
+      titulo: "Criação automática com IA",
+      texto: "Descreva o negócio, envie fotos e receba uma primeira versão pronta para editar.",
+      selo: "Feito com IA",
+      itens: ["Textos por segmento", "Estrutura sugerida", "Você revisa tudo"],
+      acao: { rotulo: "Como funciona", para: "/demonstracao/ia" as const },
+    },
+  ];
+
+  return (
+    <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <Reveal>
+        <h2 className="max-w-2xl text-3xl font-extrabold md:text-4xl">
+          Três formas de colocar seu negócio no ar.
+        </h2>
+        <p className="mt-3 max-w-xl text-muted-foreground">
+          Escolha o caminho que combina com a sua operação — tudo dentro da mesma plataforma.
+        </p>
+      </Reveal>
+      <div className="mt-9 grid gap-5 md:grid-cols-3">
+        {trilhas.map((t, i) => (
+          <Reveal key={t.id} delay={i * 60} className="h-full">
+            <article className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)]">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-secondary text-ink">
+                  <t.icone size={20} aria-hidden="true" />
+                </span>
+                <span className="justify-self-end rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  {t.selo}
+                </span>
+              </div>
+              <h3 className="mt-4 font-display text-xl font-bold">{t.titulo}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{t.texto}</p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {t.itens.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-muted-foreground">
+                    <Check size={15} className="mt-0.5 shrink-0 text-ink" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to={t.acao.para}
+                className="mt-6 inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-ink/20 px-5 text-sm font-semibold transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              >
+                {t.acao.rotulo} <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </article>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+
 /* ----------------------------- COMPARAÇÃO ----------------------------- */
 
 /** Proporção de tela de um celular de referência (390 × 844). */
