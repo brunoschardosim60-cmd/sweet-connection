@@ -431,10 +431,13 @@ export function CatalogoPagina({
               <p className="truncate text-[13px] font-semibold leading-tight @md:text-sm">
                 {site.conteudo.nome}
               </p>
-              <p className="mt-0.5 truncate text-[10px] leading-tight opacity-70 @md:text-[11px]">
-                {perfil.rotulo}
-              </p>
+              {site.conteudo.descricao && (
+                <p className="mt-0.5 truncate text-[10px] leading-tight opacity-70 @md:text-[11px]">
+                  {site.conteudo.descricao}
+                </p>
+              )}
             </div>
+
           </div>
           <div className="flex items-center gap-1.5">
             {interacoesExternas && (
