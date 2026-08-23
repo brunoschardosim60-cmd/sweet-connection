@@ -217,6 +217,15 @@ export interface Comercio {
   pixChave?: string;
   pixFavorecido?: string;
   pixQrCode?: string;
+  /** Card opcional exibido uma vez quando o visitante abre o cardápio. */
+  destaqueAbertura?: {
+    ativo: boolean;
+    imagem?: string;
+    titulo: string;
+    legenda: string;
+    produtoId?: string;
+    categoria?: string;
+  };
 }
 
 /** Configuração da agenda de horários do mini-site. */

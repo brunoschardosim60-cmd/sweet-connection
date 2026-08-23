@@ -9,6 +9,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
+import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import {
   categoriasDeProdutos,
   descontoPercentual,
@@ -320,6 +321,156 @@ export function AbaCardapio({
           Mesas e pedidos reais são geridos na rota Pedidos do painel. Os horários de atendimento
           usados no status “Aberto agora” são os da aba Contato.
         </p>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold">Destaque ao abrir cardápio</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Mostre uma campanha, prato do dia ou promoção uma vez por visita. O cliente pode
+              fechar pelo X, toque fora ou deslize para baixo.
+            </p>
+          </div>
+          <label className="flex min-h-11 items-center gap-2 text-xs font-medium">
+            <input
+              type="checkbox"
+              checked={Boolean(comercio.destaqueAbertura?.ativo)}
+              onChange={(e) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: {
+                    ...comercio,
+                    ...s.comercio,
+                    destaqueAbertura: {
+                      ativo: e.target.checked,
+                      imagem: comercio.destaqueAbertura?.imagem ?? "",
+                      titulo: comercio.destaqueAbertura?.titulo ?? "",
+                      legenda: comercio.destaqueAbertura?.legenda ?? "",
+                      ...(comercio.destaqueAbertura?.produtoId
+                        ? { produtoId: comercio.destaqueAbertura.produtoId }
+                        : {}),
+                      ...(comercio.destaqueAbertura?.categoria
+                        ? { categoria: comercio.destaqueAbertura.categoria }
+                        : {}),
+                    },
+                  },
+                }))
+              }
+            />
+            Exibir destaque
+          </label>
+        </div>
+        {comercio.destaqueAbertura?.ativo && (
+          <div className="mt-4 grid gap-3">
+            <SeletorMidia
+              rotulo="Imagem do destaque"
+              valor={comercio.destaqueAbertura.imagem ?? ""}
+              onChange={(imagem) =>
+                aplicar((s) => ({
+                  ...s,
+                  comercio: {
+                    ...comercio,
+                    ...s.comercio,
+                    destaqueAbertura: { ...comercio.destaqueAbertura!, imagem },
+                  },
+                }))
+              }
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-xs text-muted-foreground">
+                Título curto
+                <input
+                  value={comercio.destaqueAbertura.titulo}
+                  maxLength={80}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      comercio: {
+                        ...comercio,
+                        ...s.comercio,
+                        destaqueAbertura: { ...comercio.destaqueAbertura!, titulo: e.target.value },
+                      },
+                    }))
+                  }
+                  className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+                  placeholder="Ex.: Prato do dia"
+                />
+              </label>
+              <label className="text-xs text-muted-foreground">
+                Destino ao tocar
+                <select
+                  value={
+                    comercio.destaqueAbertura.produtoId
+                      ? `produto:${comercio.destaqueAbertura.produtoId}`
+                      : comercio.destaqueAbertura.categoria
+                        ? `categoria:${comercio.destaqueAbertura.categoria}`
+                        : ""
+                  }
+                  onChange={(e) => {
+                    const [tipo, valor] = e.target.value.split(":");
+                    aplicar((s) => {
+                      const {
+                        produtoId: _produtoId,
+                        categoria: _categoria,
+                        ...semDestino
+                      } = comercio.destaqueAbertura!;
+                      return {
+                        ...s,
+                        comercio: {
+                          ...comercio,
+                          ...s.comercio,
+                          destaqueAbertura: {
+                            ...semDestino,
+                            ...(tipo === "produto" && valor ? { produtoId: valor } : {}),
+                            ...(tipo === "categoria" && valor ? { categoria: valor } : {}),
+                          },
+                        },
+                      };
+                    });
+                  }}
+                  className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground"
+                >
+                  <option value="">Somente fechar destaque</option>
+                  <optgroup label="Produtos">
+                    {site.produtos.map((produto) => (
+                      <option key={produto.id} value={`produto:${produto.id}`}>
+                        {produto.nome}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Categorias">
+                    {categorias.map((cat) => (
+                      <option key={cat} value={`categoria:${cat}`}>
+                        {cat}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </label>
+            </div>
+            <label className="text-xs text-muted-foreground">
+              Legenda
+              <textarea
+                rows={2}
+                value={comercio.destaqueAbertura.legenda}
+                maxLength={180}
+                onChange={(e) =>
+                  aplicar((s) => ({
+                    ...s,
+                    comercio: {
+                      ...comercio,
+                      ...s.comercio,
+                      destaqueAbertura: { ...comercio.destaqueAbertura!, legenda: e.target.value },
+                    },
+                  }))
+                }
+                className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"
+                placeholder="Ex.: Disponível hoje, enquanto durar."
+              />
+            </label>
+          </div>
+        )}
       </section>
 
       {previa && (

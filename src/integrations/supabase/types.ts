@@ -704,6 +704,7 @@ export type Database = {
           taxa_entrega: number
           telefone: string
           total: number
+          tracking_token: string
           troco: string | null
           updated_at: string
         }
@@ -730,6 +731,7 @@ export type Database = {
           taxa_entrega?: number
           telefone: string
           total: number
+          tracking_token?: string
           troco?: string | null
           updated_at?: string
         }
@@ -756,6 +758,7 @@ export type Database = {
           taxa_entrega?: number
           telefone?: string
           total?: number
+          tracking_token?: string
           troco?: string | null
           updated_at?: string
         }
@@ -1179,6 +1182,10 @@ export type Database = {
           requested_modalidade: string
           requested_slug: string
         }
+        Returns: Json
+      }
+      nexa_meus_pedidos_cardapio: {
+        Args: { requested_slug: string; requested_tokens: string[] }
         Returns: Json
       }
       nexa_plan_allows_public_site: {

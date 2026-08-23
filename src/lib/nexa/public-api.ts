@@ -5,6 +5,18 @@ import type { DadosEntrega, ItemCarrinho, Modalidade } from "./catalogo";
 
 let fingerprintDaSessao: string | null = null;
 const CHAVE_FINGERPRINT = "nexa:public-session";
+const chavePedidos = (slug: string) => `nexa:public-menu-orders:${slug}`;
+
+export interface PedidoPublico {
+  id: string;
+  codigo: number;
+  status: string;
+  modalidade: "entrega" | "retirada" | "mesa";
+  total: number;
+  createdAt: string;
+  updatedAt: string;
+  itens: { nome: string; quantidade: number; preco?: number }[];
+}
 
 function criarFingerprint() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -118,7 +130,45 @@ export async function criarPedidoPublicado(
     total: number;
     status: string;
     repetido: boolean;
+    trackingToken: string;
   };
+}
+
+/** Guarda somente o token aleatório dos pedidos deste navegador, nunca dados pessoais. */
+export function guardarAcompanhamentoPedido(slug: string, token: string) {
+  if (typeof window === "undefined" || !/^[\da-f-]{36}$/i.test(token)) return;
+  try {
+    const anterior = JSON.parse(window.localStorage.getItem(chavePedidos(slug)) ?? "[]");
+    const tokens = Array.isArray(anterior)
+      ? anterior.filter((v): v is string => typeof v === "string")
+      : [];
+    window.localStorage.setItem(
+      chavePedidos(slug),
+      JSON.stringify([token, ...tokens.filter((v) => v !== token)].slice(0, 20)),
+    );
+  } catch {
+    // Sem armazenamento local, o pedido ainda é confirmado, mas não fica disponível após recarregar.
+  }
+}
+
+export async function buscarMeusPedidosPublicos(slug: string): Promise<PedidoPublico[]> {
+  if (typeof window === "undefined") return [];
+  let tokens: string[] = [];
+  try {
+    const salvo = JSON.parse(window.localStorage.getItem(chavePedidos(slug)) ?? "[]");
+    tokens = Array.isArray(salvo)
+      ? salvo.filter((v): v is string => /^[\da-f-]{36}$/i.test(v))
+      : [];
+  } catch {
+    return [];
+  }
+  if (tokens.length === 0) return [];
+  const { data, error } = await supabase.rpc("nexa_meus_pedidos_cardapio", {
+    requested_slug: slug,
+    requested_tokens: tokens,
+  });
+  if (error) throw new Error("Não foi possível atualizar seus pedidos agora.");
+  return Array.isArray(data) ? (data as unknown as PedidoPublico[]) : [];
 }
 
 export async function registrarEventoPublicado(

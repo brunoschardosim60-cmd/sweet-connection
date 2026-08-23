@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Clock,
@@ -16,9 +16,12 @@ import { whatsappLink } from "@/lib/nexa/brand";
 import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  buscarMeusPedidosPublicos,
   criarPedidoPublicado,
+  guardarAcompanhamentoPedido,
   notificarDonoDoMinisite,
   registrarEventoPublicado,
+  type PedidoPublico,
 } from "@/lib/nexa/public-api";
 import { moeda } from "@/lib/nexa/utils";
 import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/estilo";
@@ -115,6 +118,13 @@ export function CatalogoPagina({
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [retornoPedido, setRetornoPedido] = useState<string>("");
   const [ranking, setRanking] = useState<Record<string, number>>({});
+  const [produtoAnimado, setProdutoAnimado] = useState<Produto | null>(null);
+  const [contadorAnimado, setContadorAnimado] = useState(false);
+  const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
+  const [pedidosAbertos, setPedidosAbertos] = useState(false);
+  const [atualizandoPedidos, setAtualizandoPedidos] = useState(false);
+  const destaque = site.comercio?.destaqueAbertura;
+  const [destaqueAberto, setDestaqueAberto] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setCarregando(false), 250);
@@ -138,6 +148,33 @@ export function CatalogoPagina({
     }
     setRestaurado(true);
   }, [site.slug]);
+
+  const atualizarMeusPedidos = useCallback(async () => {
+    if (!interacoesExternas) return;
+    setAtualizandoPedidos(true);
+    try {
+      setMeusPedidos(await buscarMeusPedidosPublicos(site.slug));
+    } catch {
+      // O pedido continua salvo no estabelecimento; a atualização pode ser tentada de novo.
+    } finally {
+      setAtualizandoPedidos(false);
+    }
+  }, [interacoesExternas, site.slug]);
+
+  useEffect(() => {
+    void atualizarMeusPedidos();
+  }, [atualizarMeusPedidos]);
+
+  useEffect(() => {
+    if (!interacoesExternas || !destaque?.ativo || !destaque.imagem) return;
+    try {
+      if (!window.sessionStorage.getItem(`nexa:menu-highlight:${site.slug}`)) {
+        setDestaqueAberto(true);
+      }
+    } catch {
+      setDestaqueAberto(true);
+    }
+  }, [destaque?.ativo, destaque?.imagem, interacoesExternas, site.slug]);
 
   useEffect(() => {
     if (!restaurado) return;
@@ -198,7 +235,13 @@ export function CatalogoPagina({
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
   const alterar = (p: Produto, delta: number, observacao?: string) => {
-    if (delta > 0) eventoMarketing("add_to_cart", { item_id: p.id, quantidade: delta });
+    if (delta > 0) {
+      eventoMarketing("add_to_cart", { item_id: p.id, quantidade: delta });
+      setProdutoAnimado(p);
+      setContadorAnimado(true);
+      window.setTimeout(() => setProdutoAnimado(null), 560);
+      window.setTimeout(() => setContadorAnimado(false), 380);
+    }
     setCarrinho((atual) => {
       const linha = atual[p.id] ?? { quantidade: 0, observacao: "" };
       const quantidade = Math.max(0, linha.quantidade + delta);
@@ -225,9 +268,12 @@ export function CatalogoPagina({
         ...(pagamento ? { pagamento } : {}),
       });
       limparRascunhoPedido(site.slug);
+      guardarAcompanhamentoPedido(site.slug, pedido.trackingToken);
       setCarrinho({});
       setCarrinhoAberto(false);
       setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
+      await atualizarMeusPedidos();
+      setPedidosAbertos(true);
       eventoMarketing("iniciar_checkout", {
         value: pedido.total,
         currency: "BRL",
@@ -289,20 +335,37 @@ export function CatalogoPagina({
               <p className="truncate text-[11px] opacity-70">{perfil.rotulo}</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setCarrinhoAberto(true)}
-            aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{
-              ...botaoPrimario,
-              opacity: quantidadeTotal > 0 ? 1 : 0.85,
-              outlineColor: primaria,
-            }}
-          >
-            <ShoppingBag size={16} aria-hidden />
-            <span aria-hidden>{quantidadeTotal}</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {meusPedidos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setPedidosAbertos(true)}
+                className="hidden min-h-11 items-center px-2 text-xs font-semibold underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 @md:inline-flex"
+                style={{ outlineColor: primaria }}
+              >
+                Meus pedidos
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setCarrinhoAberto(true)}
+              aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              style={{
+                ...botaoPrimario,
+                opacity: quantidadeTotal > 0 ? 1 : 0.85,
+                outlineColor: primaria,
+              }}
+            >
+              <ShoppingBag size={16} aria-hidden />
+              <span
+                aria-hidden
+                className={`transition-transform motion-reduce:transition-none ${contadorAnimado ? "scale-125" : "scale-100"}`}
+              >
+                {quantidadeTotal}
+              </span>
+            </button>
+          </div>
         </div>
 
         <div
@@ -617,6 +680,42 @@ export function CatalogoPagina({
         />
       )}
 
+      {produtoAnimado?.imagem && (
+        <div
+          aria-hidden
+          className="nexa-produto-voando fixed right-5 top-16 z-50 overflow-hidden rounded-lg shadow-lg"
+        >
+          <img src={produtoAnimado.imagem} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
+
+      {destaqueAberto && destaque?.imagem && (
+        <DestaqueAbertura
+          site={site}
+          destaque={destaque}
+          onAbrirProduto={(produto) => setDetalhe(produto)}
+          onAbrirCategoria={(novaCategoria) => setCategoria(novaCategoria)}
+          onFechar={() => {
+            try {
+              window.sessionStorage.setItem(`nexa:menu-highlight:${site.slug}`, "1");
+            } catch {
+              // Sem sessionStorage, o destaque pode reaparecer numa nova página.
+            }
+            setDestaqueAberto(false);
+          }}
+        />
+      )}
+
+      {pedidosAbertos && (
+        <DrawerMeusPedidos
+          site={site}
+          pedidos={meusPedidos}
+          atualizando={atualizandoPedidos}
+          onAtualizar={() => void atualizarMeusPedidos()}
+          onFechar={() => setPedidosAbertos(false)}
+        />
+      )}
+
       {carrinhoAberto && (
         <DrawerCarrinho site={site} onFechar={() => setCarrinhoAberto(false)}>
           <PainelCarrinho
@@ -640,6 +739,238 @@ export function CatalogoPagina({
           />
         </DrawerCarrinho>
       )}
+    </div>
+  );
+}
+
+function rotuloStatusPedido(status: string) {
+  const rotulos: Record<string, string> = {
+    novo: "Pedido confirmado",
+    aceito: "Pedido aceito",
+    preparo: "Em preparo",
+    pronto: "Pronto para retirada",
+    em_rota: "Saiu para entrega",
+    concluido: "Pedido concluído",
+    cancelado: "Pedido cancelado",
+  };
+  return rotulos[status] ?? "Pedido recebido";
+}
+
+function DrawerMeusPedidos({
+  site,
+  pedidos,
+  atualizando,
+  onAtualizar,
+  onFechar,
+}: {
+  site: Site;
+  pedidos: PedidoPublico[];
+  atualizando: boolean;
+  onAtualizar: () => void;
+  onFechar: () => void;
+}) {
+  const ref = useFocoModal(true, onFechar);
+  const primaria = site.aparencia.corPrimaria;
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-0 @md:place-items-center @md:p-5">
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        onClick={onFechar}
+        className="absolute inset-0"
+      />
+      <section
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Meus pedidos"
+        className="relative max-h-[88dvh] w-full max-w-lg overflow-y-auto p-5 shadow-2xl"
+        style={{
+          background: site.aparencia.corFundo,
+          color: site.aparencia.corTexto,
+          borderRadius: "18px 18px 0 0",
+          border: "1px solid var(--ms-border)",
+        }}
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Meus pedidos</h2>
+            <p className="text-xs opacity-70">
+              Acompanhe apenas os pedidos feitos neste navegador.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onFechar}
+            aria-label="Fechar meus pedidos"
+            className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
+            style={{ outlineColor: primaria }}
+          >
+            <X size={18} aria-hidden />
+          </button>
+        </div>
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={onAtualizar}
+            disabled={atualizando}
+            className="min-h-11 px-3 text-xs font-semibold focus-visible:outline focus-visible:outline-2"
+            style={{
+              border: "1px solid var(--ms-border)",
+              borderRadius: "var(--ms-radius)",
+              outlineColor: primaria,
+            }}
+          >
+            {atualizando ? "Atualizando…" : "Atualizar status"}
+          </button>
+        </div>
+        {pedidos.length === 0 ? (
+          <p
+            className="rounded-xl border border-dashed p-4 text-sm opacity-75"
+            style={{ borderColor: "var(--ms-border)" }}
+          >
+            Nenhum pedido para acompanhar neste dispositivo ainda.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {pedidos.map((pedido) => (
+              <li
+                key={pedido.id}
+                className="rounded-xl border p-4"
+                style={{ borderColor: "var(--ms-border)" }}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold">Pedido #{pedido.codigo}</p>
+                    <p className="mt-1 text-xs opacity-70">
+                      {new Intl.DateTimeFormat("pt-BR", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      }).format(new Date(pedido.createdAt))}{" "}
+                      · {rotulosModalidade[pedido.modalidade]}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full px-2.5 py-1 text-xs font-bold"
+                    style={{ background: hexToRgba(primaria, 0.16), color: primaria }}
+                  >
+                    {rotuloStatusPedido(pedido.status)}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm opacity-80">
+                  {pedido.itens.map((item) => `${item.quantidade}× ${item.nome}`).join(", ")}
+                </p>
+                <p className="mt-2 text-sm font-semibold">Total {moeda(Number(pedido.total))}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function DestaqueAbertura({
+  site,
+  destaque,
+  onAbrirProduto,
+  onAbrirCategoria,
+  onFechar,
+}: {
+  site: Site;
+  destaque: NonNullable<NonNullable<Site["comercio"]>["destaqueAbertura"]>;
+  onAbrirProduto: (produto: Produto) => void;
+  onAbrirCategoria: (categoria: string) => void;
+  onFechar: () => void;
+}) {
+  const ref = useFocoModal(true, onFechar);
+  const primaria = site.aparencia.corPrimaria;
+  const [inicio, setInicio] = useState<number | null>(null);
+  const produto = site.produtos.find((item) => item.id === destaque.produtoId);
+  const temDestino = Boolean(produto || destaque.categoria);
+  const abrir = () => {
+    if (produto) onAbrirProduto(produto);
+    else if (destaque.categoria) onAbrirCategoria(destaque.categoria);
+    onFechar();
+  };
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4">
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        onClick={onFechar}
+        className="absolute inset-0"
+      />
+      <section
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-destaque-cardapio"
+        aria-describedby="legenda-destaque-cardapio"
+        onPointerDown={(event) => setInicio(event.clientY)}
+        onPointerUp={(event) => {
+          if (inicio !== null && event.clientY - inicio > 80) onFechar();
+          setInicio(null);
+        }}
+        className="relative w-full max-w-sm overflow-hidden shadow-2xl"
+        style={{
+          background: site.aparencia.corFundo,
+          color: site.aparencia.corTexto,
+          borderRadius: "var(--ms-radius)",
+          border: "1px solid var(--ms-border)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onFechar}
+          aria-label="Fechar destaque"
+          className="absolute right-2 top-2 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-white focus-visible:outline focus-visible:outline-2"
+          style={{ outlineColor: primaria }}
+        >
+          <X size={18} aria-hidden />
+        </button>
+        <img
+          src={destaque.imagem}
+          alt={destaque.titulo || `Destaque de ${site.conteudo.nome}`}
+          className="h-52 w-full object-cover"
+        />
+        <div className="p-5">
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.16em]"
+            style={{ color: primaria }}
+          >
+            Destaque do dia
+          </p>
+          <h2 id="titulo-destaque-cardapio" className="mt-1 text-xl font-bold">
+            {destaque.titulo || "Confira nossa novidade"}
+          </h2>
+          {destaque.legenda && (
+            <p id="legenda-destaque-cardapio" className="mt-2 text-sm opacity-80">
+              {destaque.legenda}
+            </p>
+          )}
+          {temDestino && (
+            <button
+              type="button"
+              onClick={abrir}
+              className="mt-4 min-h-11 w-full px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
+              style={{
+                background: primaria,
+                color: contraste(primaria),
+                borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
+                outlineColor: primaria,
+              }}
+            >
+              Ver agora
+            </button>
+          )}
+          <p className="mt-3 text-center text-[11px] opacity-60">
+            Deslize para baixo ou toque no X para fechar.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
