@@ -84,7 +84,7 @@ const beneficios: Record<string, string[]> = {
     "Catálogo e cardápio",
     "Cupons e promoções",
     "Pedidos via WhatsApp",
-    "Projetos ilimitados",
+    "Múltiplos projetos para sua operação",
   ],
 };
 
@@ -707,8 +707,8 @@ function MeuPlano() {
         ) : (
           <Lock size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
         )}
-        A alteração de plano é feita pela equipe Nexa. Fale com o suporte para ativar, trocar ou
-        cancelar sua assinatura.
+        O plano é liberado somente após a confirmação do pagamento. Para dúvidas sobre cobrança,
+        cancelamento ou reembolso, fale com o suporte Nexa.
       </p>
     </section>
   );

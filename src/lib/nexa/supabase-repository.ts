@@ -6,23 +6,35 @@ import type { EnvioFormulario, Site, StatusSite } from "./types";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function mensagemErro(error: { message: string; code?: string }) {
+function mensagemErro(error: {
+  message: string;
+  code?: string;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  // Alguns RPCs do PostgREST devolvem o identificador do erro em `details` ou
+  // `hint`, não apenas em `message`. Centralizar o texto evita um alerta
+  // genérico quando o banco já informou a causa real.
+  const detalhe = [error.message, error.details, error.hint].filter(Boolean).join(" ");
   if (error.code === "23505") return "Este endereço já está sendo usado por outro mini-site.";
   if (error.code === "PGRST202") {
     return "O banco ainda não recebeu as migrations da Nexa.";
   }
-  if (error.message.includes("subscription_required"))
+  if (detalhe.includes("subscription_required"))
     return "Ative um plano para publicar este mini-site.";
-  if (error.message.includes("published_site_limit_reached"))
+  if (detalhe.includes("published_site_limit_reached"))
     return "Você atingiu o limite de mini-sites publicados do seu plano.";
-  if (error.message.includes("minisite_creation_limit_reached"))
+  if (detalhe.includes("minisite_creation_limit_reached"))
     return "Você atingiu o limite de projetos do seu plano.";
-  if (error.message.includes("catalog_feature_required"))
+  if (detalhe.includes("catalog_feature_required"))
     return "Cardápio, cupons e promoções exigem o plano Catálogo.";
-  if (error.message.includes("professional_feature_required"))
+  if (detalhe.includes("professional_feature_required"))
     return "Serviços, agenda, portfólio e depoimentos exigem o plano Profissional.";
-  if (error.message.includes("white_label_requires_catalog"))
+  if (detalhe.includes("white_label_requires_catalog"))
     return "Remover a assinatura Nexa do rodapé exige o plano Catálogo.";
+  if (detalhe.includes("expiry_must_be_in_the_future"))
+    return "Escolha uma data de expiração futura para publicar este mini-site.";
+  if (detalhe.includes("invalid_expiry_date")) return "A data de expiração informada é inválida.";
   if (error.code === "42501") return "Sua conta não tem permissão para alterar estes dados.";
   return error.message;
 }
