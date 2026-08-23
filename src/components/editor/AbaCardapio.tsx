@@ -279,18 +279,27 @@ export function AbaCardapio({
                   <input
                     type="checkbox"
                     checked={aceitos.includes(tipo)}
-                    onChange={(e) =>
+                    disabled={aceitos.length === 1 && aceitos.includes(tipo)}
+                    title={
+                      aceitos.length === 1 && aceitos.includes(tipo)
+                        ? "Mantenha pelo menos uma forma de pagamento ativa"
+                        : undefined
+                    }
+                    onChange={(e) => {
+                      const proximos = e.target.checked
+                        ? [...aceitos, tipo]
+                        : aceitos.filter((p) => p !== tipo);
+                      // Um cardápio com carrinho precisa oferecer ao menos uma forma de pagamento.
+                      if (!proximos.length) return;
                       aplicar((s) => ({
                         ...s,
                         comercio: {
                           ...comercio,
                           ...s.comercio,
-                          pagamentosAceitos: e.target.checked
-                            ? [...aceitos, tipo]
-                            : aceitos.filter((p) => p !== tipo),
+                          pagamentosAceitos: proximos,
                         },
-                      }))
-                    }
+                      }));
+                    }}
                   />
                   {tipo === "balcao"
                     ? "Pagar no balcão"

@@ -1736,7 +1736,7 @@ function PainelCarrinho({
   const entregaAtiva = modalidades.includes(entrega) ? entrega : (modalidades[0] ?? "retirada");
   const contatoValido = whatsappValido(campos.whatsapp);
   const dadosObrigatoriosOk = contatoValido && campos.nome.trim().length >= 2;
-  const podeConfirmar = pedidosAtivos && dadosObrigatoriosOk && !enviando;
+  const podeConfirmar = pedidosAtivos && dadosObrigatoriosOk && Boolean(pagamento) && !enviando;
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
     <label className="block text-xs font-medium opacity-80">
       {rotulo}
@@ -1983,6 +1983,11 @@ function PainelCarrinho({
       {pedidosAtivos && !enviando && !dadosObrigatoriosOk && (
         <p role="status" className="text-xs opacity-75">
           Informe seu nome e um WhatsApp válido com DDD para confirmar.
+        </p>
+      )}
+      {pedidosAtivos && !enviando && dadosObrigatoriosOk && !pagamento && (
+        <p role="status" className="text-xs opacity-75">
+          Escolha a forma de pagamento para confirmar o pedido.
         </p>
       )}
       {!pedidosAtivos && !retorno && (
