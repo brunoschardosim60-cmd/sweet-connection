@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList,
   Clock,
   Copy,
   Info,
+  Printer,
   QrCode,
   Search,
   Store,
   TrendingUp,
   Utensils,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -38,21 +41,13 @@ type Aba = "pedidos" | "mesas" | "operacao";
 
 const statusPedido = [
   { id: "novos", rotulo: "Novos" },
+  { id: "atrasados", rotulo: "Atrasados" },
   { id: "preparo", rotulo: "Em preparo" },
   { id: "prontos", rotulo: "Prontos" },
   { id: "rota", rotulo: "Em rota" },
   { id: "concluidos", rotulo: "Concluídos" },
   { id: "cancelados", rotulo: "Cancelados" },
 ] as const;
-
-const acoesStatus = [
-  "Aceitar",
-  "Em preparo",
-  "Pronto",
-  "Saiu para entrega",
-  "Concluído",
-  "Cancelar",
-];
 
 /** Área operacional do Cardápio Digital, com pedidos e mesas persistidos no Supabase. */
 function PainelPedidos() {
@@ -172,7 +167,24 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
   const [busca, setBusca] = useState("");
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const carregar = async () => {
+  const [somAtivo, setSomAtivo] = useState(false);
+  const idsAnteriores = useRef<Set<string> | null>(null);
+  const tocarAviso = () => {
+    try {
+      const contexto = new AudioContext();
+      const oscilador = contexto.createOscillator();
+      const ganho = contexto.createGain();
+      oscilador.frequency.value = 880;
+      ganho.gain.setValueAtTime(0.04, contexto.currentTime);
+      ganho.gain.exponentialRampToValueAtTime(0.001, contexto.currentTime + 0.18);
+      oscilador.connect(ganho).connect(contexto.destination);
+      oscilador.start();
+      oscilador.stop(contexto.currentTime + 0.18);
+    } catch {
+      // O navegador pode bloquear o som até a primeira interação.
+    }
+  };
+  const carregar = useCallback(async () => {
     if (!siteId) {
       setPedidos([]);
       setCarregando(false);
@@ -184,24 +196,56 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
       .select("id,codigo,status,modalidade,nome,telefone,total,pagamento,mesa_id,created_at,itens")
       .eq("minisite_id", siteId)
       .order("created_at", { ascending: false });
-    setPedidos((data ?? []) as unknown as Pedido[]);
+    const novos = (data ?? []) as unknown as Pedido[];
+    if (
+      somAtivo &&
+      idsAnteriores.current &&
+      novos.some((pedido) => !idsAnteriores.current?.has(pedido.id))
+    ) {
+      tocarAviso();
+      toast.success("Novo pedido recebido");
+    }
+    idsAnteriores.current = new Set(novos.map((pedido) => pedido.id));
+    setPedidos(novos);
     setCarregando(false);
-  };
+  }, [siteId, somAtivo]);
   useEffect(() => {
     void carregar();
-    // carregar is intentionally recreated with the selected site.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteId]);
+  }, [carregar]);
+  useEffect(() => {
+    const intervalo = window.setInterval(() => void carregar(), 30_000);
+    return () => window.clearInterval(intervalo);
+  }, [carregar]);
+  const alternarSom = () => {
+    setSomAtivo((atual) => {
+      const proximo = !atual;
+      if (proximo) tocarAviso();
+      return proximo;
+    });
+  };
+  const atrasado = (pedido: Pedido) =>
+    ["novo", "aceito", "preparo"].includes(pedido.status) &&
+    Date.now() - new Date(pedido.created_at).getTime() > 30 * 60 * 1000;
+  const dentroDoPeriodo = (pedido: Pedido) => {
+    if (periodo === "personalizado") return true;
+    const inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const limite = periodo === "hoje" ? inicio.getTime() : Date.now() - Number(periodo) * 86400000;
+    return new Date(pedido.created_at).getTime() >= limite;
+  };
   const visiveis = pedidos.filter(
     (p) =>
       (status === "todos" ||
-        p.status ===
-          status
-            .replace("novos", "novo")
-            .replace("prontos", "pronto")
-            .replace("concluidos", "concluido")
-            .replace("cancelados", "cancelado")
-            .replace("rota", "em_rota")) &&
+        (status === "atrasados"
+          ? atrasado(p)
+          : p.status ===
+            status
+              .replace("novos", "novo")
+              .replace("prontos", "pronto")
+              .replace("concluidos", "concluido")
+              .replace("cancelados", "cancelado")
+              .replace("rota", "em_rota"))) &&
+      dentroDoPeriodo(p) &&
       (tipo === "todos" || p.modalidade === tipo) &&
       (pagamento === "todos" || p.pagamento === pagamento) &&
       `${p.codigo} ${p.nome} ${p.telefone}`.toLowerCase().includes(busca.toLowerCase()),
@@ -214,6 +258,13 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
     if (!error) void carregar();
     else toast.error("Não foi possível atualizar o pedido.");
   };
+  const proximaAcao: Record<string, { status: string; rotulo: string } | undefined> = {
+    novo: { status: "aceito", rotulo: "Aceitar" },
+    aceito: { status: "preparo", rotulo: "Iniciar preparo" },
+    preparo: { status: "pronto", rotulo: "Marcar pronto" },
+    pronto: { status: "em_rota", rotulo: "Saiu para entrega" },
+    em_rota: { status: "concluido", rotulo: "Concluir" },
+  };
 
   return (
     <section aria-label="Lista de pedidos" className="space-y-4">
@@ -223,15 +274,16 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
             <p className="text-xs text-muted-foreground">{s.rotulo}</p>
             <p className="font-display text-2xl font-bold">
               {
-                pedidos.filter(
-                  (p) =>
-                    p.status ===
-                    s.id
-                      .replace("novos", "novo")
-                      .replace("prontos", "pronto")
-                      .replace("concluidos", "concluido")
-                      .replace("cancelados", "cancelado")
-                      .replace("rota", "em_rota"),
+                pedidos.filter((p) =>
+                  s.id === "atrasados"
+                    ? atrasado(p)
+                    : p.status ===
+                      s.id
+                        .replace("novos", "novo")
+                        .replace("prontos", "pronto")
+                        .replace("concluidos", "concluido")
+                        .replace("cancelados", "cancelado")
+                        .replace("rota", "em_rota"),
                 ).length
               }
             </p>
@@ -240,6 +292,23 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
       </ul>
 
       <div className="surface space-y-3 p-4">
+        <div className="flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            onClick={alternarSom}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold"
+          >
+            {somAtivo ? <Volume2 size={14} aria-hidden /> : <VolumeX size={14} aria-hidden />}
+            Som {somAtivo ? "ligado" : "desligado"}
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-xs font-semibold"
+          >
+            <Printer size={14} aria-hidden /> Imprimir pedidos
+          </button>
+        </div>
         <div className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-3">
           <Search size={15} className="text-muted-foreground" aria-hidden />
           <label className="sr-only" htmlFor="busca-pedidos">
@@ -359,8 +428,22 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
                   {p.itens.map((i) => `${i.quantidade}× ${i.nome}`).join(", ")}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <strong>{moeda(p.total)}</strong>
+                {atrasado(p) && (
+                  <span className="rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                    Atrasado
+                  </span>
+                )}
+                {proximaAcao[p.status] && (
+                  <button
+                    type="button"
+                    onClick={() => void mudarStatus(p.id, proximaAcao[p.status]!.status)}
+                    className="min-h-11 rounded-full bg-ink px-3 text-xs font-semibold text-ink-foreground"
+                  >
+                    {proximaAcao[p.status]!.rotulo}
+                  </button>
+                )}
                 <select
                   aria-label={`Status do pedido ${p.codigo}`}
                   value={p.status}
@@ -380,29 +463,6 @@ function AbaPedidos({ siteId }: { siteId?: string | undefined }) {
           ))}
         </ul>
       )}
-
-      <div className="surface space-y-3 p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-base font-bold">Ações de status do pedido</h2>
-          <Etiqueta />
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Fluxo previsto para cada pedido. Os botões ficam ativos quando os pedidos passarem a ser
-          registrados — nada é salvo hoje.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {acoesStatus.map((a) => (
-            <button
-              key={a}
-              type="button"
-              disabled
-              className="min-h-11 cursor-not-allowed rounded-full border border-dashed border-border px-4 text-xs font-semibold text-muted-foreground"
-            >
-              {a}
-            </button>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }

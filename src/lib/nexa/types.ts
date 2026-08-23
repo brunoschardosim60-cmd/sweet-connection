@@ -83,6 +83,11 @@ export interface Produto {
   variacoes: string[];
   imagem?: string;
   disponivel: boolean;
+  /** Quantidade disponível no catálogo. Ausente significa estoque não controlado. */
+  estoque?: number;
+  /** Janela diária opcional em que o item pode ser pedido. Formato HH:mm. */
+  disponivelInicio?: string;
+  disponivelFim?: string;
   destaque: boolean;
 }
 

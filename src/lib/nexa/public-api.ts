@@ -16,6 +16,7 @@ export interface PedidoPublico {
   createdAt: string;
   updatedAt: string;
   itens: { nome: string; quantidade: number; preco?: number }[];
+  trackingToken: string;
 }
 
 function criarFingerprint() {
@@ -169,6 +170,38 @@ export async function buscarMeusPedidosPublicos(slug: string): Promise<PedidoPub
   });
   if (error) throw new Error("Não foi possível atualizar seus pedidos agora.");
   return Array.isArray(data) ? (data as unknown as PedidoPublico[]) : [];
+}
+
+export async function buscarEstoquePublicado(slug: string): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc("nexa_estoque_publico_cardapio", {
+    requested_slug: slug,
+  });
+  if (error || !data || typeof data !== "object" || Array.isArray(data)) return {};
+  return Object.fromEntries(
+    Object.entries(data as Record<string, unknown>).flatMap(([id, quantidade]) =>
+      typeof quantidade === "number" && Number.isFinite(quantidade) ? [[id, quantidade]] : [],
+    ),
+  );
+}
+
+/** Avaliação só é aceita após a conclusão e pelo navegador que fez o pedido. */
+export async function avaliarPedidoPublicado(
+  slug: string,
+  token: string,
+  nota: number,
+  comentario: string,
+) {
+  const { error } = await supabase.rpc("nexa_avaliar_pedido_cardapio", {
+    requested_slug: slug,
+    requested_token: token,
+    requested_nota: nota,
+    requested_comentario: comentario,
+  });
+  if (error) {
+    if (error.message.includes("order_not_eligible"))
+      throw new Error("A avaliação fica disponível quando o pedido for concluído.");
+    throw new Error("Não foi possível enviar a avaliação. Tente novamente.");
+  }
 }
 
 export async function registrarEventoPublicado(

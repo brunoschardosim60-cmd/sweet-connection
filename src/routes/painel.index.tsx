@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, FileEdit, Globe, MessageCircle, Users } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, FileEdit, Globe, MessageCircle, Users } from "lucide-react";
 import { GraficoArea } from "@/components/Graficos";
 import { useDesempenho, useNexa } from "@/lib/nexa/hooks";
 import { numero, tempoRelativo } from "@/lib/nexa/utils";
@@ -53,6 +53,35 @@ function VisaoGeral() {
     { r: "Cliques no WhatsApp", v: numero(cliques), i: MessageCircle },
     { r: "Solicitações recebidas", v: numero(solicitacoes), i: ArrowUpRight },
   ];
+  const primeiro = sites[0];
+  const passosInicio = [
+    {
+      feito: sites.length > 0,
+      texto: "Criar seu primeiro mini-site",
+      destino: "/painel/novo" as const,
+    },
+    {
+      feito: Boolean(primeiro?.conteudo.logo),
+      texto: "Adicionar logo",
+      destino: primeiro ? `/painel/editor/${primeiro.id}` : "/painel/novo",
+    },
+    {
+      feito: Boolean(primeiro?.conteudo.capa),
+      texto: "Escolher uma capa",
+      destino: primeiro ? `/painel/editor/${primeiro.id}` : "/painel/novo",
+    },
+    {
+      feito: Boolean(primeiro?.conteudo.whatsapp),
+      texto: "Informar WhatsApp",
+      destino: primeiro ? `/painel/editor/${primeiro.id}` : "/painel/novo",
+    },
+    {
+      feito: publicados.length > 0,
+      texto: "Publicar seu site",
+      destino: primeiro ? `/painel/editor/${primeiro.id}` : "/painel/novo",
+    },
+  ];
+  const concluidos = passosInicio.filter((passo) => passo.feito).length;
 
   return (
     <div className="space-y-6">
@@ -72,6 +101,43 @@ function VisaoGeral() {
           </div>
         ))}
       </div>
+
+      {concluidos < passosInicio.length && (
+        <section className="surface p-5" aria-labelledby="checklist-inicial">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 id="checklist-inicial" className="font-semibold">
+                Deixe seu primeiro site pronto
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {concluidos} de {passosInicio.length} etapas concluídas.
+              </p>
+            </div>
+            <span className="rounded-full bg-lime/20 px-3 py-1 text-xs font-bold text-foreground">
+              {Math.round((concluidos / passosInicio.length) * 100)}%
+            </span>
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {passosInicio.map((passo) => (
+              <li key={passo.texto}>
+                <Link
+                  to={passo.destino as "/painel/novo"}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm hover:bg-secondary"
+                >
+                  <CheckCircle2
+                    size={16}
+                    className={passo.feito ? "text-lime" : "text-muted-foreground"}
+                    aria-hidden
+                  />
+                  <span className={passo.feito ? "line-through opacity-60" : "font-medium"}>
+                    {passo.texto}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="surface p-5 lg:col-span-2">

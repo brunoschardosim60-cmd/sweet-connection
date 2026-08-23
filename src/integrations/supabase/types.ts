@@ -1184,6 +1184,19 @@ export type Database = {
         }
         Returns: Json
       }
+      nexa_estoque_publico_cardapio: {
+        Args: { requested_slug: string }
+        Returns: Json
+      }
+      nexa_avaliar_pedido_cardapio: {
+        Args: {
+          requested_comentario?: string
+          requested_nota: number
+          requested_slug: string
+          requested_token: string
+        }
+        Returns: Json
+      }
       nexa_meus_pedidos_cardapio: {
         Args: { requested_slug: string; requested_tokens: string[] }
         Returns: Json

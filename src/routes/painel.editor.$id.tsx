@@ -1880,6 +1880,52 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
                 mini-site.
               </p>
             ) : null}
+            <div className="grid grid-cols-3 gap-2">
+              <EntradaSimples
+                valor={p.estoque === undefined ? "" : String(p.estoque)}
+                placeholder="Estoque"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) => {
+                      if (x.id !== p.id) return x;
+                      const { estoque: _antigo, ...resto } = x;
+                      const valor =
+                        v.trim() === "" ? undefined : Math.max(0, Math.floor(Number(v) || 0));
+                      return valor === undefined ? resto : { ...resto, estoque: valor };
+                    }),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={p.disponivelInicio ?? ""}
+                placeholder="Disponível de"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id ? { ...x, disponivelInicio: v } : x,
+                    ),
+                  }))
+                }
+              />
+              <EntradaSimples
+                valor={p.disponivelFim ?? ""}
+                placeholder="Até"
+                onChange={(v) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id ? { ...x, disponivelFim: v } : x,
+                    ),
+                  }))
+                }
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Deixe estoque em branco para não controlar quantidade. Horários usam HH:mm, por
+              exemplo 11:00 até 15:00.
+            </p>
             <SeletorMidia
               rotulo="Foto do produto"
               valor={p.imagem ?? ""}

@@ -11,6 +11,20 @@ export const filtrosCatalogo: { id: FiltroCatalogo; rotulo: string }[] = [
   { id: "disponiveis", rotulo: "Disponíveis" },
 ];
 
+/** Disponibilidade que o visitante enxerga; a confirmação final é repetida no banco. */
+export function produtoDisponivelAgora(produto: Produto, agora = new Date()) {
+  if (!produto.disponivel || (produto.estoque !== undefined && produto.estoque <= 0)) return false;
+  const inicio = produto.disponivelInicio;
+  const fim = produto.disponivelFim;
+  if (!inicio || !fim || !/^\d{2}:\d{2}$/.test(inicio) || !/^\d{2}:\d{2}$/.test(fim)) return true;
+  const minutos = agora.getHours() * 60 + agora.getMinutes();
+  const [horaInicio, minutoInicio] = inicio.split(":").map(Number);
+  const [horaFim, minutoFim] = fim.split(":").map(Number);
+  const de = (horaInicio ?? 0) * 60 + (minutoInicio ?? 0);
+  const ate = (horaFim ?? 0) * 60 + (minutoFim ?? 0);
+  return de <= ate ? minutos >= de && minutos <= ate : minutos >= de || minutos <= ate;
+}
+
 /** Perfil visual do catálogo: nomes e grupos de opção variam por segmento. */
 export interface PerfilCatalogo {
   /** "Cardápio", "Catálogo de produtos", "Menu"… */
@@ -119,7 +133,9 @@ export function normalizarCategoria(valor: string, categorias: string[] = []) {
 /** Seleção compacta exibida na página principal: destaques e promoções primeiro. */
 export function itensDestaque(produtos: Produto[], max = 6) {
   const pontos = (p: Produto) =>
-    (p.destaque ? 2 : 0) + (descontoPercentual(p) > 0 ? 1 : 0) + (p.disponivel ? 1 : 0);
+    (p.destaque ? 2 : 0) +
+    (descontoPercentual(p) > 0 ? 1 : 0) +
+    (produtoDisponivelAgora(p) ? 1 : 0);
   return [...produtos].sort((a, b) => pontos(b) - pontos(a)).slice(0, Math.max(0, max));
 }
 
@@ -132,7 +148,7 @@ export function filtrarCatalogo(
     if (categoria !== "Todos" && p.categoria !== categoria) return false;
     if (filtro === "destaques" && !p.destaque) return false;
     if (filtro === "promocoes" && descontoPercentual(p) === 0) return false;
-    if (filtro === "disponiveis" && !p.disponivel) return false;
+    if (filtro === "disponiveis" && !produtoDisponivelAgora(p)) return false;
     if (!termo) return true;
     return `${p.nome} ${p.descricao} ${p.categoria}`.toLowerCase().includes(termo);
   });

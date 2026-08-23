@@ -9,6 +9,7 @@ import {
   Plus,
   Search,
   ShoppingBag,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -17,6 +18,8 @@ import { eventoMarketing } from "@/lib/nexa/rastreio-marketing";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buscarMeusPedidosPublicos,
+  buscarEstoquePublicado,
+  avaliarPedidoPublicado,
   criarPedidoPublicado,
   guardarAcompanhamentoPedido,
   notificarDonoDoMinisite,
@@ -35,6 +38,7 @@ import {
   ordenacoesCatalogo,
   ordenarCatalogo,
   perfilCatalogo,
+  produtoDisponivelAgora,
   precoFinal,
   rotulosModalidade,
   rotulosPagamento,
@@ -121,6 +125,7 @@ export function CatalogoPagina({
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [retornoPedido, setRetornoPedido] = useState<string>("");
   const [ranking, setRanking] = useState<Record<string, number>>({});
+  const [estoqueAtual, setEstoqueAtual] = useState<Record<string, number>>({});
   const [produtoAnimado, setProdutoAnimado] = useState<Produto | null>(null);
   const [contadorAnimado, setContadorAnimado] = useState(false);
   const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
@@ -151,6 +156,11 @@ export function CatalogoPagina({
     }
     setRestaurado(true);
   }, [site.slug]);
+
+  useEffect(() => {
+    if (!interacoesExternas) return;
+    void buscarEstoquePublicado(site.slug).then(setEstoqueAtual);
+  }, [interacoesExternas, site.slug]);
 
   const atualizarMeusPedidos = useCallback(async () => {
     if (!interacoesExternas) return;
@@ -226,19 +236,31 @@ export function CatalogoPagina({
       );
   };
 
+  const produtosPublicos = useMemo(
+    () =>
+      site.produtos.map((produto) => {
+        const quantidade = estoqueAtual[produto.id];
+        return quantidade === undefined ? produto : { ...produto, estoque: quantidade };
+      }),
+    [estoqueAtual, site.produtos],
+  );
   const categorias = useMemo(
-    () => ["Todos", ...categoriasDeProdutos(site.produtos)],
-    [site.produtos],
+    () => ["Todos", ...categoriasDeProdutos(produtosPublicos)],
+    [produtosPublicos],
   );
   const lista = useMemo(
     () =>
-      ordenarCatalogo(filtrarCatalogo(site.produtos, { busca, categoria, filtro }), ordem, ranking),
-    [site.produtos, busca, categoria, filtro, ordem, ranking],
+      ordenarCatalogo(
+        filtrarCatalogo(produtosPublicos, { busca, categoria, filtro }),
+        ordem,
+        ranking,
+      ),
+    [produtosPublicos, busca, categoria, filtro, ordem, ranking],
   );
   /** Catálogo sem nenhum item cadastrado — diferente de "filtro sem resultado". */
-  const catalogoVazio = !carregando && site.produtos.length === 0;
+  const catalogoVazio = !carregando && produtosPublicos.length === 0;
 
-  const itens: ItemCarrinho[] = site.produtos
+  const itens: ItemCarrinho[] = produtosPublicos
     .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
     .map((p) => {
       const observacao = carrinho[p.id]?.observacao ?? "";
@@ -292,6 +314,7 @@ export function CatalogoPagina({
       guardarAcompanhamentoPedido(site.slug, pedido.trackingToken);
       setCarrinho({});
       setCarrinhoAberto(false);
+      void buscarEstoquePublicado(site.slug).then(setEstoqueAtual);
       setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
       await atualizarMeusPedidos();
       setPedidosAbertos(true);
@@ -648,7 +671,7 @@ export function CatalogoPagina({
               campos={campos}
               setCampos={setCampos}
               onAlterar={(id, d) => {
-                const p = site.produtos.find((x) => x.id === id);
+                const p = produtosPublicos.find((x) => x.id === id);
                 if (p) alterar(p, d);
               }}
               pedidosAtivos={interacoesExternas}
@@ -750,7 +773,7 @@ export function CatalogoPagina({
             campos={campos}
             setCampos={setCampos}
             onAlterar={(id, d) => {
-              const p = site.produtos.find((x) => x.id === id);
+              const p = produtosPublicos.find((x) => x.id === id);
               if (p) alterar(p, d);
             }}
             pedidosAtivos={interacoesExternas}
@@ -792,6 +815,25 @@ function DrawerMeusPedidos({
 }) {
   const ref = useFocoModal(true, onFechar);
   const primaria = site.aparencia.corPrimaria;
+  const [avaliando, setAvaliando] = useState<string | null>(null);
+  const [nota, setNota] = useState(5);
+  const [comentario, setComentario] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [mensagem, setMensagem] = useState("");
+  const enviarAvaliacao = async (pedido: PedidoPublico) => {
+    setEnviando(true);
+    setMensagem("");
+    try {
+      await avaliarPedidoPublicado(site.slug, pedido.trackingToken, nota, comentario);
+      setMensagem("Obrigado! Sua avaliação foi enviada para moderação.");
+      setAvaliando(null);
+      setComentario("");
+    } catch (error) {
+      setMensagem(error instanceof Error ? error.message : "Não foi possível enviar a avaliação.");
+    } finally {
+      setEnviando(false);
+    }
+  };
   return (
     <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-0 @md:place-items-center @md:p-5">
       <button
@@ -883,9 +925,92 @@ function DrawerMeusPedidos({
                   {pedido.itens.map((item) => `${item.quantidade}× ${item.nome}`).join(", ")}
                 </p>
                 <p className="mt-2 text-sm font-semibold">Total {moeda(Number(pedido.total))}</p>
+                {pedido.status === "concluido" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvaliando((atual) => (atual === pedido.id ? null : pedido.id));
+                        setMensagem("");
+                      }}
+                      className="mt-3 inline-flex min-h-11 items-center gap-2 text-xs font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2"
+                      style={{ outlineColor: primaria }}
+                    >
+                      <Star size={14} aria-hidden /> Avaliar atendimento
+                    </button>
+                    {avaliando === pedido.id && (
+                      <div
+                        className="mt-3 border-t pt-3"
+                        style={{ borderColor: "var(--ms-border)" }}
+                      >
+                        <p className="text-xs font-semibold">Como foi sua experiência?</p>
+                        <div
+                          className="mt-2 flex gap-1"
+                          role="radiogroup"
+                          aria-label="Nota da avaliação"
+                        >
+                          {[1, 2, 3, 4, 5].map((valor) => (
+                            <button
+                              key={valor}
+                              type="button"
+                              role="radio"
+                              aria-checked={nota === valor}
+                              aria-label={`${valor} estrela${valor > 1 ? "s" : ""}`}
+                              onClick={() => setNota(valor)}
+                              className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
+                              style={{
+                                color: valor <= nota ? primaria : "inherit",
+                                outlineColor: primaria,
+                              }}
+                            >
+                              <Star
+                                size={18}
+                                fill={valor <= nota ? "currentColor" : "none"}
+                                aria-hidden
+                              />
+                            </button>
+                          ))}
+                        </div>
+                        <label className="mt-2 block text-xs">
+                          Comentário opcional
+                          <textarea
+                            value={comentario}
+                            maxLength={800}
+                            onChange={(event) => setComentario(event.target.value)}
+                            rows={2}
+                            className="mt-1 w-full p-2 text-sm"
+                            style={{
+                              border: "1px solid var(--ms-border)",
+                              borderRadius: "var(--ms-radius)",
+                              background: "transparent",
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          disabled={enviando}
+                          onClick={() => void enviarAvaliacao(pedido)}
+                          className="mt-2 min-h-11 px-3 text-xs font-semibold"
+                          style={{
+                            background: primaria,
+                            color: contraste(primaria),
+                            borderRadius: "var(--ms-radius)",
+                          }}
+                        >
+                          {enviando ? "Enviando…" : "Enviar avaliação"}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </li>
             ))}
           </ul>
+        )}
+        {mensagem && (
+          <p role="status" className="mt-3 text-xs font-medium">
+            {mensagem}
+          </p>
         )}
       </section>
     </div>
@@ -1094,6 +1219,7 @@ function CartaoProduto({
 }) {
   const primaria = site.aparencia.corPrimaria;
   const desconto = descontoPercentual(produto);
+  const disponivelAgora = produtoDisponivelAgora(produto);
   return (
     <div
       className="flex h-full flex-col overflow-hidden"
@@ -1101,7 +1227,7 @@ function CartaoProduto({
         background: "var(--ms-surface)",
         border: "1px solid var(--ms-border)",
         borderRadius: "var(--ms-radius)",
-        opacity: produto.disponivel ? 1 : 0.72,
+        opacity: disponivelAgora ? 1 : 0.72,
       }}
     >
       <button
@@ -1128,7 +1254,7 @@ function CartaoProduto({
             )}
             {produto.destaque && <Badge cor={primaria}>Mais pedido</Badge>}
             {desconto > 0 && <Badge cor={primaria}>Promoção −{desconto}%</Badge>}
-            {!produto.disponivel && (
+            {!disponivelAgora && (
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-bold"
                 style={{ background: "var(--ms-border)" }}
@@ -1161,7 +1287,7 @@ function CartaoProduto({
         </div>
       </button>
       <div className="px-3 pb-3">
-        {produto.disponivel ? (
+        {disponivelAgora ? (
           <Contador
             site={site}
             quantidade={quantidade}
@@ -1277,6 +1403,7 @@ function DetalheProduto({
   const primaria = site.aparencia.corPrimaria;
   const [nota, setNota] = useState(observacao);
   const desconto = descontoPercentual(produto);
+  const disponivelAgora = produtoDisponivelAgora(produto);
 
   const refModal = useFocoModal(true, onFechar);
 
@@ -1326,7 +1453,7 @@ function DetalheProduto({
         <div className="flex flex-wrap items-center gap-2">
           {produto.categoria && <Badge cor={primaria}>{produto.categoria}</Badge>}
           {desconto > 0 && <Badge cor={primaria}>−{desconto}%</Badge>}
-          {!produto.disponivel && (
+          {!disponivelAgora && (
             <span
               className="rounded-full px-2 py-0.5 text-[10px] font-bold"
               style={{ background: "var(--ms-border)" }}
@@ -1421,13 +1548,19 @@ function DetalheProduto({
 
         <div className="mt-4 flex flex-col gap-2 @2xl:flex-row @2xl:items-center">
           <div className="@2xl:w-40">
-            <Contador
-              site={site}
-              quantidade={quantidade}
-              rotulo={produto.nome}
-              onAlterar={(d) => onAlterar(d, nota)}
-              onAdicionar={() => onAlterar(1, nota)}
-            />
+            {disponivelAgora ? (
+              <Contador
+                site={site}
+                quantidade={quantidade}
+                rotulo={produto.nome}
+                onAlterar={(d) => onAlterar(d, nota)}
+                onAdicionar={() => onAlterar(1, nota)}
+              />
+            ) : (
+              <p className="min-h-11 py-2 text-center text-xs font-semibold opacity-70">
+                Indisponível agora
+              </p>
+            )}
           </div>
           <button
             type="button"
