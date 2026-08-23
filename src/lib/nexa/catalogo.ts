@@ -186,14 +186,50 @@ export const rotulosModalidade: Record<Modalidade, string> = {
   mesa: "Mesa / comanda",
 };
 
+const abreviacaoDia = (dia: string) => dia.slice(0, 3);
+
+/** Próximo turno de atendimento (apenas leitura dos horários já cadastrados). */
+export function proximaAbertura(
+  horarios: { dia: string; abre: string; fecha: string; fechado: boolean }[],
+  agora = new Date(),
+) {
+  const idxHoje = (agora.getDay() + 6) % 7;
+  const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+  const emMinutos = (h: string) => {
+    const [a = "0", b = "0"] = h.split(":");
+    return Number(a) * 60 + Number(b);
+  };
+  for (let salto = 0; salto < 7; salto += 1) {
+    const dia = horarios[(idxHoje + salto) % 7];
+    if (!dia || dia.fechado || !dia.abre) continue;
+    if (salto === 0 && emMinutos(dia.abre) <= minutosAgora) continue;
+    return salto === 0
+      ? `Abre hoje às ${dia.abre}`
+      : `Abre ${abreviacaoDia(dia.dia).toLowerCase()}. às ${dia.abre}`;
+  }
+  return undefined;
+}
+
 /** Situação do estabelecimento a partir dos horários cadastrados. */
 export function situacaoAtendimento(site: Site) {
   const horarios = site.conteudo.horarios ?? [];
   if (horarios.length === 0)
     return { conhecida: false, aberto: false, rotulo: "Horário não informado" };
   const aberto = estaAberto(horarios);
-  return { conhecida: true, aberto, rotulo: aberto ? "Aberto agora" : "Fechado agora" };
+  const idxHoje = (new Date().getDay() + 6) % 7;
+  const hoje = horarios[idxHoje];
+  return {
+    conhecida: true,
+    aberto,
+    rotulo: aberto ? "Aberto agora" : "Fechado agora",
+    detalhe: aberto
+      ? hoje && !hoje.fechado
+        ? `Até ${hoje.fecha}`
+        : undefined
+      : proximaAbertura(horarios),
+  };
 }
+
 export type Pagamento = "pix" | "cartao" | "dinheiro" | "balcao";
 
 /**

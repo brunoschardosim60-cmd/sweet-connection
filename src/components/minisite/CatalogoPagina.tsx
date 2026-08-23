@@ -142,6 +142,18 @@ export function CatalogoPagina({
   const [contadorAnimado, setContadorAnimado] = useState(false);
   const carrinhoCabecalhoRef = useRef<HTMLButtonElement>(null);
   const carrinhoFlutuanteRef = useRef<HTMLButtonElement>(null);
+  const cabecalhoRef = useRef<HTMLElement>(null);
+  // O cabeçalho muda de altura conforme o dispositivo/moldura; medir evita filtros escondidos.
+  const [alturaCabecalho, setAlturaCabecalho] = useState(104);
+  useEffect(() => {
+    const alvo = cabecalhoRef.current;
+    if (!alvo || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(() => setAlturaCabecalho(alvo.offsetHeight));
+    observador.observe(alvo);
+    setAlturaCabecalho(alvo.offsetHeight);
+    return () => observador.disconnect();
+  }, []);
+
   const [meusPedidos, setMeusPedidos] = useState<PedidoPublico[]>([]);
   const [pedidosAbertos, setPedidosAbertos] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState<{
@@ -401,7 +413,9 @@ export function CatalogoPagina({
       className={`nexa-catalogo ${interacoesExternas ? "nexa-catalogo-publico" : ""} relative @container min-h-screen w-full overflow-x-hidden text-[15px] leading-relaxed`}
     >
       <header
+        ref={cabecalhoRef}
         className="sticky top-0 z-30 w-full backdrop-blur"
+
         style={{
           background: hexToRgba(site.aparencia.corFundo, 0.92),
           borderBottom: "1px solid var(--ms-border)",
@@ -431,10 +445,13 @@ export function CatalogoPagina({
               <p className="truncate text-[13px] font-semibold leading-tight @md:text-sm">
                 {site.conteudo.nome}
               </p>
-              <p className="mt-0.5 truncate text-[10px] leading-tight opacity-70 @md:text-[11px]">
-                {perfil.rotulo}
-              </p>
+              {site.conteudo.descricao && (
+                <p className="mt-0.5 truncate text-[10px] leading-tight opacity-70 @md:text-[11px]">
+                  {site.conteudo.descricao}
+                </p>
+              )}
             </div>
+
           </div>
           <div className="flex items-center gap-1.5">
             {interacoesExternas && (
@@ -489,7 +506,11 @@ export function CatalogoPagina({
               style={{ background: situacao.aberto ? primaria : "currentColor" }}
             />
             {situacao.rotulo}
+            {situacao.detalhe && (
+              <span className="font-medium opacity-80">· {situacao.detalhe}</span>
+            )}
           </span>
+
           {perfil.prazo && (
             <span
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 opacity-80"
@@ -568,9 +589,10 @@ export function CatalogoPagina({
 
           {!catalogoVazio && (
             <div
-              className="sticky top-[104px] z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur @5xl:top-[72px]"
-              style={{ background: hexToRgba(site.aparencia.corFundo, 0.96) }}
+              className="sticky z-20 -mx-4 mt-4 flex flex-col gap-3 px-4 py-3 backdrop-blur"
+              style={{ background: hexToRgba(site.aparencia.corFundo, 0.96), top: alturaCabecalho }}
             >
+
               <label className="sr-only" htmlFor="busca-catalogo">
                 Buscar por nome, descrição ou categoria
               </label>
