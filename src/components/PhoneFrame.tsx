@@ -52,6 +52,10 @@ export function PhoneFrame({
           style={{
             scrollPaddingTop: areaSegura?.paddingTop,
             scrollPaddingBottom: areaSegura?.paddingBottom,
+            paddingTop: areaSegura?.paddingTop,
+            paddingBottom: areaSegura?.paddingBottom,
+            paddingLeft: areaSegura?.paddingLeft,
+            paddingRight: areaSegura?.paddingRight,
           }}
           className="h-full w-full overflow-y-auto overflow-x-hidden [&>*]:min-h-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >

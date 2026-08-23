@@ -10,6 +10,8 @@ export function PalcoEscalado({
   dispositivo,
   children,
   zoom = 1,
+  escalaMinima = 0,
+  alinharNoTopo = false,
   className = "",
   onEscala,
 }: {
@@ -17,6 +19,10 @@ export function PalcoEscalado({
   children: ReactNode;
   /** Multiplicador manual aplicado sobre a escala que cabe na tela. */
   zoom?: number;
+  /** Evita uma prévia pequena demais; o palco passa a rolar quando necessário. */
+  escalaMinima?: number;
+  /** Mantém o topo acessível quando a prévia é maior do que o palco. */
+  alinharNoTopo?: boolean;
   className?: string;
   onEscala?: (escala: number) => void;
 }) {
@@ -36,7 +42,7 @@ export function PalcoEscalado({
     return () => obs.disconnect();
   }, [dispositivo]);
 
-  const escala = ajuste * zoom;
+  const escala = Math.max(ajuste, escalaMinima) * zoom;
 
   useEffect(() => {
     onEscala?.(escala);
@@ -45,7 +51,9 @@ export function PalcoEscalado({
   return (
     <div
       ref={ref}
-      className={`scrollbar-invisivel flex min-h-0 w-full flex-1 items-center justify-center overflow-auto ${className}`}
+      className={`scrollbar-invisivel flex min-h-0 w-full flex-1 justify-center overflow-auto ${
+        alinharNoTopo ? "items-start pt-4" : "items-center"
+      } ${className}`}
     >
       <div
         style={{

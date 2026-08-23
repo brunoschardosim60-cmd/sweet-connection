@@ -59,11 +59,11 @@ function Demonstracao() {
 
       <main
         data-dispositivo={disp}
-        className="relative flex min-h-0 flex-1 justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_42%,rgba(166,241,83,0.16),transparent_37%)] p-3 sm:p-5"
+        className="scrollbar-invisivel relative flex min-h-0 flex-1 justify-center overflow-auto bg-[radial-gradient(circle_at_50%_42%,rgba(166,241,83,0.16),transparent_37%)] p-3 sm:p-5"
       >
         <section
           aria-label="Prévia interativa do modelo"
-          className="relative flex min-h-0 w-full max-w-6xl flex-1 overflow-hidden rounded-[2rem] border border-border/80 bg-background/45 shadow-[0_20px_70px_rgba(24,20,13,0.08)]"
+          className="relative flex min-h-[720px] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-border/80 bg-background/45 shadow-[0_20px_70px_rgba(24,20,13,0.08)]"
         >
           <div className="pointer-events-none absolute left-6 top-6 z-10 hidden max-w-48 lg:block">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -73,7 +73,12 @@ function Demonstracao() {
               Explore o modelo como ele aparece para os clientes.
             </p>
           </div>
-          <MolduraPrevia dispositivo={disp} className="bg-transparent">
+          <MolduraPrevia
+            dispositivo={disp}
+            escalaMinima={0.7}
+            alinharNoTopo
+            className="bg-transparent"
+          >
             {ehModeloCardapio(site.modeloId) ? (
               <CatalogoPagina
                 site={site}

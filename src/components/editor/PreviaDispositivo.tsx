@@ -104,11 +104,17 @@ export function MolduraPrevia({
   dispositivo,
   children,
   controles = true,
+  escalaMinima = 0,
+  alinharNoTopo = false,
   className = "",
 }: {
   dispositivo: Dispositivo;
   children: ReactNode;
   controles?: boolean;
+  /** Mantém demonstrações públicas legíveis, mesmo em telas mais baixas. */
+  escalaMinima?: number;
+  /** Evita cortar o começo do site quando o palco precisa rolar. */
+  alinharNoTopo?: boolean;
   /** Classes extras para usar a mesma moldura em palcos diferentes, como a demonstração pública. */
   className?: string;
 }) {
@@ -190,7 +196,12 @@ export function MolduraPrevia({
       )}
 
       {caixa && seguro ? (
-        <PalcoEscalado dispositivo={caixa} zoom={zoom}>
+        <PalcoEscalado
+          dispositivo={caixa}
+          zoom={zoom}
+          escalaMinima={escalaMinima}
+          alinharNoTopo={alinharNoTopo}
+        >
           {dispositivo === "celular" ? (
             <PhoneFrame largura={caixa.largura} altura={caixa.altura} areaSegura={seguro}>
               {children}
