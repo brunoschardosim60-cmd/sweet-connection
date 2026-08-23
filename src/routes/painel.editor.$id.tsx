@@ -92,6 +92,14 @@ const abas: { id: Aba; rotulo: string }[] = [
 ];
 
 const abasPermitidas = new Set<Aba>(abas.map((aba) => aba.id));
+const abasPermitidasCardapio = new Set<Aba>([
+  "conteudo",
+  "itens",
+  "cardapio",
+  "aparencia",
+  "seo",
+  "versoes",
+]);
 const dispositivosPermitidos = new Set<Dispositivo>(["celular", "tablet", "desktop"]);
 
 function Editor() {
@@ -139,7 +147,12 @@ function Editor() {
             aba?: Aba;
             dispositivo?: Dispositivo;
           };
-          if (salvo.aba && abasPermitidas.has(salvo.aba)) setAba(salvo.aba);
+          if (
+            salvo.aba &&
+            abasPermitidas.has(salvo.aba) &&
+            (!ehModeloCardapio(original.modeloId) || abasPermitidasCardapio.has(salvo.aba))
+          )
+            setAba(salvo.aba);
           else if (ehModeloCardapio(original.modeloId)) setAba("cardapio");
           if (salvo.dispositivo && dispositivosPermitidos.has(salvo.dispositivo)) {
             setDispositivo(salvo.dispositivo);
@@ -358,11 +371,14 @@ function Editor() {
         };
   const cardapioDigital = ehModeloCardapio(rascunho.modeloId);
   const abasVisiveis = cardapioDigital
-    ? abas.filter((a) =>
-        ["conteudo", "cardapio", "itens", "aparencia", "seo", "qualidade", "versoes"].includes(
-          a.id,
-        ),
-      )
+    ? ([
+        { id: "conteudo", rotulo: "Informações" },
+        { id: "itens", rotulo: "Produtos" },
+        { id: "cardapio", rotulo: "Cardápio" },
+        { id: "aparencia", rotulo: "Visual" },
+        { id: "seo", rotulo: "SEO" },
+        { id: "versoes", rotulo: "Versões" },
+      ] satisfies { id: Aba; rotulo: string }[])
     : abas;
 
   return (
@@ -542,7 +558,9 @@ function Editor() {
           >
             {aba === "conteudo" && <AbaConteudo site={rascunho} aplicar={aplicar} />}
             {aba === "secoes" && <AbaSecoes site={rascunho} aplicar={aplicar} onIr={irPara} />}
-            {aba === "itens" && <AbaItens site={rascunho} aplicar={aplicar} />}
+            {aba === "itens" && (
+              <AbaItens site={rascunho} aplicar={aplicar} somenteProdutos={cardapioDigital} />
+            )}
             {aba === "cardapio" && (
               <AbaCardapio
                 site={rascunho}
@@ -550,7 +568,9 @@ function Editor() {
                 onIrParaItens={() => setAba("itens")}
               />
             )}
-            {aba === "aparencia" && <AbaAparencia site={rascunho} aplicar={aplicar} />}
+            {aba === "aparencia" && (
+              <AbaAparencia site={rascunho} aplicar={aplicar} somenteCardapio={cardapioDigital} />
+            )}
             {aba === "seo" && <AbaSeo site={rascunho} aplicar={aplicar} />}
             {aba === "qualidade" && <PainelQualidade site={rascunho} onIr={irPara} />}
             {aba === "versoes" && (
@@ -1528,7 +1548,16 @@ function EditorDepoimento({ d, aplicar }: { d: Site["depoimentos"][number]; apli
   );
 }
 
-function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+function AbaItens({
+  site,
+  aplicar,
+  somenteProdutos = false,
+}: {
+  site: Site;
+  aplicar: Aplicar;
+  /** Cardápio digital não possui serviços, equipe, formulário ou links institucionais. */
+  somenteProdutos?: boolean;
+}) {
   const [textoLote, setTextoLote] = useState("");
   const [ajustePercentual, setAjustePercentual] = useState("");
   const [ajusteFixo, setAjusteFixo] = useState("");
@@ -1669,7 +1698,7 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
   return (
     <>
-      <BlocoLinksEditor site={site} aplicar={aplicar} />
+      {!somenteProdutos && <BlocoLinksEditor site={site} aplicar={aplicar} />}
 
       <Bloco titulo="Produtos" id="bloco-produtos">
         <div className="mb-4 grid gap-3 rounded-2xl border border-dashed border-border bg-secondary/20 p-3">
@@ -1991,455 +2020,465 @@ function AbaItens({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
         <BotaoAdicionar rotulo="Adicionar produto" onClick={() => adicionarProduto()} />
       </Bloco>
 
-      <Bloco titulo="Serviços" id="bloco-servicos">
-        {site.servicos.map((sv) => (
-          <LinhaItem
-            key={sv.id}
-            onRemover={() =>
-              aplicar((s) => ({ ...s, servicos: s.servicos.filter((x) => x.id !== sv.id) }))
-            }
-          >
-            <EntradaSimples
-              valor={sv.nome}
-              placeholder="Nome do serviço"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  servicos: s.servicos.map((x) => (x.id === sv.id ? { ...x, nome: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={sv.descricao}
-              placeholder="Descrição"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  servicos: s.servicos.map((x) => (x.id === sv.id ? { ...x, descricao: v } : x)),
-                }))
-              }
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <EntradaSimples
-                valor={sv.duracao}
-                placeholder="Duração"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    servicos: s.servicos.map((x) => (x.id === sv.id ? { ...x, duracao: v } : x)),
-                  }))
-                }
-              />
-              <EntradaSimples
-                valor={String(sv.preco)}
-                placeholder="Preço"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    servicos: s.servicos.map((x) =>
-                      x.id === sv.id ? { ...x, preco: Number(v.replace(",", ".")) || 0 } : x,
-                    ),
-                  }))
-                }
-              />
-            </div>
-            <EntradaSimples
-              valor={sv.profissional ?? ""}
-              placeholder="Profissional responsável"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  servicos: s.servicos.map((x) => {
-                    if (x.id !== sv.id) return x;
-                    const { profissional: _antigo, ...resto } = x;
-                    return v.trim() ? { ...resto, profissional: v } : resto;
-                  }),
-                }))
-              }
-            />
-            <SeletorMidia
-              rotulo="Foto do serviço"
-              valor={sv.imagem ?? ""}
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  servicos: s.servicos.map((x) => {
-                    if (x.id !== sv.id) return x;
-                    const { imagem: _antiga, ...resto } = x;
-                    return v ? { ...resto, imagem: v } : resto;
-                  }),
-                }))
-              }
-            />
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar serviço"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              servicos: [
-                ...s.servicos,
-                {
-                  id: uid("srv"),
-                  nome: "Novo serviço",
-                  descricao: "",
-                  duracao: "30 min",
-                  preco: 0,
-                },
-              ],
-            }))
-          }
-        />
-      </Bloco>
-
-      <BlocoGaleria site={site} aplicar={aplicar} />
-      <BlocoVideosEditor site={site} aplicar={aplicar} />
-
-      <Bloco titulo="Depoimentos" id="bloco-depoimentos">
-        {site.depoimentos.map((d) => (
-          <EditorDepoimento key={d.id} d={d} aplicar={aplicar} />
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar depoimento"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              depoimentos: [
-                ...s.depoimentos,
-                {
-                  id: uid("dep"),
-                  nome: "Cliente",
-                  nota: 5,
-                  comentario: "",
-                  data: new Date().toISOString(),
-                  destaque: false,
-                },
-              ],
-            }))
-          }
-        />
-      </Bloco>
-
-      <Bloco titulo="Equipe" id="bloco-equipe">
-        {site.equipe.map((m) => (
-          <LinhaItem
-            key={m.id}
-            onRemover={() =>
-              aplicar((s) => ({ ...s, equipe: s.equipe.filter((x) => x.id !== m.id) }))
-            }
-          >
-            <div className="grid grid-cols-2 gap-2">
-              <EntradaSimples
-                valor={m.nome}
-                placeholder="Nome"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, nome: v } : x)),
-                  }))
-                }
-              />
-              <EntradaSimples
-                valor={m.funcao}
-                placeholder="Função"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, funcao: v } : x)),
-                  }))
-                }
-              />
-            </div>
-            <SeletorMidia
-              rotulo="Foto"
-              valor={m.foto ?? ""}
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  equipe: s.equipe.map((x) => {
-                    if (x.id !== m.id) return x;
-                    const { foto: _antiga, ...resto } = x;
-                    return v ? { ...resto, foto: v } : resto;
-                  }),
-                }))
-              }
-            />
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar pessoa"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              equipe: [...s.equipe, { id: uid("eqp"), nome: "Novo integrante", funcao: "" }],
-            }))
-          }
-        />
-      </Bloco>
-
-      <Bloco titulo="Cupons e promoções" id="bloco-cupons">
-        {site.cupons.map((c) => (
-          <LinhaItem
-            key={c.id}
-            onRemover={() =>
-              aplicar((s) => ({ ...s, cupons: s.cupons.filter((x) => x.id !== c.id) }))
-            }
-          >
-            <EntradaSimples
-              valor={c.titulo}
-              placeholder="Título (ex.: 10% na primeira compra)"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, titulo: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={c.descricao}
-              placeholder="Descrição / regras"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, descricao: v } : x)),
-                }))
-              }
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <EntradaSimples
-                valor={c.codigo}
-                placeholder="Código"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    cupons: s.cupons.map((x) =>
-                      x.id === c.id ? { ...x, codigo: v.toUpperCase() } : x,
-                    ),
-                  }))
-                }
-              />
-              <EntradaSimples
-                valor={c.validade}
-                placeholder="Validade (ex.: 31/12)"
-                onChange={(v) =>
-                  aplicar((s) => ({
-                    ...s,
-                    cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, validade: v } : x)),
-                  }))
-                }
-              />
-            </div>
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={c.ativo}
-                onChange={(e) =>
-                  aplicar((s) => ({
-                    ...s,
-                    cupons: s.cupons.map((x) =>
-                      x.id === c.id ? { ...x, ativo: e.target.checked } : x,
-                    ),
-                  }))
-                }
-              />
-              cupom ativo
-            </label>
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar cupom"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              cupons: [
-                ...s.cupons,
-                {
-                  id: uid("cup"),
-                  titulo: "Novo cupom",
-                  descricao: "",
-                  codigo: "NEXA10",
-                  validade: "",
-                  ativo: true,
-                },
-              ],
-            }))
-          }
-        />
-      </Bloco>
-
-      <Bloco titulo="Perguntas frequentes" id="bloco-faq">
-        {site.faq.map((f) => (
-          <LinhaItem
-            key={f.id}
-            onRemover={() => aplicar((s) => ({ ...s, faq: s.faq.filter((x) => x.id !== f.id) }))}
-          >
-            <EntradaSimples
-              valor={f.pergunta}
-              placeholder="Pergunta"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  faq: s.faq.map((x) => (x.id === f.id ? { ...x, pergunta: v } : x)),
-                }))
-              }
-            />
-            <EntradaSimples
-              valor={f.resposta}
-              placeholder="Resposta"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  faq: s.faq.map((x) => (x.id === f.id ? { ...x, resposta: v } : x)),
-                }))
-              }
-            />
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar pergunta"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              faq: [...s.faq, { id: uid("faq"), pergunta: "Nova pergunta", resposta: "" }],
-            }))
-          }
-        />
-      </Bloco>
-
-      <Bloco titulo="Formulário" id="bloco-formulario">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <label className="grid gap-1 text-xs text-muted-foreground">
-            Tipo do formulário
-            <select
-              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
-              value={site.formulario.tipo}
-              onChange={(e) =>
-                aplicar((s) => ({
-                  ...s,
-                  formulario: {
-                    ...s.formulario,
-                    tipo: e.target.value as Site["formulario"]["tipo"],
-                  },
-                }))
-              }
-            >
-              <option value="orcamento">Orçamento</option>
-              <option value="contato">Contato</option>
-              <option value="reserva">Reserva</option>
-              <option value="agendamento">Agendamento</option>
-              <option value="cotacao">Cotação</option>
-            </select>
-          </label>
-          <label className="grid gap-1 text-xs text-muted-foreground">
-            Título exibido
-            <input
-              className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
-              value={site.formulario.titulo}
-              onChange={(e) =>
-                aplicar((s) => ({
-                  ...s,
-                  formulario: { ...s.formulario, titulo: e.target.value },
-                }))
-              }
-            />
-          </label>
-        </div>
-
-        {site.formulario.campos.map((c) => (
-          <LinhaItem
-            key={c.id}
-            onRemover={() =>
-              aplicar((s) => ({
-                ...s,
-                formulario: {
-                  ...s.formulario,
-                  campos: s.formulario.campos.filter((x) => x.id !== c.id),
-                },
-              }))
-            }
-          >
-            <EntradaSimples
-              valor={c.rotulo}
-              placeholder="Rótulo do campo"
-              onChange={(v) =>
-                aplicar((s) => ({
-                  ...s,
-                  formulario: {
-                    ...s.formulario,
-                    campos: s.formulario.campos.map((x) =>
-                      x.id === c.id ? { ...x, rotulo: v } : x,
-                    ),
-                  },
-                }))
-              }
-            />
-            <div className="flex flex-wrap items-center gap-3">
-              <select
-                aria-label={`Tipo do campo ${c.rotulo}`}
-                className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
-                value={c.tipo}
-                onChange={(e) =>
-                  aplicar((s) => ({
-                    ...s,
-                    formulario: {
-                      ...s.formulario,
-                      campos: s.formulario.campos.map((x) =>
-                        x.id === c.id
-                          ? { ...x, tipo: e.target.value as CampoFormulario["tipo"] }
-                          : x,
-                      ),
-                    },
-                  }))
+      {!somenteProdutos && (
+        <>
+          <Bloco titulo="Serviços" id="bloco-servicos">
+            {site.servicos.map((sv) => (
+              <LinhaItem
+                key={sv.id}
+                onRemover={() =>
+                  aplicar((s) => ({ ...s, servicos: s.servicos.filter((x) => x.id !== sv.id) }))
                 }
               >
-                <option value="texto">Texto</option>
-                <option value="email">E-mail</option>
-                <option value="telefone">Telefone</option>
-                <option value="data">Data</option>
-                <option value="textarea">Texto longo</option>
-              </select>
-              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={c.obrigatorio}
+                <EntradaSimples
+                  valor={sv.nome}
+                  placeholder="Nome do serviço"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      servicos: s.servicos.map((x) => (x.id === sv.id ? { ...x, nome: v } : x)),
+                    }))
+                  }
+                />
+                <EntradaSimples
+                  valor={sv.descricao}
+                  placeholder="Descrição"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      servicos: s.servicos.map((x) =>
+                        x.id === sv.id ? { ...x, descricao: v } : x,
+                      ),
+                    }))
+                  }
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <EntradaSimples
+                    valor={sv.duracao}
+                    placeholder="Duração"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        servicos: s.servicos.map((x) =>
+                          x.id === sv.id ? { ...x, duracao: v } : x,
+                        ),
+                      }))
+                    }
+                  />
+                  <EntradaSimples
+                    valor={String(sv.preco)}
+                    placeholder="Preço"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        servicos: s.servicos.map((x) =>
+                          x.id === sv.id ? { ...x, preco: Number(v.replace(",", ".")) || 0 } : x,
+                        ),
+                      }))
+                    }
+                  />
+                </div>
+                <EntradaSimples
+                  valor={sv.profissional ?? ""}
+                  placeholder="Profissional responsável"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      servicos: s.servicos.map((x) => {
+                        if (x.id !== sv.id) return x;
+                        const { profissional: _antigo, ...resto } = x;
+                        return v.trim() ? { ...resto, profissional: v } : resto;
+                      }),
+                    }))
+                  }
+                />
+                <SeletorMidia
+                  rotulo="Foto do serviço"
+                  valor={sv.imagem ?? ""}
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      servicos: s.servicos.map((x) => {
+                        if (x.id !== sv.id) return x;
+                        const { imagem: _antiga, ...resto } = x;
+                        return v ? { ...resto, imagem: v } : resto;
+                      }),
+                    }))
+                  }
+                />
+              </LinhaItem>
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar serviço"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  servicos: [
+                    ...s.servicos,
+                    {
+                      id: uid("srv"),
+                      nome: "Novo serviço",
+                      descricao: "",
+                      duracao: "30 min",
+                      preco: 0,
+                    },
+                  ],
+                }))
+              }
+            />
+          </Bloco>
+
+          <BlocoGaleria site={site} aplicar={aplicar} />
+          <BlocoVideosEditor site={site} aplicar={aplicar} />
+
+          <Bloco titulo="Depoimentos" id="bloco-depoimentos">
+            {site.depoimentos.map((d) => (
+              <EditorDepoimento key={d.id} d={d} aplicar={aplicar} />
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar depoimento"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  depoimentos: [
+                    ...s.depoimentos,
+                    {
+                      id: uid("dep"),
+                      nome: "Cliente",
+                      nota: 5,
+                      comentario: "",
+                      data: new Date().toISOString(),
+                      destaque: false,
+                    },
+                  ],
+                }))
+              }
+            />
+          </Bloco>
+
+          <Bloco titulo="Equipe" id="bloco-equipe">
+            {site.equipe.map((m) => (
+              <LinhaItem
+                key={m.id}
+                onRemover={() =>
+                  aplicar((s) => ({ ...s, equipe: s.equipe.filter((x) => x.id !== m.id) }))
+                }
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  <EntradaSimples
+                    valor={m.nome}
+                    placeholder="Nome"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, nome: v } : x)),
+                      }))
+                    }
+                  />
+                  <EntradaSimples
+                    valor={m.funcao}
+                    placeholder="Função"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        equipe: s.equipe.map((x) => (x.id === m.id ? { ...x, funcao: v } : x)),
+                      }))
+                    }
+                  />
+                </div>
+                <SeletorMidia
+                  rotulo="Foto"
+                  valor={m.foto ?? ""}
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      equipe: s.equipe.map((x) => {
+                        if (x.id !== m.id) return x;
+                        const { foto: _antiga, ...resto } = x;
+                        return v ? { ...resto, foto: v } : resto;
+                      }),
+                    }))
+                  }
+                />
+              </LinhaItem>
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar pessoa"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  equipe: [...s.equipe, { id: uid("eqp"), nome: "Novo integrante", funcao: "" }],
+                }))
+              }
+            />
+          </Bloco>
+
+          <Bloco titulo="Cupons e promoções" id="bloco-cupons">
+            {site.cupons.map((c) => (
+              <LinhaItem
+                key={c.id}
+                onRemover={() =>
+                  aplicar((s) => ({ ...s, cupons: s.cupons.filter((x) => x.id !== c.id) }))
+                }
+              >
+                <EntradaSimples
+                  valor={c.titulo}
+                  placeholder="Título (ex.: 10% na primeira compra)"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, titulo: v } : x)),
+                    }))
+                  }
+                />
+                <EntradaSimples
+                  valor={c.descricao}
+                  placeholder="Descrição / regras"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, descricao: v } : x)),
+                    }))
+                  }
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <EntradaSimples
+                    valor={c.codigo}
+                    placeholder="Código"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        cupons: s.cupons.map((x) =>
+                          x.id === c.id ? { ...x, codigo: v.toUpperCase() } : x,
+                        ),
+                      }))
+                    }
+                  />
+                  <EntradaSimples
+                    valor={c.validade}
+                    placeholder="Validade (ex.: 31/12)"
+                    onChange={(v) =>
+                      aplicar((s) => ({
+                        ...s,
+                        cupons: s.cupons.map((x) => (x.id === c.id ? { ...x, validade: v } : x)),
+                      }))
+                    }
+                  />
+                </div>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={c.ativo}
+                    onChange={(e) =>
+                      aplicar((s) => ({
+                        ...s,
+                        cupons: s.cupons.map((x) =>
+                          x.id === c.id ? { ...x, ativo: e.target.checked } : x,
+                        ),
+                      }))
+                    }
+                  />
+                  cupom ativo
+                </label>
+              </LinhaItem>
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar cupom"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  cupons: [
+                    ...s.cupons,
+                    {
+                      id: uid("cup"),
+                      titulo: "Novo cupom",
+                      descricao: "",
+                      codigo: "NEXA10",
+                      validade: "",
+                      ativo: true,
+                    },
+                  ],
+                }))
+              }
+            />
+          </Bloco>
+
+          <Bloco titulo="Perguntas frequentes" id="bloco-faq">
+            {site.faq.map((f) => (
+              <LinhaItem
+                key={f.id}
+                onRemover={() =>
+                  aplicar((s) => ({ ...s, faq: s.faq.filter((x) => x.id !== f.id) }))
+                }
+              >
+                <EntradaSimples
+                  valor={f.pergunta}
+                  placeholder="Pergunta"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      faq: s.faq.map((x) => (x.id === f.id ? { ...x, pergunta: v } : x)),
+                    }))
+                  }
+                />
+                <EntradaSimples
+                  valor={f.resposta}
+                  placeholder="Resposta"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      faq: s.faq.map((x) => (x.id === f.id ? { ...x, resposta: v } : x)),
+                    }))
+                  }
+                />
+              </LinhaItem>
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar pergunta"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  faq: [...s.faq, { id: uid("faq"), pergunta: "Nova pergunta", resposta: "" }],
+                }))
+              }
+            />
+          </Bloco>
+
+          <Bloco titulo="Formulário" id="bloco-formulario">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                Tipo do formulário
+                <select
+                  className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  value={site.formulario.tipo}
                   onChange={(e) =>
                     aplicar((s) => ({
                       ...s,
                       formulario: {
                         ...s.formulario,
+                        tipo: e.target.value as Site["formulario"]["tipo"],
+                      },
+                    }))
+                  }
+                >
+                  <option value="orcamento">Orçamento</option>
+                  <option value="contato">Contato</option>
+                  <option value="reserva">Reserva</option>
+                  <option value="agendamento">Agendamento</option>
+                  <option value="cotacao">Cotação</option>
+                </select>
+              </label>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                Título exibido
+                <input
+                  className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  value={site.formulario.titulo}
+                  onChange={(e) =>
+                    aplicar((s) => ({
+                      ...s,
+                      formulario: { ...s.formulario, titulo: e.target.value },
+                    }))
+                  }
+                />
+              </label>
+            </div>
+
+            {site.formulario.campos.map((c) => (
+              <LinhaItem
+                key={c.id}
+                onRemover={() =>
+                  aplicar((s) => ({
+                    ...s,
+                    formulario: {
+                      ...s.formulario,
+                      campos: s.formulario.campos.filter((x) => x.id !== c.id),
+                    },
+                  }))
+                }
+              >
+                <EntradaSimples
+                  valor={c.rotulo}
+                  placeholder="Rótulo do campo"
+                  onChange={(v) =>
+                    aplicar((s) => ({
+                      ...s,
+                      formulario: {
+                        ...s.formulario,
                         campos: s.formulario.campos.map((x) =>
-                          x.id === c.id ? { ...x, obrigatorio: e.target.checked } : x,
+                          x.id === c.id ? { ...x, rotulo: v } : x,
                         ),
                       },
                     }))
                   }
                 />
-                obrigatório
-              </label>
-            </div>
-          </LinhaItem>
-        ))}
-        <BotaoAdicionar
-          rotulo="Adicionar campo"
-          onClick={() =>
-            aplicar((s) => ({
-              ...s,
-              formulario: {
-                ...s.formulario,
-                campos: [
-                  ...s.formulario.campos,
-                  { id: uid("cmp"), rotulo: "Novo campo", tipo: "texto", obrigatorio: false },
-                ],
-              },
-            }))
-          }
-        />
-        <p className="text-xs text-muted-foreground">
-          Os campos definem apenas o formulário exibido no mini-site. O envio continua sendo tratado
-          pela integração já existente.
-        </p>
-      </Bloco>
+                <div className="flex flex-wrap items-center gap-3">
+                  <select
+                    aria-label={`Tipo do campo ${c.rotulo}`}
+                    className="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                    value={c.tipo}
+                    onChange={(e) =>
+                      aplicar((s) => ({
+                        ...s,
+                        formulario: {
+                          ...s.formulario,
+                          campos: s.formulario.campos.map((x) =>
+                            x.id === c.id
+                              ? { ...x, tipo: e.target.value as CampoFormulario["tipo"] }
+                              : x,
+                          ),
+                        },
+                      }))
+                    }
+                  >
+                    <option value="texto">Texto</option>
+                    <option value="email">E-mail</option>
+                    <option value="telefone">Telefone</option>
+                    <option value="data">Data</option>
+                    <option value="textarea">Texto longo</option>
+                  </select>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={c.obrigatorio}
+                      onChange={(e) =>
+                        aplicar((s) => ({
+                          ...s,
+                          formulario: {
+                            ...s.formulario,
+                            campos: s.formulario.campos.map((x) =>
+                              x.id === c.id ? { ...x, obrigatorio: e.target.checked } : x,
+                            ),
+                          },
+                        }))
+                      }
+                    />
+                    obrigatório
+                  </label>
+                </div>
+              </LinhaItem>
+            ))}
+            <BotaoAdicionar
+              rotulo="Adicionar campo"
+              onClick={() =>
+                aplicar((s) => ({
+                  ...s,
+                  formulario: {
+                    ...s.formulario,
+                    campos: [
+                      ...s.formulario.campos,
+                      { id: uid("cmp"), rotulo: "Novo campo", tipo: "texto", obrigatorio: false },
+                    ],
+                  },
+                }))
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Os campos definem apenas o formulário exibido no mini-site. O envio continua sendo
+              tratado pela integração já existente.
+            </p>
+          </Bloco>
+        </>
+      )}
     </>
   );
 }
@@ -2514,10 +2553,21 @@ function MeusModelos({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
   );
 }
 
-function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
+function AbaAparencia({
+  site,
+  aplicar,
+  somenteCardapio = false,
+}: {
+  site: Site;
+  aplicar: Aplicar;
+  somenteCardapio?: boolean;
+}) {
   const set = (patch: Partial<Site["aparencia"]>) =>
     aplicar((s) => ({ ...s, aparencia: { ...s.aparencia, ...patch } }));
   const a = site.aparencia;
+  const modelosVisiveis = modelosCriacao.filter((modelo) =>
+    somenteCardapio ? ehModeloCardapio(modelo.id) : !ehModeloCardapio(modelo.id),
+  );
 
   return (
     <>
@@ -2591,7 +2641,7 @@ function AbaAparencia({ site, aplicar }: { site: Site; aplicar: Aplicar }) {
 
       <Bloco titulo="Modelo base">
         <div className="grid grid-cols-2 gap-2">
-          {modelosCriacao.map((m) => (
+          {modelosVisiveis.map((m) => (
             <button
               key={m.id}
               type="button"
