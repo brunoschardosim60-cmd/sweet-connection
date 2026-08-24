@@ -2,7 +2,6 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  BarChart3,
   Calendar,
   Check,
   ChevronLeft,
@@ -33,6 +32,7 @@ import { MiniSite } from "@/components/minisite/MiniSite";
 import { Logo } from "@/components/Logo";
 import { brand, whatsappLink } from "@/lib/nexa/brand";
 import { modelos } from "@/lib/nexa/modelos";
+import { recursosDoModelo, rotuloRecurso } from "@/lib/nexa/modelo-recursos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { segmentos } from "@/lib/nexa/segmentos";
 import { numero } from "@/lib/nexa/utils";
@@ -45,7 +45,6 @@ const avisos = [
   { texto: "Pedido recebido pelo WhatsApp", icone: MessageCircle },
   { texto: "Novo agendamento", icone: Calendar },
   { texto: "Cupom utilizado", icone: Tag },
-  { texto: "+37 visitas hoje", icone: BarChart3 },
 ];
 
 export function Hero() {
@@ -69,25 +68,25 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden pb-16 pt-10 md:pb-28 md:pt-16">
+    <section className="relative overflow-hidden pb-10 pt-8 md:pb-28 md:pt-16">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-lime/25 blur-[120px]"
       />
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1fr_auto]">
+      <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 md:gap-12 lg:grid-cols-[1fr_auto]">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
             <Sparkles size={13} className="text-ink" />
             Plataforma brasileira de mini-sites profissionais
           </span>
-          <h1 className="mt-6 text-[2.6rem] font-extrabold leading-[1.03] md:text-6xl">
+          <h1 className="mt-5 text-[2.15rem] sm:text-[2.6rem] font-extrabold leading-[1.03] md:text-6xl">
             Seu negócio merece mais do que apenas um link.
           </h1>
-          <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
+          <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
             Crie uma página profissional com WhatsApp, catálogo, serviços, agendamentos,
             localização, redes sociais e tudo o que seus clientes precisam encontrar.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
             <Link
               to="/modelos"
               className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5"
@@ -102,7 +101,7 @@ export function Hero() {
               Ver demonstração
             </Link>
           </div>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Check size={15} className="text-ink" /> Sem instalar aplicativo
             </span>
@@ -119,14 +118,14 @@ export function Hero() {
           ref={ref}
           onMouseMove={onMove}
           onMouseLeave={() => setMouse({ x: 0, y: 0 })}
-          className="relative mx-auto hidden h-[640px] w-[560px] lg:block"
+          className="relative mx-auto hidden h-[620px] w-[520px] lg:block"
         >
           {sites.map((s, i) => {
             const pos = (i - ativo + 3) % 3;
             const base = [
-              { x: 130, y: 0, r: 0, z: 30, e: 1 },
-              { x: 0, y: 44, r: -7, z: 20, e: 0.94 },
-              { x: 268, y: 60, r: 7, z: 10, e: 0.9 },
+              { x: 124, y: 0, r: 0, z: 30, e: 1 },
+              { x: 0, y: 44, r: -7, z: 20, e: 0.92 },
+              { x: 244, y: 58, r: 7, z: 10, e: 0.88 },
             ][pos]!;
             return (
               <div
@@ -137,10 +136,13 @@ export function Hero() {
                   top: base.y,
                   zIndex: base.z,
                   transform: `rotate(${base.r}deg) scale(${base.e}) translate3d(${mouse.x * (12 + pos * 8)}px, ${mouse.y * (10 + pos * 6)}px, 0)`,
-                  opacity: pos === 0 ? 1 : 0.92,
+                  opacity: pos === 0 ? 1 : 0.55,
+                  filter: pos === 0 ? "none" : "blur(2.5px) saturate(0.85)",
+                  pointerEvents: pos === 0 ? "auto" : "none",
                 }}
+                aria-hidden={pos !== 0}
               >
-                <PhoneFrame largura={272} altura={560}>
+                <PhoneFrame largura={260} altura={540}>
                   <MiniSite site={s} compacto botaoFlutuante={false} interacoesExternas={false} />
                 </PhoneFrame>
               </div>
@@ -150,10 +152,9 @@ export function Hero() {
           {avisos.map((a, i) => {
             const Icone = a.icone;
             const spots = [
-              { top: 60, left: -10 },
-              { top: 200, right: -20 },
-              { bottom: 150, left: -30 },
-              { bottom: 40, right: 10 },
+              { top: 34, right: 0 },
+              { top: 252, right: 4 },
+              { bottom: 108, right: 28 },
             ][i]!;
             return (
               <div
@@ -171,7 +172,7 @@ export function Hero() {
         </div>
 
         <div className="mx-auto lg:hidden">
-          <PhoneFrame largura={280} altura={560}>
+          <PhoneFrame largura={264} altura={500}>
             <MiniSite
               site={sites[ativo]!}
               compacto
@@ -631,166 +632,246 @@ export function Recursos() {
 
 /* ------------------------------- MODELOS ------------------------------- */
 
+type TipoModelo = "minisite" | "cardapio" | "ia";
+
+const tiposModelo: { id: TipoModelo; nome: string; icone: typeof Globe }[] = [
+  { id: "minisite", nome: "Mini-sites", icone: Globe },
+  { id: "cardapio", nome: "Cardápios digitais", icone: Utensils },
+  { id: "ia", nome: "Criar com IA", icone: Sparkles },
+];
+
+function ChipsRecursos({ modelo }: { modelo: (typeof modelos)[number] }) {
+  return (
+    <ul className="mt-3 flex flex-wrap gap-1.5">
+      {recursosDoModelo(modelo).map((r) => (
+        <li
+          key={r}
+          className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+        >
+          {rotuloRecurso[r]}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function GaleriaModelos({ limite }: { limite?: number }) {
-  const [filtro, setFiltro] = useState<string>("todos");
-  const casaNoFiltro = (m: (typeof modelos)[number], id: string) =>
-    id === "todos"
-      ? true
-      : id === "cardapio"
-        ? m.familia === "cardapio"
-        : m.segmento === id && m.familia !== "cardapio";
-  const lista = modelos.filter((m) => casaNoFiltro(m, filtro));
+  const [tipo, setTipo] = useState<TipoModelo>("minisite");
+  const [segmento, setSegmento] = useState<string>("todos");
+
+  const daFamilia = useMemo(
+    () =>
+      tipo === "cardapio"
+        ? modelos.filter((m) => m.familia === "cardapio")
+        : modelos.filter((m) => m.familia !== "cardapio"),
+    [tipo],
+  );
+
+  const abasSegmento = useMemo(
+    () => [
+      { id: "todos", nome: "Todos" },
+      ...segmentos.filter((s) => daFamilia.some((m) => m.segmento === s.id)),
+    ],
+    [daFamilia],
+  );
+
+  const lista = daFamilia.filter((m) => segmento === "todos" || m.segmento === segmento);
   const visiveis = limite ? lista.slice(0, limite) : lista;
-  const abas = [
-    { id: "todos", nome: "Todos" },
-    { id: "cardapio", nome: "Cardápio digital" },
-    ...segmentos,
-  ];
+
+  const trocarTipo = (novo: TipoModelo) => {
+    setTipo(novo);
+    setSegmento("todos");
+  };
+
+  const totalIA = tipo === "ia";
 
   return (
     <div>
-      <div className="scrollbar-invisivel -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        {abas.map((s) => {
-          const total = modelos.filter((m) => casaNoFiltro(m, s.id)).length;
-          if (!total) return null;
+      {/* Nível 1: tipo de produto */}
+      <div
+        role="tablist"
+        aria-label="Tipo de modelo"
+        className="scrollbar-invisivel -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0"
+      >
+        {tiposModelo.map((t) => {
+          const Icone = t.icone;
+          const ativo = tipo === t.id;
+          const total =
+            t.id === "ia"
+              ? null
+              : modelos.filter((m) =>
+                  t.id === "cardapio" ? m.familia === "cardapio" : m.familia !== "cardapio",
+                ).length;
           return (
             <button
-              key={s.id}
+              key={t.id}
               type="button"
-              onClick={() => setFiltro(s.id)}
-              aria-pressed={filtro === s.id}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
-                filtro === s.id
+              role="tab"
+              aria-selected={ativo}
+              onClick={() => trocarTipo(t.id)}
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+                ativo
                   ? "border-ink bg-ink text-ink-foreground"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary"
+                  : "border-border bg-card text-foreground hover:bg-secondary"
               }`}
             >
-              {s.nome}
-              <span
-                className={`rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${
-                  filtro === s.id ? "bg-ink-foreground/15" : "bg-secondary"
-                }`}
-              >
-                {total}
-              </span>
+              <Icone size={15} aria-hidden />
+              <span className="whitespace-nowrap">{t.nome}</span>
+              {total !== null && (
+                <span
+                  className={`rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${
+                    ativo ? "bg-ink-foreground/15" : "bg-secondary text-muted-foreground"
+                  }`}
+                >
+                  {total}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
+      {/* Nível 2: segmentos dentro do tipo */}
+      {!totalIA && abasSegmento.length > 1 && (
+        <div className="scrollbar-invisivel -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          {abasSegmento.map((s) => {
+            const ativo = segmento === s.id;
+            const total =
+              s.id === "todos"
+                ? daFamilia.length
+                : daFamilia.filter((m) => m.segmento === s.id).length;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSegmento(s.id)}
+                aria-pressed={ativo}
+                className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
+                  ativo
+                    ? "border-ink/40 bg-secondary text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                <span className="whitespace-nowrap">{s.nome}</span>
+                <span className="text-[11px] tabular-nums opacity-70">{total}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {visiveis.map((m, i) => (
-          <Reveal key={m.id} delay={i * 40} className="h-full">
-            <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]">
-              <div className="relative h-52 shrink-0 overflow-hidden">
-                <img
-                  src={m.imagem}
-                  alt={`Prévia do modelo ${m.nome}`}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+        {!totalIA &&
+          visiveis.map((m, i) => (
+            <Reveal key={m.id} delay={i * 40} className="h-full">
+              <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]">
+                <div className="relative h-52 shrink-0 overflow-hidden">
+                  <img
+                    src={m.imagem}
+                    alt={`Prévia do modelo ${m.nome}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 p-3 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
+                    <Link
+                      to="/demonstracao/$modelo"
+                      params={{ modelo: m.id }}
+                      aria-label={`Visualizar demonstração do modelo ${m.nome}`}
+                      className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                    >
+                      Visualizar modelo
+                    </Link>
+                    <Link
+                      to="/painel/novo"
+                      search={{ modelo: m.id }}
+                      aria-label={`Usar o modelo ${m.nome}`}
+                      className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                    >
+                      Usar este modelo
+                    </Link>
+                  </div>
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col p-5">
+                  <h3 className="min-w-0 font-display text-lg font-bold leading-snug">{m.nome}</h3>
+                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {m.destaque}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{m.descricao}</p>
+                  <ChipsRecursos modelo={m} />
+                  <div className="mt-4 flex gap-1.5" aria-hidden="true">
+                    {Object.values(m.paleta).map((c) => (
+                      <span
+                        key={c}
+                        className="h-4 w-4 rounded-full border border-border"
+                        style={{ background: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+
+        {tipo !== "cardapio" && (
+          <Reveal delay={visiveis.length * 40} className="h-full">
+            <article
+              aria-labelledby="modelo-ia"
+              className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]"
+            >
+              <div className="relative grid h-52 shrink-0 place-items-center overflow-hidden bg-ink text-ink-foreground">
+                <div
+                  className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)] transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+                  aria-hidden="true"
                 />
+                <span
+                  className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
+                  aria-hidden="true"
+                >
+                  <Sparkles size={28} />
+                </span>
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 p-3 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
                   <Link
-                    to="/demonstracao/$modelo"
-                    params={{ modelo: m.id }}
-                    aria-label={`Visualizar demonstração do modelo ${m.nome}`}
-                    className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+                    to="/demonstracao/ia"
+                    aria-label="Ver como funciona a criação automática com IA"
+                    className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
                   >
-                    Visualizar modelo
+                    Como funciona
                   </Link>
                   <Link
                     to="/painel/novo"
-                    search={{ modelo: m.id }}
-                    aria-label={`Usar o modelo ${m.nome}`}
+                    search={{ modo: "ia" }}
+                    aria-label="Criar mini-site com a criação automática de IA"
                     className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
                   >
-                    Usar este modelo
+                    Criar com IA
                   </Link>
                 </div>
               </div>
               <div className="flex min-w-0 flex-1 flex-col p-5">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <h3 className="min-w-0 font-display text-lg font-bold">{m.nome}</h3>
-                  <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                    {m.destaque}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{m.descricao}</p>
-                <div className="mt-4 flex gap-1.5" aria-hidden="true">
-                  {Object.values(m.paleta).map((c) => (
-                    <span
-                      key={c}
-                      className="h-4 w-4 rounded-full border border-border"
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </article>
-          </Reveal>
-        ))}
-        <Reveal delay={visiveis.length * 40} className="h-full">
-          <article
-            aria-labelledby="modelo-ia"
-            className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow hover:shadow-[var(--shadow-lift)] focus-within:shadow-[var(--shadow-lift)]"
-          >
-            <div className="relative grid h-52 shrink-0 place-items-center overflow-hidden bg-ink text-ink-foreground">
-              <div
-                className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(184,255,60,.26),transparent_48%)] transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
-                aria-hidden="true"
-              />
-              <span
-                className="relative grid h-16 w-16 place-items-center rounded-full bg-lime text-ink transition-transform duration-500 group-hover:scale-105 motion-reduce:transform-none"
-                aria-hidden="true"
-              >
-                <Sparkles size={28} />
-              </span>
-              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/70 p-3 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">
-                <Link
-                  to="/demonstracao/ia"
-                  aria-label="Ver como funciona a criação automática com IA"
-                  className="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
-                >
-                  Como funciona
-                </Link>
-                <Link
-                  to="/painel/novo"
-                  search={{ modo: "ia" }}
-                  aria-label="Criar mini-site com a criação automática de IA"
-                  className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
-                >
-                  Criar com IA
-                </Link>
-              </div>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col p-5">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                <h3 id="modelo-ia" className="min-w-0 font-display text-lg font-bold">
+                <h3 id="modelo-ia" className="min-w-0 font-display text-lg font-bold leading-snug">
                   Criação automática com IA
                 </h3>
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                  <Sparkles size={11} aria-hidden="true" /> Feito com IA
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você
-                pode editar tudo depois.
-              </p>
-              <ul className="mt-3 flex flex-wrap gap-1.5">
-                {["Descrição", "Logo", "Fotos reais", "Serviços/produtos", "Contato"].map(
-                  (item) => (
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Feito com IA
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você
+                  pode editar tudo depois.
+                </p>
+                <ul className="mt-3 flex flex-wrap gap-1.5">
+                  {["Descrição", "Logo", "Fotos reais", "Serviços/produtos"].map((item) => (
                     <li
                       key={item}
-                      className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground"
+                      className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
                     >
                       {item}
                     </li>
-                  ),
-                )}
-              </ul>
-            </div>
-          </article>
-        </Reveal>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          </Reveal>
+        )}
       </div>
     </div>
   );

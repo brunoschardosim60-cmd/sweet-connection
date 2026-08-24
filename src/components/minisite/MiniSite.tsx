@@ -194,6 +194,7 @@ export function MiniSite({
 /* ------------------------------ capa ------------------------------ */
 
 function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compacto: boolean }) {
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const { conteudo, aparencia: a } = site;
   const layout = a.layout;
   const imersivo = layout === "imersivo" || layout === "urbano";
@@ -297,7 +298,11 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
                   className="h-1.5 w-1.5 rounded-full"
                   style={{ background: aberto ? a.corPrimaria : "currentColor" }}
                 />
-                {aberto ? "Aberto agora" : "Fechado agora"}
+                {aberto
+                  ? "Aberto agora"
+                  : interacoesExternas
+                    ? "Fechado agora"
+                    : "Horários de atendimento"}
               </span>
               <span className="inline-flex items-center gap-1">
                 <MapPin size={13} /> {site.cliente.cidade} - {site.cliente.estado}
