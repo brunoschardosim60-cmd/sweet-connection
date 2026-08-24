@@ -52,7 +52,7 @@ export function PalcoEscalado({
     <div
       ref={ref}
       className={`scrollbar-invisivel flex min-h-0 w-full flex-1 justify-center overflow-auto ${
-        alinharNoTopo ? "items-start pt-4" : "items-center"
+        alinharNoTopo ? "items-start" : "items-center"
       } ${className}`}
     >
       <div
