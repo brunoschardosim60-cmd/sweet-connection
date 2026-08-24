@@ -118,14 +118,14 @@ export function Hero() {
           ref={ref}
           onMouseMove={onMove}
           onMouseLeave={() => setMouse({ x: 0, y: 0 })}
-          className="relative mx-auto hidden h-[640px] w-[560px] lg:block"
+          className="relative mx-auto hidden h-[620px] w-[520px] lg:block"
         >
           {sites.map((s, i) => {
             const pos = (i - ativo + 3) % 3;
             const base = [
-              { x: 130, y: 0, r: 0, z: 30, e: 1 },
-              { x: 0, y: 44, r: -7, z: 20, e: 0.94 },
-              { x: 268, y: 60, r: 7, z: 10, e: 0.9 },
+              { x: 124, y: 0, r: 0, z: 30, e: 1 },
+              { x: 0, y: 44, r: -7, z: 20, e: 0.92 },
+              { x: 244, y: 58, r: 7, z: 10, e: 0.88 },
             ][pos]!;
             return (
               <div
@@ -142,7 +142,7 @@ export function Hero() {
                 }}
                 aria-hidden={pos !== 0}
               >
-                <PhoneFrame largura={272} altura={560}>
+                <PhoneFrame largura={260} altura={540}>
                   <MiniSite site={s} compacto botaoFlutuante={false} interacoesExternas={false} />
                 </PhoneFrame>
               </div>
@@ -152,9 +152,9 @@ export function Hero() {
           {avisos.map((a, i) => {
             const Icone = a.icone;
             const spots = [
-              { top: 40, right: 8 },
-              { top: 250, right: -8 },
-              { bottom: 96, right: 24 },
+              { top: 34, right: 0 },
+              { top: 252, right: 4 },
+              { bottom: 108, right: 28 },
             ][i]!;
             return (
               <div
