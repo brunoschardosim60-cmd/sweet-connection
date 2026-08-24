@@ -877,7 +877,6 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
   );
 }
 
-
 export function SecaoModelos() {
   return (
     <section id="modelos" className="mx-auto max-w-6xl px-5 py-20 md:py-28">

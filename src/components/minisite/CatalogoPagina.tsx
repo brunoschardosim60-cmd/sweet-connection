@@ -495,7 +495,10 @@ export function CatalogoPagina({
           <span
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
             style={{
-              background: hexToRgba(situacao.aberto || !interacoesExternas ? primaria : "#888888", 0.16),
+              background: hexToRgba(
+                situacao.aberto || !interacoesExternas ? primaria : "#888888",
+                0.16,
+              ),
               color: situacao.aberto || !interacoesExternas ? primaria : "inherit",
             }}
           >
@@ -503,8 +506,7 @@ export function CatalogoPagina({
               aria-hidden
               className="h-2 w-2 rounded-full"
               style={{
-                background:
-                  situacao.aberto || !interacoesExternas ? primaria : "currentColor",
+                background: situacao.aberto || !interacoesExternas ? primaria : "currentColor",
               }}
             />
             {situacao.aberto || interacoesExternas ? situacao.rotulo : "Horários de atendimento"}

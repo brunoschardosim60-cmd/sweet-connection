@@ -85,7 +85,6 @@ function Demonstracao() {
           </MolduraPrevia>
         </section>
       </main>
-
     </div>
   );
 }
