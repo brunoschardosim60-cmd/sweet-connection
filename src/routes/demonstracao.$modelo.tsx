@@ -59,12 +59,12 @@ function Demonstracao() {
 
       <main
         data-dispositivo={disp}
-        className="scrollbar-invisivel relative flex min-h-0 flex-1 justify-center overflow-auto bg-[radial-gradient(circle_at_50%_38%,rgba(166,241,83,0.14),transparent_42%)] p-3 sm:p-6"
+        className="relative flex min-h-0 flex-1 justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_38%,rgba(166,241,83,0.14),transparent_42%)] p-3 sm:p-6"
       >
         <section
           aria-label="Prévia interativa do modelo"
           data-dispositivo={disp}
-          className="relative flex min-h-[560px] w-full max-w-5xl items-stretch justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-background/55 p-2 shadow-[0_24px_80px_rgba(24,20,13,0.08)] sm:min-h-[680px] sm:p-4"
+          className="relative flex h-full min-h-0 w-full max-w-5xl items-stretch justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-background/55 p-2 shadow-[0_24px_80px_rgba(24,20,13,0.08)] sm:p-4"
         >
           <MolduraPrevia
             dispositivo={disp}
