@@ -194,6 +194,7 @@ export function MiniSite({
 /* ------------------------------ capa ------------------------------ */
 
 function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compacto: boolean }) {
+  const interacoesExternas = useContext(InteracoesExternasCtx);
   const { conteudo, aparencia: a } = site;
   const layout = a.layout;
   const imersivo = layout === "imersivo" || layout === "urbano";
