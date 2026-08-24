@@ -495,16 +495,19 @@ export function CatalogoPagina({
           <span
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
             style={{
-              background: hexToRgba(situacao.aberto ? primaria : "#888888", 0.16),
-              color: situacao.aberto ? primaria : "inherit",
+              background: hexToRgba(situacao.aberto || !interacoesExternas ? primaria : "#888888", 0.16),
+              color: situacao.aberto || !interacoesExternas ? primaria : "inherit",
             }}
           >
             <span
               aria-hidden
               className="h-2 w-2 rounded-full"
-              style={{ background: situacao.aberto ? primaria : "currentColor" }}
+              style={{
+                background:
+                  situacao.aberto || !interacoesExternas ? primaria : "currentColor",
+              }}
             />
-            {situacao.rotulo}
+            {situacao.aberto || interacoesExternas ? situacao.rotulo : "Horários de atendimento"}
             {situacao.detalhe && (
               <span className="font-medium opacity-80">· {situacao.detalhe}</span>
             )}
@@ -627,18 +630,24 @@ export function CatalogoPagina({
               </FaixaRolavel>
 
               {categorias.length > 1 && (
-                <FaixaRolavel ariaLabel="Categorias">
-                  {categorias.map((c) => (
-                    <Chip
-                      key={c}
-                      ativo={categoria === c}
-                      cor={primaria}
-                      onClick={() => setCategoria(c)}
-                    >
-                      {c}
-                    </Chip>
-                  ))}
-                </FaixaRolavel>
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-55">
+                    Categorias
+                  </p>
+                  <FaixaRolavel ariaLabel="Categorias">
+                    {categorias.map((c) => (
+                      <Chip
+                        key={c}
+                        ativo={categoria === c}
+                        cor={primaria}
+                        secundario
+                        onClick={() => setCategoria(c)}
+                      >
+                        {c}
+                      </Chip>
+                    ))}
+                  </FaixaRolavel>
+                </div>
               )}
 
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1298,11 +1307,14 @@ function Chip({
   children,
   ativo,
   cor,
+  secundario = false,
   onClick,
 }: {
   children: React.ReactNode;
   ativo: boolean;
   cor: string;
+  /** Nível secundário (categorias): peso visual menor que os filtros principais. */
+  secundario?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -1310,12 +1322,15 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={ativo}
-      className="min-h-11 shrink-0 whitespace-nowrap px-4 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none"
+      className={`shrink-0 whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none ${
+        secundario ? "min-h-9 px-3 text-[11px] font-medium" : "min-h-11 px-4 text-xs font-semibold"
+      }`}
       style={{
         borderRadius: "999px",
         border: `1px solid ${ativo ? cor : "var(--ms-border)"}`,
-        background: ativo ? cor : "transparent",
-        color: ativo ? contraste(cor) : "inherit",
+        background: ativo ? (secundario ? hexToRgba(cor, 0.16) : cor) : "transparent",
+        color: ativo ? (secundario ? cor : contraste(cor)) : "inherit",
+        opacity: secundario && !ativo ? 0.8 : 1,
         outlineColor: cor,
       }}
     >
