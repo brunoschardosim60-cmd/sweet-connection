@@ -33,6 +33,7 @@ import { MiniSite } from "@/components/minisite/MiniSite";
 import { Logo } from "@/components/Logo";
 import { brand, whatsappLink } from "@/lib/nexa/brand";
 import { modelos } from "@/lib/nexa/modelos";
+import { recursosDoModelo, rotuloRecurso } from "@/lib/nexa/modelo-recursos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { segmentos } from "@/lib/nexa/segmentos";
 import { numero } from "@/lib/nexa/utils";
@@ -811,7 +812,7 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
             </Reveal>
           ))}
 
-        {(totalIA || !limite || visiveis.length < (limite ?? 0) + 1) && (
+        {tipo !== "cardapio" && (
           <Reveal delay={visiveis.length * 40} className="h-full">
             <article
               aria-labelledby="modelo-ia"
