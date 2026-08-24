@@ -68,7 +68,7 @@ function Demonstracao() {
         >
           <MolduraPrevia
             dispositivo={disp}
-            escalaMinima={0}
+            escalaMinima={0.72}
             alinharNoTopo
             className="bg-transparent"
           >
