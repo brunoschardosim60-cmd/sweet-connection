@@ -2,7 +2,6 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  BarChart3,
   Calendar,
   Check,
   ChevronLeft,
