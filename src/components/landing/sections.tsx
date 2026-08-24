@@ -46,7 +46,6 @@ const avisos = [
   { texto: "Pedido recebido pelo WhatsApp", icone: MessageCircle },
   { texto: "Novo agendamento", icone: Calendar },
   { texto: "Cupom utilizado", icone: Tag },
-  { texto: "+37 visitas hoje", icone: BarChart3 },
 ];
 
 export function Hero() {
@@ -70,25 +69,25 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden pb-16 pt-10 md:pb-28 md:pt-16">
+    <section className="relative overflow-hidden pb-10 pt-8 md:pb-28 md:pt-16">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-lime/25 blur-[120px]"
       />
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1fr_auto]">
+      <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 md:gap-12 lg:grid-cols-[1fr_auto]">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
             <Sparkles size={13} className="text-ink" />
             Plataforma brasileira de mini-sites profissionais
           </span>
-          <h1 className="mt-6 text-[2.6rem] font-extrabold leading-[1.03] md:text-6xl">
+          <h1 className="mt-5 text-[2.15rem] sm:text-[2.6rem] font-extrabold leading-[1.03] md:text-6xl">
             Seu negócio merece mais do que apenas um link.
           </h1>
-          <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
+          <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
             Crie uma página profissional com WhatsApp, catálogo, serviços, agendamentos,
             localização, redes sociais e tudo o que seus clientes precisam encontrar.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
             <Link
               to="/modelos"
               className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5"
@@ -103,7 +102,7 @@ export function Hero() {
               Ver demonstração
             </Link>
           </div>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Check size={15} className="text-ink" /> Sem instalar aplicativo
             </span>
@@ -138,8 +137,11 @@ export function Hero() {
                   top: base.y,
                   zIndex: base.z,
                   transform: `rotate(${base.r}deg) scale(${base.e}) translate3d(${mouse.x * (12 + pos * 8)}px, ${mouse.y * (10 + pos * 6)}px, 0)`,
-                  opacity: pos === 0 ? 1 : 0.92,
+                  opacity: pos === 0 ? 1 : 0.55,
+                  filter: pos === 0 ? "none" : "blur(2.5px) saturate(0.85)",
+                  pointerEvents: pos === 0 ? "auto" : "none",
                 }}
+                aria-hidden={pos !== 0}
               >
                 <PhoneFrame largura={272} altura={560}>
                   <MiniSite site={s} compacto botaoFlutuante={false} interacoesExternas={false} />
@@ -151,10 +153,9 @@ export function Hero() {
           {avisos.map((a, i) => {
             const Icone = a.icone;
             const spots = [
-              { top: 60, left: -10 },
-              { top: 200, right: -20 },
-              { bottom: 150, left: -30 },
-              { bottom: 40, right: 10 },
+              { top: 40, right: 8 },
+              { top: 250, right: -8 },
+              { bottom: 96, right: 24 },
             ][i]!;
             return (
               <div
@@ -172,7 +173,7 @@ export function Hero() {
         </div>
 
         <div className="mx-auto lg:hidden">
-          <PhoneFrame largura={280} altura={560}>
+          <PhoneFrame largura={264} altura={500}>
             <MiniSite
               site={sites[ativo]!}
               compacto
