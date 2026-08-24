@@ -59,21 +59,13 @@ function Demonstracao() {
 
       <main
         data-dispositivo={disp}
-        className="scrollbar-invisivel relative flex min-h-0 flex-1 justify-center overflow-auto bg-[radial-gradient(circle_at_50%_42%,rgba(166,241,83,0.16),transparent_37%)] p-3 sm:p-5"
+        className="scrollbar-invisivel relative flex min-h-0 flex-1 justify-center overflow-auto bg-[radial-gradient(circle_at_50%_38%,rgba(166,241,83,0.14),transparent_42%)] p-3 sm:p-6"
       >
         <section
           aria-label="Prévia interativa do modelo"
           data-dispositivo={disp}
-          className="relative flex min-h-[720px] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-border/80 bg-background/45 shadow-[0_20px_70px_rgba(24,20,13,0.08)]"
+          className="relative flex min-h-[560px] w-full max-w-5xl items-stretch justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-background/55 p-2 shadow-[0_24px_80px_rgba(24,20,13,0.08)] sm:min-h-[680px] sm:p-4"
         >
-          <div className="pointer-events-none absolute left-6 top-6 z-10 hidden max-w-48 lg:block data-[dispositivo=desktop]:hidden">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Prévia interativa
-            </p>
-            <p className="mt-1 text-sm leading-snug text-foreground/75">
-              Explore o modelo como ele aparece para os clientes.
-            </p>
-          </div>
           <MolduraPrevia
             dispositivo={disp}
             escalaMinima={0.7}
@@ -93,6 +85,7 @@ function Demonstracao() {
           </MolduraPrevia>
         </section>
       </main>
+
     </div>
   );
 }
