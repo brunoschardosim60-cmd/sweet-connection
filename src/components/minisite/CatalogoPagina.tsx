@@ -29,6 +29,16 @@ import {
 import { moeda } from "@/lib/nexa/utils";
 import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/estilo";
 import { useFocoModal } from "@/components/minisite/useFocoModal";
+import { DetalheProduto } from "./DetalheProduto";
+import { PainelCarrinho } from "./CheckoutPedido";
+import type { CamposEntrega } from "@/lib/nexa/checkout";
+import {
+  adicionarLinha,
+  gruposProduto,
+  itensDoCarrinho,
+  normalizarLinhas,
+  type CarrinhoPersonalizado,
+} from "@/lib/nexa/personalizacao";
 import {
   categoriasDeProdutos,
   descontoPercentual,
@@ -55,25 +65,6 @@ import {
   type Pagamento,
 } from "@/lib/nexa/catalogo";
 import type { Produto, Site } from "@/lib/nexa/types";
-
-interface CamposEntrega {
-  nome: string;
-  whatsapp: string;
-  horarioPreferido: string;
-  mesa: string;
-  pessoas: string;
-  endereco: string;
-  bairro: string;
-  complemento: string;
-  referencia: string;
-  observacao: string;
-  troco: string;
-}
-
-interface LinhaCarrinho {
-  quantidade: number;
-  observacao: string;
-}
 
 interface ProdutoAnimado {
   imagem: string;
@@ -115,7 +106,7 @@ export function CatalogoPagina({
   const [ordem, setOrdem] = useState<OrdemCatalogo>("destaque");
   const [carregando, setCarregando] = useState(true);
   const [detalhe, setDetalhe] = useState<Produto | null>(null);
-  const [carrinho, setCarrinho] = useState<Record<string, LinhaCarrinho>>({});
+  const [carrinho, setCarrinho] = useState<CarrinhoPersonalizado>({});
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
   const [entrega, setEntrega] = useState<Entrega>("entrega");
   const [pagamento, setPagamento] = useState<Pagamento | undefined>(undefined);
@@ -134,6 +125,10 @@ export function CatalogoPagina({
   });
 
   const [restaurado, setRestaurado] = useState(false);
+  const chavePedido = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    chavePedido.current = undefined;
+  }, [carrinho, entrega, pagamento, campos]);
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [retornoPedido, setRetornoPedido] = useState<string>("");
   const [ranking, setRanking] = useState<Record<string, number>>({});
@@ -174,7 +169,7 @@ export function CatalogoPagina({
   useEffect(() => {
     const salvo = lerRascunhoPedido(site.slug);
     if (salvo) {
-      setCarrinho(salvo.carrinho ?? {});
+      setCarrinho(normalizarLinhas(salvo.carrinho ?? {}));
       if (salvo.modalidade) setEntrega(salvo.modalidade);
       if (salvo.pagamento) setPagamento(salvo.pagamento);
       if (salvo.campos) setCampos((c) => ({ ...c, ...salvo.campos }));
@@ -293,24 +288,17 @@ export function CatalogoPagina({
   /** Catálogo sem nenhum item cadastrado — diferente de "filtro sem resultado". */
   const catalogoVazio = !carregando && produtosPublicos.length === 0;
 
-  const itens: ItemCarrinho[] = produtosPublicos
-    .filter((p) => (carrinho[p.id]?.quantidade ?? 0) > 0)
-    .map((p) => {
-      const observacao = carrinho[p.id]?.observacao ?? "";
-      return {
-        produtoId: p.id,
-        nome: p.nome,
-        preco: precoFinal(p),
-        quantidade: carrinho[p.id]?.quantidade ?? 0,
-        ...(observacao ? { observacao } : {}),
-      };
-    });
+  const itens = itensDoCarrinho(carrinho, produtosPublicos);
 
   const totais = totaisCarrinho(itens, site, entrega, campos.bairro);
   const situacao = situacaoAtendimento(site);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
   const alterar = (p: Produto, delta: number, observacao?: string, origem?: HTMLElement) => {
+    if (gruposProduto(p).length > 0) {
+      setDetalhe(p);
+      return;
+    }
     if (delta > 0) {
       eventoMarketing("add_to_cart", { item_id: p.id, quantidade: delta });
       setContadorAnimado(true);
@@ -335,18 +323,8 @@ export function CatalogoPagina({
         });
       }
     }
-    setCarrinho((atual) => {
-      const linha = atual[p.id] ?? { quantidade: 0, observacao: "" };
-      const quantidade = Math.max(0, linha.quantidade + delta);
-      const copia = { ...atual };
-      if (quantidade === 0) delete copia[p.id];
-      else copia[p.id] = { quantidade, observacao: observacao ?? linha.observacao };
-      return copia;
-    });
+    setCarrinho((atual) => adicionarLinha(atual, p, [], observacao ?? "", delta));
   };
-
-  const definirObservacao = (id: string, observacao: string) =>
-    setCarrinho((atual) => (atual[id] ? { ...atual, [id]: { ...atual[id], observacao } } : atual));
 
   const confirmarPedido = async () => {
     if (!interacoesExternas) {
@@ -356,10 +334,17 @@ export function CatalogoPagina({
     setRetornoPedido("");
     setEnviandoPedido(true);
     try {
-      const pedido = await criarPedidoPublicado(site.slug, itens, entrega, {
-        ...campos,
-        ...(pagamento ? { pagamento } : {}),
-      });
+      chavePedido.current ??= crypto.randomUUID();
+      const pedido = await criarPedidoPublicado(
+        site.slug,
+        itens,
+        entrega,
+        {
+          ...campos,
+          ...(pagamento ? { pagamento } : {}),
+        },
+        chavePedido.current,
+      );
       limparRascunhoPedido(site.slug);
       guardarAcompanhamentoPedido(site.slug, pedido.trackingToken);
       const pedidoParaAcompanhar: PedidoPublico = {
@@ -370,7 +355,12 @@ export function CatalogoPagina({
         total: pedido.total,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        itens: itens.map(({ nome, quantidade, preco }) => ({ nome, quantidade, preco })),
+        itens: itens.map(({ nome, quantidade, preco, observacao }) => ({
+          nome,
+          quantidade,
+          preco,
+          ...(observacao ? { observacao } : {}),
+        })),
         trackingToken: pedido.trackingToken,
       };
       // Exibe o pedido recém-confirmado imediatamente, mesmo se a leitura de acompanhamento atrasar.
@@ -738,7 +728,9 @@ export function CatalogoPagina({
                             site={site}
                             produto={p}
                             compacto={previewEstreita}
-                            quantidade={carrinho[p.id]?.quantidade ?? 0}
+                            quantidade={itens
+                              .filter((i) => i.produtoId === p.id)
+                              .reduce((n, i) => n + i.quantidade, 0)}
                             onAbrir={() => setDetalhe(p)}
                             onAlterar={(d, origem) => alterar(p, d, undefined, origem)}
                           />
@@ -802,10 +794,13 @@ export function CatalogoPagina({
         <DetalheProduto
           site={site}
           produto={detalhe}
-          quantidade={carrinho[detalhe.id]?.quantidade ?? 0}
-          observacao={carrinho[detalhe.id]?.observacao ?? ""}
-          onObservacao={(v) => definirObservacao(detalhe.id, v)}
-          onAlterar={(d, obs) => alterar(detalhe, d, obs)}
+          key={detalhe.id}
+          onAdicionar={(escolhas, nota, quantidade) => {
+            const proximo = adicionarLinha(carrinho, detalhe, escolhas, nota, quantidade);
+            if (proximo === carrinho) return false;
+            setCarrinho(proximo);
+            return true;
+          }}
           onFechar={() => setDetalhe(null)}
         />
       )}
@@ -872,8 +867,21 @@ export function CatalogoPagina({
             campos={campos}
             setCampos={setCampos}
             onAlterar={(id, d) => {
-              const p = produtosPublicos.find((x) => x.id === id);
-              if (p) alterar(p, d);
+              setCarrinho((atual) => {
+                const linha = atual[id];
+                if (!linha) return atual;
+                const p = produtosPublicos.find((x) => x.id === (linha.produtoId ?? id));
+                const total = Object.entries(atual).reduce(
+                  (n, [chave, l]) =>
+                    n + ((l.produtoId ?? chave) === (linha.produtoId ?? id) ? l.quantidade : 0),
+                  0,
+                );
+                if (d > 0 && (!p || total + d > Math.min(30, p.estoque ?? 30))) return atual;
+                const copia = { ...atual };
+                if (linha.quantidade + d <= 0) delete copia[id];
+                else copia[id] = { ...linha, quantidade: linha.quantidade + d };
+                return copia;
+              });
             }}
             pedidosAtivos={interacoesExternas}
             enviando={enviandoPedido}
@@ -1052,7 +1060,14 @@ function DrawerMeusPedidos({
                   </span>
                 </div>
                 <p className="mt-3 text-sm opacity-80">
-                  {pedido.itens.map((item) => `${item.quantidade}× ${item.nome}`).join(", ")}
+                  {pedido.itens.map((item, indice) => (
+                    <span key={indice} className="mb-1 block">
+                      {item.quantidade}× {item.nome}
+                      {item.observacao && (
+                        <span className="block text-xs opacity-75">{item.observacao}</span>
+                      )}
+                    </span>
+                  ))}
                 </p>
                 <p className="mt-2 text-sm font-semibold">Total {moeda(Number(pedido.total))}</p>
                 {pedido.status === "concluido" && (
@@ -1431,12 +1446,7 @@ function CartaoProduto({
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {produto.categoria && (
-              <span className="text-[10px] uppercase tracking-wide opacity-60">
-                {produto.categoria}
-              </span>
-            )}
-            {produto.destaque && <Badge cor={primaria}>Mais pedido</Badge>}
+            {produto.destaque && desconto === 0 && <Badge cor={primaria}>Destaque</Badge>}
             {desconto > 0 && <Badge cor={primaria}>Promoção −{desconto}%</Badge>}
             {!disponivelAgora && (
               <span
@@ -1447,9 +1457,11 @@ function CartaoProduto({
               </span>
             )}
           </div>
-          <h3 className="mt-1 text-sm font-semibold">{produto.nome}</h3>
+          <h3 className="mt-1 text-base font-semibold leading-snug">{produto.nome}</h3>
           {produto.descricao && (
-            <p className="mt-1 line-clamp-2 text-xs opacity-70">{produto.descricao}</p>
+            <p className="mt-1 line-clamp-2 text-sm leading-relaxed opacity-75">
+              {produto.descricao}
+            </p>
           )}
           <span className="mt-1 inline-block text-[11px] font-semibold underline underline-offset-2 opacity-70">
             Ver item
@@ -1459,12 +1471,12 @@ function CartaoProduto({
               {produto.precoPromocional ? (
                 <>
                   <span className="text-xs line-through opacity-50">{moeda(produto.preco)}</span>
-                  <span className="text-sm font-bold" style={{ color: primaria }}>
+                  <span className="text-base font-bold" style={{ color: primaria }}>
                     {moeda(produto.precoPromocional)}
                   </span>
                 </>
               ) : (
-                <span className="text-sm font-bold">{moeda(produto.preco)}</span>
+                <span className="text-base font-bold">{moeda(produto.preco)}</span>
               )}
             </p>
           )}
@@ -1472,13 +1484,15 @@ function CartaoProduto({
       </button>
       <div className="px-3 pb-3">
         {disponivelAgora ? (
-          <Contador
-            site={site}
-            quantidade={quantidade}
-            rotulo={produto.nome}
-            onAlterar={onAlterar}
-            onAdicionar={(origem) => onAlterar(1, origem)}
-          />
+          <button
+            type="button"
+            onClick={(e) => onAlterar(1, e.currentTarget)}
+            className="min-h-11 w-full rounded-xl px-3 text-sm font-semibold"
+            style={{ background: primaria, color: contraste(primaria) }}
+          >
+            {gruposProduto(produto).length ? "Escolher opções" : "+ Adicionar"}
+            {quantidade > 0 ? ` · ${quantidade} no pedido` : ""}
+          </button>
         ) : (
           <button
             type="button"
@@ -1502,567 +1516,5 @@ function Badge({ children, cor }: { children: React.ReactNode; cor: string }) {
     >
       {children}
     </span>
-  );
-}
-
-function Contador({
-  site,
-  quantidade,
-  rotulo,
-  onAlterar,
-  onAdicionar,
-}: {
-  site: Site;
-  quantidade: number;
-  rotulo: string;
-  onAlterar: (delta: number, origem?: HTMLElement) => void;
-  onAdicionar: (origem?: HTMLElement) => void;
-}) {
-  const primaria = site.aparencia.corPrimaria;
-  const radius = site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)";
-  if (quantidade === 0)
-    return (
-      <button
-        type="button"
-        onClick={(event) => onAdicionar(event.currentTarget)}
-        className="inline-flex min-h-11 w-full items-center justify-center gap-2 text-sm font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transform-none motion-reduce:transition-none"
-        style={{
-          background: primaria,
-          color: contraste(primaria),
-          borderRadius: radius,
-          outlineColor: primaria,
-        }}
-      >
-        <Plus size={15} aria-hidden /> Adicionar ao carrinho
-      </button>
-    );
-  return (
-    <div
-      className="flex items-center justify-between"
-      style={{ border: `1px solid ${primaria}`, borderRadius: radius }}
-    >
-      <button
-        type="button"
-        aria-label={`Remover uma unidade de ${rotulo}`}
-        onClick={() => onAlterar(-1)}
-        className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-        style={{ outlineColor: primaria }}
-      >
-        <Minus size={15} aria-hidden />
-      </button>
-      <span aria-live="polite" className="text-sm font-semibold">
-        {quantidade}
-      </span>
-      <button
-        type="button"
-        aria-label={`Adicionar uma unidade de ${rotulo}`}
-        onClick={(event) => onAlterar(1, event.currentTarget)}
-        className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-        style={{ outlineColor: primaria }}
-      >
-        <Plus size={15} aria-hidden />
-      </button>
-    </div>
-  );
-}
-
-function DetalheProduto({
-  site,
-  produto,
-  quantidade,
-  observacao,
-  onObservacao,
-  onAlterar,
-  onFechar,
-}: {
-  site: Site;
-  produto: Produto;
-  quantidade: number;
-  observacao: string;
-  onObservacao: (v: string) => void;
-  onAlterar: (delta: number, observacao?: string) => void;
-  onFechar: () => void;
-}) {
-  const primaria = site.aparencia.corPrimaria;
-  const [nota, setNota] = useState(observacao);
-  const desconto = descontoPercentual(produto);
-  const disponivelAgora = produtoDisponivelAgora(produto);
-
-  const refModal = useFocoModal(true, onFechar);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center @2xl:items-center">
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-hidden
-        onClick={onFechar}
-        className="absolute inset-0 bg-black/50"
-      />
-      <div
-        ref={refModal}
-        role="dialog"
-        aria-modal="true"
-        aria-label={produto.nome}
-        className="scrollbar-invisivel relative max-h-[92vh] w-full max-w-lg overflow-y-auto p-4 @2xl:rounded-2xl"
-        style={{
-          background: site.aparencia.corFundo,
-          color: site.aparencia.corTexto,
-          borderTopLeftRadius: "18px",
-          borderTopRightRadius: "18px",
-        }}
-      >
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <h2 className="min-w-0 text-lg font-semibold">{produto.nome}</h2>
-          <button
-            type="button"
-            onClick={onFechar}
-            aria-label="Fechar detalhes do item"
-            className="grid h-11 w-11 shrink-0 place-items-center focus-visible:outline focus-visible:outline-2"
-            style={{ outlineColor: primaria }}
-          >
-            <X size={18} aria-hidden />
-          </button>
-        </div>
-
-        {produto.imagem && (
-          <img
-            src={produto.imagem}
-            alt={produto.nome}
-            className="mb-3 h-48 w-full rounded-xl object-cover"
-          />
-        )}
-
-        <div className="flex flex-wrap items-center gap-2">
-          {produto.categoria && <Badge cor={primaria}>{produto.categoria}</Badge>}
-          {desconto > 0 && <Badge cor={primaria}>−{desconto}%</Badge>}
-          {!disponivelAgora && (
-            <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-              style={{ background: "var(--ms-border)" }}
-            >
-              Indisponível
-            </span>
-          )}
-        </div>
-
-        {produto.descricao && <p className="mt-2 text-sm opacity-80">{produto.descricao}</p>}
-
-        <p className="mt-3 flex items-center gap-2">
-          {produto.precoPromocional ? (
-            <>
-              <span className="text-sm line-through opacity-50">{moeda(produto.preco)}</span>
-              <span className="text-xl font-bold" style={{ color: primaria }}>
-                {moeda(produto.precoPromocional)}
-              </span>
-            </>
-          ) : (
-            <span className="text-xl font-bold">{moeda(produto.preco)}</span>
-          )}
-        </p>
-
-        {produto.variacoes.length > 0 && (
-          <section className="mt-4">
-            <h3 className="text-sm font-semibold">Variações disponíveis</h3>
-            <p className="mt-1 text-xs opacity-70">
-              Escolha e descreva sua preferência na observação.
-            </p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {produto.variacoes.map((v) => (
-                <li
-                  key={v}
-                  className="rounded-full px-3 py-1.5 text-xs"
-                  style={{ border: "1px solid var(--ms-border)" }}
-                >
-                  {v}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="obs-item">
-          Observação
-        </label>
-        <textarea
-          id="obs-item"
-          value={nota}
-          onChange={(e) => {
-            setNota(e.target.value);
-            onObservacao(e.target.value);
-          }}
-          rows={3}
-          placeholder="Ex.: sem cebola, ponto da carne, meio a meio…"
-          className="mt-1 w-full bg-transparent p-3 text-sm outline-none focus-visible:outline focus-visible:outline-2"
-          style={{
-            border: "1px solid var(--ms-border)",
-            borderRadius: "var(--ms-radius)",
-            outlineColor: primaria,
-          }}
-        />
-
-        <div className="mt-4 flex flex-col gap-2 @2xl:flex-row @2xl:items-center">
-          <div className="@2xl:w-40">
-            {disponivelAgora ? (
-              <Contador
-                site={site}
-                quantidade={quantidade}
-                rotulo={produto.nome}
-                onAlterar={(d) => onAlterar(d, nota)}
-                onAdicionar={() => onAlterar(1, nota)}
-              />
-            ) : (
-              <p className="min-h-11 py-2 text-center text-xs font-semibold opacity-70">
-                Indisponível agora
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onFechar}
-            className="min-h-11 flex-1 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            style={{
-              border: "1px solid var(--ms-border)",
-              borderRadius: "var(--ms-radius)",
-              outlineColor: primaria,
-            }}
-          >
-            {quantidade > 0 ? "Continuar escolhendo" : "Fechar"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PainelCarrinho({
-  site,
-  itens,
-  totais,
-  entrega,
-  setEntrega,
-  pagamento,
-  setPagamento,
-  campos,
-  setCampos,
-  onAlterar,
-  pedidosAtivos,
-  enviando,
-  retorno,
-  onEnviar,
-}: {
-  site: Site;
-  itens: ItemCarrinho[];
-  totais: ReturnType<typeof totaisCarrinho>;
-  entrega: Entrega;
-  setEntrega: (e: Entrega) => void;
-  pagamento: Pagamento | undefined;
-  setPagamento: (p: Pagamento) => void;
-  campos: CamposEntrega;
-  setCampos: React.Dispatch<React.SetStateAction<CamposEntrega>>;
-  onAlterar: (id: string, delta: number) => void;
-  pedidosAtivos: boolean;
-  enviando: boolean;
-  retorno: string;
-  onEnviar: () => void;
-}) {
-  const primaria = site.aparencia.corPrimaria;
-  const modalidades: Entrega[] = site.comercio?.modalidadesPedido?.length
-    ? site.comercio.modalidadesPedido
-    : (perfilCatalogo(site).modalidades ?? ["entrega", "retirada"]);
-  const entregaAtiva = modalidades.includes(entrega) ? entrega : (modalidades[0] ?? "retirada");
-  const contatoValido = whatsappValido(campos.whatsapp);
-  const dadosObrigatoriosOk = contatoValido && campos.nome.trim().length >= 2;
-  const podeConfirmar = pedidosAtivos && dadosObrigatoriosOk && Boolean(pagamento) && !enviando;
-  const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "") => (
-    <label className="block text-xs font-medium opacity-80">
-      {rotulo}
-      <input
-        value={campos[nome] ?? ""}
-        onChange={(e) => setCampos((c) => ({ ...c, [nome]: e.target.value }))}
-        placeholder={placeholder}
-        className="mt-1 min-h-11 w-full bg-transparent px-3 text-sm outline-none focus-visible:outline focus-visible:outline-2"
-        style={{
-          border: "1px solid var(--ms-border)",
-          borderRadius: "var(--ms-radius)",
-          outlineColor: primaria,
-        }}
-      />
-    </label>
-  );
-
-  const campoWhatsapp = (
-    <label className="block text-xs font-medium opacity-80">
-      WhatsApp para contato
-      <input
-        type="tel"
-        inputMode="numeric"
-        autoComplete="tel"
-        value={formatarTelefonePedido(campos.whatsapp)}
-        onChange={(e) =>
-          setCampos((c) => ({
-            ...c,
-            whatsapp: e.target.value
-              .replace(/\D/g, "")
-              .replace(/^55(?=\d{10,11}$)/, "")
-              .slice(0, 11),
-          }))
-        }
-        maxLength={15}
-        placeholder="(00) 00000-0000"
-        aria-invalid={Boolean(campos.whatsapp) && !contatoValido}
-        aria-describedby="aviso-whatsapp-pedido"
-        className="mt-1 min-h-11 w-full bg-transparent px-3 text-sm outline-none focus-visible:outline focus-visible:outline-2"
-        style={{
-          border: "1px solid var(--ms-border)",
-          borderRadius: "var(--ms-radius)",
-          outlineColor: primaria,
-        }}
-      />
-      <span id="aviso-whatsapp-pedido" className="mt-1 block text-[11px] opacity-70">
-        {campos.whatsapp && !contatoValido
-          ? "Informe um WhatsApp válido com DDD."
-          : "Informe seu WhatsApp com DDD."}
-      </span>
-    </label>
-  );
-
-  if (itens.length === 0)
-    return (
-      <div
-        className="p-5 text-center"
-        style={{
-          background: "var(--ms-surface)",
-          border: "1px dashed var(--ms-border)",
-          borderRadius: "var(--ms-radius)",
-        }}
-      >
-        <ShoppingBag size={20} className="mx-auto opacity-60" aria-hidden />
-        <p className="mt-2 text-sm font-semibold">Seu pedido está vazio</p>
-        <p className="mt-1 text-xs opacity-70">
-          Toque em um item do {perfilCatalogo(site).rotulo.toLowerCase()} para adicionar.
-        </p>
-      </div>
-    );
-
-  return (
-    <div
-      className="flex flex-col gap-3 p-4"
-      style={{
-        background: "var(--ms-surface)",
-        border: "1px solid var(--ms-border)",
-        borderRadius: "var(--ms-radius)",
-      }}
-    >
-      <h2 className="text-sm font-semibold">Seu pedido</h2>
-      <ul className="flex flex-col gap-3">
-        {itens.map((i) => (
-          <li key={i.produtoId} className="flex flex-col gap-1.5">
-            <div className="flex items-start justify-between gap-2">
-              <span className="min-w-0 text-sm">
-                {i.quantidade}x {i.nome}
-              </span>
-              <span className="shrink-0 text-sm font-semibold">
-                {moeda(i.preco * i.quantidade)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label={`Remover uma unidade de ${i.nome}`}
-                onClick={() => onAlterar(i.produtoId, -1)}
-                className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "var(--ms-radius)",
-                  outlineColor: primaria,
-                }}
-              >
-                <Minus size={14} aria-hidden />
-              </button>
-              <button
-                type="button"
-                aria-label={`Adicionar uma unidade de ${i.nome}`}
-                onClick={() => onAlterar(i.produtoId, 1)}
-                className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "var(--ms-radius)",
-                  outlineColor: primaria,
-                }}
-              >
-                <Plus size={14} aria-hidden />
-              </button>
-              <button
-                type="button"
-                aria-label={`Remover ${i.nome} do pedido`}
-                onClick={() => onAlterar(i.produtoId, -i.quantidade)}
-                className="grid h-11 w-11 place-items-center focus-visible:outline focus-visible:outline-2"
-                style={{
-                  border: "1px solid var(--ms-border)",
-                  borderRadius: "var(--ms-radius)",
-                  outlineColor: primaria,
-                }}
-              >
-                <Trash2 size={14} aria-hidden />
-              </button>
-            </div>
-            {i.observacao && <p className="text-xs opacity-70">Item: {i.observacao}</p>}
-          </li>
-        ))}
-      </ul>
-
-      <div
-        role="group"
-        aria-label="Modalidade do pedido"
-        className="-mx-1 flex gap-2 overflow-x-auto scrollbar-invisivel px-1"
-      >
-        {modalidades.map((op) => (
-          <Chip key={op} ativo={entregaAtiva === op} cor={primaria} onClick={() => setEntrega(op)}>
-            {rotulosModalidade[op]}
-          </Chip>
-        ))}
-      </div>
-
-      <div className="grid gap-2">
-        {campo("nome", "Seu nome")}
-        {campoWhatsapp}
-      </div>
-
-      {entregaAtiva === "mesa" && (
-        <div className="grid gap-2 @2xl:grid-cols-2">
-          {campo("mesa", "Número da mesa", "Ex.: 12")}
-          {campo("pessoas", "Quantas pessoas?", "Ex.: 4")}
-          <div className="@2xl:col-span-2">{campo("observacao", "Observações do pedido")}</div>
-        </div>
-      )}
-
-      {entregaAtiva === "retirada" && (
-        <div className="grid gap-2">
-          {campo("horarioPreferido", "Horário preferido para retirar", "Ex.: 19h30")}
-          {campo("observacao", "Observações do pedido")}
-        </div>
-      )}
-
-      {entrega === "entrega" && (
-        <div className="grid gap-2">
-          {campo("endereco", "Endereço", "Rua e número")}
-          {campo("bairro", "Bairro")}
-          {campo("complemento", "Complemento", "Apto, bloco…")}
-          {campo("referencia", "Referência")}
-          {campo("observacao", "Observações do pedido")}
-          {(site.comercio?.taxaEntrega ?? 0) === 0 && (
-            <p className="text-[11px] opacity-70">
-              Taxa de entrega não cadastrada: confirme o valor com o estabelecimento.
-            </p>
-          )}
-        </div>
-      )}
-
-      <div role="group" aria-label="Forma de pagamento" className="flex flex-wrap gap-2">
-        {(site.comercio?.pagamentosAceitos?.length
-          ? site.comercio.pagamentosAceitos
-          : (Object.keys(rotulosPagamento) as Pagamento[])
-        ).map((p) => (
-          <Chip key={p} ativo={pagamento === p} cor={primaria} onClick={() => setPagamento(p)}>
-            {rotulosPagamento[p]}
-          </Chip>
-        ))}
-      </div>
-      {pagamento === "dinheiro" && campo("troco", "Troco para quanto?", "Ex.: R$ 100,00")}
-      {pagamento === "pix" && site.comercio?.pixChave && (
-        <div className="rounded-xl border p-3 text-xs" style={{ borderColor: "var(--ms-border)" }}>
-          <p className="font-semibold">
-            Pix para {site.comercio.pixFavorecido || site.conteudo.nome}
-          </p>
-          <p className="mt-1 break-all opacity-80">Chave: {site.comercio.pixChave}</p>
-          {site.comercio.pixQrCode && (
-            <img
-              src={site.comercio.pixQrCode}
-              alt="QR Code Pix do estabelecimento"
-              className="mt-2 h-32 w-32 object-contain"
-            />
-          )}
-        </div>
-      )}
-      {pagamento === "balcao" && (
-        <p className="rounded-xl border p-3 text-xs" style={{ borderColor: "var(--ms-border)" }}>
-          Pague diretamente no balcão ou com a equipe do estabelecimento. A Nexa não processa este
-          pagamento.
-        </p>
-      )}
-
-      <dl
-        className="flex flex-col gap-1 border-t pt-2 text-sm"
-        style={{ borderColor: "var(--ms-border)" }}
-      >
-        <div className="flex justify-between">
-          <dt className="opacity-75">Subtotal</dt>
-          <dd>{moeda(totais.subtotal)}</dd>
-        </div>
-        {totais.taxa > 0 && (
-          <div className="flex justify-between">
-            <dt className="opacity-75">Taxa de entrega</dt>
-            <dd>{moeda(totais.taxa)}</dd>
-          </div>
-        )}
-        <div className="flex justify-between text-base font-bold">
-          <dt>Total</dt>
-          <dd style={{ color: primaria }}>{moeda(totais.total)}</dd>
-        </div>
-      </dl>
-
-      {retorno && (
-        <p role="status" className="text-xs font-medium">
-          {retorno}
-        </p>
-      )}
-      {pedidosAtivos && !enviando && !dadosObrigatoriosOk && (
-        <p role="status" className="text-xs opacity-75">
-          Informe seu nome e um WhatsApp válido com DDD para confirmar.
-        </p>
-      )}
-      {pedidosAtivos && !enviando && dadosObrigatoriosOk && !pagamento && (
-        <p role="status" className="text-xs opacity-75">
-          Escolha a forma de pagamento para confirmar o pedido.
-        </p>
-      )}
-      {!pedidosAtivos && !retorno && (
-        <p className="text-xs opacity-75">
-          Esta é uma prévia. A confirmação de pedidos fica disponível no cardápio publicado.
-        </p>
-      )}
-      {totais.abaixoDoMinimo ? (
-        <p className="text-xs opacity-75">
-          Pedido mínimo de {moeda(totais.minimo)} para enviar pelo WhatsApp.
-        </p>
-      ) : (
-        <button
-          type="button"
-          disabled={!podeConfirmar}
-          onClick={onEnviar}
-          className="inline-flex min-h-11 items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          style={{
-            background: primaria,
-            color: contraste(primaria),
-            borderRadius: site.aparencia.botao === "pill" ? "999px" : "var(--ms-radius)",
-            outlineColor: primaria,
-            opacity: podeConfirmar ? 1 : 0.65,
-          }}
-        >
-          <ShoppingBag size={15} aria-hidden />{" "}
-          {enviando
-            ? "Confirmando pedido…"
-            : pedidosAtivos
-              ? "Confirmar pedido"
-              : "Publique para receber pedidos"}
-        </button>
-      )}
-      <p className="text-[11px] opacity-70">
-        {entrega === "mesa"
-          ? "Ao confirmar, seu pedido será enviado para a equipe do estabelecimento."
-          : "Ao confirmar, seu pedido será enviado para a equipe. O pagamento é combinado diretamente com o estabelecimento."}
-      </p>
-    </div>
   );
 }

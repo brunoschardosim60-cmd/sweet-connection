@@ -29,6 +29,7 @@ import {
   type Dispositivo,
 } from "@/components/editor/PreviaDispositivo";
 import { AbaCardapio } from "@/components/editor/AbaCardapio";
+import { OpcoesProduto } from "@/components/editor/OpcoesProduto";
 import {
   PainelQualidade,
   destinoPorSecao,
@@ -1918,6 +1919,19 @@ function AbaItens({
                 }
               />
             </div>
+            {site.modeloId.startsWith("cardapio-") && (
+              <OpcoesProduto
+                valor={p.personalizacoes ?? []}
+                onChange={(personalizacoes) =>
+                  aplicar((s) => ({
+                    ...s,
+                    produtos: s.produtos.map((x) =>
+                      x.id === p.id ? { ...x, personalizacoes } : x,
+                    ),
+                  }))
+                }
+              />
+            )}
             {p.precoPromocional && p.precoPromocional > 0 && p.precoPromocional < p.preco ? (
               <p className="text-xs text-muted-foreground">
                 Promoção de {Math.round((1 - p.precoPromocional / p.preco) * 100)}% aparece no

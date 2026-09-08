@@ -1,4 +1,5 @@
-import type { Modelo } from "./types";
+import type { Modelo, TipoSecao } from "./types";
+import { presetsModelo } from "./modelo-presets";
 
 /** Identificadores de recursos exibidos como chips nos cards de modelo. */
 export type RecursoModelo =
@@ -30,44 +31,21 @@ export const rotuloRecurso: Record<RecursoModelo, string> = {
   planos: "Planos",
 };
 
-const porSegmento: Record<string, RecursoModelo[]> = {
-  alimentacao: ["catalogo", "carrinho", "pedidos"],
-  comercio: ["catalogo", "carrinho", "whatsapp"],
-  beleza: ["agenda", "portfolio", "equipe"],
-  saude: ["agenda", "formulario", "equipe"],
-  servicos: ["formulario", "portfolio", "whatsapp"],
-  profissionais: ["agenda", "formulario", "depoimentos"],
-  educacao: ["formulario", "planos", "agenda"],
-  turismo: ["reserva", "portfolio", "formulario"],
-  imoveis: ["catalogo", "formulario", "mapa"],
-  transporte: ["formulario", "whatsapp", "mapa"],
-};
-
-const palavras: [RegExp, RecursoModelo][] = [
-  [/card[áa]pio|pedido|delivery|combo/i, "pedidos"],
-  [/carrinho|checkout/i, "carrinho"],
-  [/cat[áa]logo|vitrine|produtos/i, "catalogo"],
-  [/reserva|hospedagem|mesa/i, "reserva"],
-  [/agenda|agendamento|hor[áa]rio/i, "agenda"],
-  [/portf[óo]lio|galeria|antes e depois/i, "portfolio"],
-  [/formul[áa]rio|or[çc]amento|contato/i, "formulario"],
-  [/equipe|profissionais/i, "equipe"],
-  [/plano|assinatura|mensalidade/i, "planos"],
-  [/depoimento|avalia[çc]/i, "depoimentos"],
-];
-
-/** Até 3 recursos representativos do modelo, inferidos do conteúdo já existente. */
+/** Recursos derivados do mesmo preset usado na criação e na demonstração. */
 export function recursosDoModelo(modelo: Modelo): RecursoModelo[] {
-  const texto = `${modelo.destaque} ${modelo.descricao}`;
-  const achados: RecursoModelo[] = [];
-  if (modelo.familia === "cardapio") achados.push("catalogo", "carrinho", "pedidos");
-  for (const [regex, recurso] of palavras) {
-    if (achados.length >= 3) break;
-    if (regex.test(texto) && !achados.includes(recurso)) achados.push(recurso);
-  }
-  for (const recurso of porSegmento[modelo.segmento] ?? ["whatsapp", "formulario", "mapa"]) {
-    if (achados.length >= 3) break;
-    if (!achados.includes(recurso)) achados.push(recurso);
-  }
-  return achados.slice(0, 3);
+  if (modelo.familia === "cardapio") return ["catalogo", "carrinho", "pedidos"];
+  const preset = presetsModelo[modelo.id];
+  if (!preset) return ["whatsapp"];
+  const tem = (secao: TipoSecao) => preset.secoes.includes(secao);
+  const recursos: RecursoModelo[] = [];
+  if (tem("agenda")) recursos.push("agenda");
+  if (tem("formulario") && preset.formulario === "reserva") recursos.push("reserva");
+  if (tem("produtos") || tem("cardapio")) recursos.push("catalogo");
+  if (tem("galeria")) recursos.push("portfolio");
+  if (tem("formulario")) recursos.push("formulario");
+  if (tem("equipe")) recursos.push("equipe");
+  if (tem("depoimentos")) recursos.push("depoimentos");
+  if (tem("localizacao")) recursos.push("mapa");
+  if (tem("links")) recursos.push("whatsapp");
+  return recursos.slice(0, 3);
 }

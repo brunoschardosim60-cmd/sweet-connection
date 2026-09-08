@@ -38,6 +38,7 @@ import { useIsAdmin } from "@/lib/nexa/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { modelos } from "@/lib/nexa/modelos";
 import { proximoIndiceBusca } from "@/lib/nexa/busca";
+import { destinoAutenticacao } from "@/lib/nexa/auth-retorno";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -97,6 +98,9 @@ function PainelLayout() {
   const { escuro, alternar } = useTema();
   const { admin } = useIsAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const destinoAtual = useRouterState({
+    select: (s) => destinoAutenticacao(s.location.pathname, s.location.searchStr, s.location.hash),
+  });
   const noEditor = pathname.includes("/painel/editor/");
   const { sites, envios, pronto, erro, store } = useNexa();
   const usuarioAnteriorRef = useRef<string | null>(null);
@@ -108,10 +112,14 @@ function PainelLayout() {
   const botaoMenuRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!carregandoSessao && !user) {
-      void navigate({ to: "/login", replace: true });
+    if (!carregandoSessao && !user && destinoAtual) {
+      void navigate({
+        to: "/login",
+        search: { retorno: destinoAtual },
+        replace: true,
+      });
     }
-  }, [carregandoSessao, navigate, user]);
+  }, [carregandoSessao, destinoAtual, navigate, user]);
 
   // Trocar de conta no mesmo navegador jamais pode mostrar por um instante
   // conteúdo, métricas, mídias ou modelos que ficaram na memória da anterior.

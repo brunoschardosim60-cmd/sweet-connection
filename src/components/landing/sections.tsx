@@ -36,6 +36,7 @@ import { recursosDoModelo, rotuloRecurso } from "@/lib/nexa/modelo-recursos";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { segmentos } from "@/lib/nexa/segmentos";
 import { numero } from "@/lib/nexa/utils";
+import type { TipoModelo } from "@/lib/nexa/galeria-busca";
 
 /* -------------------------------- HERO -------------------------------- */
 
@@ -290,6 +291,13 @@ export function TrilhasProduto() {
               </ul>
               <Link
                 to={t.acao.para}
+                search={
+                  t.id === "cardapio"
+                    ? { tipo: "cardapio" }
+                    : t.id === "minisite"
+                      ? { tipo: "minisite" }
+                      : {}
+                }
                 className="mt-6 inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-ink/20 px-5 text-sm font-semibold transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               >
                 {t.acao.rotulo} <ArrowRight size={15} aria-hidden="true" />
@@ -632,8 +640,6 @@ export function Recursos() {
 
 /* ------------------------------- MODELOS ------------------------------- */
 
-type TipoModelo = "minisite" | "cardapio" | "ia";
-
 const tiposModelo: { id: TipoModelo; nome: string; icone: typeof Globe }[] = [
   { id: "minisite", nome: "Mini-sites", icone: Globe },
   { id: "cardapio", nome: "Cardápios digitais", icone: Utensils },
@@ -655,8 +661,17 @@ function ChipsRecursos({ modelo }: { modelo: (typeof modelos)[number] }) {
   );
 }
 
-export function GaleriaModelos({ limite }: { limite?: number }) {
-  const [tipo, setTipo] = useState<TipoModelo>("minisite");
+export function GaleriaModelos({
+  limite,
+  tipoSelecionado,
+  onTipoChange,
+}: {
+  limite?: number;
+  tipoSelecionado?: TipoModelo;
+  onTipoChange?: (tipo: TipoModelo) => void;
+}) {
+  const [tipoLocal, setTipo] = useState<TipoModelo>("minisite");
+  const tipo = tipoSelecionado ?? tipoLocal;
   const [segmento, setSegmento] = useState<string>("todos");
 
   const daFamilia = useMemo(
@@ -675,11 +690,13 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
     [daFamilia],
   );
 
-  const lista = daFamilia.filter((m) => segmento === "todos" || m.segmento === segmento);
+  const segmentoAtual = abasSegmento.some((s) => s.id === segmento) ? segmento : "todos";
+  const lista = daFamilia.filter((m) => segmentoAtual === "todos" || m.segmento === segmentoAtual);
   const visiveis = limite ? lista.slice(0, limite) : lista;
 
   const trocarTipo = (novo: TipoModelo) => {
     setTipo(novo);
+    onTipoChange?.(novo);
     setSegmento("todos");
   };
 
@@ -735,7 +752,7 @@ export function GaleriaModelos({ limite }: { limite?: number }) {
       {!totalIA && abasSegmento.length > 1 && (
         <div className="scrollbar-invisivel -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {abasSegmento.map((s) => {
-            const ativo = segmento === s.id;
+            const ativo = segmentoAtual === s.id;
             const total =
               s.id === "todos"
                 ? daFamilia.length
@@ -1179,7 +1196,7 @@ export function ComoFunciona() {
   const etapas = [
     {
       t: "Escolha um modelo",
-      d: "12 modelos com estrutura pensada para cada segmento.",
+      d: `${modelos.length} modelos com estrutura pensada para cada segmento.`,
       i: ImageIcon,
     },
     {

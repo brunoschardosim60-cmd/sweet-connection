@@ -12,6 +12,22 @@ export interface Caixa {
   altura: number;
 }
 
+/** Mantém a largura de referência; encurta a janela, não os textos, em telas baixas. */
+export function previaLegivel(
+  disponivel: Caixa,
+  dispositivo: Caixa,
+): { caixa: Caixa; escala: number } {
+  if (disponivel.largura <= 0 || disponivel.altura <= 0) return { caixa: dispositivo, escala: 1 };
+  const escala = Math.min(1, disponivel.largura / dispositivo.largura);
+  return {
+    caixa: {
+      largura: dispositivo.largura,
+      altura: Math.min(dispositivo.altura, disponivel.altura / escala),
+    },
+    escala,
+  };
+}
+
 /**
  * Calcula o tamanho real da moldura de prévia para caber inteira no espaço
  * disponível, mantendo a proporção do dispositivo (sem cortar conteúdo).

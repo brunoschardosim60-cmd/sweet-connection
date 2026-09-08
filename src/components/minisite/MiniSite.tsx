@@ -44,12 +44,24 @@ import {
   salvarRascunhoPedido,
 } from "@/lib/nexa/catalogo";
 import { estaAberto, moeda } from "@/lib/nexa/utils";
+import { acaoNegocio } from "@/lib/nexa/acao-negocio";
+import {
+  itensDoCarrinho,
+  normalizarLinhas,
+  type CarrinhoPersonalizado,
+} from "@/lib/nexa/personalizacao";
 import type { LinkItem, Site } from "@/lib/nexa/types";
 
 /** Contexto de rastreio: ativo apenas no mini-site publicado. */
 const RastreioCtx = createContext<(rotulo: string, whatsapp?: boolean) => void>(() => {});
 const PublicacaoCtx = createContext(false);
 const InteracoesExternasCtx = createContext(true);
+const ServicoSelecionadoCtx = createContext({
+  servico: "",
+  selecionar: (_nome: string) => {
+    void _nome;
+  },
+});
 export const useRastreio = () => useContext(RastreioCtx);
 
 const fontes: Record<Site["aparencia"]["fonte"], string> = {
@@ -113,6 +125,7 @@ export function MiniSite({
   previewEstreita?: boolean;
 }) {
   const a = site.aparencia;
+  const [servicoSelecionado, setServicoSelecionado] = useState("");
   const ativas = site.secoes.filter((s) => s.ativa);
   const tem = (t: string) => ativas.some((s) => s.tipo === t);
   // calculado após a hidratação: depende do relógio do visitante
@@ -161,30 +174,40 @@ export function MiniSite({
     <PublicacaoCtx.Provider value={rastrear}>
       <InteracoesExternasCtx.Provider value={interacoesExternas}>
         <RastreioCtx.Provider value={registrar}>
-          <div
-            style={style}
-            data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
-            className={`@container min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed${previewEstreita ? " mini-site-preview-estreita" : ""}`}
+          <ServicoSelecionadoCtx.Provider
+            value={{ servico: servicoSelecionado, selecionar: setServicoSelecionado }}
           >
-            {tem("apresentacao") && <Capa site={site} aberto={aberto} compacto={compacto} />}
             <div
-              className="mx-auto w-full max-w-[680px] px-5 pb-28"
-              style={{ display: "flex", flexDirection: "column", gap: "var(--ms-gap)" }}
+              style={style}
+              data-interacoes-externas={interacoesExternas ? "ativas" : "desativadas"}
+              data-minisite
+              className={`@container min-h-full w-full overflow-x-hidden text-[15px] leading-relaxed${previewEstreita ? " mini-site-preview-estreita" : ""}`}
             >
-              {secoesOrdenadas.map((s) => (
-                <Secao
-                  key={s.id}
-                  tipo={s.tipo}
-                  titulo={s.titulo}
-                  site={site}
-                  modoEdicao={modoEdicao}
-                  conteudo={s.conteudo}
-                />
-              ))}
+              {tem("apresentacao") && <Capa site={site} aberto={aberto} compacto={compacto} />}
+              <div
+                className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-x-6 px-5 pb-28 @3xl:grid-cols-2 @3xl:px-8"
+                style={{ gap: "var(--ms-gap)" }}
+              >
+                {secoesOrdenadas.map((s) => (
+                  <div
+                    key={s.id}
+                    data-secao={s.tipo}
+                    className={`min-w-0 ${["produtos", "servicos", "galeria", "agenda", "formulario", "rodape"].includes(s.tipo) ? "@3xl:col-span-2" : ""}`}
+                  >
+                    <Secao
+                      tipo={s.tipo}
+                      titulo={s.titulo}
+                      site={site}
+                      modoEdicao={modoEdicao}
+                      conteudo={s.conteudo}
+                    />
+                  </div>
+                ))}
+              </div>
+              {tem("rodape") && <Rodape site={site} />}
+              {botaoFlutuante && <BotaoWhatsapp site={site} />}
             </div>
-            {tem("rodape") && <Rodape site={site} />}
-            {botaoFlutuante && <BotaoWhatsapp site={site} />}
-          </div>
+          </ServicoSelecionadoCtx.Provider>
         </RastreioCtx.Provider>
       </InteracoesExternasCtx.Provider>
     </PublicacaoCtx.Provider>
@@ -217,8 +240,10 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
   const posicaoCapa = (a.capaPosicao ?? "centro").replaceAll("-", " ");
 
   return (
-    <header className="relative">
-      <div className={`relative w-full overflow-hidden ${alturaCapa}`}>
+    <header className="relative mx-auto max-w-6xl @3xl:grid @3xl:grid-cols-2 @3xl:items-center @3xl:gap-8 @3xl:px-8 @3xl:py-10">
+      <div
+        className={`relative w-full overflow-hidden @3xl:h-[360px] @3xl:rounded-3xl ${alturaCapa}`}
+      >
         {a.capaTipo === "imagem" && conteudo.capa ? (
           <img
             src={conteudo.capa}
@@ -245,7 +270,7 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
       </div>
 
       <div
-        className={`mx-auto w-full max-w-[680px] px-5 ${imersivo ? "-mt-28" : "-mt-12"} relative pb-6`}
+        className={`mx-auto w-full max-w-[680px] px-5 ${imersivo ? "-mt-28" : "-mt-12"} relative pb-6 @3xl:mt-0 @3xl:p-0`}
       >
         <div
           className={`flex items-end gap-4 ${layout === "minimalista" || layout === "editorial" ? "flex-col items-start" : ""}`}
@@ -319,6 +344,9 @@ function Capa({ site, aberto, compacto }: { site: Site; aberto: boolean; compact
             {conteudo.descricao}
           </p>
         )}
+        <div className="mt-5">
+          <AcaoNegocio site={site} />
+        </div>
       </div>
     </header>
   );
@@ -411,6 +439,49 @@ function Botao({
     >
       {children}
     </button>
+  );
+}
+
+function AcaoNegocio({ site, servico }: { site: Site; servico?: string }) {
+  const acao = acaoNegocio(site);
+  const ref = useRef<HTMLDivElement>(null);
+  const { selecionar } = useContext(ServicoSelecionadoCtx);
+  const registrar = useRastreio();
+  if (acao.tipo === "whatsapp" && !site.conteudo.whatsapp) return null;
+  return (
+    <div ref={ref}>
+      {acao.tipo === "whatsapp" ? (
+        <Botao
+          site={site}
+          href={whatsappLink(
+            site.conteudo.whatsapp,
+            `Olá! Tenho interesse ${servico ? `em ${servico}` : `nos serviços de ${site.conteudo.nome}`}.`,
+          )}
+          onClick={() => registrar(acao.rotulo, true)}
+        >
+          {acao.rotulo}
+        </Botao>
+      ) : (
+        <Botao
+          site={site}
+          onClick={() => {
+            selecionar(servico ?? "");
+            const destino = ref.current
+              ?.closest("[data-minisite]")
+              ?.querySelector(`[data-secao="${acao.secao}"]`);
+            destino?.scrollIntoView({
+              block: "start",
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "auto"
+                : "smooth",
+            });
+            registrar(`${acao.rotulo}${servico ? `: ${servico}` : ""}`);
+          }}
+        >
+          {acao.rotulo}
+        </Botao>
+      )}
+    </div>
   );
 }
 
@@ -644,11 +715,13 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
   const [cat, setCat] = useState("Todos");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [restaurado, setRestaurado] = useState(false);
+  const linhasRestauradas = useRef<CarrinhoPersonalizado>({});
   const usarCarrinho = site.comercio?.carrinho === true;
 
   // Rascunho anônimo compartilhado com a página /cardapio (somente navegador).
   useEffect(() => {
     const salvo = lerRascunhoPedido(site.slug);
+    linhasRestauradas.current = normalizarLinhas(salvo?.carrinho ?? {});
     if (salvo)
       setCarrinho(
         Object.fromEntries(
@@ -666,7 +739,11 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
       carrinho: Object.fromEntries(
         Object.entries(carrinho).map(([id, q]) => [
           id,
-          { quantidade: q, observacao: salvo?.carrinho?.[id]?.observacao ?? "" },
+          {
+            ...linhasRestauradas.current[id],
+            quantidade: q,
+            observacao: salvo?.carrinho?.[id]?.observacao ?? "",
+          },
         ]),
       ),
     });
@@ -701,11 +778,19 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
     (total, quantidade) => total + quantidade,
     0,
   );
-  const totalNoCarrinho = site.produtos.reduce(
-    (total, produto) =>
-      total + (carrinho[produto.id] ?? 0) * (produto.precoPromocional ?? produto.preco),
-    0,
-  );
+  const totalNoCarrinho = itensDoCarrinho(
+    Object.fromEntries(
+      Object.entries(carrinho).map(([id, quantidade]) => [
+        id,
+        {
+          ...linhasRestauradas.current[id],
+          quantidade,
+          observacao: linhasRestauradas.current[id]?.observacao ?? "",
+        },
+      ]),
+    ),
+    site.produtos,
+  ).reduce((total, i) => total + i.preco * i.quantidade, 0);
 
   return (
     <section>
@@ -947,45 +1032,40 @@ function BlocoProdutos({ site, titulo }: { site: Site; titulo: string }) {
 }
 
 function BlocoServicos({ site, titulo }: { site: Site; titulo: string }) {
-  const registrar = useRastreio();
   if (site.servicos.length === 0) return null;
   return (
     <section>
       <Titulo site={site}>{titulo}</Titulo>
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-4 @3xl:grid-cols-2">
         {site.servicos.map((s) => (
           <Cartao key={s.id} site={site}>
-            <div className="flex items-start justify-between gap-3 p-4">
-              {s.imagem && (
-                <img
-                  src={s.imagem}
-                  alt={s.nome}
-                  loading="lazy"
-                  className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                />
-              )}
-              <div className="min-w-0">
-                <h3 className="text-sm font-semibold">{s.nome}</h3>
-                <p className="mt-1 text-xs opacity-70">{s.descricao}</p>
-                <p className="mt-1.5 text-[11px] opacity-60">
-                  {s.duracao}
-                  {s.profissional ? ` · ${s.profissional}` : ""}
-                </p>
-              </div>
-              <div className="shrink-0 text-right">
-                {s.preco > 0 && <p className="text-sm font-bold">{moeda(s.preco)}</p>}
-                <div className="mt-2">
-                  <Botao
-                    site={site}
-                    href={whatsappLink(
-                      site.conteudo.whatsapp,
-                      `Olá! Gostaria de agendar o serviço ${s.nome}.`,
-                    )}
-                    onClick={() => registrar(`Serviço: ${s.nome}`, true)}
-                  >
-                    Agendar
-                  </Botao>
+            <div className="flex h-full flex-col gap-4 p-4">
+              <div className="flex items-start gap-3">
+                {s.imagem && (
+                  <img
+                    src={s.imagem}
+                    alt={s.nome}
+                    loading="lazy"
+                    className="h-20 w-20 shrink-0 rounded-xl object-cover"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-semibold">{s.nome}</h3>
+                  <p className="mt-1 text-sm leading-relaxed opacity-75">{s.descricao}</p>
+                  <p className="mt-2 text-xs opacity-70">
+                    {s.duracao}
+                    {s.profissional ? ` · ${s.profissional}` : ""}
+                  </p>
                 </div>
+              </div>
+              <div
+                className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t pt-3"
+                style={{ borderColor: "var(--ms-border)" }}
+              >
+                <p className="text-base font-bold">
+                  {s.preco > 0 ? moeda(s.preco) : "Consulte valores"}
+                </p>
+                <AcaoNegocio site={site} servico={s.nome} />
               </div>
             </div>
           </Cartao>
@@ -1329,7 +1409,7 @@ function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
   const chaveEnvio = useRef(novaChaveIdempotencia());
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [servico, setServico] = useState("");
+  const { servico, selecionar: setServico } = useContext(ServicoSelecionadoCtx);
 
   useEffect(() => {
     setHora(null);
@@ -1788,6 +1868,7 @@ function BlocoReservaHospedagem({ site }: { site: Site }) {
 }
 
 function BlocoFormulario({ site }: { site: Site }) {
+  const { servico } = useContext(ServicoSelecionadoCtx);
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -1795,6 +1876,11 @@ function BlocoFormulario({ site }: { site: Site }) {
   return (
     <section>
       <Titulo site={site}>{site.formulario.titulo}</Titulo>
+      {servico && (
+        <p className="mb-3 text-sm">
+          Serviço de interesse: <strong>{servico}</strong>
+        </p>
+      )}
       <Cartao site={site}>
         <form
           className="flex flex-col gap-3 p-4"
@@ -1822,7 +1908,10 @@ function BlocoFormulario({ site }: { site: Site }) {
             setErro(null);
             setEnviando(true);
             try {
-              const envio = await enviarFormularioPublicado(site.slug, dados);
+              const envio = await enviarFormularioPublicado(site.slug, {
+                ...dados,
+                ...(servico ? { servico_interesse: servico } : {}),
+              });
               notificarDonoDoMinisite("formulario", String(envio ?? ""));
               form.reset();
               setEnviado(true);

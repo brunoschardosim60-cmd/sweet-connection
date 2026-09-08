@@ -2,6 +2,7 @@ import { extrasPorModelo } from "./demo-extras";
 import { conteudoNovosModelos } from "./demo-novos";
 import { conteudoModelosPremium } from "./demo-premium";
 import { conteudoCardapioModelos, ehModeloCardapio } from "./cardapio-modelos";
+import { opcoesDemonstracao } from "./opcoes-demo";
 import {
   camposFormulario,
   criarSecoes,
@@ -1308,6 +1309,11 @@ export function siteDoModelo(modeloId: string): Site {
   // Complementa os modelos mais antigos com CTA, depoimentos, formulário,
   // cupom, FAQ e galeria próprios do segmento, sem sobrescrever o que já existe.
   const c = { ...(extrasPorModelo[modelo.id] ?? {}), ...proprio };
+  const formularioDemo = c.formulario ?? {
+    tipo: preset.formulario,
+    titulo: preset.tituloFormulario,
+    campos: camposFormulario(preset.formulario),
+  };
   const agora = new Date().toISOString();
   return {
     id: `demo_${modelo.id}`,
@@ -1363,7 +1369,11 @@ export function siteDoModelo(modeloId: string): Site {
       { id: "l2", tipo: "instagram", titulo: `@${c.instagram}`, valor: c.instagram, ativo: true },
       { id: "l3", tipo: "localizacao", titulo: "Como chegar", valor: c.endereco, ativo: true },
     ],
-    produtos: c.produtos ?? [],
+    produtos: (c.produtos ?? []).map((p, i) =>
+      i === 0 && opcoesDemonstracao(modelo.id).length
+        ? { ...p, personalizacoes: opcoesDemonstracao(modelo.id) }
+        : p,
+    ),
     servicos: c.servicos ?? [],
     galeria: c.galeria ?? [
       { id: "g1", url: modelo.imagem, titulo: c.nome },
@@ -1390,10 +1400,12 @@ export function siteDoModelo(modeloId: string): Site {
         resposta: "Fale conosco pelo WhatsApp e retornamos em minutos.",
       },
     ],
-    formulario: c.formulario ?? {
-      tipo: preset.formulario,
-      titulo: preset.tituloFormulario,
-      campos: camposFormulario(preset.formulario),
+    formulario: {
+      ...formularioDemo,
+      campos: formularioDemo.campos.map((campo, i) => ({
+        ...campo,
+        id: `demo_${modelo.id}_campo_${i}`,
+      })),
     },
     seo: { titulo: c.nome, descricao: c.descricao, imagem: modelo.imagem, palavras: modelo.nome },
     integracoes: {

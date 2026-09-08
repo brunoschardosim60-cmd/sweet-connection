@@ -73,6 +73,19 @@ export interface LinkItem {
   ativo: boolean;
 }
 
+export interface GrupoOpcaoProduto {
+  id: string;
+  nome: string;
+  minimo: number;
+  maximo: number;
+  opcoes: { id: string; nome: string; acrescimo: number }[];
+}
+
+export interface EscolhaProduto {
+  grupoId: string;
+  opcaoId: string;
+}
+
 export interface Produto {
   id: string;
   nome: string;
@@ -81,6 +94,7 @@ export interface Produto {
   precoPromocional?: number;
   categoria: string;
   variacoes: string[];
+  personalizacoes?: GrupoOpcaoProduto[];
   imagem?: string;
   disponivel: boolean;
   /** Quantidade disponível no catálogo. Ausente significa estoque não controlado. */
@@ -214,6 +228,8 @@ export interface Integracoes {
 export interface Comercio {
   carrinho: boolean;
   taxaEntrega: number;
+  /** Ausente preserva a taxa cadastrada, inclusive zero (grátis). */
+  taxaEntregaDefinida?: boolean;
   pedidoMinimo: number;
   /** Modalidades de atendimento liberadas pelo estabelecimento no carrinho. */
   modalidadesPedido?: ("entrega" | "retirada" | "mesa")[];

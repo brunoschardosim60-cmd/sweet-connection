@@ -38,9 +38,10 @@ function Demonstracao() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sand">
-      <header className="z-40 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:flex sm:justify-between">
+      <header className="z-40 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-background/90 px-3 py-2 backdrop-blur-xl sm:px-4 sm:py-3">
         <Link
           to="/modelos"
+          search={{ tipo: ehModeloCardapio(modelo) ? "cardapio" : "minisite" }}
           className="inline-flex min-h-11 min-w-0 items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         >
           <ArrowLeft size={16} /> <span className="truncate">Voltar aos modelos</span>
@@ -66,12 +67,7 @@ function Demonstracao() {
           data-dispositivo={disp}
           className="relative flex h-full min-h-0 w-full max-w-5xl items-stretch justify-center overflow-hidden rounded-[2rem] border border-border/70 bg-background/55 p-2 shadow-[0_24px_80px_rgba(24,20,13,0.08)] sm:p-4"
         >
-          <MolduraPrevia
-            dispositivo={disp}
-            escalaMinima={0.72}
-            alinharNoTopo
-            className="bg-transparent"
-          >
+          <MolduraPrevia dispositivo={disp} alinharNoTopo className="bg-transparent">
             {ehModeloCardapio(site.modeloId) ? (
               <CatalogoPagina
                 site={site}

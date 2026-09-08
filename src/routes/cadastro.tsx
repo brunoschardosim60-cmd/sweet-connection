@@ -4,8 +4,10 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha, senhaValida } from "@/components/auth/CampoSenha";
 import { supabase } from "@/integrations/supabase/client";
+import { buscaAuth, retornoSeguro } from "@/lib/nexa/auth-retorno";
 
 export const Route = createFileRoute("/cadastro")({
+  validateSearch: buscaAuth,
   head: () => ({
     meta: [
       { title: "Criar conta na Nexa" },
@@ -27,6 +29,7 @@ const emailValido = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()
 
 function Cadastro() {
   const navigate = useNavigate();
+  const { retorno } = Route.useSearch();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -57,6 +60,7 @@ function Cadastro() {
       email: email.trim().toLowerCase(),
       password: senha,
       options: {
+        emailRedirectTo: `${window.location.origin}/login?${new URLSearchParams({ retorno: retornoSeguro(retorno) })}`,
         data: {
           display_name: nome.trim(),
           terms_version: "2026-08-16",
@@ -78,12 +82,12 @@ function Cadastro() {
     if (!data.session) {
       setEnviando(false);
       setAviso(
-        "A conta foi criada, mas o Supabase ainda exige confirmação por e-mail. Desative essa exigência nas configurações de Auth para acesso imediato.",
+        "Conta criada! Confirme seu e-mail e depois entre para continuar com o modelo escolhido.",
       );
       return;
     }
 
-    await navigate({ to: "/painel", replace: true });
+    await navigate({ href: retornoSeguro(retorno), replace: true });
   };
 
   return (
@@ -95,6 +99,7 @@ function Cadastro() {
           Já tenho uma conta.{" "}
           <Link
             to="/login"
+            search={retorno ? { retorno } : {}}
             className="inline-flex min-h-11 items-center font-semibold text-foreground underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Entrar

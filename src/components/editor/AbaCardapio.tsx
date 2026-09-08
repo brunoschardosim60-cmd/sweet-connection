@@ -169,8 +169,22 @@ export function AbaCardapio({
       <section className="rounded-2xl border border-border bg-card p-4">
         <h3 className="text-sm font-semibold">Operação do {perfil.rotulo.toLowerCase()}</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Valores usados no carrinho e no pedido enviado por WhatsApp.
+          Valores usados no carrinho e no pedido recebido pela equipe. Zero significa entrega
+          grátis.
         </p>
+        <label className="mt-3 flex min-h-11 items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={comercio.taxaEntregaDefinida !== false}
+            onChange={(e) =>
+              aplicar((s) => ({
+                ...s,
+                comercio: { ...comercio, ...s.comercio, taxaEntregaDefinida: e.target.checked },
+              }))
+            }
+          />
+          Taxa padrão definida (desmarque se ainda precisar configurar)
+        </label>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block text-xs text-muted-foreground">
             Taxa de entrega (R$)
@@ -186,6 +200,7 @@ export function AbaCardapio({
                     ...comercio,
                     ...s.comercio,
                     taxaEntrega: Number(e.target.value) || 0,
+                    taxaEntregaDefinida: true,
                   },
                 }))
               }

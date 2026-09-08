@@ -98,13 +98,14 @@ function BotaoControle({
 
 /**
  * Moldura da prévia com controles de orientação, zoom, modelo de celular e tela cheia.
- * O conteúdo é renderizado no tamanho real do dispositivo e apenas escalado.
+ * A largura simula o dispositivo; a altura útil se adapta ao palco disponível.
  */
 export function MolduraPrevia({
   dispositivo,
   children,
   controles = true,
   escalaMinima = 0,
+  adaptarAltura = true,
   alinharNoTopo = false,
   className = "",
 }: {
@@ -113,6 +114,8 @@ export function MolduraPrevia({
   controles?: boolean;
   /** Mantém demonstrações públicas legíveis, mesmo em telas mais baixas. */
   escalaMinima?: number;
+  /** Ajusta a altura útil para manter textos legíveis sem cortar a moldura. */
+  adaptarAltura?: boolean;
   /** Evita cortar o começo do site quando o palco precisa rolar. */
   alinharNoTopo?: boolean;
   /** Classes extras para usar a mesma moldura em palcos diferentes, como a demonstração pública. */
@@ -121,6 +124,7 @@ export function MolduraPrevia({
   const areaRef = useRef<HTMLDivElement>(null);
   const [orientacao, setOrientacao] = useState<Orientacao>("vertical");
   const [zoom, setZoom] = useState(1);
+  const [escalaAtual, setEscalaAtual] = useState(1);
   const [telaCheia, setTelaCheia] = useState(false);
 
   useEffect(() => {
@@ -152,7 +156,7 @@ export function MolduraPrevia({
         <div
           role="group"
           aria-label="Controles da prévia"
-          className="absolute bottom-3 right-3 z-20 flex shrink-0 items-center gap-0.5 rounded-full border border-border/60 bg-background/70 p-0.5 opacity-45 shadow-sm backdrop-blur-md transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100 motion-reduce:transition-none"
+          className="order-last mt-2 flex shrink-0 items-center gap-0.5 rounded-full border border-border/60 bg-background/90 p-0.5 shadow-sm"
         >
           <BotaoControle
             rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
@@ -164,7 +168,7 @@ export function MolduraPrevia({
           </BotaoControle>
           <BotaoControle
             rotulo="Diminuir zoom"
-            desabilitado={zoom <= ZOOM_MIN}
+            desabilitado={desktop || zoom <= ZOOM_MIN}
             onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 10) / 10))}
           >
             <ZoomOut size={14} aria-hidden />
@@ -173,17 +177,17 @@ export function MolduraPrevia({
             aria-live="polite"
             className="min-w-9 text-center text-[10px] font-semibold tabular-nums text-muted-foreground select-none"
           >
-            {Math.round(zoom * 100)}%
+            {Math.round((desktop ? 1 : escalaAtual) * 100)}%
           </span>
           <BotaoControle
             rotulo="Aumentar zoom"
-            desabilitado={zoom >= ZOOM_MAX}
+            desabilitado={desktop || zoom >= ZOOM_MAX}
             onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 10) / 10))}
           >
             <ZoomIn size={14} aria-hidden />
           </BotaoControle>
-          <BotaoControle rotulo="Zoom padrão" onClick={() => setZoom(1)}>
-            <span className="text-[10px] font-semibold">1x</span>
+          <BotaoControle rotulo="Ajustar à tela" desabilitado={desktop} onClick={() => setZoom(1)}>
+            <span className="text-[10px] font-semibold">Ajustar</span>
           </BotaoControle>
           <BotaoControle
             rotulo={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
@@ -200,25 +204,38 @@ export function MolduraPrevia({
           dispositivo={caixa}
           zoom={zoom}
           escalaMinima={escalaMinima}
+          adaptarAltura={adaptarAltura}
+          onEscala={setEscalaAtual}
           alinharNoTopo={alinharNoTopo}
         >
-          {dispositivo === "celular" ? (
-            <PhoneFrame largura={caixa.largura} altura={caixa.altura} areaSegura={seguro}>
-              {children}
-            </PhoneFrame>
-          ) : (
-            <div
-              style={seguro}
-              className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
-            >
-              {children}
-            </div>
-          )}
+          {(janela) =>
+            dispositivo === "celular" ? (
+              <PhoneFrame
+                largura={janela.largura}
+                altura={janela.altura}
+                areaSegura={seguro}
+                className="shadow-none"
+              >
+                {children}
+              </PhoneFrame>
+            ) : (
+              <div className="h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]">
+                <div
+                  style={seguro}
+                  className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden"
+                >
+                  {children}
+                </div>
+              </div>
+            )
+          }
         </PalcoEscalado>
       ) : (
         <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-          <div className="scrollbar-invisivel h-full max-h-[660px] w-full max-w-4xl overflow-y-auto overflow-x-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-            {children}
+          <div className="h-full max-h-[660px] w-full max-w-4xl overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]">
+            <div className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden">
+              {children}
+            </div>
           </div>
         </div>
       )}

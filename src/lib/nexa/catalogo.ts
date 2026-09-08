@@ -169,11 +169,15 @@ export function filtrarCatalogo(
 }
 
 export interface ItemCarrinho {
+  erro?: string;
+  linhaId?: string;
+  escolhas?: import("./types").EscolhaProduto[];
   produtoId: string;
   nome: string;
   preco: number;
   quantidade: number;
   observacao?: string;
+  observacaoLivre?: string;
 }
 
 export type Modalidade = "entrega" | "retirada" | "mesa";
@@ -250,7 +254,7 @@ export const rotulosPagamento: Record<Pagamento, string> = {
 };
 
 export const subtotalCarrinho = (itens: ItemCarrinho[]) =>
-  itens.reduce((t, i) => t + i.preco * i.quantidade, 0);
+  itens.reduce((t, i) => t + Math.round(i.preco * 100) * i.quantidade, 0) / 100;
 
 export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entrega, bairro = "") {
   const subtotal = subtotalCarrinho(itens);
@@ -260,7 +264,7 @@ export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entre
     subtotal,
     taxa,
     minimo,
-    total: subtotal + taxa,
+    total: Math.round((subtotal + taxa) * 100) / 100,
     abaixoDoMinimo: minimo > 0 && subtotal < minimo,
   };
 }
@@ -269,7 +273,7 @@ export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entre
 export function taxaEntrega(site: Site, bairro = "") {
   const taxas = site.comercio?.taxasPorBairro ?? [];
   const encontrada = taxas.find(
-    (t) => t.bairro.trim().localeCompare(bairro.trim(), "pt-BR", { sensitivity: "base" }) === 0,
+    (t) => t.bairro.trim().toLocaleLowerCase("pt-BR") === bairro.trim().toLocaleLowerCase("pt-BR"),
   );
   return encontrada?.taxa ?? site.comercio?.taxaEntrega ?? 0;
 }
@@ -381,7 +385,7 @@ export function ordenarCatalogo(
  * Nunca guarda pedidos confirmados, clientes ou histórico.
  */
 export interface RascunhoPedido {
-  carrinho: Record<string, { quantidade: number; observacao: string }>;
+  carrinho: import("./personalizacao").CarrinhoPersonalizado;
   modalidade: Modalidade;
   pagamento?: Pagamento;
   campos: Record<string, string>;

@@ -1,22 +1,23 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { escalaPrevia, type Caixa } from "@/lib/nexa/previa";
+import { escalaPrevia, previaLegivel, type Caixa } from "@/lib/nexa/previa";
 
 /**
- * Renderiza o conteúdo no tamanho real do dispositivo e apenas reduz
- * visualmente para caber no espaço disponível. Assim o layout interno é
- * idêntico ao de um celular/tablet real, inclusive a moldura do aparelho.
+ * Mantém a largura lógica do dispositivo. Pode encurtar a janela de conteúdo
+ * antes de reduzir a escala, preservando a leitura em palcos de pouca altura.
  */
 export function PalcoEscalado({
   dispositivo,
   children,
   zoom = 1,
   escalaMinima = 0,
+  adaptarAltura = false,
   alinharNoTopo = false,
   className = "",
   onEscala,
 }: {
   dispositivo: Caixa;
-  children: ReactNode;
+  children: ReactNode | ((caixa: Caixa) => ReactNode);
+  adaptarAltura?: boolean;
   /** Multiplicador manual aplicado sobre a escala que cabe na tela. */
   zoom?: number;
   /** Evita uma prévia pequena demais; o palco passa a rolar quando necessário. */
@@ -27,22 +28,25 @@ export function PalcoEscalado({
   onEscala?: (escala: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [ajuste, setAjuste] = useState(1);
+  const [disponivel, setDisponivel] = useState<Caixa>({ largura: 0, altura: 0 });
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const medir = () => {
       const r = el.getBoundingClientRect();
-      setAjuste(escalaPrevia({ largura: r.width, altura: r.height }, dispositivo));
+      setDisponivel({ largura: r.width, altura: r.height });
     };
     medir();
     const obs = new ResizeObserver(medir);
     obs.observe(el);
     return () => obs.disconnect();
-  }, [dispositivo]);
+  }, []);
 
-  const escala = Math.max(ajuste, escalaMinima) * zoom;
+  const legivel = previaLegivel(disponivel, dispositivo);
+  const caixa = adaptarAltura ? legivel.caixa : dispositivo;
+  const ajuste = adaptarAltura ? legivel.escala : escalaPrevia(disponivel, dispositivo);
+  const escala = (adaptarAltura ? ajuste : Math.max(ajuste, escalaMinima)) * zoom;
 
   useEffect(() => {
     onEscala?.(escala);
@@ -51,27 +55,27 @@ export function PalcoEscalado({
   return (
     <div
       ref={ref}
-      className={`scrollbar-invisivel flex min-h-0 w-full flex-1 justify-center overflow-auto ${
-        alinharNoTopo ? "items-start" : "items-center"
-      } ${className}`}
+      data-previa-palco
+      className={`scrollbar-invisivel flex min-h-0 w-full flex-1 overflow-auto ${className}`}
     >
       <div
         style={{
-          width: dispositivo.largura * escala,
-          height: dispositivo.altura * escala,
+          width: caixa.largura * escala,
+          height: caixa.altura * escala,
         }}
-        className="relative shrink-0"
+        data-previa-moldura
+        className={`relative mx-auto shrink-0 ${alinharNoTopo ? "mb-auto" : "my-auto"}`}
       >
         <div
           style={{
-            width: dispositivo.largura,
-            height: dispositivo.altura,
+            width: caixa.largura,
+            height: caixa.altura,
             transform: `scale(${escala})`,
             transformOrigin: "top left",
           }}
           className="absolute left-0 top-0"
         >
-          {children}
+          {typeof children === "function" ? children(caixa) : children}
         </div>
       </div>
     </div>

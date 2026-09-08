@@ -3,6 +3,8 @@ import {
   calcularPrevia,
   dimensoesDispositivo,
   larguraCssPrevia,
+  previaLegivel,
+  deitar,
   type Caixa,
 } from "@/lib/nexa/previa";
 
@@ -17,6 +19,27 @@ const telas: Caixa[] = [
 ];
 
 describe("prévia responsiva dos modelos", () => {
+  for (const dispositivo of [
+    dimensoesDispositivo.celular,
+    dimensoesDispositivo.tablet,
+    deitar(dimensoesDispositivo.celular),
+    deitar(dimensoesDispositivo.tablet),
+  ]) {
+    for (const tela of telas) {
+      it(`adapta a janela ${dispositivo.largura}x${dispositivo.altura} à área ${tela.largura}x${tela.altura}`, () => {
+        const { caixa, escala } = previaLegivel(tela, dispositivo);
+        expect(caixa.largura).toBe(dispositivo.largura);
+        expect(caixa.largura * escala).toBeLessThanOrEqual(tela.largura + 0.01);
+        expect(caixa.altura * escala).toBeLessThanOrEqual(tela.altura + 0.01);
+        expect(caixa.altura).toBeGreaterThan(0);
+        if (tela.largura >= dispositivo.largura) expect(escala).toBe(1);
+      });
+    }
+  }
+  it("não diminui os textos só porque a tela é baixa", () => {
+    const previa = previaLegivel({ largura: 900, altura: 400 }, dimensoesDispositivo.celular);
+    expect(previa).toEqual({ caixa: { largura: 390, altura: 400 }, escala: 1 });
+  });
   for (const nome of ["celular", "tablet"] as const) {
     const disp = dimensoesDispositivo[nome];
     describe(nome, () => {

@@ -4,8 +4,10 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha } from "@/components/auth/CampoSenha";
 import { supabase } from "@/integrations/supabase/client";
+import { buscaAuth, retornoSeguro } from "@/lib/nexa/auth-retorno";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: buscaAuth,
   head: () => ({
     meta: [
       { title: "Entrar na Nexa" },
@@ -27,6 +29,7 @@ const emailValido = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()
 
 function Login() {
   const navigate = useNavigate();
+  const { retorno } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [tocado, setTocado] = useState(false);
@@ -57,7 +60,7 @@ function Login() {
       return;
     }
 
-    await navigate({ to: "/painel", replace: true });
+    await navigate({ href: retornoSeguro(retorno), replace: true });
   };
 
   return (
@@ -69,6 +72,7 @@ function Login() {
           Ainda não tem conta?{" "}
           <Link
             to="/cadastro"
+            search={retorno ? { retorno } : {}}
             className="inline-flex min-h-11 items-center font-semibold text-foreground underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             Criar minha conta

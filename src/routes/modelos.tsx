@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { GaleriaModelos, SiteFooter } from "@/components/landing/sections";
+import { buscaGaleria } from "@/lib/nexa/galeria-busca";
+import { modelos } from "@/lib/nexa/modelos";
 
 export const Route = createFileRoute("/modelos")({
+  validateSearch: buscaGaleria,
   head: () => ({
     meta: [
       { title: "Modelos por segmento — Nexa" },
       {
         name: "description",
-        content:
-          "12 modelos de mini-site com identidade própria para restaurantes, lojas, barbearias, clínicas, transportadoras e profissionais.",
+        content: `${modelos.length} modelos de mini-sites e cardápios digitais com identidade própria para o seu negócio.`,
       },
       { property: "og:title", content: "Modelos por segmento — Nexa" },
       { property: "og:description", content: "Escolha o modelo com a cara do seu negócio." },
@@ -19,6 +21,8 @@ export const Route = createFileRoute("/modelos")({
 });
 
 function Modelos() {
+  const { tipo = "minisite" } = Route.useSearch();
+  const navigate = Route.useNavigate();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -29,7 +33,10 @@ function Modelos() {
           completa antes de escolher.
         </p>
         <div className="mt-10">
-          <GaleriaModelos />
+          <GaleriaModelos
+            tipoSelecionado={tipo}
+            onTipoChange={(novo) => void navigate({ search: { tipo: novo }, resetScroll: false })}
+          />
         </div>
       </main>
       <SiteFooter />

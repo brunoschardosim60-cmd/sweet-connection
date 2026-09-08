@@ -15,7 +15,7 @@ export interface PedidoPublico {
   total: number;
   createdAt: string;
   updatedAt: string;
-  itens: { nome: string; quantidade: number; preco?: number }[];
+  itens: { nome: string; quantidade: number; preco?: number; observacao?: string }[];
   trackingToken: string;
 }
 
@@ -95,9 +95,9 @@ export async function criarPedidoPublicado(
   itens: ItemCarrinho[],
   modalidade: Modalidade,
   dados: DadosEntrega,
+  chave: string = crypto.randomUUID(),
 ) {
-  const chave = crypto.randomUUID();
-  const { data, error } = await supabase.rpc("nexa_criar_pedido_cardapio", {
+  const { data, error } = await supabase.rpc("nexa_criar_pedido_cardapio_v2", {
     requested_slug: slug,
     requested_items: itens as unknown as Json,
     requested_modalidade: modalidade,
@@ -110,6 +110,12 @@ export async function criarPedidoPublicado(
     const codigo = [error.code, error.message, error.details, error.hint].filter(Boolean).join(" ");
     if (codigo.includes("minimum_not_reached"))
       throw new Error("O pedido ainda não atingiu o mínimo do estabelecimento.");
+    if (codigo.includes("invalid_options"))
+      throw new Error("As opções do produto mudaram. Remova o preparo e escolha novamente.");
+    if (codigo.includes("delivery_fee_pending"))
+      throw new Error(
+        "A taxa de entrega ainda não foi definida. Escolha retirada ou consulte o estabelecimento.",
+      );
     if (codigo.includes("rate_limit_exceeded"))
       throw new Error("Aguarde alguns minutos antes de enviar outro pedido.");
     if (codigo.includes("invalid_address")) throw new Error("Informe o endereço para a entrega.");

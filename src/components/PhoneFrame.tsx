@@ -30,7 +30,7 @@ export function PhoneFrame({
 
   return (
     <div
-      className={`relative shrink-0 select-none overflow-hidden rounded-[3.2rem] bg-background shadow-[var(--shadow-phone)] ${className}`}
+      className={`relative shrink-0 select-none overflow-hidden rounded-[3.2rem] bg-background shadow-[var(--shadow-phone)] [transform:translateZ(0)] ${className}`}
       style={style}
     >
       {/* Botões físicos laterais discretos */}
@@ -47,7 +47,7 @@ export function PhoneFrame({
 
       {/* Tela: conteúdo de borda a borda, sem faixas pretas ou brancas.
           A área segura vira apenas recuo de rolagem, não faixa visível. */}
-      <div className="h-full w-full overflow-hidden rounded-[3.2rem]">
+      <div className="isolate h-full w-full overflow-hidden rounded-[3.2rem]">
         <div
           style={{
             scrollPaddingTop: areaSegura?.paddingTop,

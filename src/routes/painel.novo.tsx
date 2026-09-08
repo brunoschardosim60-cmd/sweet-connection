@@ -496,7 +496,10 @@ function NovoSite() {
       const salvo = await store.adicionarSite(
         podeOcultarAssinatura ? site : { ...site, mostrarAssinaturaNexa: true },
       );
-      toast.success("Mini-site criado", { description: "Agora personalize no editor." });
+      toast.success(modeloId.startsWith("cardapio-") ? "Cardápio criado" : "Mini-site criado", {
+        description:
+          "O rascunho está pronto. Cadastre seus itens e revise os contatos antes de publicar; os exemplos não são copiados.",
+      });
       void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
     } catch (error) {
       setSalvando(false);
@@ -989,7 +992,9 @@ function NovoSite() {
                 </div>
               </fieldset>
               <p className="text-sm text-muted-foreground">
-                O mini-site é criado como rascunho. Você pode editar tudo e publicar quando quiser.
+                Seu projeto será criado como rascunho com o estilo e as seções do modelo. Produtos,
+                serviços, fotos de galeria, equipe e depoimentos da demonstração não são copiados.
+                No editor, cadastre seus próprios conteúdos, revise os contatos e só então publique.
               </p>
             </div>
           )}
@@ -1037,7 +1042,17 @@ function NovoSite() {
           </div>
         </div>
 
-        <div className="hidden justify-center lg:sticky lg:top-20 lg:flex lg:self-start">
+        <div className="hidden flex-col items-center gap-3 lg:sticky lg:top-20 lg:flex lg:self-start">
+          <div className="max-w-60 text-center">
+            <p className="text-sm font-semibold">
+              {modoCriacao === "modelo" ? "Exemplo do modelo" : "Prévia do rascunho"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {modoCriacao === "modelo"
+                ? "Conteúdos ilustrativos para conhecer o visual. Seus itens serão cadastrados no editor."
+                : "Revise os conteúdos gerados antes de publicar."}
+            </p>
+          </div>
           <PhoneFrame largura={240} altura={496}>
             {previa.modeloId.startsWith("cardapio-") ? (
               <CatalogoPagina
@@ -1048,7 +1063,7 @@ function NovoSite() {
                 mostrarCarrinhoFlutuante={false}
               />
             ) : (
-              <MiniSite site={previa} compacto botaoFlutuante={false} />
+              <MiniSite site={previa} compacto botaoFlutuante={false} interacoesExternas={false} />
             )}
           </PhoneFrame>
         </div>
