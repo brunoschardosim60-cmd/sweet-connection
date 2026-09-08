@@ -15,7 +15,7 @@
 
 ## Validação
 
-- Suíte completa: 221 testes passaram; 13 testes de integração/RLS permaneceram ignorados. TypeScript sem erros; lint sem erros, com 15 avisos de Fast Refresh.
+- Suíte de publicação: 222 testes passaram, mais 2 regressões de SSR/fuso; 13 testes de integração/RLS permaneceram ignorados. TypeScript sem erros; lint sem erros, com 15 avisos de Fast Refresh.
 - Navegador: dois preparos do mesmo hambúrguer (R$ 47,90 e R$ 36,90), total R$ 84,80 e quatro etapas até revisão. Envio real bloqueado na demo.
 - Navegador: observação mantém foco, foto amplia dentro da prévia e CTA seleciona o serviço na agenda.
 - Inspeção responsiva: mini-site a 390 e 1440 px, cardápio a 768 px, sem overflow horizontal da página nesses cenários.
@@ -33,5 +33,7 @@ Migrações aplicadas no projeto vinculado `vsnvzgcotnrxrbztrxlp`, após conferi
 Conferência remota: RPC `nexa_criar_pedido_cardapio_v2` disponível para visitantes e função auxiliar de cálculo privada. A terceira migration remove concessões diretas feitas pelas permissões padrão do Supabase.
 
 Publicação do front-end pelo fluxo GitHub → Vercel da `main`, após aprovação do build com preset Vercel. Não foram criados pedidos, agendamentos ou contatos reais.
+
+Domínio público: https://nexa-xi-puce.vercel.app. O domínio antigo cadastrado no GitHub retorna 404. Verificação HTTP: início, modelos, demonstrações e login retornam 200. O smoke test publicado identificou diferença de data/fuso na hidratação; cardápio, agenda e data mínima de reserva agora adiam cálculos locais até a montagem no navegador, com testes de regressão de SSR.
 
 Após aplicar em homologação, testar com conta autenticada: configurar opções no editor, salvar/publicar, fazer pedido de teste autorizado, conferir no painel, verificar estoque e Meus pedidos. O editor autenticado e a integração remota continuam pendentes de validação real.

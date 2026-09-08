@@ -291,7 +291,12 @@ export function CatalogoPagina({
   const itens = itensDoCarrinho(carrinho, produtosPublicos);
 
   const totais = totaisCarrinho(itens, site, entrega, campos.bairro);
-  const situacao = situacaoAtendimento(site);
+  // O servidor da hospedagem usa UTC e o visitante pode estar em outro dia/fuso.
+  // Primeiro HTML estável; horários locais somente após a hidratação.
+  const situacao =
+    !interacoesExternas || carregando
+      ? { conhecida: false, aberto: false, rotulo: "Horários de atendimento", detalhe: undefined }
+      : situacaoAtendimento(site);
   const quantidadeTotal = itens.reduce((t, i) => t + i.quantidade, 0);
 
   const alterar = (p: Produto, delta: number, observacao?: string, origem?: HTMLElement) => {

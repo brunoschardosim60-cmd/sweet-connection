@@ -1387,6 +1387,19 @@ function BlocoFaq({ site, titulo }: { site: Site; titulo: string }) {
 }
 
 function BlocoAgenda({ site, titulo }: { site: Site; titulo: string }) {
+  const [pronto, setPronto] = useState(false);
+  useEffect(() => setPronto(true), []);
+  if (!pronto)
+    return (
+      <section aria-busy="true">
+        <Titulo site={site}>{titulo}</Titulo>
+        <p className="p-4 text-sm opacity-70">Carregando horários…</p>
+      </section>
+    );
+  return <AgendaInterativa site={site} titulo={titulo} />;
+}
+
+function AgendaInterativa({ site, titulo }: { site: Site; titulo: string }) {
   const publicado = useContext(PublicacaoCtx);
   const interacoesExternas = useContext(InteracoesExternasCtx);
   const registrar = useRastreio();
@@ -1711,7 +1724,8 @@ function BlocoReservaHospedagem({ site }: { site: Site }) {
   const [erro, setErro] = useState<string | null>(null);
   const [confirmada, setConfirmada] = useState<{ checkIn: string; checkOut: string } | null>(null);
   const chave = useRef(novaChaveIdempotencia());
-  const hoje = dataIso(new Date());
+  const [hoje, setHoje] = useState("");
+  useEffect(() => setHoje(dataIso(new Date())), []);
 
   if (confirmada) {
     return (
