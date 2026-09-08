@@ -32,13 +32,15 @@ describe("prévia responsiva dos modelos", () => {
         expect(caixa.largura * escala).toBeLessThanOrEqual(tela.largura + 0.01);
         expect(caixa.altura * escala).toBeLessThanOrEqual(tela.altura + 0.01);
         expect(caixa.altura).toBeGreaterThan(0);
-        if (tela.largura >= dispositivo.largura) expect(escala).toBe(1);
+        expect(caixa).toEqual(dispositivo);
+        expect(caixa.altura / caixa.largura).toBeCloseTo(dispositivo.altura / dispositivo.largura);
       });
     }
   }
-  it("não diminui os textos só porque a tela é baixa", () => {
+  it("não achata o celular em telas baixas para forçar zoom de 100%", () => {
     const previa = previaLegivel({ largura: 900, altura: 400 }, dimensoesDispositivo.celular);
-    expect(previa).toEqual({ caixa: { largura: 390, altura: 400 }, escala: 1 });
+    expect(previa.caixa).toEqual({ largura: 390, altura: 844 });
+    expect(previa.escala).toBeCloseTo(400 / 844);
   });
   for (const nome of ["celular", "tablet"] as const) {
     const disp = dimensoesDispositivo[nome];

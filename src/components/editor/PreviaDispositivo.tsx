@@ -98,7 +98,7 @@ function BotaoControle({
 
 /**
  * Moldura da prévia com controles de orientação, zoom, modelo de celular e tela cheia.
- * A largura simula o dispositivo; a altura útil se adapta ao palco disponível.
+ * O viewport lógico e sua proporção não mudam com a altura do palco.
  */
 export function MolduraPrevia({
   dispositivo,
@@ -108,14 +108,16 @@ export function MolduraPrevia({
   adaptarAltura = true,
   alinharNoTopo = false,
   className = "",
+  corFundo,
 }: {
   dispositivo: Dispositivo;
   children: ReactNode;
   controles?: boolean;
   /** Mantém demonstrações públicas legíveis, mesmo em telas mais baixas. */
   escalaMinima?: number;
-  /** Ajusta a altura útil para manter textos legíveis sem cortar a moldura. */
+  /** Ajusta a escala para caber no palco, preservando o viewport. */
   adaptarAltura?: boolean;
+  corFundo?: string | undefined;
   /** Evita cortar o começo do site quando o palco precisa rolar. */
   alinharNoTopo?: boolean;
   /** Classes extras para usar a mesma moldura em palcos diferentes, como a demonstração pública. */
@@ -189,13 +191,15 @@ export function MolduraPrevia({
           <BotaoControle rotulo="Ajustar à tela" desabilitado={desktop} onClick={() => setZoom(1)}>
             <span className="text-[10px] font-semibold">Ajustar</span>
           </BotaoControle>
-          <BotaoControle
-            rotulo={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
-            ativo={telaCheia}
+          <button
+            type="button"
+            aria-label={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
             onClick={alternarTelaCheia}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             {telaCheia ? <Minimize2 size={14} aria-hidden /> : <Maximize2 size={14} aria-hidden />}
-          </BotaoControle>
+            {telaCheia ? "Reduzir" : "Ampliar"}
+          </button>
         </div>
       )}
 
@@ -215,11 +219,15 @@ export function MolduraPrevia({
                 altura={janela.altura}
                 areaSegura={seguro}
                 className="shadow-none"
+                corFundo={corFundo}
               >
                 {children}
               </PhoneFrame>
             ) : (
-              <div className="h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]">
+              <div
+                style={{ backgroundColor: corFundo }}
+                className="h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]"
+              >
                 <div
                   style={seguro}
                   className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden"
@@ -232,7 +240,10 @@ export function MolduraPrevia({
         </PalcoEscalado>
       ) : (
         <div className="flex min-h-0 w-full flex-1 items-center justify-center">
-          <div className="h-full max-h-[660px] w-full max-w-4xl overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]">
+          <div
+            style={{ backgroundColor: corFundo }}
+            className="h-full w-full max-w-6xl overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] [transform:translateZ(0)]"
+          >
             <div className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden">
               {children}
             </div>

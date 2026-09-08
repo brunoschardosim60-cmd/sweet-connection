@@ -112,7 +112,7 @@ function AdminVerSite() {
             {erro}
           </p>
         ) : site ? (
-          <MolduraPrevia dispositivo={disp}>
+          <MolduraPrevia dispositivo={disp} corFundo={site.aparencia.corFundo}>
             {ehModeloCardapio(site.modeloId) ? (
               <CatalogoPagina
                 site={site}

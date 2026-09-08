@@ -596,7 +596,7 @@ function Editor() {
           }`}
         >
           <SeletorDispositivo valor={dispositivo} onChange={setDispositivo} className="lg:hidden" />
-          <MolduraPrevia dispositivo={dispositivo}>
+          <MolduraPrevia dispositivo={dispositivo} corFundo={rascunho.aparencia.corFundo}>
             {cardapioDigital ? (
               <CatalogoPagina
                 key={versaoDestaquePrevia}

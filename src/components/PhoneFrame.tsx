@@ -12,6 +12,7 @@ export function PhoneFrame({
   altura = 620,
   proporcao,
   areaSegura,
+  corFundo,
 }: {
   children: ReactNode;
   className?: string;
@@ -23,6 +24,7 @@ export function PhoneFrame({
   proporcao?: number;
   /** Recuos de área segura (notch/barra inferior) aplicados ao conteúdo. */
   areaSegura?: Pick<CSSProperties, "paddingTop" | "paddingBottom" | "paddingLeft" | "paddingRight">;
+  corFundo?: string | undefined;
 }) {
   const style: CSSProperties = proporcao
     ? { width: largura, aspectRatio: String(proporcao) }
@@ -31,7 +33,7 @@ export function PhoneFrame({
   return (
     <div
       className={`relative shrink-0 select-none overflow-hidden rounded-[3.2rem] bg-background shadow-[var(--shadow-phone)] [transform:translateZ(0)] ${className}`}
-      style={style}
+      style={{ ...style, ...(corFundo ? { backgroundColor: corFundo } : {}) }}
     >
       {/* Botões físicos laterais discretos */}
       <div className="absolute -left-[3px] top-24 h-9 w-[3px] rounded-l-sm bg-[#2a2c2b]" />

@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { escalaPrevia, previaLegivel, type Caixa } from "@/lib/nexa/previa";
 
 /**
- * Mantém a largura lógica do dispositivo. Pode encurtar a janela de conteúdo
- * antes de reduzir a escala, preservando a leitura em palcos de pouca altura.
+ * Mantém o viewport lógico e a proporção do dispositivo, mesmo em palcos baixos.
  */
 export function PalcoEscalado({
   dispositivo,
