@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ConfiguracaoEntrega } from "./ConfiguracaoEntrega";
 import { ArrowDown, ArrowUp, ExternalLink, FolderPen, GripVertical } from "lucide-react";
 import { SeletorMidia } from "@/components/editor/SeletorMidia";
 import {
@@ -257,8 +258,7 @@ export function AbaCardapio({
                 ["mesa", "Mesa / comanda"],
               ] as const
             ).map(([tipo, rotulo]) => {
-              const modalidades = comercio.modalidadesPedido ??
-                perfil.modalidades ?? ["entrega", "retirada"];
+              const modalidades = comercio.modalidadesPedido ?? ["entrega", "retirada"];
               const marcada = modalidades.includes(tipo);
               return (
                 <label key={tipo} className="flex min-h-11 items-center gap-2">
@@ -374,9 +374,19 @@ export function AbaCardapio({
           />
         </label>
         <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-          Mesas e pedidos reais são geridos na rota Pedidos do painel. Os horários de atendimento
-          usados no status “Aberto agora” são os da aba Contato.
+          Pedidos, agenda, solicitações e acessos da equipe ficam na área de Operação por loja. Os
+          horários de atendimento usados no status “Aberto agora” são os da aba Contato.
         </p>
+        <ConfiguracaoEntrega
+          valor={comercio}
+          alterar={(valor) => aplicar((s) => ({ ...s, comercio: valor }))}
+        />
+        <a
+          href={`/operacao?site=${site.id}`}
+          className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-sm"
+        >
+          Abrir operação desta loja
+        </a>
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4">

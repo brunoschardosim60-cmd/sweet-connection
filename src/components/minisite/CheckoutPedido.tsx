@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Minus, Plus, Trash2, MessageCircle } from "lucide-react";
+import { whatsappLink } from "@/lib/nexa/brand";
+import { fusoLoja, horariosPedido, lojaAbertaEm, rotuloAgendamento } from "@/lib/nexa/atendimento";
 import { contraste } from "./estilo";
 import {
   erroEtapaCheckout,
   rotuloTaxa,
   taxaConhecida,
   type CamposEntrega,
+  type CotacaoEntrega,
+  usaEntregaPorDistancia,
 } from "@/lib/nexa/checkout";
 import {
   formatarTelefonePedido,
-  perfilCatalogo,
   rotulosModalidade,
   rotulosPagamento,
   type Entrega,
@@ -36,6 +39,9 @@ export function PainelCarrinho({
   enviando,
   retorno,
   onEnviar,
+  cotacao,
+  calculandoEntrega,
+  onCalcularEntrega,
 }: {
   site: Site;
   itens: ItemCarrinho[];
@@ -51,14 +57,31 @@ export function PainelCarrinho({
   enviando: boolean;
   retorno: string;
   onEnviar: () => void;
+  cotacao?: CotacaoEntrega | null;
+  calculandoEntrega?: boolean;
+  onCalcularEntrega?: () => void;
 }) {
   const [etapa, setEtapa] = useState(0);
   const [aviso, setAviso] = useState("");
+  const [agora, setAgora] = useState(() => new Date());
+  useEffect(() => {
+    const t = window.setInterval(() => setAgora(new Date()), 30000);
+    return () => window.clearInterval(t);
+  }, []);
+  const fechada = pedidosAtivos && !lojaAbertaEm(site, agora);
+  const horarios = useMemo(() => horariosPedido(site, agora), [site, agora]);
+  const porDistancia = entrega === "entrega" && usaEntregaPorDistancia(site);
+  const cotacaoValida = cotacao && new Date(cotacao.expiraEm) > agora ? cotacao : null;
   const titulo = useRef<HTMLHeadingElement>(null);
   const primaria = site.aparencia.corPrimaria;
   const modalidades = site.comercio?.modalidadesPedido?.length
     ? site.comercio.modalidadesPedido
-    : (perfilCatalogo(site).modalidades ?? ["entrega", "retirada"]);
+    : (["entrega", "retirada"] as Entrega[]);
+  const modalidadesKey = modalidades.join(",");
+  useEffect(() => {
+    const permitidas = modalidadesKey.split(",") as Entrega[];
+    if (!permitidas.includes(entrega)) setEntrega(permitidas[0] ?? "retirada");
+  }, [modalidadesKey, entrega, setEntrega]);
   const pagamentos = site.comercio?.pagamentosAceitos?.length
     ? site.comercio.pagamentosAceitos
     : (Object.keys(rotulosPagamento) as Pagamento[]);
@@ -71,12 +94,16 @@ export function PainelCarrinho({
     setAviso("");
     setEtapa(passo);
   };
-  const erro = erroEtapaCheckout(etapa, site, itens, entrega, campos, pagamento);
+  const horarioInvalido =
+    campos.agendadoPara && !horarios.some((h) => h.valor === campos.agendadoPara);
+  const erro = horarioInvalido
+    ? "O horário selecionado não está mais disponível. Volte a Recebimento e escolha outro."
+    : erroEtapaCheckout(etapa, site, itens, entrega, campos, pagamento, cotacaoValida, fechada);
   const campo = (nome: keyof CamposEntrega, rotulo: string, placeholder = "", limite = 160) => (
     <label className="block text-sm">
       {rotulo}
       <input
-        value={campos[nome]}
+        value={campos[nome] ?? ""}
         maxLength={limite}
         placeholder={placeholder}
         onChange={(e) => {
@@ -181,27 +208,96 @@ export function PainelCarrinho({
               ))}
             </div>
           </fieldset>
-          {entrega === "entrega" && Boolean(site.comercio?.taxasPorBairro?.length) && (
+          {fechada && (
+            <p role="status" className="rounded-xl border p-3 text-sm" style={borda}>
+              Fechado agora.{" "}
+              {horarios.length
+                ? "Você pode agendar para o próximo horário de atendimento."
+                : "Consulte a loja para combinar o atendimento."}
+            </p>
+          )}
+          {(horarios.length > 0 || campos.agendadoPara) && (
             <label className="block text-sm">
-              Bairro para calcular a taxa
-              <input
-                list="bairros-pedido"
-                value={campos.bairro}
-                maxLength={120}
+              Quando deseja receber?
+              <select
+                value={campos.agendadoPara ?? ""}
                 onChange={(e) => {
-                  const bairro = e.currentTarget.value;
-                  setCampos((c) => ({ ...c, bairro }));
+                  const agendadoPara = e.target.value;
+                  setCampos((c) => ({ ...c, agendadoPara }));
                 }}
-                className="mt-1 min-h-12 w-full rounded-xl border bg-transparent px-3"
-                style={borda}
-              />
-              <datalist id="bairros-pedido">
-                {site.comercio?.taxasPorBairro?.map((t) => (
-                  <option key={t.bairro} value={t.bairro} />
+                className="mt-1 min-h-12 w-full rounded-xl border px-3"
+                style={{ ...borda, background: "var(--ms-surface)" }}
+              >
+                <option value="">{fechada ? "Escolha um horário" : "O quanto antes"}</option>
+                {horarios.map((h) => (
+                  <option key={h.valor} value={h.valor}>
+                    {h.rotulo}
+                  </option>
                 ))}
-              </datalist>
+              </select>
+              <span className="mt-1 block text-xs opacity-65">
+                Horário da loja ({fusoLoja(site)}). O agendamento aguarda aceite.
+              </span>
             </label>
           )}
+          {porDistancia && (
+            <div className="space-y-3 rounded-xl border p-3" style={borda}>
+              {campo("endereco", "Endereço completo para entrega", "Rua, número e cidade", 240)}
+              {campo("bairro", "Bairro", "", 120)}
+              <button
+                type="button"
+                disabled={calculandoEntrega}
+                onClick={onCalcularEntrega}
+                className="min-h-11 w-full rounded-xl border px-3 text-sm font-semibold"
+                style={borda}
+              >
+                {calculandoEntrega ? "Calculando…" : "Calcular entrega"}
+              </button>
+              {cotacaoValida && (
+                <p role="status" className="text-sm">
+                  {cotacaoValida.distanciaKm.toLocaleString("pt-BR")} km por vias ·{" "}
+                  {moeda(cotacaoValida.taxa)}
+                </p>
+              )}
+              <p className="text-xs opacity-65">
+                Distância calculada pelo Google Maps. Seu endereço será enviado ao Google para
+                consultar a rota.
+              </p>
+              {cotacaoValida && (
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center text-sm underline"
+                  href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(site.comercio?.enderecoOrigem ?? "")}&destination=${encodeURIComponent(`${campos.endereco}, ${campos.bairro}`)}&travelmode=driving`}
+                >
+                  Ver rota no Google Maps
+                </a>
+              )}
+            </div>
+          )}
+          {entrega === "entrega" &&
+            !porDistancia &&
+            Boolean(site.comercio?.taxasPorBairro?.length) && (
+              <label className="block text-sm">
+                Bairro para calcular a taxa
+                <input
+                  list="bairros-pedido"
+                  value={campos.bairro}
+                  maxLength={120}
+                  onChange={(e) => {
+                    const bairro = e.currentTarget.value;
+                    setCampos((c) => ({ ...c, bairro }));
+                  }}
+                  className="mt-1 min-h-12 w-full rounded-xl border bg-transparent px-3"
+                  style={borda}
+                />
+                <datalist id="bairros-pedido">
+                  {site.comercio?.taxasPorBairro?.map((t) => (
+                    <option key={t.bairro} value={t.bairro} />
+                  ))}
+                </datalist>
+              </label>
+            )}
           <p className="text-sm opacity-75">
             Pedido mínimo: {totais.minimo > 0 ? moeda(totais.minimo) : "sem mínimo"}.
             {totais.abaixoDoMinimo ? ` Faltam ${moeda(totais.minimo - totais.subtotal)}.` : ""}
@@ -315,6 +411,11 @@ export function PainelCarrinho({
             {pagamento === "dinheiro" && campos.troco ? ` · Troco para ${campos.troco}` : ""}
           </p>
           {campos.observacao && <p className="mt-2">Observação: {campos.observacao}</p>}
+          {campos.agendadoPara && (
+            <p className="mt-2 font-semibold">
+              Agendar para {rotuloAgendamento(site, campos.agendadoPara)}
+            </p>
+          )}
         </section>
       )}
       <dl className="space-y-1 border-t pt-3 text-sm" style={borda}>
@@ -323,12 +424,24 @@ export function PainelCarrinho({
           <dd>{moeda(totais.subtotal)}</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt>{rotuloTaxa(site, entrega, campos.bairro)}</dt>
-          <dd>{taxaConhecida(site, entrega, campos.bairro) ? moeda(totais.taxa) : "A definir"}</dd>
+          <dt>{rotuloTaxa(site, entrega, campos.bairro, cotacaoValida)}</dt>
+          <dd>
+            {taxaConhecida(site, entrega, campos.bairro, cotacaoValida)
+              ? moeda(totais.taxa)
+              : "A calcular"}
+          </dd>
         </div>
         <div className="flex justify-between text-lg font-bold">
-          <dt>{taxaConhecida(site, entrega, campos.bairro) ? "Total" : "Total parcial"}</dt>
-          <dd>{moeda(totais.total)}</dd>
+          <dt>
+            {taxaConhecida(site, entrega, campos.bairro, cotacaoValida) ? "Total" : "Total parcial"}
+          </dt>
+          <dd>
+            {moeda(
+              taxaConhecida(site, entrega, campos.bairro, cotacaoValida)
+                ? totais.total
+                : totais.subtotal,
+            )}
+          </dd>
         </div>
       </dl>
       {(aviso || retorno) && (
@@ -367,10 +480,27 @@ export function PainelCarrinho({
             : etapa < 3
               ? "Continuar"
               : pedidosAtivos
-                ? "Confirmar pedido"
+                ? campos.agendadoPara
+                  ? "Enviar pedido agendado"
+                  : "Enviar pedido à loja"
                 : "Prévia · não envia pedidos"}
         </button>
       </div>
+      {site.conteudo.whatsapp && (
+        <a
+          href={
+            pedidosAtivos
+              ? whatsappLink(site.conteudo.whatsapp, "Olá! Preciso de ajuda com meu pedido.")
+              : undefined
+          }
+          aria-disabled={!pedidosAtivos}
+          target="_blank"
+          rel="noreferrer"
+          className="flex min-h-11 items-center justify-center gap-2 text-sm underline"
+        >
+          <MessageCircle size={16} /> Entrar em contato com a loja
+        </a>
+      )}
       {etapa === 3 && (
         <p className="text-xs opacity-65">
           {pedidosAtivos

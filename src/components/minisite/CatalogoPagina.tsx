@@ -21,6 +21,7 @@ import {
   buscarEstoquePublicado,
   avaliarPedidoPublicado,
   criarPedidoPublicado,
+  calcularEntregaPublica,
   guardarAcompanhamentoPedido,
   notificarDonoDoMinisite,
   registrarEventoPublicado,
@@ -31,7 +32,8 @@ import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/esti
 import { useFocoModal } from "@/components/minisite/useFocoModal";
 import { DetalheProduto } from "./DetalheProduto";
 import { PainelCarrinho } from "./CheckoutPedido";
-import type { CamposEntrega } from "@/lib/nexa/checkout";
+import type { CamposEntrega, CotacaoEntrega } from "@/lib/nexa/checkout";
+import { rotuloAgendamento } from "@/lib/nexa/atendimento";
 import {
   adicionarLinha,
   gruposProduto,
@@ -131,6 +133,45 @@ export function CatalogoPagina({
   }, [carrinho, entrega, pagamento, campos]);
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [retornoPedido, setRetornoPedido] = useState<string>("");
+  const [cotacaoSalva, setCotacaoSalva] = useState<
+    (CotacaoEntrega & { endereco: string; bairro: string }) | null
+  >(null);
+  const [calculandoEntrega, setCalculandoEntrega] = useState(false);
+  const cotacao =
+    cotacaoSalva?.endereco === campos.endereco.trim() &&
+    cotacaoSalva.bairro === campos.bairro.trim()
+      ? cotacaoSalva
+      : null;
+  const calcularEntrega = async () => {
+    if (!interacoesExternas) {
+      setRetornoPedido(
+        "Na demonstração, o cálculo de entrega fica disponível após publicar o seu cardápio.",
+      );
+      return;
+    }
+    setRetornoPedido("");
+    setCalculandoEntrega(true);
+    const endereco = campos.endereco.trim(),
+      bairro = campos.bairro.trim();
+    try {
+      setCotacaoSalva({
+        ...(await calcularEntregaPublica(site.slug, endereco, bairro)),
+        endereco,
+        bairro,
+      });
+    } catch (error) {
+      setRetornoPedido(
+        error instanceof Error ? error.message : "Não foi possível calcular a entrega.",
+      );
+    } finally {
+      setCalculandoEntrega(false);
+    }
+  };
+  const abrirCarrinho = () => {
+    setRetornoPedido("");
+    setPedidoConfirmado(null);
+    setCarrinhoAberto(true);
+  };
   const [ranking, setRanking] = useState<Record<string, number>>({});
   const [estoqueAtual, setEstoqueAtual] = useState<Record<string, number>>({});
   const [produtoAnimado, setProdutoAnimado] = useState<ProdutoAnimado | null>(null);
@@ -176,12 +217,12 @@ export function CatalogoPagina({
     }
     // Link de mesa (/cardapio?mesa=12) já abre na modalidade correta.
     const mesa = new URLSearchParams(window.location.search).get("mesa");
-    if (mesa) {
+    if (mesa && site.comercio?.modalidadesPedido?.includes("mesa")) {
       setEntrega("mesa");
       setCampos((c) => ({ ...c, mesa }));
     }
     setRestaurado(true);
-  }, [site.slug]);
+  }, [site.slug, site.comercio?.modalidadesPedido]);
 
   useEffect(() => {
     if (!interacoesExternas) return;
@@ -290,7 +331,7 @@ export function CatalogoPagina({
 
   const itens = itensDoCarrinho(carrinho, produtosPublicos);
 
-  const totais = totaisCarrinho(itens, site, entrega, campos.bairro);
+  const totais = totaisCarrinho(itens, site, entrega, campos.bairro, cotacao?.taxa);
   // O servidor da hospedagem usa UTC e o visitante pode estar em outro dia/fuso.
   // Primeiro HTML estável; horários locais somente após a hidratação.
   const situacao =
@@ -332,6 +373,7 @@ export function CatalogoPagina({
   };
 
   const confirmarPedido = async () => {
+    if (enviandoPedido) return;
     if (!interacoesExternas) {
       setRetornoPedido("Esta é uma prévia. Publique o cardápio para receber pedidos reais.");
       return;
@@ -346,6 +388,7 @@ export function CatalogoPagina({
         entrega,
         {
           ...campos,
+          ...(cotacao ? { cotacaoId: cotacao.id } : {}),
           ...(pagamento ? { pagamento } : {}),
         },
         chavePedido.current,
@@ -367,6 +410,7 @@ export function CatalogoPagina({
           ...(observacao ? { observacao } : {}),
         })),
         trackingToken: pedido.trackingToken,
+        agendadoPara: campos.agendadoPara || null,
       };
       // Exibe o pedido recém-confirmado imediatamente, mesmo se a leitura de acompanhamento atrasar.
       setMeusPedidos((anteriores) => [
@@ -376,7 +420,9 @@ export function CatalogoPagina({
       setCarrinho({});
       setCarrinhoAberto(false);
       void buscarEstoquePublicado(site.slug).then(setEstoqueAtual);
-      setRetornoPedido(`Pedido #${pedido.codigo} confirmado. A equipe recebeu sua solicitação.`);
+      setRetornoPedido("");
+      setCotacaoSalva(null);
+      setCampos((c) => ({ ...c, agendadoPara: "", observacao: "" }));
       void atualizarMeusPedidos();
       setPedidoConfirmado({ codigo: pedido.codigo, total: pedido.total, modalidade: entrega });
       setPedidosAbertos(true);
@@ -461,7 +507,7 @@ export function CatalogoPagina({
             <button
               ref={carrinhoCabecalhoRef}
               type="button"
-              onClick={() => setCarrinhoAberto(true)}
+              onClick={abrirCarrinho}
               aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}
               className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-3 text-sm font-semibold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none ${
                 contadorAnimado ? "scale-110" : "scale-100"
@@ -766,7 +812,7 @@ export function CatalogoPagina({
           <button
             ref={carrinhoFlutuanteRef}
             type="button"
-            onClick={() => setCarrinhoAberto(true)}
+            onClick={abrirCarrinho}
             aria-label={`Abrir carrinho com ${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}, total de ${moeda(totais.total)}`}
             className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-semibold shadow-lg transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none @5xl:relative @5xl:h-14 @5xl:w-14 @5xl:justify-center @5xl:rounded-full @5xl:p-0 ${
               contadorAnimado ? "scale-[1.02]" : "scale-100"
@@ -891,6 +937,9 @@ export function CatalogoPagina({
             pedidosAtivos={interacoesExternas}
             enviando={enviandoPedido}
             retorno={retornoPedido}
+            cotacao={cotacao}
+            calculandoEntrega={calculandoEntrega}
+            onCalcularEntrega={() => void calcularEntrega()}
             onEnviar={() => void confirmarPedido()}
           />
         </DrawerCarrinho>
@@ -901,7 +950,7 @@ export function CatalogoPagina({
 
 function rotuloStatusPedido(status: string) {
   const rotulos: Record<string, string> = {
-    novo: "Pedido confirmado",
+    novo: "Aguardando aceite da loja",
     aceito: "Pedido aceito",
     preparo: "Em preparo",
     pronto: "Pronto para retirada",
@@ -987,7 +1036,17 @@ function DrawerMeusPedidos({
             <X size={18} aria-hidden />
           </button>
         </div>
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          {site.conteudo.whatsapp && (
+            <a
+              href={whatsappLink(site.conteudo.whatsapp, "Olá! Preciso de ajuda com meu pedido.")}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 text-sm underline"
+            >
+              <MessageCircle size={16} /> Entrar em contato com a loja
+            </a>
+          )}
           <button
             type="button"
             onClick={onAtualizar}
@@ -1019,13 +1078,13 @@ function DrawerMeusPedidos({
                 aria-hidden
               />
               <div>
-                <h3 className="font-semibold">Pedido confirmado!</h3>
+                <h3 className="font-semibold">Pedido enviado!</h3>
                 <p className="mt-1 text-sm opacity-80">
                   Pedido #{pedidoConfirmado.codigo} ·{" "}
                   {rotulosModalidade[pedidoConfirmado.modalidade]} · {moeda(pedidoConfirmado.total)}
                 </p>
                 <p className="mt-1 text-xs opacity-75">
-                  A equipe recebeu seu pedido. Acompanhe as atualizações logo abaixo.
+                  Seu pedido aguarda o aceite da loja. Acompanhe as atualizações abaixo.
                 </p>
               </div>
             </div>
@@ -1075,6 +1134,11 @@ function DrawerMeusPedidos({
                   ))}
                 </p>
                 <p className="mt-2 text-sm font-semibold">Total {moeda(Number(pedido.total))}</p>
+                {pedido.agendadoPara && (
+                  <p className="mt-2 text-sm">
+                    Agendado para {rotuloAgendamento(site, pedido.agendadoPara)}
+                  </p>
+                )}
                 {pedido.status === "concluido" && (
                   <>
                     <button

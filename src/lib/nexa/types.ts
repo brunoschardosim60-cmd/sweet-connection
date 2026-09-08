@@ -235,6 +235,16 @@ export interface Comercio {
   modalidadesPedido?: ("entrega" | "retirada" | "mesa")[];
   /** Taxas por bairro para delivery. Nunca contém dados do visitante. */
   taxasPorBairro?: { bairro: string; taxa: number }[];
+  /** Regra usada para calcular a entrega no checkout. */
+  calculoEntrega?: "fixa" | "bairro" | "distancia";
+  /** Endereço de saída usado pelo Google Routes. */
+  enderecoOrigem?: string;
+  /** Faixas crescentes de distância. Ex.: até 3 km = R$ 6. */
+  faixasDistancia?: { ateKm: number; taxa: number }[];
+  /** Fuso IANA do estabelecimento, usado para horários e pedidos agendados. */
+  fusoHorario?: string;
+  /** Permite pedidos futuros quando a loja estiver fechada. */
+  aceitarAgendamento?: boolean;
   /** Formas escolhidas e dados de recebimento pertencem ao estabelecimento. */
   pagamentosAceitos?: ("pix" | "cartao" | "dinheiro" | "balcao")[];
   pixChave?: string;

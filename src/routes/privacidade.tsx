@@ -66,6 +66,14 @@ function Privacidade() {
           sensíveis ou qualquer arquivo que não possa ficar acessível publicamente. A Nexa não vende
           dados pessoais.
         </p>
+        <p>
+          Pedidos, contatos, endereços e agendamentos podem ser consultados pelo proprietário e pela
+          equipe autorizada daquele estabelecimento. O proprietário pode revogar esses acessos na
+          área de operação. Quando a entrega por distância estiver ativada, o endereço informado
+          para cotação e o endereço de saída da loja são enviados ao Google Maps para calcular a
+          rota. A cotação é temporária; ao enviar um pedido, o endereço e a taxa ficam registrados
+          para o atendimento. Os serviços do Google seguem sua própria política de privacidade.
+        </p>
       </section>
 
       <section>

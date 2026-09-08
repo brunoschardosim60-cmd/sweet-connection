@@ -15,7 +15,8 @@ import { estados, segmentos } from "@/lib/nexa/segmentos";
 import { slugify, telefoneMask } from "@/lib/nexa/utils";
 import { importarDadosPublicos } from "@/lib/nexa/importar-dados";
 import { supabase } from "@/integrations/supabase/client";
-import type { Cliente, SegmentoId, Site } from "@/lib/nexa/types";
+import type { Cliente, Comercio, SegmentoId, Site } from "@/lib/nexa/types";
+import { ConfiguracaoEntrega } from "@/components/editor/ConfiguracaoEntrega";
 
 interface NovoBusca {
   empresa?: string;
@@ -299,6 +300,14 @@ function NovoSite() {
 
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
+  const [operacao, setOperacao] = useState<Comercio>({
+    carrinho: true,
+    taxaEntrega: 0,
+    pedidoMinimo: 0,
+    modalidadesPedido: ["entrega", "retirada"],
+    aceitarAgendamento: true,
+    fusoHorario: "America/Sao_Paulo",
+  });
   const [acessoIA, setAcessoIA] = useState<"carregando" | "permitido" | "bloqueado">("carregando");
   const [acessoOcr, setAcessoOcr] = useState(false);
   const [podeOcultarAssinatura, setPodeOcultarAssinatura] = useState(false);
@@ -480,6 +489,7 @@ function NovoSite() {
     const base = criarSite(cliente, modeloId, slugFinal);
     const site = {
       ...base,
+      ...(base.comercio ? { comercio: { ...base.comercio, ...operacao } } : {}),
       conteudo: {
         ...base.conteudo,
         ...(logoUrl ? { logo: logoUrl } : {}),
@@ -929,6 +939,55 @@ function NovoSite() {
 
           {passo === 2 && (
             <div className="max-w-md space-y-4">
+              {modeloId.startsWith("cardapio-") && (
+                <section className="space-y-3 rounded-2xl border border-border p-4">
+                  <h3 className="font-semibold">Como sua loja atende?</h3>
+                  {(
+                    [
+                      ["entrega", "Entrega"],
+                      ["retirada", "Retirada no local"],
+                      ["mesa", "Mesa / comanda"],
+                    ] as const
+                  ).map(([tipo, rotulo]) => (
+                    <label key={tipo} className="flex min-h-11 items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={operacao.modalidadesPedido?.includes(tipo)}
+                        onChange={(e) => {
+                          const modalidades = e.target.checked
+                            ? [...(operacao.modalidadesPedido ?? []), tipo]
+                            : operacao.modalidadesPedido!.filter((m) => m !== tipo);
+                          if (modalidades.length)
+                            setOperacao({ ...operacao, modalidadesPedido: modalidades });
+                        }}
+                      />
+                      {rotulo}
+                    </label>
+                  ))}
+                  <label className="block text-sm">
+                    Taxa fixa de entrega (R$)
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background p-3"
+                      value={operacao.taxaEntrega}
+                      onChange={(e) =>
+                        setOperacao({
+                          ...operacao,
+                          taxaEntrega: Math.max(0, Number(e.target.value)),
+                          taxaEntregaDefinida: true,
+                        })
+                      }
+                    />
+                  </label>
+                  <ConfiguracaoEntrega valor={operacao} alterar={setOperacao} />
+                  <p className="text-xs text-muted-foreground">
+                    Você pode alterar essas opções e cadastrar os bairros no editor antes de
+                    publicar.
+                  </p>
+                </section>
+              )}
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Endereço do mini-site</span>
                 <div

@@ -39,7 +39,14 @@ describe("presets funcionais dos modelos", () => {
   it("cria cardápio digital já preparado para carrinho, sem CTA direto de WhatsApp", () => {
     const site = criarSite(cliente, "cardapio-hamburgueria", "burger-teste");
 
-    expect(site.comercio).toEqual({ carrinho: true, taxaEntrega: 0, pedidoMinimo: 0 });
+    expect(site.comercio).toEqual({
+      carrinho: true,
+      taxaEntrega: 0,
+      pedidoMinimo: 0,
+      modalidadesPedido: ["entrega", "retirada"],
+      aceitarAgendamento: true,
+      fusoHorario: "America/Sao_Paulo",
+    });
     expect(site.links).toEqual([]);
     expect(site.secoes.find((secao) => secao.tipo === "produtos")?.ativa).toBe(true);
   });

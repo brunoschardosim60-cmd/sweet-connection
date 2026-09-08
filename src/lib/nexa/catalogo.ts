@@ -1,5 +1,6 @@
 import type { Produto, Site } from "./types";
-import { estaAberto, moeda } from "./utils";
+import { moeda } from "./utils";
+import { horarioLocal, lojaAbertaEm } from "./atendimento";
 import { perfilCardapioPorModelo } from "./cardapio-modelos";
 
 export type FiltroCatalogo = "todos" | "destaques" | "promocoes" | "disponiveis";
@@ -219,8 +220,9 @@ export function situacaoAtendimento(site: Site) {
   const horarios = site.conteudo.horarios ?? [];
   if (horarios.length === 0)
     return { conhecida: false, aberto: false, rotulo: "Horário não informado" };
-  const aberto = estaAberto(horarios);
-  const idxHoje = (new Date().getDay() + 6) % 7;
+  const aberto = lojaAbertaEm(site);
+  const local = horarioLocal(site, new Date());
+  const idxHoje = local.indice;
   const hoje = horarios[idxHoje];
   return {
     conhecida: true,
@@ -230,7 +232,12 @@ export function situacaoAtendimento(site: Site) {
       ? hoje && !hoje.fechado
         ? `Até ${hoje.fecha}`
         : undefined
-      : proximaAbertura(horarios),
+      : proximaAbertura(
+          horarios,
+          new Date(
+            `${local.dia}T${String(Math.floor(local.minutos / 60)).padStart(2, "0")}:${String(local.minutos % 60).padStart(2, "0")}:00`,
+          ),
+        ),
   };
 }
 
@@ -256,9 +263,20 @@ export const rotulosPagamento: Record<Pagamento, string> = {
 export const subtotalCarrinho = (itens: ItemCarrinho[]) =>
   itens.reduce((t, i) => t + Math.round(i.preco * 100) * i.quantidade, 0) / 100;
 
-export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entrega, bairro = "") {
+export function totaisCarrinho(
+  itens: ItemCarrinho[],
+  site: Site,
+  entrega: Entrega,
+  bairro = "",
+  taxaCalculada?: number,
+) {
   const subtotal = subtotalCarrinho(itens);
-  const taxa = entrega === "entrega" ? taxaEntrega(site, bairro) : 0;
+  const taxa =
+    entrega === "entrega"
+      ? typeof taxaCalculada === "number"
+        ? taxaCalculada
+        : taxaEntrega(site, bairro)
+      : 0;
   const minimo = site.comercio?.pedidoMinimo ?? 0;
   return {
     subtotal,
@@ -271,6 +289,7 @@ export function totaisCarrinho(itens: ItemCarrinho[], site: Site, entrega: Entre
 
 /** A taxa por bairro, quando cadastrada, tem prioridade sobre a taxa padrão. */
 export function taxaEntrega(site: Site, bairro = "") {
+  if (site.comercio?.calculoEntrega === "distancia") return 0;
   const taxas = site.comercio?.taxasPorBairro ?? [];
   const encontrada = taxas.find(
     (t) => t.bairro.trim().toLocaleLowerCase("pt-BR") === bairro.trim().toLocaleLowerCase("pt-BR"),
@@ -279,6 +298,8 @@ export function taxaEntrega(site: Site, bairro = "") {
 }
 
 export interface DadosEntrega {
+  agendadoPara?: string;
+  cotacaoId?: string;
   nome?: string;
   whatsapp?: string;
   horarioPreferido?: string;

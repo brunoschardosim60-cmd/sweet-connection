@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      cotacoes_entrega: {
+        Row: {id:string;minisite_id:string;endereco:string;bairro:string;configuracao:Json;taxa:number;expires_at:string;used_at:string|null}
+        Insert: {id?:string;minisite_id:string;endereco:string;bairro:string;configuracao:Json;taxa:number;expires_at?:string;used_at?:string|null}
+        Update: {used_at?:string|null}
+        Relationships: []
+      }
+      minisite_operadores: {
+        Row: {minisite_id:string;user_id:string;created_by:string;created_at:string}
+        Insert: {minisite_id:string;user_id:string;created_by:string;created_at?:string}
+        Update: {created_by?:string}
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -1106,6 +1118,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      nexa_limite_cotacao: {Args:{chave:string;limite:number;segundos:number};Returns:boolean}
+      nexa_operacao_sites: {Args:Record<PropertyKey,never>;Returns:Json}
+      nexa_operacao_dados: {Args:{site_id:string};Returns:Json}
+      nexa_operacao_acessos: {Args:{site_id:string;email?:string;remover?:string};Returns:Json}
+      nexa_operacao_atualizar: {Args:{site_id:string;tipo:string;alvo:string;estado:string;dia?:string;hora?:string};Returns:undefined}
       claim_nexa_accounts_for_cleanup: {
         Args: { requested_secret: string }
         Returns: {

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, CheckCircle2, FileEdit, Globe, MessageCircle, Users } from "lucide-react";
-import { GraficoArea } from "@/components/Graficos";
-import { useDesempenho, useNexa } from "@/lib/nexa/hooks";
+import { CheckCircle2, FileEdit, Globe, Users } from "lucide-react";
+import { useNexa } from "@/lib/nexa/hooks";
 import { numero, tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -10,8 +9,7 @@ export const Route = createFileRoute("/painel/")({
 });
 
 function VisaoGeral() {
-  const { sites, envios, pronto } = useNexa();
-  const desempenho = useDesempenho();
+  const { sites, pronto } = useNexa();
 
   if (!pronto)
     return (
@@ -24,34 +22,11 @@ function VisaoGeral() {
 
   const publicados = sites.filter((s) => s.status === "publicado");
   const rascunhos = sites.filter((s) => s.status === "rascunho");
-  const visitas = sites.reduce((total, site) => total + (desempenho[site.id]?.visitas ?? 0), 0);
-  const cliques = sites.reduce(
-    (total, site) => total + (desempenho[site.id]?.cliquesWhatsapp ?? 0),
-    0,
-  );
-  const solicitacoes = envios.length;
-
-  const visitasPorDia = new Map<string, number>();
-  for (const site of sites) {
-    for (const registro of desempenho[site.id]?.dias ?? []) {
-      visitasPorDia.set(registro.dia, (visitasPorDia.get(registro.dia) ?? 0) + registro.visitas);
-    }
-  }
-
-  const serie = Array.from({ length: 30 }, (_, i) => {
-    const data = new Date();
-    data.setDate(data.getDate() - (29 - i));
-    const dia = data.toISOString().slice(0, 10);
-    return { dia, visitas: visitasPorDia.get(dia) ?? 0 };
-  });
 
   const cards = [
-    { r: "Total de clientes", v: numero(sites.length), i: Users },
-    { r: "Mini-sites publicados", v: numero(publicados.length), i: Globe },
+    { r: "Projetos", v: numero(sites.length), i: Users },
+    { r: "Projetos publicados", v: numero(publicados.length), i: Globe },
     { r: "Rascunhos", v: numero(rascunhos.length), i: FileEdit },
-    { r: "Visitas no mês", v: numero(visitas), i: ArrowUpRight },
-    { r: "Cliques no WhatsApp", v: numero(cliques), i: MessageCircle },
-    { r: "Solicitações recebidas", v: numero(solicitacoes), i: ArrowUpRight },
   ];
   const primeiro = sites[0];
   const passosInicio = [
@@ -182,13 +157,30 @@ function VisaoGeral() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="surface p-5 lg:col-span-2">
-          <p className="font-semibold">Visitas nos últimos 30 dias</p>
-          <div className="mt-4 h-64">
-            <GraficoArea
-              dados={serie.map((p) => ({ rotulo: p.dia, valor: p.visitas }))}
-              ariaLabel="Visitas diárias nos últimos 30 dias"
-            />
+          <h2 className="text-lg font-semibold">Cada empresa com sua própria operação</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Pedidos, agenda, solicitações e estatísticas ficam separados por estabelecimento.
+            Compartilhe o acesso com a equipe do cliente sem abrir seu editor ou os outros projetos.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {sites.slice(0, 6).map((s) => (
+              <Link
+                key={s.id}
+                to="/operacao"
+                search={{ site: s.id }}
+                className="flex min-h-14 min-w-0 items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 text-sm hover:bg-secondary"
+              >
+                <span className="truncate">{s.conteudo.nome || s.slug}</span>
+                <span className="shrink-0 font-semibold">Operar →</span>
+              </Link>
+            ))}
           </div>
+          <Link
+            to="/operacao"
+            className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold underline"
+          >
+            Ver todas as operações
+          </Link>
         </div>
 
         <div className="surface p-5">

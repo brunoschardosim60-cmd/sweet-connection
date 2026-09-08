@@ -210,6 +210,9 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
             carrinho: true,
             taxaEntrega: 0,
             pedidoMinimo: 0,
+            modalidadesPedido: ["entrega", "retirada"],
+            aceitarAgendamento: true,
+            fusoHorario: "America/Sao_Paulo",
           },
         }
       : {}),

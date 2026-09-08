@@ -14,6 +14,7 @@ import { Route as AcessoNegadoRouteImport } from './routes/acesso-negado'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ModelosRouteImport } from './routes/modelos'
+import { Route as OperacaoRouteImport } from './routes/operacao'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
@@ -35,6 +36,7 @@ import { Route as PainelPedidosRouteImport } from './routes/painel.pedidos'
 import { Route as PainelSolicitacoesRouteImport } from './routes/painel.solicitacoes'
 import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as ApiAdminAccountControlRouteImport } from './routes/api/admin/account-control'
+import { Route as ApiDeliveryQuoteRouteImport } from './routes/api/delivery/quote'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiReportsMonthlyRouteImport } from './routes/api/reports/monthly'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
@@ -73,6 +75,11 @@ const LoginRoute = LoginRouteImport.update({
 const ModelosRoute = ModelosRouteImport.update({
   id: '/modelos',
   path: '/modelos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperacaoRoute = OperacaoRouteImport.update({
+  id: '/operacao',
+  path: '/operacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelRoute = PainelRouteImport.update({
@@ -180,6 +187,11 @@ const ApiAdminAccountControlRoute = ApiAdminAccountControlRouteImport.update({
   path: '/api/admin/account-control',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeliveryQuoteRoute = ApiDeliveryQuoteRouteImport.update({
+  id: '/api/delivery/quote',
+  path: '/api/delivery/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsDispatchRoute =
   ApiNotificationsDispatchRouteImport.update({
     id: '/api/notifications/dispatch',
@@ -259,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
+  '/operacao': typeof OperacaoRoute
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
@@ -280,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
+  '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -301,6 +315,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
+  '/operacao': typeof OperacaoRoute
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -321,6 +336,7 @@ export interface FileRoutesByTo {
   '/site/$slug': typeof SiteSlugRoute
   '/painel': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
+  '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -343,6 +359,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
+  '/operacao': typeof OperacaoRoute
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
@@ -364,6 +381,7 @@ export interface FileRoutesById {
   '/site/$slug': typeof SiteSlugRoute
   '/painel/': typeof PainelIndexRoute
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
+  '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -387,6 +405,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/modelos'
+    | '/operacao'
     | '/painel'
     | '/privacidade'
     | '/recuperar-senha'
@@ -408,6 +427,7 @@ export interface FileRouteTypes {
     | '/site/$slug'
     | '/painel/'
     | '/api/admin/account-control'
+    | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
     | '/api/webhooks/asaas'
@@ -429,6 +449,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/modelos'
+    | '/operacao'
     | '/privacidade'
     | '/recuperar-senha'
     | '/sitemap.xml'
@@ -449,6 +470,7 @@ export interface FileRouteTypes {
     | '/site/$slug'
     | '/painel'
     | '/api/admin/account-control'
+    | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
     | '/api/webhooks/asaas'
@@ -470,6 +492,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/modelos'
+    | '/operacao'
     | '/painel'
     | '/privacidade'
     | '/recuperar-senha'
@@ -491,6 +514,7 @@ export interface FileRouteTypes {
     | '/site/$slug'
     | '/painel/'
     | '/api/admin/account-control'
+    | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
     | '/api/webhooks/asaas'
@@ -513,6 +537,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   ModelosRoute: typeof ModelosRoute
+  OperacaoRoute: typeof OperacaoRoute
   PainelRoute: typeof PainelRouteWithChildren
   PrivacidadeRoute: typeof PrivacidadeRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
@@ -523,6 +548,7 @@ export interface RootRouteChildren {
   DemonstracaoIaRoute: typeof DemonstracaoIaRoute
   SiteSlugRoute: typeof SiteSlugRoute
   ApiAdminAccountControlRoute: typeof ApiAdminAccountControlRoute
+  ApiDeliveryQuoteRoute: typeof ApiDeliveryQuoteRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiReportsMonthlyRoute: typeof ApiReportsMonthlyRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
@@ -569,6 +595,13 @@ declare module '@tanstack/react-router' {
       path: '/modelos'
       fullPath: '/modelos'
       preLoaderRoute: typeof ModelosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operacao': {
+      id: '/operacao'
+      path: '/operacao'
+      fullPath: '/operacao'
+      preLoaderRoute: typeof OperacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -716,6 +749,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/account-control'
       fullPath: '/api/admin/account-control'
       preLoaderRoute: typeof ApiAdminAccountControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/delivery/quote': {
+      id: '/api/delivery/quote'
+      path: '/api/delivery/quote'
+      fullPath: '/api/delivery/quote'
+      preLoaderRoute: typeof ApiDeliveryQuoteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notifications/dispatch': {
@@ -866,6 +906,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   ModelosRoute: ModelosRoute,
+  OperacaoRoute: OperacaoRoute,
   PainelRoute: PainelRouteWithChildren,
   PrivacidadeRoute: PrivacidadeRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
@@ -876,6 +917,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemonstracaoIaRoute: DemonstracaoIaRoute,
   SiteSlugRoute: SiteSlugRoute,
   ApiAdminAccountControlRoute: ApiAdminAccountControlRoute,
+  ApiDeliveryQuoteRoute: ApiDeliveryQuoteRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiReportsMonthlyRoute: ApiReportsMonthlyRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,

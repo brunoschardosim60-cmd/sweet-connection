@@ -1,10 +1,7 @@
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  CalendarDays,
-  Bell,
   Image as ImageIcon,
-  Inbox,
   LayoutGrid,
   Menu,
   Moon,
@@ -16,7 +13,6 @@ import {
   Sun,
   Users,
   X,
-  BarChart3,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -56,11 +52,8 @@ export const Route = createFileRoute("/painel")({
 const itens: { to: string; rotulo: string; icone: typeof Users; exato?: boolean }[] = [
   { to: "/painel", rotulo: "Início", icone: LayoutDashboard, exato: true },
   { to: "/painel/clientes", rotulo: "Clientes", icone: Users },
-  { to: "/painel/solicitacoes", rotulo: "Solicitações", icone: Inbox },
-  { to: "/painel/agenda", rotulo: "Agenda", icone: CalendarDays },
-  { to: "/painel/pedidos", rotulo: "Pedidos", icone: ClipboardList },
+  { to: "/operacao", rotulo: "Operação das lojas", icone: ClipboardList },
   { to: "/painel/modelos", rotulo: "Modelos", icone: LayoutGrid },
-  { to: "/painel/estatisticas", rotulo: "Estatísticas", icone: BarChart3 },
   { to: "/painel/midias", rotulo: "Mídias", icone: ImageIcon },
   { to: "/painel/configuracoes", rotulo: "Minha conta", icone: Settings },
   { to: "/painel/meu-plano", rotulo: "Meu plano", icone: Crown },
@@ -102,7 +95,7 @@ function PainelLayout() {
     select: (s) => destinoAutenticacao(s.location.pathname, s.location.searchStr, s.location.hash),
   });
   const noEditor = pathname.includes("/painel/editor/");
-  const { sites, envios, pronto, erro, store } = useNexa();
+  const { sites, pronto, erro, store } = useNexa();
   const usuarioAnteriorRef = useRef<string | null>(null);
   const [busca, setBusca] = useState("");
   const [ativo, setAtivo] = useState(-1);
@@ -221,7 +214,6 @@ function PainelLayout() {
     await navigate({ to: "/login", replace: true });
   };
 
-  const pendentes = pronto ? envios.filter((envio) => envio.status === "novo").length : 0;
   const nomeConta = String(
     user.user_metadata?.["display_name"] ?? user.email?.split("@")[0] ?? "Conta",
   );
@@ -251,25 +243,6 @@ function PainelLayout() {
               titulo: s.conteudo.nome || s.cliente.empresa || s.slug,
               subtitulo: `/site/${s.slug} · ${s.status}`,
             })),
-        },
-        {
-          rotulo: "Solicitações",
-          itens: envios
-            .filter((envio) =>
-              Object.values(envio.dados).some((valor) => valor.toLowerCase().includes(termo)),
-            )
-            .slice(0, 3)
-            .map<ItemBusca>((envio) => {
-              const site = sites.find((item) => item.id === envio.siteId);
-              return {
-                tipo: "envio",
-                id: envio.id,
-                titulo:
-                  Object.values(envio.dados).find((valor) => valor.toLowerCase().includes(termo)) ??
-                  "Solicitação",
-                subtitulo: site?.conteudo.nome || site?.slug || "Mini-site removido",
-              };
-            }),
         },
         {
           rotulo: "Modelos",
@@ -538,18 +511,11 @@ function PainelLayout() {
 
           <div className="flex shrink-0 items-center gap-2">
             <Link
-              to="/painel/solicitacoes"
-              aria-label={
-                pendentes > 0
-                  ? `Solicitações: ${pendentes} recebidas`
-                  : "Solicitações: nenhuma novidade"
-              }
+              to="/operacao"
+              aria-label="Abrir operação das lojas"
               className="relative hidden h-11 w-11 place-items-center rounded-full border border-border hover:bg-secondary sm:grid"
             >
-              <Bell size={16} />
-              {pendentes > 0 && (
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-lime" />
-              )}
+              <ClipboardList size={16} />
             </Link>
             <button
               type="button"

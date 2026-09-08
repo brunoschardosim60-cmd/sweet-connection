@@ -19,14 +19,14 @@ function textoSeguro(value: unknown) {
     .slice(0, 5000);
 }
 
-async function enviarEmail(destino: string, assunto: string, mensagem: string) {
+async function enviarEmail(destinos: string[], assunto: string, mensagem: string) {
   const key = process.env["RESEND_API_KEY"];
   const from = process.env["NOTIFICATION_EMAIL_FROM"];
   if (!key || !from) return { status: "skipped", reason: "email_not_configured" } as const;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from, to: [destino], subject: assunto, text: mensagem }),
+    body: JSON.stringify({ from, to: [from], bcc: destinos, subject: assunto, text: mensagem }),
   });
   if (!response.ok) throw new Error(`Resend respondeu ${response.status}`);
   return { status: "sent" } as const;
@@ -97,9 +97,19 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
             return Response.json({ status: "already_processed" }, { status: 202 });
           if (delivery.error) throw delivery.error;
           if (!delivery.data) throw new Error("Entrega de notificação não foi criada.");
-          const { data: owner } = await supabaseAdmin.auth.admin.getUserById(site.owner_id);
-          const email = owner.user?.email;
-          if (!email) throw new Error("Destinatário não encontrado.");
+          const { data: equipe, error: erroEquipe } = await supabaseAdmin
+            .from("minisite_operadores")
+            .select("user_id")
+            .eq("minisite_id", source.minisite_id);
+          if (erroEquipe) throw erroEquipe;
+          const destinatarios = equipe?.length ? equipe.map((p) => p.user_id) : [site.owner_id];
+          const contas = await Promise.all(
+            destinatarios.map((id) => supabaseAdmin.auth.admin.getUserById(id)),
+          );
+          const emails = contas.flatMap((c) =>
+            c.data.user?.email && c.data.user.email_confirmed_at ? [c.data.user.email] : [],
+          );
+          if (!emails.length) throw new Error("Destinatário não encontrado.");
           const resumo =
             type === "formulario"
               ? `Novo formulário em /site/${site.slug}\n\n${JSON.stringify(source["payload"] ?? {}, null, 2)}`
@@ -108,7 +118,12 @@ export const Route = createFileRoute("/api/notifications/dispatch")({
                 : type === "reserva"
                   ? `Nova reserva em /site/${site.slug}\n${textoSeguro(source["nome"])} — ${textoSeguro(source["check_in"])} até ${textoSeguro(source["check_out"])} · ${textoSeguro(source["hospedes"])} hóspede(s)`
                   : `Novo pedido #${textoSeguro(source["codigo"])} em /site/${site.slug}\n${textoSeguro(source["nome"])} · ${textoSeguro(source["modalidade"])} · R$ ${textoSeguro(source["total"])}`;
-          const result = await enviarEmail(email, `Nexa: nova ${type} no seu mini-site`, resumo);
+          const link = `${new URL(request.url).origin}/operacao?site=${source.minisite_id}`;
+          const result = await enviarEmail(
+            emails,
+            `Nexa: novo atendimento — ${site.slug}`,
+            `${resumo}\n\nAbrir operação da loja: ${link}`,
+          );
           await supabaseAdmin
             .from("notification_deliveries")
             .update({

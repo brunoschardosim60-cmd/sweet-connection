@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { Site } from "./types";
 import type { DadosEntrega, ItemCarrinho, Modalidade } from "./catalogo";
+import type { CotacaoEntrega } from "./checkout";
 
 let fingerprintDaSessao: string | null = null;
 const CHAVE_FINGERPRINT = "nexa:public-session";
@@ -15,8 +16,37 @@ export interface PedidoPublico {
   total: number;
   createdAt: string;
   updatedAt: string;
+  agendadoPara?: string | null;
   itens: { nome: string; quantidade: number; preco?: number; observacao?: string }[];
   trackingToken: string;
+}
+
+export async function calcularEntregaPublica(
+  slug: string,
+  endereco: string,
+  bairro: string,
+): Promise<CotacaoEntrega> {
+  const response = await fetch("/api/delivery/quote", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ slug, endereco, bairro }),
+  });
+  const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!response.ok) {
+    const codigo = String(body["error"] ?? "");
+    if (codigo === "outside_delivery_area")
+      throw new Error("Este endereço está fora da área de entrega configurada.");
+    if (codigo === "address_not_found")
+      throw new Error("Não localizamos esse endereço. Confira rua, número, bairro e cidade.");
+    if (codigo === "rate_limit_exceeded")
+      throw new Error("Muitas consultas seguidas. Aguarde um minuto e tente novamente.");
+    if (codigo === "delivery_not_configured")
+      throw new Error(
+        "A loja ainda precisa configurar a entrega por distância. Entre em contato ou escolha retirada.",
+      );
+    throw new Error("Não foi possível calcular a entrega agora. Tente novamente.");
+  }
+  return body as unknown as CotacaoEntrega;
 }
 
 function criarFingerprint() {
@@ -119,6 +149,16 @@ export async function criarPedidoPublicado(
     if (codigo.includes("rate_limit_exceeded"))
       throw new Error("Aguarde alguns minutos antes de enviar outro pedido.");
     if (codigo.includes("invalid_address")) throw new Error("Informe o endereço para a entrega.");
+    if (codigo.includes("store_closed"))
+      throw new Error("A loja está fechada agora. Escolha um horário para agendar o pedido.");
+    if (codigo.includes("invalid_schedule"))
+      throw new Error("Escolha um horário futuro dentro do atendimento da loja.");
+    if (codigo.includes("invalid_delivery_quote"))
+      throw new Error("A cotação da entrega expirou. Calcule a taxa novamente.");
+    if (codigo.includes("outside_delivery_area"))
+      throw new Error(
+        "O endereço não está na área de entrega da loja. Revise o bairro ou escolha retirada.",
+      );
     if (codigo.includes("invalid_items") || codigo.includes("invalid_product"))
       throw new Error("Revise os itens do pedido e tente novamente.");
     if (codigo.includes("invalid_quantity"))
