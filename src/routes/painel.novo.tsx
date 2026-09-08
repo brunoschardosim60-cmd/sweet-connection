@@ -983,8 +983,7 @@ function NovoSite() {
                   </label>
                   <ConfiguracaoEntrega valor={operacao} alterar={setOperacao} />
                   <p className="text-xs text-muted-foreground">
-                    Você pode alterar essas opções e cadastrar os bairros no editor antes de
-                    publicar.
+                    Você pode revisar essas opções no editor antes de publicar.
                   </p>
                 </section>
               )}

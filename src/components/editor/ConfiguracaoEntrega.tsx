@@ -113,6 +113,71 @@ export function ConfiguracaoEntrega({
           terão entrega disponível.
         </p>
       )}
+      {valor.calculoEntrega !== "distancia" && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold">Taxas por bairro / região</h4>
+          {(valor.taxasPorBairro ?? []).map((regiao, i) => (
+            <div key={i} className="rounded-xl border border-border p-3">
+              <div className="grid min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2">
+                <label className="min-w-0 text-xs">
+                  Bairro / região
+                  <input
+                    className={campo}
+                    maxLength={120}
+                    value={regiao.bairro}
+                    placeholder="Centro"
+                    onChange={(e) =>
+                      patch({
+                        taxasPorBairro: valor.taxasPorBairro!.map((r, j) =>
+                          j === i ? { ...r, bairro: e.target.value } : r,
+                        ),
+                      })
+                    }
+                  />
+                </label>
+                <label className="min-w-0 text-xs">
+                  Taxa (R$)
+                  <input
+                    className={campo}
+                    type="number"
+                    min="0"
+                    max="100000"
+                    step="0.01"
+                    value={regiao.taxa}
+                    onChange={(e) =>
+                      patch({
+                        taxasPorBairro: valor.taxasPorBairro!.map((r, j) =>
+                          j === i ? { ...r, taxa: Math.max(0, Number(e.target.value)) } : r,
+                        ),
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <button
+                type="button"
+                className="min-h-11 text-xs text-destructive"
+                aria-label={`Remover região ${i + 1}`}
+                onClick={() =>
+                  patch({ taxasPorBairro: valor.taxasPorBairro!.filter((_, j) => j !== i) })
+                }
+              >
+                Remover região
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="min-h-11 rounded-xl border border-border px-3 text-sm"
+            disabled={(valor.taxasPorBairro?.length ?? 0) >= 100}
+            onClick={() =>
+              patch({ taxasPorBairro: [...(valor.taxasPorBairro ?? []), { bairro: "", taxa: 0 }] })
+            }
+          >
+            + Bairro / região
+          </button>
+        </div>
+      )}
       <label className="block text-sm">
         Fuso horário da loja
         <select

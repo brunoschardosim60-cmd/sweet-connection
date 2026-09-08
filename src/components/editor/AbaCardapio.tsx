@@ -354,25 +354,6 @@ export function AbaCardapio({
             />
           </label>
         </div>
-        <label className="mt-3 block text-xs text-muted-foreground">
-          Taxas por bairro (um por linha: Bairro = valor)
-          <textarea
-            rows={3}
-            value={(comercio.taxasPorBairro ?? []).map((t) => `${t.bairro} = ${t.taxa}`).join("\n")}
-            onChange={(e) => {
-              const taxasPorBairro = e.target.value.split("\n").flatMap((linha) => {
-                const [bairro, valor] = linha.split("=");
-                const taxa = Number(valor?.replace(",", ".").trim());
-                return bairro?.trim() && Number.isFinite(taxa) && taxa >= 0
-                  ? [{ bairro: bairro.trim(), taxa }]
-                  : [];
-              });
-              aplicar((s) => ({ ...s, comercio: { ...comercio, ...s.comercio, taxasPorBairro } }));
-            }}
-            placeholder="Centro = 5\nBela Vista = 8"
-            className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"
-          />
-        </label>
         <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
           Pedidos, agenda, solicitações e acessos da equipe ficam na área de Operação por loja. Os
           horários de atendimento usados no status “Aberto agora” são os da aba Contato.
