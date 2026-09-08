@@ -10,22 +10,10 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      cotacoes_entrega: {
-        Row: {id:string;minisite_id:string;endereco:string;bairro:string;configuracao:Json;taxa:number;expires_at:string;used_at:string|null}
-        Insert: {id?:string;minisite_id:string;endereco:string;bairro:string;configuracao:Json;taxa:number;expires_at?:string;used_at?:string|null}
-        Update: {used_at?:string|null}
-        Relationships: []
-      }
-      minisite_operadores: {
-        Row: {minisite_id:string;user_id:string;created_by:string;created_at:string}
-        Insert: {minisite_id:string;user_id:string;created_by:string;created_at?:string}
-        Update: {created_by?:string}
-        Relationships: []
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -504,6 +492,65 @@ export type Database = {
         }
         Relationships: []
       }
+      cotacoes_entrega: {
+        Row: {
+          bairro: string
+          configuracao: Json
+          endereco: string
+          expires_at: string
+          id: string
+          minisite_id: string
+          taxa: number
+          used_at: string | null
+        }
+        Insert: {
+          bairro: string
+          configuracao: Json
+          endereco: string
+          expires_at?: string
+          id?: string
+          minisite_id: string
+          taxa: number
+          used_at?: string | null
+        }
+        Update: {
+          bairro?: string
+          configuracao?: Json
+          endereco?: string
+          expires_at?: string
+          id?: string
+          minisite_id?: string
+          taxa?: number
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacoes_entrega_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotacoes_limites: {
+        Row: {
+          chave: string
+          janela: string
+          quantidade: number
+        }
+        Insert: {
+          chave: string
+          janela: string
+          quantidade: number
+        }
+        Update: {
+          chave?: string
+          janela?: string
+          quantidade?: number
+        }
+        Relationships: []
+      }
       estoque_cardapio: {
         Row: {
           minisite_id: string
@@ -638,6 +685,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mesas_cardapio_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      minisite_operadores: {
+        Row: {
+          created_at: string
+          created_by: string
+          minisite_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          minisite_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          minisite_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "minisite_operadores_minisite_id_fkey"
             columns: ["minisite_id"]
             isOneToOne: false
             referencedRelation: "minisites"
@@ -793,8 +869,44 @@ export type Database = {
         }
         Relationships: []
       }
+      operacao_auditoria: {
+        Row: {
+          acao: string
+          alvo: string | null
+          created_at: string
+          id: number
+          minisite_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          alvo?: string | null
+          created_at?: string
+          id?: never
+          minisite_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          alvo?: string | null
+          created_at?: string
+          id?: never
+          minisite_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operacao_auditoria_minisite_id_fkey"
+            columns: ["minisite_id"]
+            isOneToOne: false
+            referencedRelation: "minisites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedidos_cardapio: {
         Row: {
+          agendado_para: string | null
           bairro: string | null
           chave_idempotencia: string | null
           codigo: number
@@ -822,6 +934,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agendado_para?: string | null
           bairro?: string | null
           chave_idempotencia?: string | null
           codigo?: never
@@ -849,6 +962,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agendado_para?: string | null
           bairro?: string | null
           chave_idempotencia?: string | null
           codigo?: never
@@ -1118,11 +1232,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      nexa_limite_cotacao: {Args:{chave:string;limite:number;segundos:number};Returns:boolean}
-      nexa_operacao_sites: {Args:Record<PropertyKey,never>;Returns:Json}
-      nexa_operacao_dados: {Args:{site_id:string};Returns:Json}
-      nexa_operacao_acessos: {Args:{site_id:string;email?:string;remover?:string};Returns:Json}
-      nexa_operacao_atualizar: {Args:{site_id:string;tipo:string;alvo:string;estado:string;dia?:string;hora?:string};Returns:undefined}
       claim_nexa_accounts_for_cleanup: {
         Args: { requested_secret: string }
         Returns: {
@@ -1289,6 +1398,10 @@ export type Database = {
         }
         Returns: Json
       }
+      nexa_calcular_opcoes_produto: {
+        Args: { escolhas: Json; produto: Json }
+        Returns: Json
+      }
       nexa_cancelar_agendamento: {
         Args: { requested_token: string }
         Returns: boolean
@@ -1325,10 +1438,35 @@ export type Database = {
         Args: { requested_slug: string }
         Returns: Json
       }
+      nexa_limite_cotacao: {
+        Args: { chave: string; limite: number; segundos: number }
+        Returns: boolean
+      }
+      nexa_loja_aberta: {
+        Args: { conteudo: Json; instante: string }
+        Returns: boolean
+      }
       nexa_meus_pedidos_cardapio: {
         Args: { requested_slug: string; requested_tokens: string[] }
         Returns: Json
       }
+      nexa_operacao_acessos: {
+        Args: { email?: string; remover?: string; site_id: string }
+        Returns: Json
+      }
+      nexa_operacao_atualizar: {
+        Args: {
+          alvo: string
+          dia?: string
+          estado: string
+          hora?: string
+          site_id: string
+          tipo: string
+        }
+        Returns: undefined
+      }
+      nexa_operacao_dados: { Args: { site_id: string }; Returns: Json }
+      nexa_operacao_sites: { Args: never; Returns: Json }
       nexa_plan_allows_public_site: {
         Args: { requested_user_id: string }
         Returns: boolean
@@ -1337,6 +1475,7 @@ export type Database = {
         Args: { requested_user_id: string }
         Returns: boolean
       }
+      nexa_pode_operar_site: { Args: { site_id: string }; Returns: boolean }
       nexa_ranking_produtos_cardapio: {
         Args: { requested_slug: string }
         Returns: {
@@ -1579,12 +1718,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1608,11 +1747,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1633,11 +1772,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1658,11 +1797,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1675,11 +1814,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
