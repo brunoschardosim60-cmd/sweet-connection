@@ -653,36 +653,42 @@ function FichaPedido({
       em_rota: ["concluido", "Concluir entrega"],
     } as Record<string, string[]>
   )[p.status];
+  const proximoStatus = proximo?.[0];
+  const proximoRotulo = proximo?.[1];
   return (
     <article
-      className={`min-w-0 space-y-4 rounded-2xl border border-border border-t-4 bg-card p-5 ${p.status === "novo" ? "border-t-amber-500" : "border-t-primary/40"}`}
+      className={`min-w-0 overflow-hidden rounded-xl border bg-card shadow-soft ${p.status === "novo" ? "border-primary" : "border-border"}`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-bold">
+      <header className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b p-4 sm:p-5 ${p.status === "novo" ? "border-primary bg-lime-soft/60" : "border-border bg-muted/40"}`}>
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-2 text-xl font-bold">
             <ClipboardList size={18} />
             Pedido #{p.codigo}
           </h3>
-          <time className="text-xs text-muted-foreground">{data(p.created_at)}</time>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <time>{data(p.created_at)}</time><span aria-hidden="true">·</span><span className="font-semibold text-foreground">{rotulos[p.modalidade] ?? p.modalidade}</span>
+          </div>
         </div>
-        <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
+        <span className="shrink-0 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold">
           {rotulos[p.status] ?? p.status}
         </span>
-      </div>
-      {p.agendado_para && (
-        <p className="rounded-xl bg-primary/10 p-3 text-sm font-semibold">
-          Agendado: {data(p.agendado_para)}
-        </p>
-      )}
-      <p className="break-words text-sm">
-        <strong>{p.nome}</strong> · {rotulos[p.modalidade] ?? p.modalidade}
-      </p>
-      <ul className="divide-y divide-border border-y border-border">
+      </header>
+      <div className="space-y-4 p-4 sm:p-5">
+      {p.agendado_para ? (
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary p-3 text-sm">
+          <CalendarDays className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
+          <div><strong className="block">Pedido agendado</strong><time>{data(p.agendado_para)}</time></div>
+        </div>
+      ) : <p className="text-xs font-bold uppercase text-muted-foreground">Atendimento imediato</p>}
+      <div className="flex items-center justify-between gap-3 text-sm"><div className="min-w-0"><span className="text-xs text-muted-foreground">Cliente</span><p className="truncate font-bold">{p.nome}</p></div><a className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border px-3 font-semibold hover:bg-muted" href={whatsappLink(p.telefone, `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`)} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Contatar</a></div>
+      <section aria-label="Itens para preparar">
+      <h4 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Preparo</h4>
+      <ul className="divide-y divide-border rounded-lg border border-border px-3">
         {p.itens.map((item, i) => (
           <li key={i} className="py-3">
             <label className="flex min-h-11 cursor-pointer items-start gap-3">
               <input
-                className="mt-1 size-5 shrink-0 accent-primary"
+                className="mt-0.5 size-6 shrink-0 accent-primary"
                 type="checkbox"
                 checked={checados.includes(i)}
                 onChange={(e) =>
@@ -695,14 +701,14 @@ function FichaPedido({
                 <strong>
                   {item.quantidade}× {item.nome}
                 </strong>
-                {item.observacao && (
-                  <span className="mt-1 block font-medium">Obs.: {item.observacao}</span>
-                )}
                 {item.opcoes?.map((o, j) => (
-                  <span key={j} className="block text-xs">
+                  <span key={j} className="mt-0.5 block text-xs text-muted-foreground">
                     {[o.grupoNome, o.opcaoNome ?? o.nome].filter(Boolean).join(": ")}
                   </span>
                 ))}
+                {item.observacao && (
+                  <span className="mt-2 block rounded-md bg-lime-soft p-2 font-semibold no-underline">Observação do item: {item.observacao}</span>
+                )}
               </span>
             </label>
           </li>
@@ -711,18 +717,14 @@ function FichaPedido({
       <p className="text-[11px] text-muted-foreground">
         Checks são auxiliares neste dispositivo; não alteram o pedido.
       </p>
+      </section>
       {p.endereco && (
-        <p className="break-words text-sm">
-          <strong>Endereço:</strong>{" "}
-          {[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}
-        </p>
+        <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm"><MapPin className="mt-0.5 shrink-0" size={17} aria-hidden="true" /><div><strong className="block">Endereço de entrega</strong><p className="break-words">{[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}</p></div></div>
       )}
       {(p.observacao || p.horario_preferido) && (
-        <p className="break-words rounded-xl bg-muted p-3 text-sm">
-          {[p.observacao, p.horario_preferido].filter(Boolean).join(" · ")}
-        </p>
+        <div className="break-words rounded-lg border border-primary bg-lime-soft/50 p-3 text-sm"><strong className="block">Atenção no pedido</strong>{p.observacao && <p className="mt-1">{p.observacao}</p>}{p.horario_preferido && <p className="mt-1">Horário preferido: {p.horario_preferido}</p>}</div>
       )}
-      <div className="text-sm">
+      <div className="rounded-lg border border-border p-3 text-sm">
         <div className="flex justify-between gap-2">
           <span>Itens</span>
           <span>{moeda(p.subtotal)}</span>
@@ -735,43 +737,28 @@ function FichaPedido({
           <span>Total</span>
           <span>{moeda(p.total)}</span>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Pagamento combinado: {p.pagamento}
+        <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+          Pagamento informado: {p.pagamento}
           {p.troco ? ` · Troco para ${moeda(p.troco)}` : ""}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <a
-          className={botao}
-          href={whatsappLink(
-            p.telefone,
-            `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`,
-          )}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Contatar cliente
-        </a>
-        {proximo && (
+      {proximoStatus && proximoRotulo && (
+        <div className="space-y-2 border-t border-border pt-4">
           <button
             disabled={ocupado}
-            className={`${botao} bg-primary text-primary-foreground`}
-            onClick={() => void atualizar(proximo[0]!)}
+            className={`${botao} w-full border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
+            onClick={() => void atualizar(proximoStatus)}
           >
-            <Check size={16} />
-            {proximo[1]}
+            {ocupado ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+            {proximoRotulo} <ChevronRight size={16} />
           </button>
-        )}
-      </div>
-      {proximo && (
-        <div>
           {cancelar ? (
-            <div className="space-y-2 rounded-xl border border-destructive/40 p-3 text-sm">
+            <div role="alert" className="space-y-3 rounded-lg border border-destructive/40 p-3 text-sm">
               <p>Cancelar este pedido? O cliente verá o cancelamento no acompanhamento.</p>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   disabled={ocupado}
-                  className={`${botao} text-destructive`}
+                  className={`${botao} border-destructive text-destructive`}
                   onClick={() => void atualizar("cancelado")}
                 >
                   Confirmar cancelamento
@@ -782,12 +769,13 @@ function FichaPedido({
               </div>
             </div>
           ) : (
-            <button className="min-h-11 text-xs text-destructive" onClick={() => setCancelar(true)}>
+            <button className="min-h-11 w-full text-sm font-semibold text-destructive" onClick={() => setCancelar(true)}>
               Recusar / cancelar pedido
             </button>
           )}
         </div>
       )}
+      </div>
     </article>
   );
 }
@@ -805,15 +793,13 @@ function FichaAgenda({
     [hora, setHora] = useState(a.hora),
     [cancelar, setCancelar] = useState(false);
   return (
-    <article className="space-y-3 rounded-2xl border border-border bg-card p-5">
-      <h3 className="font-bold">
-        {a.data.split("-").reverse().join("/")} · {a.hora}
-      </h3>
-      <p className="text-sm">
-        {a.nome} · {a.servico}
-      </p>
-      <p className="text-xs text-muted-foreground">{a.status}</p>
-      {a.observacao && <p className="break-words text-sm">{a.observacao}</p>}
+    <article className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border pb-4">
+        <div className="min-w-0"><p className="text-xs font-bold uppercase text-muted-foreground">Data e horário</p><h3 className="mt-1 text-xl font-bold">{a.data.split("-").reverse().join("/")} <span className="text-muted-foreground">às</span> {a.hora}</h3></div>
+        <span className="h-fit rounded-full bg-muted px-3 py-1 text-xs font-bold">{a.status}</span>
+      </header>
+      <div><p className="font-bold">{a.nome}</p><p className="text-sm text-muted-foreground">{a.servico || "Serviço não informado"}</p></div>
+      {a.observacao && <div className="break-words rounded-lg bg-lime-soft/50 p-3 text-sm"><strong className="block">Observação</strong>{a.observacao}</div>}
       <a
         className={botao}
         href={whatsappLink(a.telefone, "Olá! Vamos falar sobre seu agendamento.")}
@@ -824,7 +810,7 @@ function FichaAgenda({
       </a>
       {a.status === "confirmado" && (
         <>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button className={botao} onClick={() => setEditar(!editar)}>
               Reagendar
             </button>
@@ -834,7 +820,7 @@ function FichaAgenda({
           </div>
           {editar && (
             <form
-              className="flex flex-wrap gap-2"
+              className="grid gap-3 rounded-lg border border-border bg-muted/40 p-3 sm:grid-cols-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 void atualizar("reagendar", dia, hora);
@@ -856,7 +842,7 @@ function FichaAgenda({
                 value={hora}
                 onChange={(e) => setHora(e.target.value)}
               />
-              <button className={botao} disabled={ocupado}>
+              <button className={`${botao} bg-primary text-primary-foreground sm:col-span-2`} disabled={ocupado}>
                 Salvar horário
               </button>
             </form>
@@ -905,28 +891,31 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
     }
   };
   return (
-    <section className="max-w-2xl space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-      <h3 className="text-xl font-bold">Equipe e acessos</h3>
+    <section role="tabpanel" id="painel-Equipe e acessos" aria-labelledby="aba-Equipe e acessos" className="max-w-3xl space-y-6">
+      <div><h3 className="text-xl font-bold">Equipe e acessos</h3><p className="mt-1 text-sm text-muted-foreground">Compartilhe o atendimento sem liberar a criação do site.</p></div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
       <p className="text-sm text-muted-foreground">
         Compartilhe somente a operação de <strong>{loja.nome}</strong>. A pessoa poderá atender
         pedidos, gerenciar agenda e solicitações e consultar estatísticas. Não poderá editar o site,
         administrar acessos ou ver suas outras empresas.
       </p>
-      <ol className="list-inside list-decimal space-y-2 text-sm">
-        <li>A pessoa cria sua própria conta Nexa e confirma o e-mail.</li>
-        <li>Você adiciona esse e-mail abaixo.</li>
-        <li>Envie o link desta operação para ela.</li>
-      </ol>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {["A pessoa cria a conta Nexa e confirma o e-mail.", "Você adiciona o mesmo e-mail abaixo.", "Depois, envia o link da operação."].map((passo, i) => <div key={passo} className="rounded-lg bg-muted p-3 text-sm"><strong className="mb-1 block">Passo {i + 1}</strong>{passo}</div>)}
+      </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+      <h4 className="font-bold">Adicionar uma pessoa</h4>
+      <p className="mt-1 text-sm text-muted-foreground">Ela verá apenas a operação de {loja.nome}. A conta precisa estar cadastrada e com o e-mail confirmado.</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void alterar({ email });
         }}
-        className="flex flex-wrap gap-2"
+        className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
       >
         <input
           aria-label="E-mail da pessoa"
-          className={`${campo} flex-1`}
+          className={`${campo} w-full`}
           type="email"
           required
           maxLength={254}
@@ -938,8 +927,12 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
           {ocupado ? <Loader2 className="animate-spin" size={16} /> : null}Conceder acesso
         </button>
       </form>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+      <h4 className="font-bold">Link de acesso à operação</h4>
+      <p className="mt-1 text-sm text-muted-foreground">Copiar e enviar o link não concede acesso. Somente e-mails autorizados acima conseguem entrar.</p>
       <button
-        className={botao}
+        className={`${botao} mt-4`}
         onClick={() => {
           void navigator.clipboard
             .writeText(`${window.location.origin}/operacao?site=${loja.id}`)
@@ -949,12 +942,10 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
             );
         }}
       >
-        Copiar link da operação
+        <Copy size={16} /> Copiar link da operação
       </button>
-      <p className="text-xs text-muted-foreground">
-        O link não concede acesso sozinho. Não há envio automático de convite. Ao existir equipe
-        autorizada, os alertas de e-mail da operação são direcionados à equipe.
-      </p>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft"><div className="flex items-center gap-2"><Users size={18} /><h4 className="font-bold">Pessoas autorizadas</h4></div>
       {q.isPending ? (
         <Carregando />
       ) : q.isError ? (
@@ -967,7 +958,7 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
       ) : !q.data.length ? (
         vazio("Somente você tem acesso. Nenhuma pessoa adicionada.")
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="mt-3 divide-y divide-border">
           {q.data.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <span className="break-all text-sm">{a.email}</span>
@@ -984,6 +975,7 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
           ))}
         </ul>
       )}
+      </div>
     </section>
   );
 }
