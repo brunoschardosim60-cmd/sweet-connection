@@ -1,7 +1,23 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Check, ClipboardList, Loader2, LogOut, RefreshCw, Store } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  ClipboardList,
+  Copy,
+  ExternalLink,
+  Loader2,
+  LogOut,
+  MapPin,
+  MessageCircle,
+  RefreshCw,
+  ShieldCheck,
+  Store,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,8 +95,9 @@ type Dados = {
 };
 type Acesso = { id: string; email: string };
 const botao =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium disabled:opacity-50";
-const campo = "min-h-11 min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50";
+const campo =
+  "min-h-11 min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring";
 const rotulos: Record<string, string> = {
   novo: "Aguardando aceite",
   aceito: "Aceito",
@@ -105,10 +122,39 @@ function Carregando() {
 }
 function vazio(texto: string) {
   return (
-    <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
-      {texto}
+    <div className="grid min-h-44 place-items-center rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
+      <div className="max-w-md space-y-2">
+        <ClipboardList className="mx-auto text-muted-foreground" aria-hidden="true" />
+        <p className="font-semibold text-foreground">Tudo organizado por aqui</p>
+        <p className="text-sm text-muted-foreground">{texto}</p>
+      </div>
     </div>
   );
+}
+const nomeCampo = (chave: string) =>
+  ({
+    nome: "Nome",
+    email: "E-mail",
+    telefone: "Telefone",
+    whatsapp: "WhatsApp",
+    mensagem: "Mensagem",
+    observacao: "Observação",
+    servico: "Serviço",
+    data: "Data",
+    horario: "Horário",
+    assunto: "Assunto",
+  })[chave.toLocaleLowerCase("pt-BR")] ??
+  chave.replaceAll("_", " ").replace(/^./, (letra) => letra.toLocaleUpperCase("pt-BR"));
+
+function valorSolicitacao(valor: unknown): string {
+  if (valor === null || valor === undefined || valor === "") return "Não informado";
+  if (Array.isArray(valor)) return valor.map(valorSolicitacao).join(", ");
+  if (typeof valor === "object")
+    return Object.entries(valor as Record<string, unknown>)
+      .map(([chave, item]) => `${nomeCampo(chave)}: ${valorSolicitacao(item)}`)
+      .join(" · ");
+  if (typeof valor === "boolean") return valor ? "Sim" : "Não";
+  return String(valor);
 }
 function erroOperacao(error: unknown) {
   const mensagem = (error as { message?: string })?.message ?? "";
@@ -127,6 +173,7 @@ function erroOperacao(error: unknown) {
 function Operacao() {
   const { user, carregando } = useAuthSession();
   const { site } = Route.useSearch();
+  const navigate = useNavigate();
   const lojas = useQuery({
     queryKey: ["operacao-lojas", user?.id],
     enabled: !!user,
@@ -174,27 +221,29 @@ function Operacao() {
   }
   return (
     <main className="min-h-dvh bg-background text-foreground">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
-          <Store className="text-primary" />
-          <div className="mr-auto">
-            <h1 className="text-xl font-bold">Operação da loja</h1>
-            <p className="text-xs text-muted-foreground">
-              Atendimento separado da criação de sites
-            </p>
+      <header className="border-b border-border bg-ink text-ink-foreground">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:px-6">
+          <div className="flex min-w-0 items-center gap-3 sm:mr-auto">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-lime text-accent-foreground">
+              <Store size={20} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold sm:text-xl">Operação das lojas</h1>
+              <p className="truncate text-xs text-ink-muted">Ambiente exclusivo de atendimento</p>
+            </div>
           </div>
           {lojas.data?.some((l) => l.dono) && (
-            <Link to="/painel" className={botao}>
-              Área de criação
+            <Link to="/painel" className={`${botao} hidden border-sidebar-border bg-sidebar-accent text-sidebar-foreground sm:inline-flex`}>
+              Ir para criação <ExternalLink size={15} aria-hidden="true" />
             </Link>
           )}
-          <button className={botao} onClick={() => void supabase.auth.signOut()}>
+          <button className={`${botao} border-sidebar-border bg-sidebar-accent text-sidebar-foreground`} onClick={() => void supabase.auth.signOut()}>
             <LogOut size={16} />
-            Sair
+            <span className="sr-only sm:not-sr-only">Sair</span>
           </button>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+      <div className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
         {lojas.isPending ? (
           <Carregando />
         ) : lojas.isError ? (
@@ -206,27 +255,29 @@ function Operacao() {
           </div>
         ) : (
           <>
-            <label className="block max-w-lg space-y-2 text-sm font-medium">
-              Estabelecimento
-              <select
-                aria-label="Estabelecimento"
-                className={`${campo} block w-full`}
-                value={selecionada?.id ?? ""}
-                onChange={(e) => {
-                  window.location.assign(`/operacao?site=${e.target.value}`);
-                }}
-              >
-                <option value="" disabled>
-                  Selecione uma loja
-                </option>
-                {lojas.data.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.nome} — /{l.slug}
-                    {l.dono ? " (proprietário)" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)] sm:items-center sm:p-5">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Estabelecimento em atendimento</p>
+                <p className="mt-1 truncate text-lg font-bold">{selecionada?.nome ?? "Selecione uma loja"}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Pedidos, agenda e resultados sempre seguem esta seleção.</p>
+              </div>
+              <label className="block min-w-0 text-sm font-semibold">
+                Trocar estabelecimento
+                <select
+                  aria-label="Estabelecimento em atendimento"
+                  className={`${campo} mt-1 block w-full`}
+                  value={selecionada?.id ?? ""}
+                  onChange={(e) => void navigate({ to: "/operacao", search: { site: e.target.value } })}
+                >
+                  <option value="" disabled>Selecione uma loja</option>
+                  {lojas.data.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nome}{l.dono ? " — proprietário" : " — equipe"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </section>
             {selecionada ? (
               <AreaLoja key={`${user.id}:${selecionada.id}`} loja={selecionada} usuario={user.id} />
             ) : (
@@ -248,7 +299,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
   const [som, setSom] = useState(false);
   const vistos = useRef<Set<string> | null>(null);
   const audio = useRef<AudioContext | null>(null);
-  const [ocupado, setOcupado] = useState(false);
+  const [ocupado, setOcupado] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["operacao-dados", usuario, loja.id],
     gcTime: 0,
@@ -289,9 +340,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
     }
     vistos.current = new Set(q.data.pedidos.map((p) => p.id));
   }, [q.data, q.isError, loja.nome, som]);
-  const executar = async (acao: () => PromiseLike<{ error: unknown }>) => {
+  const executar = async (chave: string, acao: () => PromiseLike<{ error: unknown }>) => {
     if (ocupado) return;
-    setOcupado(true);
+    setOcupado(chave);
     try {
       const r = await acao();
       if (r.error) throw r.error;
@@ -301,7 +352,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
       toast.error(erroOperacao(error));
       await q.refetch();
     } finally {
-      setOcupado(false);
+      setOcupado(null);
     }
   };
   const data = (instante: string) =>
@@ -334,36 +385,53 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         Number(b.status === "novo") - Number(a.status === "novo") ||
         (a.agendado_para ?? a.created_at).localeCompare(b.agendado_para ?? b.created_at),
     );
+  const contagens = {
+    ativos: dados.pedidos.filter((p) => !["concluido", "cancelado"].includes(p.status)).length,
+    novo: dados.pedidos.filter((p) => p.status === "novo").length,
+    concluido: dados.pedidos.filter((p) => p.status === "concluido").length,
+    cancelado: dados.pedidos.filter((p) => p.status === "cancelado").length,
+    todos: dados.pedidos.length,
+  };
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="mr-auto">
-          <h2 className="text-2xl font-bold">{loja.nome}</h2>
-          <p className="text-xs text-muted-foreground">
-            {loja.publicado ? "Loja publicada" : "Loja não publicada"} · Atualização a cada 15
-            segundos · {dados.fuso.replace("America/", "").replaceAll("_", " ")}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0" aria-live="polite">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="truncate text-2xl font-bold sm:text-3xl">{loja.nome}</h2>
+            <span className="shrink-0 rounded-full bg-lime-soft px-2.5 py-1 text-xs font-bold text-accent-foreground">
+              Loja selecionada
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {loja.publicado ? "Publicada" : "Não publicada"} · Horário de {dados.fuso.replace("America/", "").replaceAll("_", " ")} · Atualiza a cada 15 s
           </p>
         </div>
-        <button
-          className={botao}
-          aria-pressed={som}
-          onClick={async () => {
-            if (!som) {
-              audio.current ??= new AudioContext();
-              await audio.current.resume();
-            }
-            setSom(!som);
-          }}
-        >
-          <Bell size={16} />
-          {som ? "Som ativado" : "Ativar som"}
-        </button>
-        <button className={botao} disabled={q.isFetching} onClick={() => void q.refetch()}>
-          <RefreshCw size={16} className={q.isFetching ? "animate-spin" : ""} />
-          Atualizar
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            className={`${botao} px-3`}
+            aria-label={som ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
+            aria-pressed={som}
+            onClick={async () => {
+              try {
+                if (!som) {
+                  audio.current ??= new AudioContext();
+                  await audio.current.resume();
+                }
+                setSom(!som);
+              } catch {
+                toast.error("O navegador não permitiu ativar o som.");
+              }
+            }}
+          >
+            <Bell size={16} /><span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
+          </button>
+          <button className={`${botao} px-3`} aria-label="Atualizar dados agora" disabled={q.isFetching} onClick={() => void q.refetch()}>
+            <RefreshCw size={16} className={q.isFetching ? "animate-spin" : ""} />
+            <span className="hidden md:inline">Atualizar</span>
+          </button>
+        </div>
       </div>
-      <nav aria-label="Área de operação" className="flex flex-wrap gap-2">
+      <nav role="tablist" aria-label="Área de operação" className="scrollbar-invisivel -mx-4 flex gap-1 overflow-x-auto border-y border-border bg-card px-4 py-2 sm:mx-0 sm:rounded-lg sm:border sm:px-2">
         {[
           "Pedidos",
           "Agenda",
@@ -373,13 +441,16 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         ].map((a) => (
           <button
             key={a}
-            className={`${botao} ${aba === a ? "bg-primary text-primary-foreground" : "bg-card"}`}
-            aria-current={aba === a ? "page" : undefined}
+            id={`aba-${a}`}
+            role="tab"
+            aria-controls={`painel-${a}`}
+            aria-selected={aba === a}
+            className={`min-h-11 shrink-0 rounded-md px-3 text-sm font-semibold transition-colors ${aba === a ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
             onClick={() => setAba(a)}
           >
             {a}
             {a === "Pedidos" && dados.pedidos.some((p) => p.status === "novo") && (
-              <span className="rounded-full bg-background px-2 text-foreground">
+              <span aria-label={`${contagens.novo} pedidos aguardando aceite`} className="rounded-full bg-background px-2 text-foreground">
                 {dados.pedidos.filter((p) => p.status === "novo").length}
               </span>
             )}
@@ -387,38 +458,34 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         ))}
       </nav>
       {aba === "Pedidos" && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm">
-              Exibir{" "}
-              <select
-                className={`${campo} ml-2`}
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-              >
-                <option value="ativos">Em atendimento</option>
-                <option value="novo">Aguardando aceite</option>
-                <option value="concluido">Concluídos</option>
-                <option value="cancelado">Cancelados</option>
-                <option value="todos">Todos</option>
-              </select>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              {pedidos.length} pedido(s) · Até 500 mais recentes
-            </p>
+        <div role="tabpanel" id="painel-Pedidos" aria-labelledby="aba-Pedidos" className="space-y-4">
+          <div className="space-y-3">
+            <div>
+              <h3 className="text-lg font-bold">Pedidos</h3>
+              <p className="text-xs text-muted-foreground">Até 500 pedidos mais recentes desta loja</p>
+            </div>
+            <div className="scrollbar-invisivel -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filtrar pedidos">
+              {([
+                ["ativos", "Em atendimento"], ["novo", "Aguardando"], ["concluido", "Concluídos"], ["cancelado", "Cancelados"], ["todos", "Todos"],
+              ] as const).map(([valor, rotulo]) => (
+                <button key={valor} aria-pressed={filtro === valor} onClick={() => setFiltro(valor)} className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm font-semibold ${filtro === valor ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
+                  {rotulo} <span className="ml-1 tabular-nums opacity-70">{contagens[valor]}</span>
+                </button>
+              ))}
+            </div>
           </div>
           {!pedidos.length ? (
             vazio("Nenhum pedido nesta etapa. Novos pedidos aparecerão aqui.")
           ) : (
-            <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid items-start gap-4 lg:grid-cols-2 2xl:grid-cols-3">
               {pedidos.map((p) => (
                 <FichaPedido
                   key={p.id}
                   pedido={p}
                   data={data}
-                  ocupado={ocupado}
+                  ocupado={ocupado === `pedido:${p.id}`}
                   atualizar={(status) =>
-                    executar(() =>
+                    executar(`pedido:${p.id}`, () =>
                       supabase.rpc("nexa_atualizar_status_pedido", {
                         requested_id: p.id,
                         requested_status: status,
@@ -432,10 +499,8 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Agenda" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Horários locais da loja · Até 500 agendamentos mais recentes
-          </p>
+        <div role="tabpanel" id="painel-Agenda" aria-labelledby="aba-Agenda" className="space-y-4">
+          <div><h3 className="text-lg font-bold">Agenda da loja</h3><p className="text-sm text-muted-foreground">Datas e horários no fuso de {dados.fuso.replace("America/", "").replaceAll("_", " ")} · até 500 agendamentos</p></div>
           {!dados.agenda.length ? (
             vazio("Nenhum agendamento recebido.")
           ) : (
@@ -444,9 +509,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                 <FichaAgenda
                   key={a.id}
                   agenda={a}
-                  ocupado={ocupado}
+                  ocupado={ocupado === `agenda:${a.id}`}
                   atualizar={(estado, dia, hora) =>
-                    executar(() =>
+                    executar(`agenda:${a.id}`, () =>
                       supabase.rpc("nexa_operacao_atualizar", {
                         site_id: loja.id,
                         tipo: "agenda",
@@ -464,10 +529,8 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Solicitações" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Até 500 solicitações mais recentes · Somente desta loja
-          </p>
+        <div role="tabpanel" id="painel-Solicitações" aria-labelledby="aba-Solicitações" className="space-y-4">
+          <div><h3 className="text-lg font-bold">Solicitações</h3><p className="text-sm text-muted-foreground">Mensagens recebidas por {loja.nome} · até 500 mais recentes</p></div>
           {!dados.solicitacoes.length ? (
             vazio("Nenhuma solicitação recebida.")
           ) : (
@@ -475,23 +538,24 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               {dados.solicitacoes.map((s) => (
                 <article
                   key={s.id}
-                  className="space-y-3 rounded-2xl border border-border bg-card p-5"
+                  className={`space-y-4 rounded-xl border bg-card p-4 sm:p-5 ${s.status === "novo" ? "border-primary shadow-soft" : "border-border"}`}
                 >
                   <div className="flex justify-between gap-3 text-sm">
-                    <strong>
+                    <strong className="flex items-center gap-2">
+                      {s.status === "novo" && <span className="size-2 rounded-full bg-lime" aria-hidden="true" />}
                       {s.status === "novo"
                         ? "Nova solicitação"
                         : s.status === "lido"
                           ? "Lida"
                           : "Arquivada"}
                     </strong>
-                    <time>{data(s.created_at)}</time>
+                    <time className="shrink-0 text-xs text-muted-foreground">{data(s.created_at)}</time>
                   </div>
                   <dl className="space-y-2 text-sm">
                     {Object.entries(s.payload).map(([k, v]) => (
-                      <div key={k} className="break-words">
-                        <dt className="text-xs text-muted-foreground">{k}</dt>
-                        <dd>{typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}</dd>
+                      <div key={k} className="break-words border-b border-border pb-2 last:border-0">
+                        <dt className="text-xs font-semibold text-muted-foreground">{nomeCampo(k)}</dt>
+                        <dd className="mt-0.5 whitespace-pre-wrap">{valorSolicitacao(v)}</dd>
                       </div>
                     ))}
                   </dl>
@@ -499,9 +563,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                     {s.status !== "lido" && (
                       <button
                         className={botao}
-                        disabled={ocupado}
+                        disabled={ocupado === `solicitacao:${s.id}`}
                         onClick={() =>
-                          void executar(() =>
+                          void executar(`solicitacao:${s.id}`, () =>
                             supabase.rpc("nexa_operacao_atualizar", {
                               site_id: loja.id,
                               tipo: "solicitacao",
@@ -517,9 +581,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                     {s.status !== "arquivado" && (
                       <button
                         className={botao}
-                        disabled={ocupado}
+                        disabled={ocupado === `solicitacao:${s.id}`}
                         onClick={() =>
-                          void executar(() =>
+                          void executar(`solicitacao:${s.id}`, () =>
                             supabase.rpc("nexa_operacao_atualizar", {
                               site_id: loja.id,
                               tipo: "solicitacao",
@@ -540,8 +604,8 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Estatísticas" && (
-        <section className="space-y-5">
-          <h3 className="font-semibold">Resultados desta loja — últimos 30 dias</h3>
+        <section role="tabpanel" id="painel-Estatísticas" aria-labelledby="aba-Estatísticas" className="space-y-5">
+          <div><h3 className="text-lg font-bold">Resultados de {loja.nome}</h3><p className="text-sm text-muted-foreground">Período: últimos 30 dias · somente este estabelecimento</p></div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Visitas", dados.estatisticas.visitas],
@@ -551,16 +615,13 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               ["Pedidos concluídos", dados.estatisticas.concluidos],
               ["Valor dos pedidos concluídos", moeda(dados.estatisticas.receita)],
             ].map(([nome, valor]) => (
-              <div key={nome} className="rounded-2xl border border-border bg-card p-6">
+              <div key={nome} className="rounded-xl border border-border bg-card p-5 shadow-soft">
                 <p className="text-sm text-muted-foreground">{nome}</p>
                 <strong className="mt-2 block text-3xl tabular-nums">{valor}</strong>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Valores dos pedidos não comprovam pagamento. O recebimento é controlado pelo
-            estabelecimento.
-          </p>
+          <div className="rounded-lg border border-border bg-muted p-4 text-sm"><strong>Sobre o valor exibido</strong><p className="mt-1 text-muted-foreground">É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento recebido. O recebimento continua sob controle do estabelecimento.</p></div>
         </section>
       )}
       {aba === "Equipe e acessos" && loja.dono && <Equipe loja={loja} usuario={usuario} />}
