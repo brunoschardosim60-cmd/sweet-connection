@@ -1,7 +1,22 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Check, ClipboardList, Loader2, LogOut, RefreshCw, Store } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  ClipboardList,
+  Copy,
+  ExternalLink,
+  Loader2,
+  LogOut,
+  MapPin,
+  MessageCircle,
+  RefreshCw,
+  Store,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,8 +95,9 @@ type Dados = {
 };
 type Acesso = { id: string; email: string };
 const botao =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium disabled:opacity-50";
-const campo = "min-h-11 min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50";
+const campo =
+  "min-h-11 min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring";
 const rotulos: Record<string, string> = {
   novo: "Aguardando aceite",
   aceito: "Aceito",
@@ -93,6 +109,9 @@ const rotulos: Record<string, string> = {
   entrega: "Entrega",
   retirada: "Retirada",
   mesa: "Mesa / comanda",
+  confirmado: "Confirmado",
+  reagendado: "Reagendado",
+  pendente: "Pendente",
 };
 function Carregando() {
   return (
@@ -106,10 +125,39 @@ function Carregando() {
 }
 function vazio(texto: string) {
   return (
-    <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
-      {texto}
+    <div className="grid min-h-44 place-items-center rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
+      <div className="max-w-md space-y-2">
+        <ClipboardList className="mx-auto text-muted-foreground" aria-hidden="true" />
+        <p className="font-semibold text-foreground">Tudo organizado por aqui</p>
+        <p className="text-sm text-muted-foreground">{texto}</p>
+      </div>
     </div>
   );
+}
+const nomeCampo = (chave: string) =>
+  ({
+    nome: "Nome",
+    email: "E-mail",
+    telefone: "Telefone",
+    whatsapp: "WhatsApp",
+    mensagem: "Mensagem",
+    observacao: "Observação",
+    servico: "Serviço",
+    data: "Data",
+    horario: "Horário",
+    assunto: "Assunto",
+  })[chave.toLocaleLowerCase("pt-BR")] ??
+  chave.replaceAll("_", " ").replace(/^./, (letra) => letra.toLocaleUpperCase("pt-BR"));
+
+function valorSolicitacao(valor: unknown): string {
+  if (valor === null || valor === undefined || valor === "") return "Não informado";
+  if (Array.isArray(valor)) return valor.map(valorSolicitacao).join(", ");
+  if (typeof valor === "object")
+    return Object.entries(valor as Record<string, unknown>)
+      .map(([chave, item]) => `${nomeCampo(chave)}: ${valorSolicitacao(item)}`)
+      .join(" · ");
+  if (typeof valor === "boolean") return valor ? "Sim" : "Não";
+  return String(valor);
 }
 function erroOperacao(error: unknown) {
   const mensagem = (error as { message?: string })?.message ?? "";
@@ -128,6 +176,7 @@ function erroOperacao(error: unknown) {
 function Operacao() {
   const { user, carregando } = useAuthSession();
   const { site } = Route.useSearch();
+  const navigate = useNavigate();
   const lojas = useQuery({
     queryKey: ["operacao-lojas", user?.id],
     enabled: !!user,
@@ -175,27 +224,37 @@ function Operacao() {
   }
   return (
     <main className="min-h-dvh bg-background text-foreground">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
-          <Store className="text-primary" />
-          <div className="mr-auto">
-            <h1 className="text-xl font-bold">Operação da loja</h1>
-            <p className="text-xs text-muted-foreground">
-              Atendimento separado da criação de sites
-            </p>
+      <header className="border-b border-border bg-ink text-ink-foreground">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:px-6">
+          <div className="flex min-w-0 items-center gap-3 sm:mr-auto">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-lime text-accent-foreground">
+              <Store size={20} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold sm:text-xl">Operação das lojas</h1>
+              <p className="truncate text-xs text-ink-muted">Ambiente exclusivo de atendimento</p>
+            </div>
           </div>
           {lojas.data?.some((l) => l.dono) && (
-            <Link to="/painel" className={botao}>
-              Área de criação
+            <Link
+              to="/painel"
+              className={`${botao} border-sidebar-border bg-sidebar-accent px-3 text-sidebar-foreground`}
+            >
+              <ExternalLink size={15} aria-hidden="true" />
+              <span className="hidden sm:inline">Ir para criação</span>
+              <span className="sr-only sm:hidden">Ir para criação do site</span>
             </Link>
           )}
-          <button className={botao} onClick={() => void supabase.auth.signOut()}>
+          <button
+            className={`${botao} border-sidebar-border bg-sidebar-accent text-sidebar-foreground`}
+            onClick={() => void supabase.auth.signOut()}
+          >
             <LogOut size={16} />
-            Sair
+            <span className="sr-only sm:not-sr-only">Sair</span>
           </button>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+      <div className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
         <ConvitesLoja usuario={user.id} />
         {lojas.isPending ? (
           <Carregando />
@@ -208,27 +267,40 @@ function Operacao() {
           </div>
         ) : (
           <>
-            <label className="block max-w-lg space-y-2 text-sm font-medium">
-              Estabelecimento
-              <select
-                aria-label="Estabelecimento"
-                className={`${campo} block w-full`}
-                value={selecionada?.id ?? ""}
-                onChange={(e) => {
-                  window.location.assign(`/operacao?site=${e.target.value}`);
-                }}
-              >
-                <option value="" disabled>
-                  Selecione uma loja
-                </option>
-                {lojas.data.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.nome} — /{l.slug}
-                    {l.dono ? " (proprietário)" : ""}
+            <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)] sm:items-center sm:p-5">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase text-muted-foreground">
+                  Estabelecimento em atendimento
+                </p>
+                <p className="mt-1 truncate text-lg font-bold">
+                  {selecionada?.nome ?? "Selecione uma loja"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pedidos, agenda e resultados sempre seguem esta seleção.
+                </p>
+              </div>
+              <label className="block min-w-0 text-sm font-semibold">
+                Trocar estabelecimento
+                <select
+                  aria-label="Estabelecimento em atendimento"
+                  className={`${campo} mt-1 block w-full`}
+                  value={selecionada?.id ?? ""}
+                  onChange={(e) =>
+                    void navigate({ to: "/operacao", search: { site: e.target.value } })
+                  }
+                >
+                  <option value="" disabled>
+                    Selecione uma loja
                   </option>
-                ))}
-              </select>
-            </label>
+                  {lojas.data.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nome}
+                      {l.dono ? " — proprietário" : " — equipe"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </section>
             {selecionada ? (
               <AreaLoja key={`${user.id}:${selecionada.id}`} loja={selecionada} usuario={user.id} />
             ) : (
@@ -251,7 +323,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
   const [som, setSom] = useState(false);
   const vistos = useRef<Set<string> | null>(null);
   const audio = useRef<AudioContext | null>(null);
-  const [ocupado, setOcupado] = useState(false);
+  const [ocupado, setOcupado] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["operacao-dados", usuario, loja.id],
     gcTime: 0,
@@ -292,9 +364,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
     }
     vistos.current = new Set(q.data.pedidos.map((p) => p.id));
   }, [q.data, q.isError, loja.nome, som]);
-  const executar = async (acao: () => PromiseLike<{ error: unknown }>) => {
+  const executar = async (chave: string, acao: () => PromiseLike<{ error: unknown }>) => {
     if (ocupado) return;
-    setOcupado(true);
+    setOcupado(chave);
     try {
       const r = await acao();
       if (r.error) throw r.error;
@@ -304,7 +376,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
       toast.error(erroOperacao(error));
       await q.refetch();
     } finally {
-      setOcupado(false);
+      setOcupado(null);
     }
   };
   const data = (instante: string) =>
@@ -337,36 +409,64 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         Number(b.status === "novo") - Number(a.status === "novo") ||
         (a.agendado_para ?? a.created_at).localeCompare(b.agendado_para ?? b.created_at),
     );
+  const contagens = {
+    ativos: dados.pedidos.filter((p) => !["concluido", "cancelado"].includes(p.status)).length,
+    novo: dados.pedidos.filter((p) => p.status === "novo").length,
+    concluido: dados.pedidos.filter((p) => p.status === "concluido").length,
+    cancelado: dados.pedidos.filter((p) => p.status === "cancelado").length,
+    todos: dados.pedidos.length,
+  };
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="mr-auto">
-          <h2 className="text-2xl font-bold">{loja.nome}</h2>
-          <p className="text-xs text-muted-foreground">
-            {loja.publicado ? "Loja publicada" : "Loja não publicada"} · Atualização a cada 15
-            segundos · {dados.fuso.replace("America/", "").replaceAll("_", " ")}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0" aria-live="polite">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="truncate text-2xl font-bold sm:text-3xl">{loja.nome}</h2>
+            <span className="shrink-0 rounded-full bg-lime-soft px-2.5 py-1 text-xs font-bold text-accent-foreground">
+              Loja selecionada
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {loja.publicado ? "Publicada" : "Não publicada"} · Horário de{" "}
+            {dados.fuso.replace("America/", "").replaceAll("_", " ")} · Atualiza a cada 15 s
           </p>
         </div>
-        <button
-          className={botao}
-          aria-pressed={som}
-          onClick={async () => {
-            if (!som) {
-              audio.current ??= new AudioContext();
-              await audio.current.resume();
-            }
-            setSom(!som);
-          }}
-        >
-          <Bell size={16} />
-          {som ? "Som ativado" : "Ativar som"}
-        </button>
-        <button className={botao} disabled={q.isFetching} onClick={() => void q.refetch()}>
-          <RefreshCw size={16} className={q.isFetching ? "animate-spin" : ""} />
-          Atualizar
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            className={`${botao} px-3`}
+            aria-label={som ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
+            aria-pressed={som}
+            onClick={async () => {
+              try {
+                if (!som) {
+                  audio.current ??= new AudioContext();
+                  await audio.current.resume();
+                }
+                setSom(!som);
+              } catch {
+                toast.error("O navegador não permitiu ativar o som.");
+              }
+            }}
+          >
+            <Bell size={16} />
+            <span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
+          </button>
+          <button
+            className={`${botao} px-3`}
+            aria-label="Atualizar dados agora"
+            disabled={q.isFetching}
+            onClick={() => void q.refetch()}
+          >
+            <RefreshCw size={16} className={q.isFetching ? "animate-spin" : ""} />
+            <span className="hidden md:inline">Atualizar</span>
+          </button>
+        </div>
       </div>
-      <nav aria-label="Área de operação" className="flex flex-wrap gap-2">
+      <nav
+        role="tablist"
+        aria-label="Área de operação"
+        className="scrollbar-invisivel -mx-4 flex gap-1 overflow-x-auto border-y border-border bg-card px-4 py-2 sm:mx-0 sm:rounded-lg sm:border sm:px-2"
+      >
         {[
           "Pedidos",
           "Agenda",
@@ -376,13 +476,19 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         ].map((a) => (
           <button
             key={a}
-            className={`${botao} ${aba === a ? "bg-primary text-primary-foreground" : "bg-card"}`}
-            aria-current={aba === a ? "page" : undefined}
+            id={`aba-${a}`}
+            role="tab"
+            aria-controls={`painel-${a}`}
+            aria-selected={aba === a}
+            className={`min-h-11 shrink-0 rounded-md px-3 text-sm font-semibold transition-colors ${aba === a ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
             onClick={() => setAba(a)}
           >
             {a}
             {a === "Pedidos" && dados.pedidos.some((p) => p.status === "novo") && (
-              <span className="rounded-full bg-background px-2 text-foreground">
+              <span
+                aria-label={`${contagens.novo} pedidos aguardando aceite`}
+                className="rounded-full bg-background px-2 text-foreground"
+              >
                 {dados.pedidos.filter((p) => p.status === "novo").length}
               </span>
             )}
@@ -390,38 +496,55 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         ))}
       </nav>
       {aba === "Pedidos" && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm">
-              Exibir{" "}
-              <select
-                className={`${campo} ml-2`}
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-              >
-                <option value="ativos">Em atendimento</option>
-                <option value="novo">Aguardando aceite</option>
-                <option value="concluido">Concluídos</option>
-                <option value="cancelado">Cancelados</option>
-                <option value="todos">Todos</option>
-              </select>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              {pedidos.length} pedido(s) · Até 500 mais recentes
-            </p>
+        <div
+          role="tabpanel"
+          id="painel-Pedidos"
+          aria-labelledby="aba-Pedidos"
+          className="space-y-4"
+        >
+          <div className="space-y-3">
+            <div>
+              <h3 className="text-lg font-bold">Pedidos</h3>
+              <p className="text-xs text-muted-foreground">
+                Até 500 pedidos mais recentes desta loja
+              </p>
+            </div>
+            <div
+              className="scrollbar-invisivel -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+              aria-label="Filtrar pedidos"
+            >
+              {(
+                [
+                  ["ativos", "Em atendimento"],
+                  ["novo", "Aguardando"],
+                  ["concluido", "Concluídos"],
+                  ["cancelado", "Cancelados"],
+                  ["todos", "Todos"],
+                ] as const
+              ).map(([valor, rotulo]) => (
+                <button
+                  key={valor}
+                  aria-pressed={filtro === valor}
+                  onClick={() => setFiltro(valor)}
+                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm font-semibold ${filtro === valor ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                >
+                  {rotulo} <span className="ml-1 tabular-nums opacity-70">{contagens[valor]}</span>
+                </button>
+              ))}
+            </div>
           </div>
           {!pedidos.length ? (
             vazio("Nenhum pedido nesta etapa. Novos pedidos aparecerão aqui.")
           ) : (
-            <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid items-start gap-4 lg:grid-cols-2 2xl:grid-cols-3">
               {pedidos.map((p) => (
                 <FichaPedido
                   key={p.id}
                   pedido={p}
                   data={data}
-                  ocupado={ocupado}
+                  ocupado={ocupado === `pedido:${p.id}`}
                   atualizar={(status) =>
-                    executar(() =>
+                    executar(`pedido:${p.id}`, () =>
                       supabase.rpc("nexa_atualizar_status_pedido", {
                         requested_id: p.id,
                         requested_status: status,
@@ -435,10 +558,14 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Agenda" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Horários locais da loja · Até 500 agendamentos mais recentes
-          </p>
+        <div role="tabpanel" id="painel-Agenda" aria-labelledby="aba-Agenda" className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold">Agenda da loja</h3>
+            <p className="text-sm text-muted-foreground">
+              Datas e horários no fuso de {dados.fuso.replace("America/", "").replaceAll("_", " ")}{" "}
+              · até 500 agendamentos
+            </p>
+          </div>
           {!dados.agenda.length ? (
             vazio("Nenhum agendamento recebido.")
           ) : (
@@ -447,9 +574,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                 <FichaAgenda
                   key={a.id}
                   agenda={a}
-                  ocupado={ocupado}
+                  ocupado={ocupado === `agenda:${a.id}`}
                   atualizar={(estado, dia, hora) =>
-                    executar(() =>
+                    executar(`agenda:${a.id}`, () =>
                       supabase.rpc("nexa_operacao_atualizar", {
                         site_id: loja.id,
                         tipo: "agenda",
@@ -467,10 +594,18 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Solicitações" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Até 500 solicitações mais recentes · Somente desta loja
-          </p>
+        <div
+          role="tabpanel"
+          id="painel-Solicitações"
+          aria-labelledby="aba-Solicitações"
+          className="space-y-4"
+        >
+          <div>
+            <h3 className="text-lg font-bold">Solicitações</h3>
+            <p className="text-sm text-muted-foreground">
+              Mensagens recebidas por {loja.nome} · até 500 mais recentes
+            </p>
+          </div>
           {!dados.solicitacoes.length ? (
             vazio("Nenhuma solicitação recebida.")
           ) : (
@@ -478,23 +613,33 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               {dados.solicitacoes.map((s) => (
                 <article
                   key={s.id}
-                  className="space-y-3 rounded-2xl border border-border bg-card p-5"
+                  className={`space-y-4 rounded-xl border bg-card p-4 sm:p-5 ${s.status === "novo" ? "border-primary shadow-soft" : "border-border"}`}
                 >
                   <div className="flex justify-between gap-3 text-sm">
-                    <strong>
+                    <strong className="flex items-center gap-2">
+                      {s.status === "novo" && (
+                        <span className="size-2 rounded-full bg-lime" aria-hidden="true" />
+                      )}
                       {s.status === "novo"
                         ? "Nova solicitação"
                         : s.status === "lido"
                           ? "Lida"
                           : "Arquivada"}
                     </strong>
-                    <time>{data(s.created_at)}</time>
+                    <time className="shrink-0 text-xs text-muted-foreground">
+                      {data(s.created_at)}
+                    </time>
                   </div>
                   <dl className="space-y-2 text-sm">
                     {Object.entries(s.payload).map(([k, v]) => (
-                      <div key={k} className="break-words">
-                        <dt className="text-xs text-muted-foreground">{k}</dt>
-                        <dd>{typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}</dd>
+                      <div
+                        key={k}
+                        className="break-words border-b border-border pb-2 last:border-0"
+                      >
+                        <dt className="text-xs font-semibold text-muted-foreground">
+                          {nomeCampo(k)}
+                        </dt>
+                        <dd className="mt-0.5 whitespace-pre-wrap">{valorSolicitacao(v)}</dd>
                       </div>
                     ))}
                   </dl>
@@ -502,9 +647,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                     {s.status !== "lido" && (
                       <button
                         className={botao}
-                        disabled={ocupado}
+                        disabled={ocupado === `solicitacao:${s.id}`}
                         onClick={() =>
-                          void executar(() =>
+                          void executar(`solicitacao:${s.id}`, () =>
                             supabase.rpc("nexa_operacao_atualizar", {
                               site_id: loja.id,
                               tipo: "solicitacao",
@@ -520,9 +665,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                     {s.status !== "arquivado" && (
                       <button
                         className={botao}
-                        disabled={ocupado}
+                        disabled={ocupado === `solicitacao:${s.id}`}
                         onClick={() =>
-                          void executar(() =>
+                          void executar(`solicitacao:${s.id}`, () =>
                             supabase.rpc("nexa_operacao_atualizar", {
                               site_id: loja.id,
                               tipo: "solicitacao",
@@ -543,8 +688,18 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Estatísticas" && (
-        <section className="space-y-5">
-          <h3 className="font-semibold">Resultados desta loja — últimos 30 dias</h3>
+        <section
+          role="tabpanel"
+          id="painel-Estatísticas"
+          aria-labelledby="aba-Estatísticas"
+          className="space-y-5"
+        >
+          <div>
+            <h3 className="text-lg font-bold">Resultados de {loja.nome}</h3>
+            <p className="text-sm text-muted-foreground">
+              Período: últimos 30 dias · somente este estabelecimento
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Visitas", dados.estatisticas.visitas],
@@ -554,16 +709,19 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               ["Pedidos concluídos", dados.estatisticas.concluidos],
               ["Valor dos pedidos concluídos", moeda(dados.estatisticas.receita)],
             ].map(([nome, valor]) => (
-              <div key={nome} className="rounded-2xl border border-border bg-card p-6">
+              <div key={nome} className="rounded-xl border border-border bg-card p-5 shadow-soft">
                 <p className="text-sm text-muted-foreground">{nome}</p>
                 <strong className="mt-2 block text-3xl tabular-nums">{valor}</strong>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Valores dos pedidos não comprovam pagamento. O recebimento é controlado pelo
-            estabelecimento.
-          </p>
+          <div className="rounded-lg border border-border bg-muted p-4 text-sm">
+            <strong>Sobre o valor exibido</strong>
+            <p className="mt-1 text-muted-foreground">
+              É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento
+              recebido. O recebimento continua sob controle do estabelecimento.
+            </p>
+          </div>
         </section>
       )}
       {aba === "Equipe e acessos" && loja.dono && (
@@ -626,141 +784,178 @@ function FichaPedido({
       em_rota: ["concluido", "Concluir entrega"],
     } as Record<string, string[]>
   )[p.status];
+  const proximoStatus = proximo?.[0];
+  const proximoRotulo = proximo?.[1];
   return (
     <article
-      className={`min-w-0 space-y-4 rounded-2xl border border-border border-t-4 bg-card p-5 ${p.status === "novo" ? "border-t-amber-500" : "border-t-primary/40"}`}
+      className={`min-w-0 overflow-hidden rounded-xl border bg-card shadow-soft ${p.status === "novo" ? "border-primary" : "border-border"}`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-bold">
+      <header
+        className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b p-4 sm:p-5 ${p.status === "novo" ? "border-primary bg-lime-soft/60" : "border-border bg-muted/40"}`}
+      >
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-2 text-xl font-bold">
             <ClipboardList size={18} />
             Pedido #{p.codigo}
           </h3>
-          <time className="text-xs text-muted-foreground">{data(p.created_at)}</time>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <time>{data(p.created_at)}</time>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-foreground">
+              {rotulos[p.modalidade] ?? p.modalidade}
+            </span>
+          </div>
         </div>
-        <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
+        <span className="shrink-0 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold">
           {rotulos[p.status] ?? p.status}
         </span>
-      </div>
-      {p.agendado_para && (
-        <p className="rounded-xl bg-primary/10 p-3 text-sm font-semibold">
-          Agendado: {data(p.agendado_para)}
-        </p>
-      )}
-      <p className="break-words text-sm">
-        <strong>{p.nome}</strong> · {rotulos[p.modalidade] ?? p.modalidade}
-      </p>
-      <ul className="divide-y divide-border border-y border-border">
-        {p.itens.map((item, i) => (
-          <li key={i} className="py-3">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3">
-              <input
-                className="mt-1 size-5 shrink-0 accent-primary"
-                type="checkbox"
-                checked={checados.includes(i)}
-                onChange={(e) =>
-                  setChecados((v) => (e.target.checked ? [...v, i] : v.filter((j) => j !== i)))
-                }
-              />
-              <span
-                className={`min-w-0 break-words text-sm ${checados.includes(i) ? "text-muted-foreground line-through" : ""}`}
-              >
-                <strong>
-                  {item.quantidade}× {item.nome}
-                </strong>
-                {item.observacao && (
-                  <span className="mt-1 block font-medium">Obs.: {item.observacao}</span>
-                )}
-                {item.opcoes?.map((o, j) => (
-                  <span key={j} className="block text-xs">
-                    {[o.grupoNome, o.opcaoNome ?? o.nome].filter(Boolean).join(": ")}
-                  </span>
-                ))}
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
-      <p className="text-[11px] text-muted-foreground">
-        Checks são auxiliares neste dispositivo; não alteram o pedido.
-      </p>
-      {p.endereco && (
-        <p className="break-words text-sm">
-          <strong>Endereço:</strong>{" "}
-          {[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}
-        </p>
-      )}
-      {(p.observacao || p.horario_preferido) && (
-        <p className="break-words rounded-xl bg-muted p-3 text-sm">
-          {[p.observacao, p.horario_preferido].filter(Boolean).join(" · ")}
-        </p>
-      )}
-      <div className="text-sm">
-        <div className="flex justify-between gap-2">
-          <span>Itens</span>
-          <span>{moeda(p.subtotal)}</span>
-        </div>
-        <div className="flex justify-between gap-2">
-          <span>Entrega</span>
-          <span>{moeda(p.taxa_entrega)}</span>
-        </div>
-        <div className="mt-2 flex justify-between gap-2 text-lg font-bold">
-          <span>Total</span>
-          <span>{moeda(p.total)}</span>
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Pagamento combinado: {p.pagamento}
-          {p.troco ? ` · Troco para ${moeda(p.troco)}` : ""}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <a
-          className={botao}
-          href={whatsappLink(
-            p.telefone,
-            `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`,
-          )}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Contatar cliente
-        </a>
-        {proximo && (
-          <button
-            disabled={ocupado}
-            className={`${botao} bg-primary text-primary-foreground`}
-            onClick={() => void atualizar(proximo[0]!)}
+      </header>
+      <div className="space-y-4 p-4 sm:p-5">
+        {p.agendado_para ? (
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary p-3 text-sm">
+            <CalendarDays className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
+            <div>
+              <strong className="block">Pedido agendado</strong>
+              <time>{data(p.agendado_para)}</time>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs font-bold uppercase text-muted-foreground">Atendimento imediato</p>
+        )}
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <div className="min-w-0">
+            <span className="text-xs text-muted-foreground">Cliente</span>
+            <p className="truncate font-bold">{p.nome}</p>
+          </div>
+          <a
+            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border px-3 font-semibold hover:bg-muted"
+            href={whatsappLink(
+              p.telefone,
+              `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`,
+            )}
+            target="_blank"
+            rel="noreferrer"
           >
-            <Check size={16} />
-            {proximo[1]}
-          </button>
+            <MessageCircle size={16} /> Contatar
+          </a>
+        </div>
+        <section aria-label="Itens para preparar">
+          <h4 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Preparo</h4>
+          <ul className="divide-y divide-border rounded-lg border border-border px-3">
+            {p.itens.map((item, i) => (
+              <li key={i} className="py-3">
+                <label className="flex min-h-11 cursor-pointer items-start gap-3">
+                  <input
+                    className="mt-0.5 size-6 shrink-0 accent-primary"
+                    type="checkbox"
+                    checked={checados.includes(i)}
+                    onChange={(e) =>
+                      setChecados((v) => (e.target.checked ? [...v, i] : v.filter((j) => j !== i)))
+                    }
+                  />
+                  <span
+                    className={`min-w-0 break-words text-sm ${checados.includes(i) ? "text-muted-foreground line-through" : ""}`}
+                  >
+                    <strong>
+                      {item.quantidade}× {item.nome}
+                    </strong>
+                    {item.opcoes?.map((o, j) => (
+                      <span key={j} className="mt-0.5 block text-xs text-muted-foreground">
+                        {[o.grupoNome, o.opcaoNome ?? o.nome].filter(Boolean).join(": ")}
+                      </span>
+                    ))}
+                    {item.observacao && (
+                      <span className="mt-2 block rounded-md bg-lime-soft p-2 font-semibold no-underline">
+                        Observação do item: {item.observacao}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-muted-foreground">
+            Checks são auxiliares neste dispositivo; não alteram o pedido.
+          </p>
+        </section>
+        {p.endereco && (
+          <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm">
+            <MapPin className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
+            <div>
+              <strong className="block">Endereço de entrega</strong>
+              <p className="break-words">
+                {[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          </div>
+        )}
+        {(p.observacao || p.horario_preferido) && (
+          <div className="break-words rounded-lg border border-primary bg-lime-soft/50 p-3 text-sm">
+            <strong className="block">Atenção no pedido</strong>
+            {p.observacao && <p className="mt-1">{p.observacao}</p>}
+            {p.horario_preferido && (
+              <p className="mt-1">Horário preferido: {p.horario_preferido}</p>
+            )}
+          </div>
+        )}
+        <div className="rounded-lg border border-border p-3 text-sm">
+          <div className="flex justify-between gap-2">
+            <span>Itens</span>
+            <span>{moeda(p.subtotal)}</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span>Entrega</span>
+            <span>{moeda(p.taxa_entrega)}</span>
+          </div>
+          <div className="mt-2 flex justify-between gap-2 text-lg font-bold">
+            <span>Total</span>
+            <span>{moeda(p.total)}</span>
+          </div>
+          <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+            Pagamento informado: {p.pagamento}
+            {p.troco ? ` · Troco para ${moeda(p.troco)}` : ""}
+          </p>
+        </div>
+        {proximoStatus && proximoRotulo && (
+          <div className="space-y-2 border-t border-border pt-4">
+            <button
+              disabled={ocupado}
+              className={`${botao} w-full border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
+              onClick={() => void atualizar(proximoStatus)}
+            >
+              {ocupado ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+              {proximoRotulo} <ChevronRight size={16} />
+            </button>
+            {cancelar ? (
+              <div
+                role="alert"
+                className="space-y-3 rounded-lg border border-destructive/40 p-3 text-sm"
+              >
+                <p>Cancelar este pedido? O cliente verá o cancelamento no acompanhamento.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    disabled={ocupado}
+                    className={`${botao} border-destructive text-destructive`}
+                    onClick={() => void atualizar("cancelado")}
+                  >
+                    Confirmar cancelamento
+                  </button>
+                  <button className={botao} onClick={() => setCancelar(false)}>
+                    Voltar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="min-h-11 w-full text-sm font-semibold text-destructive"
+                onClick={() => setCancelar(true)}
+              >
+                Recusar / cancelar pedido
+              </button>
+            )}
+          </div>
         )}
       </div>
-      {proximo && (
-        <div>
-          {cancelar ? (
-            <div className="space-y-2 rounded-xl border border-destructive/40 p-3 text-sm">
-              <p>Cancelar este pedido? O cliente verá o cancelamento no acompanhamento.</p>
-              <div className="flex gap-2">
-                <button
-                  disabled={ocupado}
-                  className={`${botao} text-destructive`}
-                  onClick={() => void atualizar("cancelado")}
-                >
-                  Confirmar cancelamento
-                </button>
-                <button className={botao} onClick={() => setCancelar(false)}>
-                  Voltar
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button className="min-h-11 text-xs text-destructive" onClick={() => setCancelar(true)}>
-              Recusar / cancelar pedido
-            </button>
-          )}
-        </div>
-      )}
     </article>
   );
 }
@@ -778,15 +973,29 @@ function FichaAgenda({
     [hora, setHora] = useState(a.hora),
     [cancelar, setCancelar] = useState(false);
   return (
-    <article className="space-y-3 rounded-2xl border border-border bg-card p-5">
-      <h3 className="font-bold">
-        {a.data.split("-").reverse().join("/")} · {a.hora}
-      </h3>
-      <p className="text-sm">
-        {a.nome} · {a.servico}
-      </p>
-      <p className="text-xs text-muted-foreground">{a.status}</p>
-      {a.observacao && <p className="break-words text-sm">{a.observacao}</p>}
+    <article className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border pb-4">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase text-muted-foreground">Data e horário</p>
+          <h3 className="mt-1 text-xl font-bold">
+            {a.data.split("-").reverse().join("/")}{" "}
+            <span className="text-muted-foreground">às</span> {a.hora}
+          </h3>
+        </div>
+        <span className="h-fit rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold">
+          {rotulos[a.status] ?? a.status}
+        </span>
+      </header>
+      <div>
+        <p className="font-bold">{a.nome}</p>
+        <p className="text-sm text-muted-foreground">{a.servico || "Serviço não informado"}</p>
+      </div>
+      {a.observacao && (
+        <div className="break-words rounded-lg bg-lime-soft/50 p-3 text-sm">
+          <strong className="block">Observação</strong>
+          {a.observacao}
+        </div>
+      )}
       <a
         className={botao}
         href={whatsappLink(a.telefone, "Olá! Vamos falar sobre seu agendamento.")}
@@ -797,7 +1006,7 @@ function FichaAgenda({
       </a>
       {a.status === "confirmado" && (
         <>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button className={botao} onClick={() => setEditar(!editar)}>
               Reagendar
             </button>
@@ -807,7 +1016,7 @@ function FichaAgenda({
           </div>
           {editar && (
             <form
-              className="flex flex-wrap gap-2"
+              className="grid gap-3 rounded-lg border border-border bg-muted/40 p-3 sm:grid-cols-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 void atualizar("reagendar", dia, hora);
@@ -829,7 +1038,10 @@ function FichaAgenda({
                 value={hora}
                 onChange={(e) => setHora(e.target.value)}
               />
-              <button className={botao} disabled={ocupado}>
+              <button
+                className={`${botao} bg-primary text-primary-foreground sm:col-span-2`}
+                disabled={ocupado}
+              >
                 Salvar horário
               </button>
             </form>
@@ -878,85 +1090,120 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
     }
   };
   return (
-    <section className="max-w-2xl space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-      <h3 className="text-xl font-bold">Equipe e acessos</h3>
-      <p className="text-sm text-muted-foreground">
-        Compartilhe somente a operação de <strong>{loja.nome}</strong>. A pessoa poderá atender
-        pedidos, gerenciar agenda e solicitações e consultar estatísticas. Não poderá editar o site,
-        administrar acessos ou ver suas outras empresas.
-      </p>
-      <ol className="list-inside list-decimal space-y-2 text-sm">
-        <li>A pessoa cria sua própria conta Nexa e confirma o e-mail.</li>
-        <li>Você adiciona esse e-mail abaixo.</li>
-        <li>Envie o link desta operação para ela.</li>
-      </ol>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void alterar({ email });
-        }}
-        className="flex flex-wrap gap-2"
-      >
-        <input
-          aria-label="E-mail da pessoa"
-          className={`${campo} flex-1`}
-          type="email"
-          required
-          maxLength={254}
-          value={email}
-          placeholder="equipe@empresa.com"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <button className={`${botao} bg-primary text-primary-foreground`} disabled={ocupado}>
-          {ocupado ? <Loader2 className="animate-spin" size={16} /> : null}Conceder acesso
-        </button>
-      </form>
-      <button
-        className={botao}
-        onClick={() => {
-          void navigator.clipboard
-            .writeText(`${window.location.origin}/operacao?site=${loja.id}`)
-            .then(
-              () => toast.success("Link copiado"),
-              () => toast.error("Não foi possível copiar. Use o endereço desta página."),
-            );
-        }}
-      >
-        Copiar link da operação
-      </button>
-      <p className="text-xs text-muted-foreground">
-        O link não concede acesso sozinho. Não há envio automático de convite. Ao existir equipe
-        autorizada, os alertas de e-mail da operação são direcionados à equipe.
-      </p>
-      {q.isPending ? (
-        <Carregando />
-      ) : q.isError ? (
-        <p role="alert">
-          Não foi possível carregar os acessos.{" "}
-          <button className={botao} onClick={() => void q.refetch()}>
-            Tentar novamente
-          </button>
+    <section
+      role="tabpanel"
+      id="painel-Equipe e acessos"
+      aria-labelledby="aba-Equipe e acessos"
+      className="max-w-3xl space-y-6"
+    >
+      <div>
+        <h3 className="text-xl font-bold">Equipe e acessos</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Compartilhe o atendimento sem liberar a criação do site.
         </p>
-      ) : !q.data.length ? (
-        vazio("Somente você tem acesso. Nenhuma pessoa adicionada.")
-      ) : (
-        <ul className="divide-y divide-border">
-          {q.data.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <span className="break-all text-sm">{a.email}</span>
-              <button
-                className={`${botao} text-destructive`}
-                disabled={ocupado}
-                onClick={() =>
-                  revogar === a.id ? void alterar({ remover: a.id }) : setRevogar(a.id)
-                }
-              >
-                {revogar === a.id ? "Confirmar revogação" : "Revogar acesso"}
-              </button>
-            </li>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <p className="text-sm text-muted-foreground">
+          Compartilhe somente a operação de <strong>{loja.nome}</strong>. A pessoa poderá atender
+          pedidos, gerenciar agenda e solicitações e consultar estatísticas. Não poderá editar o
+          site, administrar acessos ou ver suas outras empresas.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            "A pessoa cria a conta Nexa e confirma o e-mail.",
+            "Você adiciona o mesmo e-mail abaixo.",
+            "Depois, envia o link da operação.",
+          ].map((passo, i) => (
+            <div key={passo} className="rounded-lg bg-muted p-3 text-sm">
+              <strong className="mb-1 block">Passo {i + 1}</strong>
+              {passo}
+            </div>
           ))}
-        </ul>
-      )}
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <h4 className="font-bold">Adicionar uma pessoa</h4>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ela verá apenas a operação de {loja.nome}. A conta precisa estar cadastrada e com o e-mail
+          confirmado.
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void alterar({ email });
+          }}
+          className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+        >
+          <input
+            aria-label="E-mail da pessoa"
+            className={`${campo} w-full`}
+            type="email"
+            required
+            maxLength={254}
+            value={email}
+            placeholder="equipe@empresa.com"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button className={`${botao} bg-primary text-primary-foreground`} disabled={ocupado}>
+            {ocupado ? <Loader2 className="animate-spin" size={16} /> : null}Conceder acesso
+          </button>
+        </form>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <h4 className="font-bold">Link de acesso à operação</h4>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Copiar e enviar o link não concede acesso. Somente e-mails autorizados acima conseguem
+          entrar.
+        </p>
+        <button
+          className={`${botao} mt-4`}
+          onClick={() => {
+            void navigator.clipboard
+              .writeText(`${window.location.origin}/operacao?site=${loja.id}`)
+              .then(
+                () => toast.success("Link copiado"),
+                () => toast.error("Não foi possível copiar. Use o endereço desta página."),
+              );
+          }}
+        >
+          <Copy size={16} /> Copiar link da operação
+        </button>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <div className="flex items-center gap-2">
+          <Users size={18} />
+          <h4 className="font-bold">Pessoas autorizadas</h4>
+        </div>
+        {q.isPending ? (
+          <Carregando />
+        ) : q.isError ? (
+          <p role="alert">
+            Não foi possível carregar os acessos.{" "}
+            <button className={botao} onClick={() => void q.refetch()}>
+              Tentar novamente
+            </button>
+          </p>
+        ) : !q.data.length ? (
+          vazio("Somente você tem acesso. Nenhuma pessoa adicionada.")
+        ) : (
+          <ul className="mt-3 divide-y divide-border">
+            {q.data.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <span className="break-all text-sm">{a.email}</span>
+                <button
+                  className={`${botao} text-destructive`}
+                  disabled={ocupado}
+                  onClick={() =>
+                    revogar === a.id ? void alterar({ remover: a.id }) : setRevogar(a.id)
+                  }
+                >
+                  {revogar === a.id ? "Confirmar revogação" : "Revogar acesso"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }
