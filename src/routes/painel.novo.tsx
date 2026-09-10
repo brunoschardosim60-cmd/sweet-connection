@@ -8,7 +8,7 @@ import { MiniSite } from "@/components/minisite/MiniSite";
 import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { useNexa } from "@/lib/nexa/hooks";
 import { criarSite } from "@/lib/nexa/factory";
-import { siteDoModelo } from "@/lib/nexa/demo-modelos";
+import { criarSiteModeloPronto } from "@/lib/nexa/modelo-pronto";
 import { modeloPersonalizado, modelos, modelosCriacao } from "@/lib/nexa/modelos";
 import { modelosUsuarioStore } from "@/lib/nexa/modelos-usuario";
 import { estados, segmentos } from "@/lib/nexa/segmentos";
@@ -300,6 +300,7 @@ function NovoSite() {
 
   const [passo, setPasso] = useState(0);
   const [salvando, setSalvando] = useState(false);
+  const [usarConteudoPronto, setUsarConteudoPronto] = useState(true);
   const [operacao, setOperacao] = useState<Comercio>({
     carrinho: true,
     taxaEntrega: 0,
@@ -354,7 +355,8 @@ function NovoSite() {
 
   const [cliente, setCliente] = useState<Cliente>(() => ({
     empresa: search.empresa || "",
-    segmento: nichoInfo.segmento,
+    segmento:
+      modelosCriacao.find((modelo) => modelo.id === search.modelo)?.segmento ?? nichoInfo.segmento,
     responsavel: "",
     telefone: search.whatsapp ? telefoneMask(search.whatsapp) : "",
     email: search.email || "",
@@ -418,13 +420,18 @@ function NovoSite() {
 
   const previa = useMemo(() => {
     const base =
-      modoCriacao === "ia"
+      modoCriacao === "ia" || !usarConteudoPronto
         ? criarSite(
             { ...cliente, empresa: cliente.empresa || "Seu negócio" },
-            modeloPersonalizado.id,
+            modoCriacao === "ia" ? modeloPersonalizado.id : modeloId,
             slugFinal || "previa",
           )
-        : siteDoModelo(modeloId);
+        : criarSiteModeloPronto(
+            { ...cliente, empresa: cliente.empresa || "Seu negócio" },
+            modeloId,
+            slugFinal || "previa",
+            true,
+          );
     const empresa = cliente.empresa.trim() || base.cliente.empresa;
     const telefone = cliente.telefone.trim() || base.cliente.telefone;
     const cidade = cliente.cidade.trim() || base.cliente.cidade;
@@ -466,6 +473,7 @@ function NovoSite() {
     logoUrl,
     corPersonalizada,
     enderecoPersonalizado,
+    usarConteudoPronto,
   ]);
 
   const podeAvancar =
@@ -486,7 +494,9 @@ function NovoSite() {
   const criar = async () => {
     if (!podeAvancar || salvando) return;
     setSalvando(true);
-    const base = criarSite(cliente, modeloId, slugFinal);
+    const base = usarConteudoPronto
+      ? criarSiteModeloPronto(cliente, modeloId, slugFinal)
+      : criarSite(cliente, modeloId, slugFinal);
     const site = {
       ...base,
       ...(base.comercio ? { comercio: { ...base.comercio, ...operacao } } : {}),
@@ -508,7 +518,9 @@ function NovoSite() {
       );
       toast.success(modeloId.startsWith("cardapio-") ? "Cardápio criado" : "Mini-site criado", {
         description:
-          "O rascunho está pronto. Cadastre seus itens e revise os contatos antes de publicar; os exemplos não são copiados.",
+          usarConteudoPronto && modeloId !== "personalizado"
+            ? "Modelo pronto para editar. Troque fotos, textos e preços de exemplo pelos do seu negócio antes de publicar."
+            : "O rascunho está pronto. Cadastre seus itens e revise os contatos antes de publicar.",
       });
       void navigate({ to: "/painel/editor/$id", params: { id: salvo.id } });
     } catch (error) {
@@ -842,6 +854,48 @@ function NovoSite() {
                   </div>
                 </div>
               )}
+              <fieldset className="mt-4 rounded-2xl border border-border p-4">
+                <legend className="px-1 text-sm font-semibold">Como você quer começar?</legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    {
+                      valor: true,
+                      titulo: "Usar modelo pronto",
+                      descricao:
+                        "Recomendado para começar: textos, fotos e itens de exemplo já preenchidos. É só trocar pelos seus.",
+                    },
+                    {
+                      valor: false,
+                      titulo: "Só o visual",
+                      descricao:
+                        "Mantém cores, layout e seções, mas você cadastra seus próprios conteúdos do zero.",
+                    },
+                  ].map((opcao) => (
+                    <label
+                      key={String(opcao.valor)}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 focus-within:ring-2 focus-within:ring-ring ${usarConteudoPronto === opcao.valor ? "border-ink bg-secondary" : "border-border"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="conteudo-modelo"
+                        className="mt-1"
+                        checked={usarConteudoPronto === opcao.valor}
+                        onChange={() => setUsarConteudoPronto(opcao.valor)}
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold">{opcao.titulo}</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          {opcao.descricao}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  O modelo Personalizado continua em branco. Usar modelos não consome IA; publicar e
+                  usar recursos pagos segue o seu plano.
+                </p>
+              </fieldset>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {familiaFiltro === "minisite" && (
                   <div className="overflow-hidden rounded-2xl border border-border transition-all hover:-translate-y-0.5">
@@ -1050,9 +1104,9 @@ function NovoSite() {
                 </div>
               </fieldset>
               <p className="text-sm text-muted-foreground">
-                Seu projeto será criado como rascunho com o estilo e as seções do modelo. Produtos,
-                serviços, fotos de galeria, equipe e depoimentos da demonstração não são copiados.
-                No editor, cadastre seus próprios conteúdos, revise os contatos e só então publique.
+                {usarConteudoPronto && modeloId !== "personalizado"
+                  ? "Você receberá um rascunho preenchido. No editor, troque os textos, fotos, produtos ou serviços e preços de exemplo pelos seus. Revise horários, entrega e contatos antes de publicar. Avaliações, equipe e cupons fictícios não são copiados."
+                  : "Seu projeto será criado como rascunho com o estilo e as seções do modelo, sem itens de exemplo. Cadastre seus conteúdos no editor antes de publicar."}
               </p>
             </div>
           )}
@@ -1102,12 +1156,10 @@ function NovoSite() {
 
         <div className="hidden flex-col items-center gap-3 lg:sticky lg:top-20 lg:flex lg:self-start">
           <div className="max-w-60 text-center">
-            <p className="text-sm font-semibold">
-              {modoCriacao === "modelo" ? "Exemplo do modelo" : "Prévia do rascunho"}
-            </p>
+            <p className="text-sm font-semibold">Prévia do seu rascunho</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {modoCriacao === "modelo"
-                ? "Conteúdos ilustrativos para conhecer o visual. Seus itens serão cadastrados no editor."
+              {modoCriacao === "modelo" && usarConteudoPronto && modeloId !== "personalizado"
+                ? "Textos, fotos e itens de exemplo serão copiados para você editar. Seus contatos substituem os da demonstração."
                 : "Revise os conteúdos gerados antes de publicar."}
             </p>
           </div>

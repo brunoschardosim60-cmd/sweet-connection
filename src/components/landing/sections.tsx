@@ -804,7 +804,7 @@ export function GaleriaModelos({
                       aria-label={`Usar o modelo ${m.nome}`}
                       className="inline-flex min-h-11 items-center rounded-full bg-lime px-4 text-xs font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
                     >
-                      Usar este modelo
+                      Usar modelo pronto
                     </Link>
                   </div>
                 </div>

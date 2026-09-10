@@ -53,7 +53,7 @@ function Demonstracao() {
             search={{ modelo }}
             className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-ink-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
-            Usar este modelo
+            Usar modelo pronto
           </Link>
         </div>
       </header>
