@@ -14,7 +14,6 @@ import {
   MapPin,
   MessageCircle,
   RefreshCw,
-  ShieldCheck,
   Store,
   Users,
 } from "lucide-react";
@@ -109,6 +108,9 @@ const rotulos: Record<string, string> = {
   entrega: "Entrega",
   retirada: "Retirada",
   mesa: "Mesa / comanda",
+  confirmado: "Confirmado",
+  reagendado: "Reagendado",
+  pendente: "Pendente",
 };
 function Carregando() {
   return (
@@ -233,11 +235,19 @@ function Operacao() {
             </div>
           </div>
           {lojas.data?.some((l) => l.dono) && (
-            <Link to="/painel" className={`${botao} hidden border-sidebar-border bg-sidebar-accent text-sidebar-foreground sm:inline-flex`}>
-              Ir para criação <ExternalLink size={15} aria-hidden="true" />
+            <Link
+              to="/painel"
+              className={`${botao} border-sidebar-border bg-sidebar-accent px-3 text-sidebar-foreground`}
+            >
+              <ExternalLink size={15} aria-hidden="true" />
+              <span className="hidden sm:inline">Ir para criação</span>
+              <span className="sr-only sm:hidden">Ir para criação do site</span>
             </Link>
           )}
-          <button className={`${botao} border-sidebar-border bg-sidebar-accent text-sidebar-foreground`} onClick={() => void supabase.auth.signOut()}>
+          <button
+            className={`${botao} border-sidebar-border bg-sidebar-accent text-sidebar-foreground`}
+            onClick={() => void supabase.auth.signOut()}
+          >
             <LogOut size={16} />
             <span className="sr-only sm:not-sr-only">Sair</span>
           </button>
@@ -257,9 +267,15 @@ function Operacao() {
           <>
             <section className="grid gap-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)] sm:items-center sm:p-5">
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase text-muted-foreground">Estabelecimento em atendimento</p>
-                <p className="mt-1 truncate text-lg font-bold">{selecionada?.nome ?? "Selecione uma loja"}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Pedidos, agenda e resultados sempre seguem esta seleção.</p>
+                <p className="text-xs font-bold uppercase text-muted-foreground">
+                  Estabelecimento em atendimento
+                </p>
+                <p className="mt-1 truncate text-lg font-bold">
+                  {selecionada?.nome ?? "Selecione uma loja"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pedidos, agenda e resultados sempre seguem esta seleção.
+                </p>
               </div>
               <label className="block min-w-0 text-sm font-semibold">
                 Trocar estabelecimento
@@ -267,12 +283,17 @@ function Operacao() {
                   aria-label="Estabelecimento em atendimento"
                   className={`${campo} mt-1 block w-full`}
                   value={selecionada?.id ?? ""}
-                  onChange={(e) => void navigate({ to: "/operacao", search: { site: e.target.value } })}
+                  onChange={(e) =>
+                    void navigate({ to: "/operacao", search: { site: e.target.value } })
+                  }
                 >
-                  <option value="" disabled>Selecione uma loja</option>
+                  <option value="" disabled>
+                    Selecione uma loja
+                  </option>
                   {lojas.data.map((l) => (
                     <option key={l.id} value={l.id}>
-                      {l.nome}{l.dono ? " — proprietário" : " — equipe"}
+                      {l.nome}
+                      {l.dono ? " — proprietário" : " — equipe"}
                     </option>
                   ))}
                 </select>
@@ -403,7 +424,8 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
             </span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            {loja.publicado ? "Publicada" : "Não publicada"} · Horário de {dados.fuso.replace("America/", "").replaceAll("_", " ")} · Atualiza a cada 15 s
+            {loja.publicado ? "Publicada" : "Não publicada"} · Horário de{" "}
+            {dados.fuso.replace("America/", "").replaceAll("_", " ")} · Atualiza a cada 15 s
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
@@ -423,15 +445,25 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               }
             }}
           >
-            <Bell size={16} /><span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
+            <Bell size={16} />
+            <span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
           </button>
-          <button className={`${botao} px-3`} aria-label="Atualizar dados agora" disabled={q.isFetching} onClick={() => void q.refetch()}>
+          <button
+            className={`${botao} px-3`}
+            aria-label="Atualizar dados agora"
+            disabled={q.isFetching}
+            onClick={() => void q.refetch()}
+          >
             <RefreshCw size={16} className={q.isFetching ? "animate-spin" : ""} />
             <span className="hidden md:inline">Atualizar</span>
           </button>
         </div>
       </div>
-      <nav role="tablist" aria-label="Área de operação" className="scrollbar-invisivel -mx-4 flex gap-1 overflow-x-auto border-y border-border bg-card px-4 py-2 sm:mx-0 sm:rounded-lg sm:border sm:px-2">
+      <nav
+        role="tablist"
+        aria-label="Área de operação"
+        className="scrollbar-invisivel -mx-4 flex gap-1 overflow-x-auto border-y border-border bg-card px-4 py-2 sm:mx-0 sm:rounded-lg sm:border sm:px-2"
+      >
         {[
           "Pedidos",
           "Agenda",
@@ -450,7 +482,10 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
           >
             {a}
             {a === "Pedidos" && dados.pedidos.some((p) => p.status === "novo") && (
-              <span aria-label={`${contagens.novo} pedidos aguardando aceite`} className="rounded-full bg-background px-2 text-foreground">
+              <span
+                aria-label={`${contagens.novo} pedidos aguardando aceite`}
+                className="rounded-full bg-background px-2 text-foreground"
+              >
                 {dados.pedidos.filter((p) => p.status === "novo").length}
               </span>
             )}
@@ -458,17 +493,38 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         ))}
       </nav>
       {aba === "Pedidos" && (
-        <div role="tabpanel" id="painel-Pedidos" aria-labelledby="aba-Pedidos" className="space-y-4">
+        <div
+          role="tabpanel"
+          id="painel-Pedidos"
+          aria-labelledby="aba-Pedidos"
+          className="space-y-4"
+        >
           <div className="space-y-3">
             <div>
               <h3 className="text-lg font-bold">Pedidos</h3>
-              <p className="text-xs text-muted-foreground">Até 500 pedidos mais recentes desta loja</p>
+              <p className="text-xs text-muted-foreground">
+                Até 500 pedidos mais recentes desta loja
+              </p>
             </div>
-            <div className="scrollbar-invisivel -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filtrar pedidos">
-              {([
-                ["ativos", "Em atendimento"], ["novo", "Aguardando"], ["concluido", "Concluídos"], ["cancelado", "Cancelados"], ["todos", "Todos"],
-              ] as const).map(([valor, rotulo]) => (
-                <button key={valor} aria-pressed={filtro === valor} onClick={() => setFiltro(valor)} className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm font-semibold ${filtro === valor ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
+            <div
+              className="scrollbar-invisivel -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+              aria-label="Filtrar pedidos"
+            >
+              {(
+                [
+                  ["ativos", "Em atendimento"],
+                  ["novo", "Aguardando"],
+                  ["concluido", "Concluídos"],
+                  ["cancelado", "Cancelados"],
+                  ["todos", "Todos"],
+                ] as const
+              ).map(([valor, rotulo]) => (
+                <button
+                  key={valor}
+                  aria-pressed={filtro === valor}
+                  onClick={() => setFiltro(valor)}
+                  className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm font-semibold ${filtro === valor ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                >
                   {rotulo} <span className="ml-1 tabular-nums opacity-70">{contagens[valor]}</span>
                 </button>
               ))}
@@ -500,7 +556,13 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
       )}
       {aba === "Agenda" && (
         <div role="tabpanel" id="painel-Agenda" aria-labelledby="aba-Agenda" className="space-y-4">
-          <div><h3 className="text-lg font-bold">Agenda da loja</h3><p className="text-sm text-muted-foreground">Datas e horários no fuso de {dados.fuso.replace("America/", "").replaceAll("_", " ")} · até 500 agendamentos</p></div>
+          <div>
+            <h3 className="text-lg font-bold">Agenda da loja</h3>
+            <p className="text-sm text-muted-foreground">
+              Datas e horários no fuso de {dados.fuso.replace("America/", "").replaceAll("_", " ")}{" "}
+              · até 500 agendamentos
+            </p>
+          </div>
           {!dados.agenda.length ? (
             vazio("Nenhum agendamento recebido.")
           ) : (
@@ -529,8 +591,18 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Solicitações" && (
-        <div role="tabpanel" id="painel-Solicitações" aria-labelledby="aba-Solicitações" className="space-y-4">
-          <div><h3 className="text-lg font-bold">Solicitações</h3><p className="text-sm text-muted-foreground">Mensagens recebidas por {loja.nome} · até 500 mais recentes</p></div>
+        <div
+          role="tabpanel"
+          id="painel-Solicitações"
+          aria-labelledby="aba-Solicitações"
+          className="space-y-4"
+        >
+          <div>
+            <h3 className="text-lg font-bold">Solicitações</h3>
+            <p className="text-sm text-muted-foreground">
+              Mensagens recebidas por {loja.nome} · até 500 mais recentes
+            </p>
+          </div>
           {!dados.solicitacoes.length ? (
             vazio("Nenhuma solicitação recebida.")
           ) : (
@@ -542,19 +614,28 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
                 >
                   <div className="flex justify-between gap-3 text-sm">
                     <strong className="flex items-center gap-2">
-                      {s.status === "novo" && <span className="size-2 rounded-full bg-lime" aria-hidden="true" />}
+                      {s.status === "novo" && (
+                        <span className="size-2 rounded-full bg-lime" aria-hidden="true" />
+                      )}
                       {s.status === "novo"
                         ? "Nova solicitação"
                         : s.status === "lido"
                           ? "Lida"
                           : "Arquivada"}
                     </strong>
-                    <time className="shrink-0 text-xs text-muted-foreground">{data(s.created_at)}</time>
+                    <time className="shrink-0 text-xs text-muted-foreground">
+                      {data(s.created_at)}
+                    </time>
                   </div>
                   <dl className="space-y-2 text-sm">
                     {Object.entries(s.payload).map(([k, v]) => (
-                      <div key={k} className="break-words border-b border-border pb-2 last:border-0">
-                        <dt className="text-xs font-semibold text-muted-foreground">{nomeCampo(k)}</dt>
+                      <div
+                        key={k}
+                        className="break-words border-b border-border pb-2 last:border-0"
+                      >
+                        <dt className="text-xs font-semibold text-muted-foreground">
+                          {nomeCampo(k)}
+                        </dt>
                         <dd className="mt-0.5 whitespace-pre-wrap">{valorSolicitacao(v)}</dd>
                       </div>
                     ))}
@@ -604,8 +685,18 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         </div>
       )}
       {aba === "Estatísticas" && (
-        <section role="tabpanel" id="painel-Estatísticas" aria-labelledby="aba-Estatísticas" className="space-y-5">
-          <div><h3 className="text-lg font-bold">Resultados de {loja.nome}</h3><p className="text-sm text-muted-foreground">Período: últimos 30 dias · somente este estabelecimento</p></div>
+        <section
+          role="tabpanel"
+          id="painel-Estatísticas"
+          aria-labelledby="aba-Estatísticas"
+          className="space-y-5"
+        >
+          <div>
+            <h3 className="text-lg font-bold">Resultados de {loja.nome}</h3>
+            <p className="text-sm text-muted-foreground">
+              Período: últimos 30 dias · somente este estabelecimento
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Visitas", dados.estatisticas.visitas],
@@ -621,7 +712,13 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               </div>
             ))}
           </div>
-          <div className="rounded-lg border border-border bg-muted p-4 text-sm"><strong>Sobre o valor exibido</strong><p className="mt-1 text-muted-foreground">É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento recebido. O recebimento continua sob controle do estabelecimento.</p></div>
+          <div className="rounded-lg border border-border bg-muted p-4 text-sm">
+            <strong>Sobre o valor exibido</strong>
+            <p className="mt-1 text-muted-foreground">
+              É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento
+              recebido. O recebimento continua sob controle do estabelecimento.
+            </p>
+          </div>
         </section>
       )}
       {aba === "Equipe e acessos" && loja.dono && <Equipe loja={loja} usuario={usuario} />}
@@ -659,14 +756,20 @@ function FichaPedido({
     <article
       className={`min-w-0 overflow-hidden rounded-xl border bg-card shadow-soft ${p.status === "novo" ? "border-primary" : "border-border"}`}
     >
-      <header className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b p-4 sm:p-5 ${p.status === "novo" ? "border-primary bg-lime-soft/60" : "border-border bg-muted/40"}`}>
+      <header
+        className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b p-4 sm:p-5 ${p.status === "novo" ? "border-primary bg-lime-soft/60" : "border-border bg-muted/40"}`}
+      >
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 text-xl font-bold">
             <ClipboardList size={18} />
             Pedido #{p.codigo}
           </h3>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <time>{data(p.created_at)}</time><span aria-hidden="true">·</span><span className="font-semibold text-foreground">{rotulos[p.modalidade] ?? p.modalidade}</span>
+            <time>{data(p.created_at)}</time>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-foreground">
+              {rotulos[p.modalidade] ?? p.modalidade}
+            </span>
           </div>
         </div>
         <span className="shrink-0 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold">
@@ -674,107 +777,150 @@ function FichaPedido({
         </span>
       </header>
       <div className="space-y-4 p-4 sm:p-5">
-      {p.agendado_para ? (
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary p-3 text-sm">
-          <CalendarDays className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
-          <div><strong className="block">Pedido agendado</strong><time>{data(p.agendado_para)}</time></div>
-        </div>
-      ) : <p className="text-xs font-bold uppercase text-muted-foreground">Atendimento imediato</p>}
-      <div className="flex items-center justify-between gap-3 text-sm"><div className="min-w-0"><span className="text-xs text-muted-foreground">Cliente</span><p className="truncate font-bold">{p.nome}</p></div><a className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border px-3 font-semibold hover:bg-muted" href={whatsappLink(p.telefone, `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`)} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Contatar</a></div>
-      <section aria-label="Itens para preparar">
-      <h4 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Preparo</h4>
-      <ul className="divide-y divide-border rounded-lg border border-border px-3">
-        {p.itens.map((item, i) => (
-          <li key={i} className="py-3">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3">
-              <input
-                className="mt-0.5 size-6 shrink-0 accent-primary"
-                type="checkbox"
-                checked={checados.includes(i)}
-                onChange={(e) =>
-                  setChecados((v) => (e.target.checked ? [...v, i] : v.filter((j) => j !== i)))
-                }
-              />
-              <span
-                className={`min-w-0 break-words text-sm ${checados.includes(i) ? "text-muted-foreground line-through" : ""}`}
-              >
-                <strong>
-                  {item.quantidade}× {item.nome}
-                </strong>
-                {item.opcoes?.map((o, j) => (
-                  <span key={j} className="mt-0.5 block text-xs text-muted-foreground">
-                    {[o.grupoNome, o.opcaoNome ?? o.nome].filter(Boolean).join(": ")}
-                  </span>
-                ))}
-                {item.observacao && (
-                  <span className="mt-2 block rounded-md bg-lime-soft p-2 font-semibold no-underline">Observação do item: {item.observacao}</span>
-                )}
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
-      <p className="text-[11px] text-muted-foreground">
-        Checks são auxiliares neste dispositivo; não alteram o pedido.
-      </p>
-      </section>
-      {p.endereco && (
-        <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm"><MapPin className="mt-0.5 shrink-0" size={17} aria-hidden="true" /><div><strong className="block">Endereço de entrega</strong><p className="break-words">{[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}</p></div></div>
-      )}
-      {(p.observacao || p.horario_preferido) && (
-        <div className="break-words rounded-lg border border-primary bg-lime-soft/50 p-3 text-sm"><strong className="block">Atenção no pedido</strong>{p.observacao && <p className="mt-1">{p.observacao}</p>}{p.horario_preferido && <p className="mt-1">Horário preferido: {p.horario_preferido}</p>}</div>
-      )}
-      <div className="rounded-lg border border-border p-3 text-sm">
-        <div className="flex justify-between gap-2">
-          <span>Itens</span>
-          <span>{moeda(p.subtotal)}</span>
-        </div>
-        <div className="flex justify-between gap-2">
-          <span>Entrega</span>
-          <span>{moeda(p.taxa_entrega)}</span>
-        </div>
-        <div className="mt-2 flex justify-between gap-2 text-lg font-bold">
-          <span>Total</span>
-          <span>{moeda(p.total)}</span>
-        </div>
-        <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
-          Pagamento informado: {p.pagamento}
-          {p.troco ? ` · Troco para ${moeda(p.troco)}` : ""}
-        </p>
-      </div>
-      {proximoStatus && proximoRotulo && (
-        <div className="space-y-2 border-t border-border pt-4">
-          <button
-            disabled={ocupado}
-            className={`${botao} w-full border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
-            onClick={() => void atualizar(proximoStatus)}
-          >
-            {ocupado ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
-            {proximoRotulo} <ChevronRight size={16} />
-          </button>
-          {cancelar ? (
-            <div role="alert" className="space-y-3 rounded-lg border border-destructive/40 p-3 text-sm">
-              <p>Cancelar este pedido? O cliente verá o cancelamento no acompanhamento.</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  disabled={ocupado}
-                  className={`${botao} border-destructive text-destructive`}
-                  onClick={() => void atualizar("cancelado")}
-                >
-                  Confirmar cancelamento
-                </button>
-                <button className={botao} onClick={() => setCancelar(false)}>
-                  Voltar
-                </button>
-              </div>
+        {p.agendado_para ? (
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary p-3 text-sm">
+            <CalendarDays className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
+            <div>
+              <strong className="block">Pedido agendado</strong>
+              <time>{data(p.agendado_para)}</time>
             </div>
-          ) : (
-            <button className="min-h-11 w-full text-sm font-semibold text-destructive" onClick={() => setCancelar(true)}>
-              Recusar / cancelar pedido
-            </button>
-          )}
+          </div>
+        ) : (
+          <p className="text-xs font-bold uppercase text-muted-foreground">Atendimento imediato</p>
+        )}
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <div className="min-w-0">
+            <span className="text-xs text-muted-foreground">Cliente</span>
+            <p className="truncate font-bold">{p.nome}</p>
+          </div>
+          <a
+            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border px-3 font-semibold hover:bg-muted"
+            href={whatsappLink(
+              p.telefone,
+              `Olá, ${p.nome}. Vamos falar sobre seu pedido #${p.codigo}.`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle size={16} /> Contatar
+          </a>
         </div>
-      )}
+        <section aria-label="Itens para preparar">
+          <h4 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Preparo</h4>
+          <ul className="divide-y divide-border rounded-lg border border-border px-3">
+            {p.itens.map((item, i) => (
+              <li key={i} className="py-3">
+                <label className="flex min-h-11 cursor-pointer items-start gap-3">
+                  <input
+                    className="mt-0.5 size-6 shrink-0 accent-primary"
+                    type="checkbox"
+                    checked={checados.includes(i)}
+                    onChange={(e) =>
+                      setChecados((v) => (e.target.checked ? [...v, i] : v.filter((j) => j !== i)))
+                    }
+                  />
+                  <span
+                    className={`min-w-0 break-words text-sm ${checados.includes(i) ? "text-muted-foreground line-through" : ""}`}
+                  >
+                    <strong>
+                      {item.quantidade}× {item.nome}
+                    </strong>
+                    {item.opcoes?.map((o, j) => (
+                      <span key={j} className="mt-0.5 block text-xs text-muted-foreground">
+                        {[o.grupoNome, o.opcaoNome ?? o.nome].filter(Boolean).join(": ")}
+                      </span>
+                    ))}
+                    {item.observacao && (
+                      <span className="mt-2 block rounded-md bg-lime-soft p-2 font-semibold no-underline">
+                        Observação do item: {item.observacao}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-muted-foreground">
+            Checks são auxiliares neste dispositivo; não alteram o pedido.
+          </p>
+        </section>
+        {p.endereco && (
+          <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm">
+            <MapPin className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
+            <div>
+              <strong className="block">Endereço de entrega</strong>
+              <p className="break-words">
+                {[p.endereco, p.bairro, p.complemento, p.referencia].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          </div>
+        )}
+        {(p.observacao || p.horario_preferido) && (
+          <div className="break-words rounded-lg border border-primary bg-lime-soft/50 p-3 text-sm">
+            <strong className="block">Atenção no pedido</strong>
+            {p.observacao && <p className="mt-1">{p.observacao}</p>}
+            {p.horario_preferido && (
+              <p className="mt-1">Horário preferido: {p.horario_preferido}</p>
+            )}
+          </div>
+        )}
+        <div className="rounded-lg border border-border p-3 text-sm">
+          <div className="flex justify-between gap-2">
+            <span>Itens</span>
+            <span>{moeda(p.subtotal)}</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span>Entrega</span>
+            <span>{moeda(p.taxa_entrega)}</span>
+          </div>
+          <div className="mt-2 flex justify-between gap-2 text-lg font-bold">
+            <span>Total</span>
+            <span>{moeda(p.total)}</span>
+          </div>
+          <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+            Pagamento informado: {p.pagamento}
+            {p.troco ? ` · Troco para ${moeda(p.troco)}` : ""}
+          </p>
+        </div>
+        {proximoStatus && proximoRotulo && (
+          <div className="space-y-2 border-t border-border pt-4">
+            <button
+              disabled={ocupado}
+              className={`${botao} w-full border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
+              onClick={() => void atualizar(proximoStatus)}
+            >
+              {ocupado ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+              {proximoRotulo} <ChevronRight size={16} />
+            </button>
+            {cancelar ? (
+              <div
+                role="alert"
+                className="space-y-3 rounded-lg border border-destructive/40 p-3 text-sm"
+              >
+                <p>Cancelar este pedido? O cliente verá o cancelamento no acompanhamento.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    disabled={ocupado}
+                    className={`${botao} border-destructive text-destructive`}
+                    onClick={() => void atualizar("cancelado")}
+                  >
+                    Confirmar cancelamento
+                  </button>
+                  <button className={botao} onClick={() => setCancelar(false)}>
+                    Voltar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="min-h-11 w-full text-sm font-semibold text-destructive"
+                onClick={() => setCancelar(true)}
+              >
+                Recusar / cancelar pedido
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -795,11 +941,27 @@ function FichaAgenda({
   return (
     <article className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border pb-4">
-        <div className="min-w-0"><p className="text-xs font-bold uppercase text-muted-foreground">Data e horário</p><h3 className="mt-1 text-xl font-bold">{a.data.split("-").reverse().join("/")} <span className="text-muted-foreground">às</span> {a.hora}</h3></div>
-        <span className="h-fit rounded-full bg-muted px-3 py-1 text-xs font-bold">{a.status}</span>
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase text-muted-foreground">Data e horário</p>
+          <h3 className="mt-1 text-xl font-bold">
+            {a.data.split("-").reverse().join("/")}{" "}
+            <span className="text-muted-foreground">às</span> {a.hora}
+          </h3>
+        </div>
+        <span className="h-fit rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold">
+          {rotulos[a.status] ?? a.status}
+        </span>
       </header>
-      <div><p className="font-bold">{a.nome}</p><p className="text-sm text-muted-foreground">{a.servico || "Serviço não informado"}</p></div>
-      {a.observacao && <div className="break-words rounded-lg bg-lime-soft/50 p-3 text-sm"><strong className="block">Observação</strong>{a.observacao}</div>}
+      <div>
+        <p className="font-bold">{a.nome}</p>
+        <p className="text-sm text-muted-foreground">{a.servico || "Serviço não informado"}</p>
+      </div>
+      {a.observacao && (
+        <div className="break-words rounded-lg bg-lime-soft/50 p-3 text-sm">
+          <strong className="block">Observação</strong>
+          {a.observacao}
+        </div>
+      )}
       <a
         className={botao}
         href={whatsappLink(a.telefone, "Olá! Vamos falar sobre seu agendamento.")}
@@ -842,7 +1004,10 @@ function FichaAgenda({
                 value={hora}
                 onChange={(e) => setHora(e.target.value)}
               />
-              <button className={`${botao} bg-primary text-primary-foreground sm:col-span-2`} disabled={ocupado}>
+              <button
+                className={`${botao} bg-primary text-primary-foreground sm:col-span-2`}
+                disabled={ocupado}
+              >
                 Salvar horário
               </button>
             </form>
@@ -891,90 +1056,119 @@ function Equipe({ loja, usuario }: { loja: Loja; usuario: string }) {
     }
   };
   return (
-    <section role="tabpanel" id="painel-Equipe e acessos" aria-labelledby="aba-Equipe e acessos" className="max-w-3xl space-y-6">
-      <div><h3 className="text-xl font-bold">Equipe e acessos</h3><p className="mt-1 text-sm text-muted-foreground">Compartilhe o atendimento sem liberar a criação do site.</p></div>
-      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
-      <p className="text-sm text-muted-foreground">
-        Compartilhe somente a operação de <strong>{loja.nome}</strong>. A pessoa poderá atender
-        pedidos, gerenciar agenda e solicitações e consultar estatísticas. Não poderá editar o site,
-        administrar acessos ou ver suas outras empresas.
-      </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {["A pessoa cria a conta Nexa e confirma o e-mail.", "Você adiciona o mesmo e-mail abaixo.", "Depois, envia o link da operação."].map((passo, i) => <div key={passo} className="rounded-lg bg-muted p-3 text-sm"><strong className="mb-1 block">Passo {i + 1}</strong>{passo}</div>)}
-      </div>
-      </div>
-      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
-      <h4 className="font-bold">Adicionar uma pessoa</h4>
-      <p className="mt-1 text-sm text-muted-foreground">Ela verá apenas a operação de {loja.nome}. A conta precisa estar cadastrada e com o e-mail confirmado.</p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void alterar({ email });
-        }}
-        className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
-      >
-        <input
-          aria-label="E-mail da pessoa"
-          className={`${campo} w-full`}
-          type="email"
-          required
-          maxLength={254}
-          value={email}
-          placeholder="equipe@empresa.com"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <button className={`${botao} bg-primary text-primary-foreground`} disabled={ocupado}>
-          {ocupado ? <Loader2 className="animate-spin" size={16} /> : null}Conceder acesso
-        </button>
-      </form>
-      </div>
-      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
-      <h4 className="font-bold">Link de acesso à operação</h4>
-      <p className="mt-1 text-sm text-muted-foreground">Copiar e enviar o link não concede acesso. Somente e-mails autorizados acima conseguem entrar.</p>
-      <button
-        className={`${botao} mt-4`}
-        onClick={() => {
-          void navigator.clipboard
-            .writeText(`${window.location.origin}/operacao?site=${loja.id}`)
-            .then(
-              () => toast.success("Link copiado"),
-              () => toast.error("Não foi possível copiar. Use o endereço desta página."),
-            );
-        }}
-      >
-        <Copy size={16} /> Copiar link da operação
-      </button>
-      </div>
-      <div className="rounded-xl border border-border bg-card p-5 shadow-soft"><div className="flex items-center gap-2"><Users size={18} /><h4 className="font-bold">Pessoas autorizadas</h4></div>
-      {q.isPending ? (
-        <Carregando />
-      ) : q.isError ? (
-        <p role="alert">
-          Não foi possível carregar os acessos.{" "}
-          <button className={botao} onClick={() => void q.refetch()}>
-            Tentar novamente
-          </button>
+    <section
+      role="tabpanel"
+      id="painel-Equipe e acessos"
+      aria-labelledby="aba-Equipe e acessos"
+      className="max-w-3xl space-y-6"
+    >
+      <div>
+        <h3 className="text-xl font-bold">Equipe e acessos</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Compartilhe o atendimento sem liberar a criação do site.
         </p>
-      ) : !q.data.length ? (
-        vazio("Somente você tem acesso. Nenhuma pessoa adicionada.")
-      ) : (
-        <ul className="mt-3 divide-y divide-border">
-          {q.data.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <span className="break-all text-sm">{a.email}</span>
-              <button
-                className={`${botao} text-destructive`}
-                disabled={ocupado}
-                onClick={() =>
-                  revogar === a.id ? void alterar({ remover: a.id }) : setRevogar(a.id)
-                }
-              >
-                {revogar === a.id ? "Confirmar revogação" : "Revogar acesso"}
-              </button>
-            </li>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <p className="text-sm text-muted-foreground">
+          Compartilhe somente a operação de <strong>{loja.nome}</strong>. A pessoa poderá atender
+          pedidos, gerenciar agenda e solicitações e consultar estatísticas. Não poderá editar o
+          site, administrar acessos ou ver suas outras empresas.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            "A pessoa cria a conta Nexa e confirma o e-mail.",
+            "Você adiciona o mesmo e-mail abaixo.",
+            "Depois, envia o link da operação.",
+          ].map((passo, i) => (
+            <div key={passo} className="rounded-lg bg-muted p-3 text-sm">
+              <strong className="mb-1 block">Passo {i + 1}</strong>
+              {passo}
+            </div>
           ))}
-        </ul>
-      )}
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <h4 className="font-bold">Adicionar uma pessoa</h4>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ela verá apenas a operação de {loja.nome}. A conta precisa estar cadastrada e com o e-mail
+          confirmado.
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void alterar({ email });
+          }}
+          className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+        >
+          <input
+            aria-label="E-mail da pessoa"
+            className={`${campo} w-full`}
+            type="email"
+            required
+            maxLength={254}
+            value={email}
+            placeholder="equipe@empresa.com"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button className={`${botao} bg-primary text-primary-foreground`} disabled={ocupado}>
+            {ocupado ? <Loader2 className="animate-spin" size={16} /> : null}Conceder acesso
+          </button>
+        </form>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <h4 className="font-bold">Link de acesso à operação</h4>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Copiar e enviar o link não concede acesso. Somente e-mails autorizados acima conseguem
+          entrar.
+        </p>
+        <button
+          className={`${botao} mt-4`}
+          onClick={() => {
+            void navigator.clipboard
+              .writeText(`${window.location.origin}/operacao?site=${loja.id}`)
+              .then(
+                () => toast.success("Link copiado"),
+                () => toast.error("Não foi possível copiar. Use o endereço desta página."),
+              );
+          }}
+        >
+          <Copy size={16} /> Copiar link da operação
+        </button>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
+        <div className="flex items-center gap-2">
+          <Users size={18} />
+          <h4 className="font-bold">Pessoas autorizadas</h4>
+        </div>
+        {q.isPending ? (
+          <Carregando />
+        ) : q.isError ? (
+          <p role="alert">
+            Não foi possível carregar os acessos.{" "}
+            <button className={botao} onClick={() => void q.refetch()}>
+              Tentar novamente
+            </button>
+          </p>
+        ) : !q.data.length ? (
+          vazio("Somente você tem acesso. Nenhuma pessoa adicionada.")
+        ) : (
+          <ul className="mt-3 divide-y divide-border">
+            {q.data.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <span className="break-all text-sm">{a.email}</span>
+                <button
+                  className={`${botao} text-destructive`}
+                  disabled={ocupado}
+                  onClick={() =>
+                    revogar === a.id ? void alterar({ remover: a.id }) : setRevogar(a.id)
+                  }
+                >
+                  {revogar === a.id ? "Confirmar revogação" : "Revogar acesso"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );
