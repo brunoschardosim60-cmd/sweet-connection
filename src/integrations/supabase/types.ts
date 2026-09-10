@@ -1118,6 +1118,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      nexa_entrega_criar: {Args:{site_id:string;email:string;manter_acesso?:boolean;guardar_copia?:boolean};Returns:string}
+      nexa_entregas_listar: {Args:Record<PropertyKey,never>;Returns:Json}
+      nexa_entrega_consultar: {Args:{convite:string};Returns:Json}
+      nexa_entrega_cancelar: {Args:{convite:string};Returns:undefined}
+      nexa_entrega_preparar: {Args:{convite:string;usuario:string};Returns:Json}
+      nexa_entrega_finalizar: {Args:{convite:string;usuario:string;revisao:string;mapa:Json};Returns:Json}
+      nexa_operacao_sair: {Args:{site_id:string};Returns:undefined}
       nexa_limite_cotacao: {Args:{chave:string;limite:number;segundos:number};Returns:boolean}
       nexa_operacao_sites: {Args:Record<PropertyKey,never>;Returns:Json}
       nexa_operacao_dados: {Args:{site_id:string};Returns:Json}

@@ -79,6 +79,13 @@ function Privacidade() {
       <section>
         <h2>5. Bases, direitos e contato</h2>
         <p>
+          A entrega de uma loja a outra conta depende de convite e aceite do destinatário
+          autenticado. O novo proprietário recebe o conteúdo, as mídias hospedadas na Nexa e o
+          histórico de atendimento daquela loja. O criador pode optar por manter uma cópia limpa de
+          apresentação e catálogo, sem contatos ou registros de atendimento. A transferência e as
+          alterações de acesso são registradas para segurança e rastreabilidade.
+        </p>
+        <p>
           O tratamento ocorre conforme a finalidade aplicável, como execução do serviço, cumprimento
           de obrigações legais, prevenção a fraude e consentimento quando solicitado. A pessoa pode
           pedir confirmação de tratamento, acesso, correção, eliminação, portabilidade, informação

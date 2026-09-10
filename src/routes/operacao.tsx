@@ -7,6 +7,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { supabase } from "@/integrations/supabase/client";
 import { moeda } from "@/lib/nexa/utils";
 import { whatsappLink } from "@/lib/nexa/brand";
+import { ConvitesLoja, EntregarLoja } from "@/components/operacao/EntregaLoja";
 
 export const Route = createFileRoute("/operacao")({
   validateSearch: (s: Record<string, unknown>): { site?: string } =>
@@ -195,6 +196,7 @@ function Operacao() {
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+        <ConvitesLoja usuario={user.id} />
         {lojas.isPending ? (
           <Carregando />
         ) : lojas.isError ? (
@@ -243,6 +245,7 @@ function Operacao() {
   );
 }
 function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
+  const [confirmarSaida, setConfirmarSaida] = useState(false);
   const [aba, setAba] = useState("Pedidos");
   const [filtro, setFiltro] = useState("ativos");
   const [som, setSom] = useState(false);
@@ -563,7 +566,38 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
           </p>
         </section>
       )}
-      {aba === "Equipe e acessos" && loja.dono && <Equipe loja={loja} usuario={usuario} />}
+      {aba === "Equipe e acessos" && loja.dono && (
+        <>
+          <Equipe loja={loja} usuario={usuario} />
+          <EntregarLoja siteId={loja.id} nome={loja.nome} />
+        </>
+      )}
+      {!loja.dono && (
+        <div className="border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground">
+            Você é colaborador desta loja. Sair remove somente seu acesso, sem fechar a loja.
+          </p>
+          <button
+            className={`${botao} mt-2 text-destructive`}
+            onClick={async () => {
+              if (!confirmarSaida) {
+                setConfirmarSaida(true);
+                return;
+              }
+              const r = await supabase.rpc("nexa_operacao_sair", { site_id: loja.id });
+              if (r.error) toast.error(erroOperacao(r.error));
+              else window.location.assign("/operacao");
+            }}
+          >
+            {confirmarSaida ? "Confirmar saída desta loja" : "Sair da equipe desta loja"}
+          </button>
+          {confirmarSaida && (
+            <button className={`${botao} ml-2`} onClick={() => setConfirmarSaida(false)}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcessoNegadoRouteImport } from './routes/acesso-negado'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as EntregaRouteImport } from './routes/entrega'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ModelosRouteImport } from './routes/modelos'
 import { Route as OperacaoRouteImport } from './routes/operacao'
@@ -39,6 +40,7 @@ import { Route as ApiAdminAccountControlRouteImport } from './routes/api/admin/a
 import { Route as ApiDeliveryQuoteRouteImport } from './routes/api/delivery/quote'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiReportsMonthlyRouteImport } from './routes/api/reports/monthly'
+import { Route as ApiStoresAcceptRouteImport } from './routes/api/stores/accept'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
 import { Route as PainelAdminIndexRouteImport } from './routes/painel.admin.index'
 import { Route as PainelAdminOperacoesRouteImport } from './routes/painel.admin.operacoes'
@@ -65,6 +67,11 @@ const AcessoNegadoRoute = AcessoNegadoRouteImport.update({
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntregaRoute = EntregaRouteImport.update({
+  id: '/entrega',
+  path: '/entrega',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -203,6 +210,11 @@ const ApiReportsMonthlyRoute = ApiReportsMonthlyRouteImport.update({
   path: '/api/reports/monthly',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStoresAcceptRoute = ApiStoresAcceptRouteImport.update({
+  id: '/api/stores/accept',
+  path: '/api/stores/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWebhooksAsaasRoute = ApiWebhooksAsaasRouteImport.update({
   id: '/api/webhooks/asaas',
   path: '/api/webhooks/asaas',
@@ -269,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acesso-negado': typeof AcessoNegadoRoute
   '/cadastro': typeof CadastroRoute
+  '/entrega': typeof EntregaRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/operacao': typeof OperacaoRoute
@@ -296,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
+  '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -313,6 +327,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acesso-negado': typeof AcessoNegadoRoute
   '/cadastro': typeof CadastroRoute
+  '/entrega': typeof EntregaRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/operacao': typeof OperacaoRoute
@@ -339,6 +354,7 @@ export interface FileRoutesByTo {
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
+  '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -357,6 +373,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/acesso-negado': typeof AcessoNegadoRoute
   '/cadastro': typeof CadastroRoute
+  '/entrega': typeof EntregaRoute
   '/login': typeof LoginRoute
   '/modelos': typeof ModelosRoute
   '/operacao': typeof OperacaoRoute
@@ -384,6 +401,7 @@ export interface FileRoutesById {
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
+  '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
   '/painel/admin/operacoes': typeof PainelAdminOperacoesRoute
   '/painel/admin/papeis': typeof PainelAdminPapeisRoute
@@ -403,6 +421,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acesso-negado'
     | '/cadastro'
+    | '/entrega'
     | '/login'
     | '/modelos'
     | '/operacao'
@@ -430,6 +449,7 @@ export interface FileRouteTypes {
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
+    | '/api/stores/accept'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -447,6 +467,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acesso-negado'
     | '/cadastro'
+    | '/entrega'
     | '/login'
     | '/modelos'
     | '/operacao'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
+    | '/api/stores/accept'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -490,6 +512,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acesso-negado'
     | '/cadastro'
+    | '/entrega'
     | '/login'
     | '/modelos'
     | '/operacao'
@@ -517,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
     | '/api/reports/monthly'
+    | '/api/stores/accept'
     | '/api/webhooks/asaas'
     | '/painel/admin/operacoes'
     | '/painel/admin/papeis'
@@ -535,6 +559,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcessoNegadoRoute: typeof AcessoNegadoRoute
   CadastroRoute: typeof CadastroRoute
+  EntregaRoute: typeof EntregaRoute
   LoginRoute: typeof LoginRoute
   ModelosRoute: typeof ModelosRoute
   OperacaoRoute: typeof OperacaoRoute
@@ -551,6 +576,7 @@ export interface RootRouteChildren {
   ApiDeliveryQuoteRoute: typeof ApiDeliveryQuoteRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiReportsMonthlyRoute: typeof ApiReportsMonthlyRoute
+  ApiStoresAcceptRoute: typeof ApiStoresAcceptRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
   SiteSlugCardapioRoute: typeof SiteSlugCardapioRoute
   ApiBillingAsaasCancelRoute: typeof ApiBillingAsaasCancelRoute
@@ -581,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrega': {
+      id: '/entrega'
+      path: '/entrega'
+      fullPath: '/entrega'
+      preLoaderRoute: typeof EntregaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -772,6 +805,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiReportsMonthlyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stores/accept': {
+      id: '/api/stores/accept'
+      path: '/api/stores/accept'
+      fullPath: '/api/stores/accept'
+      preLoaderRoute: typeof ApiStoresAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/webhooks/asaas': {
       id: '/api/webhooks/asaas'
       path: '/api/webhooks/asaas'
@@ -904,6 +944,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcessoNegadoRoute: AcessoNegadoRoute,
   CadastroRoute: CadastroRoute,
+  EntregaRoute: EntregaRoute,
   LoginRoute: LoginRoute,
   ModelosRoute: ModelosRoute,
   OperacaoRoute: OperacaoRoute,
@@ -920,6 +961,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryQuoteRoute: ApiDeliveryQuoteRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiReportsMonthlyRoute: ApiReportsMonthlyRoute,
+  ApiStoresAcceptRoute: ApiStoresAcceptRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
   SiteSlugCardapioRoute: SiteSlugCardapioRoute,
   ApiBillingAsaasCancelRoute: ApiBillingAsaasCancelRoute,

@@ -6,11 +6,11 @@ export function retornoSeguro(valor: unknown): string {
     [...valor].some((c) => c.charCodeAt(0) <= 32)
   )
     return "/painel";
-  if (!/^\/(?:painel|operacao)(?:\/|\?|#|$)/.test(valor)) return "/painel";
+  if (!/^\/(?:painel|operacao|entrega)(?:\/|\?|#|$)/.test(valor)) return "/painel";
   const url = new URL(valor, "https://nexa.invalid");
   if (
     url.origin !== "https://nexa.invalid" ||
-    !/^\/(?:painel|operacao)(?:\/|$)/.test(url.pathname)
+    !/^\/(?:painel|operacao|entrega)(?:\/|$)/.test(url.pathname)
   ) {
     return "/painel";
   }
