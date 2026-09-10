@@ -26,3 +26,10 @@ O proprietário solicitou testar IA com fotos/logo, transferência para cliente 
 - Encerramento antecipado solicitado pelo usuário para preservar o uso restante. Desligamento do Windows será solicitado sem forçar fechamento de programas; aplicativos com trabalho não salvo podem impedir o desligamento.
 
 O relatório anterior `auditoria-funcional-2026-09-10.md` mantém as evidências da auditoria anterior; suas verificações não foram repetidas como se fossem novas nesta rodada.
+
+## Retomada após o pedido de conclusão
+
+- Suíte local completa reexecutada: **377 testes passando e 14 de integração ignorados por falta de configuração**, em 40 arquivos (38 executados, 2 ignorados). Os 14 não foram homologados novamente nesta retomada.
+- Chrome ainda ausente no inventário conectado; somente Edge e navegador interno disponíveis, sem a sessão autenticada anterior.
+- A rota `src/routes/api/notifications/dispatch.ts` possui canais de e-mail (Resend) e WhatsApp, separados das notificações locais do navegador. Exigem suas respectivas credenciais e remetentes configurados. Sua existência não comprova entrega real, nem substitui Web Push. Não foram disparadas mensagens externas nesta retomada.
+- Uso consultado: 96% consumido. Nenhum crédito de reset foi usado. As quatro pendências de ponta a ponta descritas acima continuam abertas; esta execução não as declara concluídas.
