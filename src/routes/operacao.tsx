@@ -804,7 +804,9 @@ function FichaAgenda({
     <article className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-soft sm:p-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border pb-4">
         <div className="min-w-0"><p className="text-xs font-bold uppercase text-muted-foreground">Data e horário</p><h3 className="mt-1 text-xl font-bold">{a.data.split("-").reverse().join("/")} <span className="text-muted-foreground">às</span> {a.hora}</h3></div>
-        <span className="h-fit rounded-full bg-muted px-3 py-1 text-xs font-bold">{a.status}</span>
+        <span className="h-fit rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold">
+          {rotulos[a.status] ?? a.status}
+        </span>
       </header>
       <div><p className="font-bold">{a.nome}</p><p className="text-sm text-muted-foreground">{a.servico || "Serviço não informado"}</p></div>
       {a.observacao && <div className="break-words rounded-lg bg-lime-soft/50 p-3 text-sm"><strong className="block">Observação</strong>{a.observacao}</div>}
