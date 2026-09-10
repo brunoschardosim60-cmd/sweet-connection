@@ -18,6 +18,7 @@ O perfil disponibilizado no Chrome é uma conta comum com plano Catálogo, **nã
 8. **Avisos da operação.** Acrescentada ativação voluntária de avisos no computador e consulta em segundo plano quando habilitados. Os avisos não incluem dados pessoais do cliente e são encerrados ao sair da área. Requer permissão do navegador e a operação aberta; **não é push com o navegador fechado**. A entrega de uma notificação do sistema operacional não foi homologada neste navegador.
 9. **Galeria e textos do painel.** Modelos organizados em Mini-sites / Cardápios digitais / Criar com IA, segmento secundário, contagem, benefícios e CTA “Usar modelo pronto”. Conferidos 35 mini-sites e 8 cardápios. Removidas orientações incorretas sobre republicação e textos que limitavam pedidos ao WhatsApp.
 10. **Rastreamento mais seguro.** IDs de Analytics, Tag Manager e Pixel são validados antes da montagem de scripts. Configuração continua por projeto, para não misturar empresas.
+11. **Clientes sem contador fictício.** A revisão final encontrou “0 visitas” vindo do snapshot do projeto, enquanto a operação tinha eventos reais. Essa coluna e o número no card foram substituídos por acesso direto à operação e aos resultados da loja, mantendo as estatísticas no ambiente correto.
 
 ## O que foi testado de verdade
 
@@ -55,6 +56,14 @@ Faixas configuradas: até 5 km = R$ 7; até 15 km = R$ 12.
 
 O checkout também cotou a Paulista e gravou essa taxa no pedido #17. Esses resultados confirmam a integração real e a escolha da faixa; **não comprovam o ponto exato de todos os endereços possíveis**. A origem não é detectada magicamente: o criador precisa informá-la e conferi-la. Não foi implementado GPS nem autocomplete com seleção de pino nesta rodada.
 
+### Conferência em produção depois da implantação
+
+- A Vercel confirmou a publicação do código `b5ade7f` em main.
+- Paulista permaneceu em 3,98 km/R$ 7 e Ibirapuera em 8,84 km/R$ 12, com o novo tratamento de geocodificação ativo.
+- A consulta de Praça Bento Quirino passou a retornar `address_ambiguous`, recusando a aproximação antes de cobrar frete. Aeroporto Internacional de Guarulhos / Cumbica retornou `outside_delivery_area`.
+- O botão “Ler” apareceu na demonstração pública. O proprietário continuou autenticado após recarregar a nova versão.
+- “Meus pedidos” recuperou o pedido #17 como concluído, sem o aviso antigo de aguardando aceite, depois de sair e voltar à página.
+
 ## Validação técnica
 
 - Suite local: 375 testes passando; os testes dependentes de credenciais são separados.
@@ -80,5 +89,5 @@ O checkout também cotou a Paulista e gravou essa taxa no pedido #17. Esses resu
 
 - Doceria: `8b542be8-5dc7-4617-b477-770e33b2e353`, slug `auditoria-nexa-20260910`, pedido #17 concluído ficticiamente, R$ 23,90 **sem cobrança**.
 - Studio IA: `1e239176-aa6a-4a4f-9a74-9f4e17b91116`, slug `auditoria-nexa-studio-ia-teste`, solicitação marcada como lida e reserva de 11/09 às 10h cancelada.
-- Projetos de teste serão mantidos não publicados para consulta do proprietário; não são estabelecimentos reais. Os cinco projetos preexistentes não foram editados.
-- Contas auxiliares de navegador são excluídas após a auditoria; isso não exclui as lojas pertencentes ao proprietário. Nenhuma senha ou chave de API consta deste relatório.
+- Projetos de teste mantidos não publicados para consulta do proprietário: studio em rascunho e doceria pausada. Não são estabelecimentos reais. Os cinco projetos preexistentes não foram editados.
+- As duas contas auxiliares de navegador foram excluídas permanentemente após confirmação de suas próprias senhas de teste. Isso não excluiu as lojas pertencentes ao proprietário. Nenhuma senha ou chave de API consta deste relatório.

@@ -33,7 +33,7 @@ import { useNexa } from "@/lib/nexa/hooks";
 import { caminhoSite, copiarTexto, enderecoSite } from "@/lib/nexa/clipboard";
 
 import { segmentos, nomeSegmento } from "@/lib/nexa/segmentos";
-import { numero, tempoRelativo } from "@/lib/nexa/utils";
+import { tempoRelativo } from "@/lib/nexa/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Site } from "@/lib/nexa/types";
 
@@ -270,8 +270,7 @@ function Clientes() {
         <Selo status={s.status} />
       </div>
       <p className="mt-4 break-all text-xs text-muted-foreground">
-        {caminhoSite(s.slug)} · {numero(s.metricas.visitas)} visitas ·{" "}
-        {tempoRelativo(s.atualizadoEm)}
+        {caminhoSite(s.slug)} · {tempoRelativo(s.atualizadoEm)}
       </p>
       <div className="mt-4 flex gap-2">
         <Link
@@ -289,6 +288,13 @@ function Clientes() {
           Visualizar
         </Link>
       </div>
+      <Link
+        to="/operacao"
+        search={{ site: s.id }}
+        className="mt-2 inline-flex min-h-11 items-center text-xs font-semibold underline"
+      >
+        Abrir operação e resultados
+      </Link>
       <div className="mt-2 flex flex-wrap justify-end gap-1 border-t border-border pt-2">
         <Acoes s={s} compacto />
       </div>
@@ -563,7 +569,7 @@ function Clientes() {
                   Status
                 </th>
                 <th scope="col" className="p-4 text-left">
-                  Visitas
+                  Operação
                 </th>
                 <th scope="col" className="p-4 text-left">
                   Atualizado
@@ -595,7 +601,16 @@ function Clientes() {
                   <td className="p-4">
                     <Selo status={s.status} />
                   </td>
-                  <td className="p-4">{numero(s.metricas.visitas)}</td>
+                  <td className="p-4">
+                    <Link
+                      to="/operacao"
+                      search={{ site: s.id }}
+                      aria-label={`Abrir operação de ${s.conteudo.nome}`}
+                      className="inline-flex min-h-11 items-center font-semibold underline"
+                    >
+                      Abrir
+                    </Link>
+                  </td>
                   <td className="p-4 text-muted-foreground">{tempoRelativo(s.atualizadoEm)}</td>
                   <td className="p-4">
                     <div className="flex justify-end gap-1">
