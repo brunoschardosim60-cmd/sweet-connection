@@ -124,7 +124,7 @@ export function PainelCarrinho({
     );
   return (
     <div className="space-y-4 p-1">
-      <nav aria-label="Etapas do pedido" className="grid grid-cols-4 gap-1">
+      <nav aria-label="Etapas do pedido" className="flex items-center gap-1.5">
         {etapas.map((nome, i) => (
           <button
             key={nome}
@@ -132,19 +132,30 @@ export function PainelCarrinho({
             disabled={i > etapa || enviando}
             onClick={() => mudar(i)}
             aria-current={etapa === i ? "step" : undefined}
-            className="min-h-12 rounded-lg px-1 text-[11px] disabled:opacity-40"
+            aria-label={`Etapa ${i + 1} de ${etapas.length}: ${nome}`}
+            title={nome}
+            className="min-h-11 flex-1 rounded-full px-1 text-[11px] font-semibold disabled:opacity-40"
             style={{
-              background: i === etapa ? primaria : "var(--ms-surface)",
-              color: i === etapa ? contraste(primaria) : "inherit",
+              background: i <= etapa ? primaria : "var(--ms-surface)",
+              color: i <= etapa ? contraste(primaria) : "inherit",
+              opacity: i < etapa ? 0.75 : undefined,
             }}
           >
-            {i + 1}. {nome}
+            <span className="sr-only @[22rem]:not-sr-only">{nome}</span>
+            <span aria-hidden className="@[22rem]:hidden">
+              {i + 1}
+            </span>
           </button>
         ))}
       </nav>
-      <h2 ref={titulo} tabIndex={-1} className="text-xl font-semibold outline-none">
-        {etapas[etapa]}
-      </h2>
+      <div>
+        <p className="text-xs font-medium tracking-wide uppercase opacity-60">
+          Etapa {etapa + 1} de {etapas.length}
+        </p>
+        <h2 ref={titulo} tabIndex={-1} className="text-xl font-semibold outline-none">
+          {etapas[etapa]}
+        </h2>
+      </div>
       {(etapa === 0 || etapa === 3) && (
         <ul className="space-y-3">
           {itens.map((i) => (
