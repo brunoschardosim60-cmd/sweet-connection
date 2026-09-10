@@ -14,7 +14,7 @@ import {
   MapPin,
   MessageCircle,
   RefreshCw,
-  ShieldCheck,
+  
   Store,
   Users,
 } from "lucide-react";
@@ -109,6 +109,9 @@ const rotulos: Record<string, string> = {
   entrega: "Entrega",
   retirada: "Retirada",
   mesa: "Mesa / comanda",
+  confirmado: "Confirmado",
+  reagendado: "Reagendado",
+  pendente: "Pendente",
 };
 function Carregando() {
   return (
