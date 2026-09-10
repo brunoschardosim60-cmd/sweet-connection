@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { moeda } from "@/lib/nexa/utils";
 import { whatsappLink } from "@/lib/nexa/brand";
 import { ConvitesLoja, EntregarLoja } from "@/components/operacao/EntregaLoja";
+import { AvisosPush } from "@/components/operacao/AvisosPush";
 
 export const Route = createFileRoute("/operacao")({
   validateSearch: (s: Record<string, unknown>): { site?: string } =>
@@ -323,8 +324,6 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
   const [aba, setAba] = useState("Pedidos");
   const [filtro, setFiltro] = useState("ativos");
   const [som, setSom] = useState(false);
-  const [avisosDesktop, setAvisosDesktop] = useState(false);
-  const avisosAbertos = useRef<Notification[]>([]);
   const vistos = useRef<Set<string> | null>(null);
   const audio = useRef<AudioContext | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -332,7 +331,6 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
     queryKey: ["operacao-dados", usuario, loja.id],
     gcTime: 0,
     refetchInterval: 15000,
-    refetchIntervalInBackground: avisosDesktop,
     retry: 1,
     queryFn: async () => {
       const r = await supabase.rpc("nexa_operacao_dados", { site_id: loja.id });
@@ -343,7 +341,6 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
   useEffect(
     () => () => {
       void audio.current?.close();
-      avisosAbertos.current.forEach((aviso) => aviso.close());
     },
     [],
   );
@@ -354,26 +351,6 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
     );
     if (novos.length) {
       toast.info(`${novos.length} novo(s) pedido(s) em ${loja.nome}`, { duration: 8000 });
-      if (avisosDesktop && "Notification" in window && Notification.permission === "granted") {
-        try {
-          const aviso = new Notification(`Novo pedido — ${loja.nome}`, {
-            body: `${novos.length} pedido(s) aguardando aceite. Abra a operação para conferir.`,
-            tag: `nexa-pedidos-${loja.id}`,
-          });
-          aviso.onclick = () => {
-            window.focus();
-            aviso.close();
-          };
-          avisosAbertos.current.forEach((anterior) => anterior.close());
-          avisosAbertos.current = [aviso];
-        } catch {
-          // Alguns navegadores móveis só aceitam notificações via service worker.
-          setAvisosDesktop(false);
-          toast.info(
-            "Aviso recebido na operação. Este navegador não aceita alertas na área de trabalho.",
-          );
-        }
-      }
       if (som && audio.current) {
         const ctx = audio.current;
         const osc = ctx.createOscillator();
@@ -388,7 +365,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
       }
     }
     vistos.current = new Set(q.data.pedidos.map((p) => p.id));
-  }, [q.data, q.isError, loja.nome, loja.id, som, avisosDesktop]);
+  }, [q.data, q.isError, loja.nome, loja.id, som]);
   const executar = async (chave: string, acao: () => PromiseLike<{ error: unknown }>) => {
     if (ocupado) return;
     setOcupado(chave);
@@ -459,38 +436,6 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
             className={`${botao} px-3`}
-            aria-pressed={avisosDesktop}
-            aria-label={
-              avisosDesktop ? "Desativar avisos neste computador" : "Ativar avisos neste computador"
-            }
-            onClick={async () => {
-              if (avisosDesktop) {
-                setAvisosDesktop(false);
-                avisosAbertos.current.forEach((n) => n.close());
-                return;
-              }
-              if (!("Notification" in window)) {
-                toast.info("Este navegador não oferece avisos na área de trabalho.");
-                return;
-              }
-              try {
-                const permissao = await Notification.requestPermission();
-                setAvisosDesktop(permissao === "granted");
-                toast.info(
-                  permissao === "granted"
-                    ? "Avisos ativados. Mantenha esta operação aberta; fechar o navegador interrompe os avisos."
-                    : "Avisos não autorizados. Você ainda pode acompanhar pela operação e ativar o som.",
-                );
-              } catch {
-                toast.error("Não foi possível ativar os avisos neste navegador.");
-              }
-            }}
-          >
-            <Bell size={16} />
-            <span>{avisosDesktop ? "Avisos ativos" : "Avisos"}</span>
-          </button>
-          <button
-            className={`${botao} px-3`}
             aria-label={som ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
             aria-pressed={som}
             onClick={async () => {
@@ -519,12 +464,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
           </button>
         </div>
       </div>
-      {avisosDesktop && (
-        <p className="mb-3 text-xs text-muted-foreground" role="status">
-          Mantenha esta aba aberta para receber avisos. Com o navegador fechado, eles não são
-          enviados.
-        </p>
-      )}
+      <AvisosPush key={`${usuario}:${loja.id}`} site={loja.id} usuario={usuario} />
       <nav
         role="tablist"
         aria-label="Área de operação"

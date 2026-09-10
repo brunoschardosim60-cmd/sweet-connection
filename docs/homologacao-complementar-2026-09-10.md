@@ -33,3 +33,13 @@ O relatório anterior `auditoria-funcional-2026-09-10.md` mantém as evidências
 - Chrome ainda ausente no inventário conectado; somente Edge e navegador interno disponíveis, sem a sessão autenticada anterior.
 - A rota `src/routes/api/notifications/dispatch.ts` possui canais de e-mail (Resend) e WhatsApp, separados das notificações locais do navegador. Exigem suas respectivas credenciais e remetentes configurados. Sua existência não comprova entrega real, nem substitui Web Push. Não foram disparadas mensagens externas nesta retomada.
 - Uso consultado: 96% consumido. Nenhum crédito de reset foi usado. As quatro pendências de ponta a ponta descritas acima continuam abertas; esta execução não as declara concluídas.
+
+## Retomada autorizada com reset
+
+- Após o usuário responder “sim”, um reset foi resgatado com sucesso: uso retornou a 0%, restando um crédito. Nenhum segundo reset foi utilizado.
+- Chrome conectado novamente e login realizado pelo usuário. A criação com IA foi aberta com dados fictícios, sem criar/publicar outro projeto. O envio de logo pela interface foi bloqueado pela extensão (`Not allowed`); foi solicitado habilitar acesso a URLs de arquivos. Não houve geração multimodal real nesta etapa.
+- Implementado Web Push localmente; detalhes em `web-push-homologacao.md`. A suíte completa passou com **393 testes e 14 integrações ignoradas**. Typecheck sem erros; ESLint sem erros e 16 avisos preexistentes. Build com preset Vercel aprovado antes do último ajuste de carregamento da chave pública no componente.
+- As duas novas migrações foram testadas em PostgreSQL isolado, mas ainda **não aplicadas no Supabase**. As chaves VAPID e o segredo do despachante ainda não foram configurados. A implementação não foi publicada para substituir os avisos existentes antes de configurar e validar a entrega real.
+- Vercel autenticada no navegador; login do CLI oficial iniciado e pendente de autorização explícita para “Allow Access”. Não foram extraídos cookies nem credenciais do navegador.
+- Solicitada autorização específica para contas fictícias com plano temporário, sem cobrança, visando homologar transferência. Não foram criadas nem promovidas essas contas enquanto a autorização estava pendente. Administração privilegiada real também continua não homologada.
+- Auditoria de dependências identificou aviso alto em `js-yaml`, dependência transitiva já presente na cadeia do TanStack/build; não foi feita atualização geral de dependências como parte desta alteração de notificações.

@@ -39,6 +39,8 @@ import { Route as SiteSlugRouteImport } from './routes/site.$slug'
 import { Route as ApiAdminAccountControlRouteImport } from './routes/api/admin/account-control'
 import { Route as ApiDeliveryQuoteRouteImport } from './routes/api/delivery/quote'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
+import { Route as ApiNotificationsPushRouteImport } from './routes/api/notifications/push'
+import { Route as ApiNotificationsPushDispatchRouteImport } from './routes/api/notifications/push-dispatch'
 import { Route as ApiReportsMonthlyRouteImport } from './routes/api/reports/monthly'
 import { Route as ApiStoresAcceptRouteImport } from './routes/api/stores/accept'
 import { Route as ApiWebhooksAsaasRouteImport } from './routes/api/webhooks/asaas'
@@ -205,6 +207,17 @@ const ApiNotificationsDispatchRoute =
     path: '/api/notifications/dispatch',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiNotificationsPushRoute = ApiNotificationsPushRouteImport.update({
+  id: '/api/notifications/push',
+  path: '/api/notifications/push',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsPushDispatchRoute =
+  ApiNotificationsPushDispatchRouteImport.update({
+    id: '/api/notifications/push-dispatch',
+    path: '/api/notifications/push-dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiReportsMonthlyRoute = ApiReportsMonthlyRouteImport.update({
   id: '/api/reports/monthly',
   path: '/api/reports/monthly',
@@ -308,6 +321,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/notifications/push': typeof ApiNotificationsPushRoute
+  '/api/notifications/push-dispatch': typeof ApiNotificationsPushDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -353,6 +368,8 @@ export interface FileRoutesByTo {
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/notifications/push': typeof ApiNotificationsPushRoute
+  '/api/notifications/push-dispatch': typeof ApiNotificationsPushDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -400,6 +417,8 @@ export interface FileRoutesById {
   '/api/admin/account-control': typeof ApiAdminAccountControlRoute
   '/api/delivery/quote': typeof ApiDeliveryQuoteRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/notifications/push': typeof ApiNotificationsPushRoute
+  '/api/notifications/push-dispatch': typeof ApiNotificationsPushDispatchRoute
   '/api/reports/monthly': typeof ApiReportsMonthlyRoute
   '/api/stores/accept': typeof ApiStoresAcceptRoute
   '/api/webhooks/asaas': typeof ApiWebhooksAsaasRoute
@@ -448,6 +467,8 @@ export interface FileRouteTypes {
     | '/api/admin/account-control'
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
+    | '/api/notifications/push'
+    | '/api/notifications/push-dispatch'
     | '/api/reports/monthly'
     | '/api/stores/accept'
     | '/api/webhooks/asaas'
@@ -493,6 +514,8 @@ export interface FileRouteTypes {
     | '/api/admin/account-control'
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
+    | '/api/notifications/push'
+    | '/api/notifications/push-dispatch'
     | '/api/reports/monthly'
     | '/api/stores/accept'
     | '/api/webhooks/asaas'
@@ -539,6 +562,8 @@ export interface FileRouteTypes {
     | '/api/admin/account-control'
     | '/api/delivery/quote'
     | '/api/notifications/dispatch'
+    | '/api/notifications/push'
+    | '/api/notifications/push-dispatch'
     | '/api/reports/monthly'
     | '/api/stores/accept'
     | '/api/webhooks/asaas'
@@ -575,6 +600,8 @@ export interface RootRouteChildren {
   ApiAdminAccountControlRoute: typeof ApiAdminAccountControlRoute
   ApiDeliveryQuoteRoute: typeof ApiDeliveryQuoteRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
+  ApiNotificationsPushRoute: typeof ApiNotificationsPushRoute
+  ApiNotificationsPushDispatchRoute: typeof ApiNotificationsPushDispatchRoute
   ApiReportsMonthlyRoute: typeof ApiReportsMonthlyRoute
   ApiStoresAcceptRoute: typeof ApiStoresAcceptRoute
   ApiWebhooksAsaasRoute: typeof ApiWebhooksAsaasRoute
@@ -798,6 +825,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/notifications/push': {
+      id: '/api/notifications/push'
+      path: '/api/notifications/push'
+      fullPath: '/api/notifications/push'
+      preLoaderRoute: typeof ApiNotificationsPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/push-dispatch': {
+      id: '/api/notifications/push-dispatch'
+      path: '/api/notifications/push-dispatch'
+      fullPath: '/api/notifications/push-dispatch'
+      preLoaderRoute: typeof ApiNotificationsPushDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reports/monthly': {
       id: '/api/reports/monthly'
       path: '/api/reports/monthly'
@@ -960,6 +1001,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAccountControlRoute: ApiAdminAccountControlRoute,
   ApiDeliveryQuoteRoute: ApiDeliveryQuoteRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
+  ApiNotificationsPushRoute: ApiNotificationsPushRoute,
+  ApiNotificationsPushDispatchRoute: ApiNotificationsPushDispatchRoute,
   ApiReportsMonthlyRoute: ApiReportsMonthlyRoute,
   ApiStoresAcceptRoute: ApiStoresAcceptRoute,
   ApiWebhooksAsaasRoute: ApiWebhooksAsaasRoute,
