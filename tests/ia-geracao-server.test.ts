@@ -102,6 +102,50 @@ afterEach(() => {
 });
 
 describe("geração de IA autenticada e ajustes limitados no servidor", () => {
+  it("envia logo e foto com rótulos distintos e bytes ao Gemini", async () => {
+    const base = "https://teste-ia.supabase.co/storage/v1/object/public/nexa-media/";
+    const logo = `${base}logo.png`;
+    const foto = `${base}bolo.png`;
+    requisitar.mockImplementation(async (url) =>
+      String(url).startsWith(base)
+        ? new Response(new Uint8Array([137, 80, 78, 71]), {
+            headers: { "content-type": "image/png" },
+          })
+        : respostaGemini(),
+    );
+    await gerarPlano({ ...entrada, logo, fotosProdutos: [foto] }, "token-auth-falso");
+    const chamada = requisitar.mock.calls.find(([url]) =>
+      String(url).includes("generativelanguage.googleapis.com"),
+    );
+    const corpo = JSON.parse(String(chamada?.[1]?.body));
+    expect(corpo.contents[0].parts.slice(1)).toEqual([
+      { text: "LOGO da marca" },
+      { inlineData: { mimeType: "image/png", data: "iVBORw==" } },
+      { text: "FOTO DE PRODUTO imagemIndice=0" },
+      { inlineData: { mimeType: "image/png", data: "iVBORw==" } },
+    ]);
+  });
+
+  it("não baixa referências externas nem envia HTML como imagem ao provedor", async () => {
+    const foto = "https://teste-ia.supabase.co/storage/v1/object/public/nexa-media/erro.png";
+    requisitar.mockImplementation(async (url) =>
+      String(url) === foto
+        ? new Response("página de erro", { headers: { "content-type": "text/html" } })
+        : respostaGemini(),
+    );
+    await gerarPlano(
+      { ...entrada, logo: "https://externo.invalid/logo.png", fotosProdutos: [foto] },
+      "token-auth-falso",
+    );
+    expect(requisitar.mock.calls.some(([url]) => String(url).includes("externo.invalid"))).toBe(false);
+    const chamada = requisitar.mock.calls.find(([url]) =>
+      String(url).includes("generativelanguage.googleapis.com"),
+    );
+    const corpo = JSON.parse(String(chamada?.[1]?.body));
+    expect(corpo.contents[0].parts).toHaveLength(1);
+    expect(corpo.contents[0].parts[0]).toHaveProperty("text");
+  });
+
   it("rejeita entrada inválida antes de autenticar, consumir cota ou chamar provedor", async () => {
     await expect(gerarPlano({ ...entrada, nicho: "curto" }, "token-auth-falso")).rejects.toThrow();
     expect(admin.auth.getUser).not.toHaveBeenCalled();
