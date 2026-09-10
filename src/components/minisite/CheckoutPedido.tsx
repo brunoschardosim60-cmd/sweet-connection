@@ -141,9 +141,9 @@ export function PainelCarrinho({
               opacity: i < etapa ? 0.75 : undefined,
             }}
           >
-            <span className="sr-only @[22rem]:not-sr-only">{nome}</span>
-            <span aria-hidden className="@[22rem]:hidden">
+            <span aria-hidden className="block truncate">
               {i + 1}
+              <span className="hidden sm:inline">. {nome}</span>
             </span>
           </button>
         ))}
