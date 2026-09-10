@@ -236,8 +236,13 @@ function Operacao() {
             </div>
           </div>
           {lojas.data?.some((l) => l.dono) && (
-            <Link to="/painel" className={`${botao} hidden border-sidebar-border bg-sidebar-accent text-sidebar-foreground sm:inline-flex`}>
-              Ir para criação <ExternalLink size={15} aria-hidden="true" />
+            <Link
+              to="/painel"
+              className={`${botao} border-sidebar-border bg-sidebar-accent px-3 text-sidebar-foreground`}
+            >
+              <ExternalLink size={15} aria-hidden="true" />
+              <span className="hidden sm:inline">Ir para criação</span>
+              <span className="sr-only sm:hidden">Ir para criação do site</span>
             </Link>
           )}
           <button className={`${botao} border-sidebar-border bg-sidebar-accent text-sidebar-foreground`} onClick={() => void supabase.auth.signOut()}>
