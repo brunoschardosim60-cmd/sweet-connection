@@ -83,7 +83,7 @@ const beneficios: Record<string, string[]> = {
     "Tudo do Profissional",
     "Catálogo e cardápio",
     "Cupons e promoções",
-    "Pedidos via WhatsApp",
+    "Carrinho, pedidos e acompanhamento por loja",
     "Múltiplos projetos para sua operação",
   ],
 };

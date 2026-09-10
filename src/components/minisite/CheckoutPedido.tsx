@@ -4,6 +4,9 @@ import { whatsappLink } from "@/lib/nexa/brand";
 import { fusoLoja, horariosPedido, lojaAbertaEm, rotuloAgendamento } from "@/lib/nexa/atendimento";
 import { contraste } from "./estilo";
 import {
+  enderecoPedido,
+  erroEnderecoDistancia,
+  pagamentosDoSite,
   erroEtapaCheckout,
   rotuloTaxa,
   taxaConhecida,
@@ -11,6 +14,7 @@ import {
   type CotacaoEntrega,
   usaEntregaPorDistancia,
 } from "@/lib/nexa/checkout";
+import { estados } from "@/lib/nexa/segmentos";
 import {
   formatarTelefonePedido,
   rotulosModalidade,
@@ -63,6 +67,11 @@ export function PainelCarrinho({
 }) {
   const [etapa, setEtapa] = useState(0);
   const [aviso, setAviso] = useState("");
+  const [enderecoConferido, setEnderecoConferido] = useState(false);
+  useEffect(
+    () => setEnderecoConferido(false),
+    [campos.endereco, campos.bairro, campos.cidade, campos.estado],
+  );
   const [agora, setAgora] = useState(() => new Date());
   useEffect(() => {
     const t = window.setInterval(() => setAgora(new Date()), 30000);
@@ -82,9 +91,7 @@ export function PainelCarrinho({
     const permitidas = modalidadesKey.split(",") as Entrega[];
     if (!permitidas.includes(entrega)) setEntrega(permitidas[0] ?? "retirada");
   }, [modalidadesKey, entrega, setEntrega]);
-  const pagamentos = site.comercio?.pagamentosAceitos?.length
-    ? site.comercio.pagamentosAceitos
-    : (Object.keys(rotulosPagamento) as Pagamento[]);
+  const pagamentos = pagamentosDoSite(site);
   const borda = { borderColor: "var(--ms-border)" };
   useEffect(() => {
     titulo.current?.focus({ preventScroll: true });
@@ -114,6 +121,30 @@ export function PainelCarrinho({
         style={borda}
       />
     </label>
+  );
+  const localidade = (
+    <div className="grid grid-cols-[minmax(0,1fr)_5rem] gap-2">
+      {campo("cidade", "Cidade da entrega", "Ex.: Campinas", 70)}
+      <label className="block text-sm">
+        UF
+        <select
+          value={campos.estado ?? ""}
+          onChange={(e) => {
+            const estado = e.currentTarget.value;
+            setCampos((c) => ({ ...c, estado }));
+          }}
+          className="mt-1 min-h-12 w-full rounded-xl border px-2 text-sm"
+          style={{ ...borda, background: "var(--ms-surface)", color: "inherit" }}
+        >
+          <option value="">UF</option>
+          {estados.map((uf) => (
+            <option key={uf} value={uf}>
+              {uf}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
   if (!itens.length)
     return (
@@ -259,11 +290,35 @@ export function PainelCarrinho({
           )}
           {porDistancia && (
             <div className="space-y-3 rounded-xl border p-3" style={borda}>
-              {campo("endereco", "Endereço completo para entrega", "Rua, número e cidade", 240)}
+              {campo("endereco", "Rua e número", "Ex.: Rua das Flores, 120", 160)}
               {campo("bairro", "Bairro", "", 120)}
+              {localidade}
+              <p className="text-xs opacity-75">
+                Saída da loja: {site.comercio?.enderecoOrigem || "Ainda não configurada"}
+              </p>
+              {!erroEnderecoDistancia(campos) && (
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center text-sm underline"
+                  href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(site.comercio?.enderecoOrigem ?? "")}&destination=${encodeURIComponent([enderecoPedido(campos), campos.bairro, "Brasil"].filter(Boolean).join(", "))}&travelmode=driving`}
+                >
+                  Conferir saída e destino no mapa
+                </a>
+              )}
+              <label className="flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={enderecoConferido}
+                  onChange={(e) => setEnderecoConferido(e.target.checked)}
+                />
+                Conferi os endereços de saída e entrega
+              </label>
               <button
                 type="button"
-                disabled={calculandoEntrega}
+                disabled={
+                  calculandoEntrega || !enderecoConferido || !!erroEnderecoDistancia(campos)
+                }
                 onClick={onCalcularEntrega}
                 className="min-h-11 w-full rounded-xl border px-3 text-sm font-semibold"
                 style={borda}
@@ -285,7 +340,7 @@ export function PainelCarrinho({
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex min-h-11 items-center text-sm underline"
-                  href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(site.comercio?.enderecoOrigem ?? "")}&destination=${encodeURIComponent(`${campos.endereco}, ${campos.bairro}`)}&travelmode=driving`}
+                  href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(site.comercio?.enderecoOrigem ?? "")}&destination=${encodeURIComponent([enderecoPedido(campos), campos.bairro, "Brasil"].filter(Boolean).join(", "))}&travelmode=driving`}
                 >
                   Ver rota no Google Maps
                 </a>
@@ -347,8 +402,9 @@ export function PainelCarrinho({
           </label>
           {entrega === "entrega" && (
             <>
-              {campo("endereco", "Rua e número", "", 240)}
+              {campo("endereco", "Rua e número", "", porDistancia ? 160 : 240)}
               {campo("bairro", "Bairro", "", 120)}
+              {porDistancia && localidade}
               {campo("complemento", "Complemento (opcional)")}
               {campo("referencia", "Referência (opcional)")}
             </>
@@ -416,7 +472,12 @@ export function PainelCarrinho({
               entrega === "entrega"
                 ? {
                     t: "Endereço",
-                    v: [campos.endereco, campos.bairro, campos.complemento, campos.referencia]
+                    v: [
+                      enderecoPedido(campos),
+                      campos.bairro,
+                      campos.complemento,
+                      campos.referencia,
+                    ]
                       .filter(Boolean)
                       .join(" · "),
                   }

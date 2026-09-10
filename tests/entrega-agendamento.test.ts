@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { siteDoModelo } from "@/lib/nexa/demo-modelos";
 import { lojaAbertaEm, horariosPedido } from "@/lib/nexa/atendimento";
-import { taxaConhecida, rotuloTaxa } from "@/lib/nexa/checkout";
+import {
+  taxaConhecida,
+  rotuloTaxa,
+  enderecoPedido,
+  erroEnderecoDistancia,
+  pagamentosDoSite,
+  type CamposEntrega,
+} from "@/lib/nexa/checkout";
 import { retornoSeguro } from "@/lib/nexa/auth-retorno";
 const admin = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn() }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: admin }));
@@ -25,6 +32,41 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 describe("entrega e agendamento", () => {
+  it("usa os mesmos pagamentos padrão do editor e respeita opções explícitas", () => {
+    const s = loja();
+    delete s.comercio!.pagamentosAceitos;
+    expect(pagamentosDoSite(s)).toEqual(["pix", "cartao", "dinheiro"]);
+    s.comercio!.pagamentosAceitos = ["balcao"];
+    expect(pagamentosDoSite(s)).toEqual(["balcao"]);
+  });
+  const destino = {
+    nome: "Teste",
+    whatsapp: "11999999999",
+    horarioPreferido: "",
+    mesa: "",
+    pessoas: "",
+    endereco: " Avenida Paulista, 1578 ",
+    bairro: "Bela Vista",
+    cidade: " São Paulo ",
+    estado: "sp",
+    complemento: "",
+    referencia: "",
+    observacao: "",
+    troco: "",
+  } satisfies CamposEntrega;
+  it("inclui cidade e UF no mesmo endereço usado para cotação e pedido", () => {
+    expect(enderecoPedido(destino)).toBe("Avenida Paulista, 1578, São Paulo, SP");
+    expect(erroEnderecoDistancia(destino)).toBe("");
+    expect(enderecoPedido({ ...destino, cidade: "Campinas" })).not.toBe(enderecoPedido(destino));
+    expect(enderecoPedido({ ...destino, estado: "RJ" })).not.toBe(enderecoPedido(destino));
+    expect(enderecoPedido({ endereco: " Rua X, 1 " })).toBe("Rua X, 1");
+  });
+  it("exige localidade explícita e respeita o limite do endereço persistido", () => {
+    expect(erroEnderecoDistancia({ ...destino, cidade: "" })).toContain("cidade");
+    expect(erroEnderecoDistancia({ ...destino, estado: "XX" })).toContain("UF");
+    expect(erroEnderecoDistancia({ ...destino, endereco: "" })).toContain("rua");
+    expect(erroEnderecoDistancia({ ...destino, endereco: "a".repeat(240) })).toContain("240");
+  });
   it("usa a menor faixa suficiente, respeita limite exato e recusa fora da área", () => {
     const s = loja();
     expect(precoPorDistancia(s, 5000)).toBe(7);
@@ -113,7 +155,7 @@ describe("entrega e agendamento", () => {
         headers: { origin: "https://nexa.invalid" },
         body: JSON.stringify({
           slug: "teste",
-          endereco: "Avenida Paulista, 1578",
+          endereco: enderecoPedido(destino),
           bairro: "Bela Vista",
         }),
       }),
@@ -126,5 +168,40 @@ describe("entrega e agendamento", () => {
       expect.objectContaining({ minisite_id: "database-id", taxa: 7 }),
     );
     expect(google).toHaveBeenCalledOnce();
+    const requisicao = JSON.parse(
+      (google.mock.calls[0] as unknown as [string, RequestInit])[1].body as string,
+    );
+    expect(requisicao.origin.address).toBe(s.comercio!.enderecoOrigem);
+    expect(requisicao.destination.address).toBe(
+      "Avenida Paulista, 1578, São Paulo, SP, Bela Vista, Brasil",
+    );
+    expect(requisicao.travelMode).toBe("DRIVE");
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ endereco: enderecoPedido(destino) }),
+    );
+    for (const [ponto, codigo] of [
+      ["origin", "delivery_origin_ambiguous"],
+      ["destination", "address_ambiguous"],
+    ]) {
+      google.mockResolvedValueOnce(
+        Response.json({
+          routes: [{ distanceMeters: 1000 }],
+          geocodingResults: { [ponto!]: { partialMatch: true } },
+        }),
+      );
+      const imprecisa = await cotarEntrega(
+        new Request("https://nexa.invalid/api/delivery/quote", {
+          method: "POST",
+          body: JSON.stringify({
+            slug: "teste",
+            endereco: enderecoPedido(destino),
+            bairro: "Bela Vista",
+          }),
+        }),
+      );
+      expect(imprecisa.status).toBe(422);
+      expect(await imprecisa.json()).toEqual({ error: codigo });
+    }
+    expect(insert).toHaveBeenCalledOnce();
   });
 });

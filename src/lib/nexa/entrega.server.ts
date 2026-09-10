@@ -86,7 +86,7 @@ export async function cotarEntrega(request: Request) {
       headers: {
         "content-type": "application/json",
         "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": "routes.distanceMeters",
+        "X-Goog-FieldMask": "routes.distanceMeters,geocodingResults",
       },
       body: JSON.stringify({
         origin: { address: site.comercio.enderecoOrigem },
@@ -98,7 +98,23 @@ export async function cotarEntrega(request: Request) {
       }),
     });
     if (!response.ok) throw new Error("delivery_unavailable");
-    const route = (await response.json()) as { routes?: { distanceMeters?: number }[] };
+    const route = (await response.json()) as {
+      routes?: { distanceMeters?: number }[];
+      geocodingResults?: {
+        origin?: { partialMatch?: boolean; geocoderStatus?: { code?: number } };
+        destination?: { partialMatch?: boolean; geocoderStatus?: { code?: number } };
+      };
+    };
+    if (
+      route.geocodingResults?.origin?.partialMatch ||
+      route.geocodingResults?.origin?.geocoderStatus?.code
+    )
+      throw new Error("delivery_origin_ambiguous");
+    if (
+      route.geocodingResults?.destination?.partialMatch ||
+      route.geocodingResults?.destination?.geocoderStatus?.code
+    )
+      throw new Error("address_ambiguous");
     const metros = route.routes?.[0]?.distanceMeters;
     if (typeof metros !== "number") throw new Error("address_not_found");
     const taxa = precoPorDistancia(site, metros);
@@ -125,7 +141,13 @@ export async function cotarEntrega(request: Request) {
     );
   } catch (error) {
     const codigo = error instanceof Error ? error.message : "delivery_unavailable";
-    const permitidos = ["outside_delivery_area", "address_not_found", "delivery_not_configured"];
+    const permitidos = [
+      "outside_delivery_area",
+      "address_not_found",
+      "delivery_not_configured",
+      "address_ambiguous",
+      "delivery_origin_ambiguous",
+    ];
     return Response.json(
       { error: permitidos.includes(codigo) ? codigo : "delivery_unavailable" },
       { status: permitidos.includes(codigo) ? 422 : 503 },

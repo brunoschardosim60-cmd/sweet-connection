@@ -108,6 +108,45 @@ describe.runIf(configurado)("autorização de usuário autenticado", () => {
     expect(error).not.toBeNull();
   });
 
+  it("envia mídia de teste e impede alteração pela outra conta", async () => {
+    const bucket = "nexa-media";
+    const path = `${userId}/${crypto.randomUUID()}.png`;
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jT2kAAAAASUVORK5CYII=",
+      "base64",
+    );
+    try {
+      const upload = await cliente.storage
+        .from(bucket)
+        .upload(path, png, { contentType: "image/png" });
+      expect(upload.error).toBeNull();
+      const registro = await cliente
+        .from("media")
+        .insert({
+          owner_id: userId,
+          bucket,
+          object_path: path,
+          original_name: "AUDITORIA-pixel.png",
+          mime_type: "image/png",
+          size_bytes: png.length,
+        })
+        .select("id")
+        .single();
+      expect(registro.error).toBeNull();
+      const alheio = await clienteSecundario.from("media").select("id").eq("id", registro.data!.id);
+      expect(alheio.data).toEqual([]);
+      const sobrescrever = await clienteSecundario.storage
+        .from(bucket)
+        .upload(path, png, { upsert: true, contentType: "image/png" });
+      expect(sobrescrever.error).not.toBeNull();
+      await clienteSecundario.storage.from(bucket).remove([path]);
+      expect((await cliente.storage.from(bucket).download(path)).error).toBeNull();
+    } finally {
+      expect((await cliente.storage.from(bucket).remove([path])).error).toBeNull();
+      expect((await cliente.from("media").delete().eq("object_path", path)).error).toBeNull();
+    }
+  });
+
   it("isola mini-sites, solicitações e alterações entre duas contas reais", async () => {
     const slug = `auditoria-${crypto.randomUUID().slice(0, 12)}`;
     const { data: criado, error: erroCriacao } = await cliente.rpc("save_minisite_draft", {

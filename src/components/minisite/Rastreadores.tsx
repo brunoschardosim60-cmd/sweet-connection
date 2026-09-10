@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { Site } from "@/lib/nexa/types";
+import { idRastreador } from "@/lib/nexa/rastreamento";
 
 const carregarScript = (id: string, src: string) => {
   if (document.getElementById(id)) return;
@@ -18,16 +19,14 @@ const executar = (id: string, codigo: string) => {
   document.head.appendChild(el);
 };
 
-const limpo = (valor?: string) => (valor ?? "").trim();
-
 /**
  * Carrega Google Analytics, Meta Pixel e Google Tag Manager configurados pelo
  * dono do mini-site. Roda apenas no navegador e apenas na página publicada.
  */
 export function Rastreadores({ site }: { site: Site }) {
-  const ga = limpo(site.integracoes.googleAnalytics);
-  const pixel = limpo(site.integracoes.metaPixel);
-  const gtm = limpo(site.integracoes.googleTagManager);
+  const ga = idRastreador("ga", site.integracoes.googleAnalytics);
+  const pixel = idRastreador("pixel", site.integracoes.metaPixel);
+  const gtm = idRastreador("gtm", site.integracoes.googleTagManager);
 
   useEffect(() => {
     if (!ga) return;

@@ -7,6 +7,7 @@ import {
   type Pagamento,
 } from "./catalogo";
 import type { Site } from "./types";
+import { estados } from "./segmentos";
 export interface CamposEntrega {
   nome: string;
   whatsapp: string;
@@ -14,12 +15,29 @@ export interface CamposEntrega {
   mesa: string;
   pessoas: string;
   endereco: string;
+  cidade?: string;
+  estado?: string;
   bairro: string;
   complemento: string;
   referencia: string;
   observacao: string;
   troco: string;
   agendadoPara?: string;
+}
+// O mesmo destino vai para a cotação, a revisão e o pedido: alterar a cidade
+// também invalida o preço calculado, não apenas alterar a rua.
+export function enderecoPedido(dados: Pick<CamposEntrega, "endereco" | "cidade" | "estado">) {
+  return [dados.endereco.trim(), dados.cidade?.trim(), dados.estado?.trim().toUpperCase()]
+    .filter(Boolean)
+    .join(", ");
+}
+export function erroEnderecoDistancia(dados: CamposEntrega) {
+  if (dados.endereco.trim().length < 5) return "Informe a rua e o número para calcular a entrega.";
+  if (!dados.cidade || dados.cidade.trim().length < 2) return "Informe a cidade da entrega.";
+  if (!estados.includes(dados.estado?.trim().toUpperCase() ?? ""))
+    return "Selecione a UF da entrega.";
+  if (enderecoPedido(dados).length > 240) return "Resuma o endereço para até 240 caracteres.";
+  return "";
 }
 export interface CotacaoEntrega {
   id: string;
@@ -29,6 +47,11 @@ export interface CotacaoEntrega {
 }
 export function usaEntregaPorDistancia(site: Site) {
   return site.comercio?.calculoEntrega === "distancia";
+}
+export function pagamentosDoSite(site: Site): Pagamento[] {
+  return site.comercio?.pagamentosAceitos?.length
+    ? site.comercio.pagamentosAceitos
+    : ["pix", "cartao", "dinheiro"];
 }
 export function taxaConhecida(
   site: Site,
@@ -84,6 +107,10 @@ export function erroEtapaCheckout(
     return "Revise as quantidades.";
   const totais = totaisCarrinho(itens, site, modalidade, dados.bairro, cotacao?.taxa);
   if (totais.abaixoDoMinimo) return "Adicione mais itens para atingir o pedido mínimo.";
+  if (modalidade === "entrega" && usaEntregaPorDistancia(site)) {
+    const erroEndereco = erroEnderecoDistancia(dados);
+    if (erroEndereco) return erroEndereco;
+  }
   if (!taxaConhecida(site, modalidade, dados.bairro, cotacao))
     return usaEntregaPorDistancia(site)
       ? "Calcule a entrega pelo endereço antes de continuar."
@@ -97,12 +124,7 @@ export function erroEtapaCheckout(
       return "Informe a rua e o número para a entrega.";
     if (modalidade === "mesa" && !/^[1-9]\d*$/.test(dados.mesa)) return "Informe o número da mesa.";
   }
-  if (
-    etapa >= 2 &&
-    (!pagamento ||
-      (site.comercio?.pagamentosAceitos?.length &&
-        !site.comercio.pagamentosAceitos.includes(pagamento)))
-  )
+  if (etapa >= 2 && (!pagamento || !pagamentosDoSite(site).includes(pagamento)))
     return "Escolha uma forma de pagamento aceita.";
   return "";
 }

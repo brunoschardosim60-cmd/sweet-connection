@@ -1038,7 +1038,11 @@ function NovoSite() {
                       }
                     />
                   </label>
-                  <ConfiguracaoEntrega valor={operacao} alterar={setOperacao} />
+                  <ConfiguracaoEntrega
+                    valor={operacao}
+                    alterar={setOperacao}
+                    enderecoLoja={enderecoPersonalizado ?? ""}
+                  />
                   <p className="text-xs text-muted-foreground">
                     Você pode revisar essas opções no editor antes de publicar.
                   </p>

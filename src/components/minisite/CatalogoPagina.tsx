@@ -32,7 +32,12 @@ import { contraste, estiloMiniSite, hexToRgba } from "@/components/minisite/esti
 import { useFocoModal } from "@/components/minisite/useFocoModal";
 import { DetalheProduto } from "./DetalheProduto";
 import { PainelCarrinho } from "./CheckoutPedido";
-import type { CamposEntrega, CotacaoEntrega } from "@/lib/nexa/checkout";
+import {
+  enderecoPedido,
+  erroEnderecoDistancia,
+  type CamposEntrega,
+  type CotacaoEntrega,
+} from "@/lib/nexa/checkout";
 import { rotuloAgendamento } from "@/lib/nexa/atendimento";
 import {
   adicionarLinha,
@@ -119,6 +124,8 @@ export function CatalogoPagina({
     mesa: "",
     pessoas: "",
     endereco: "",
+    cidade: "",
+    estado: "",
     bairro: "",
     complemento: "",
     referencia: "",
@@ -138,7 +145,7 @@ export function CatalogoPagina({
   >(null);
   const [calculandoEntrega, setCalculandoEntrega] = useState(false);
   const cotacao =
-    cotacaoSalva?.endereco === campos.endereco.trim() &&
+    cotacaoSalva?.endereco === enderecoPedido(campos) &&
     cotacaoSalva.bairro === campos.bairro.trim()
       ? cotacaoSalva
       : null;
@@ -149,9 +156,14 @@ export function CatalogoPagina({
       );
       return;
     }
+    const erroEndereco = erroEnderecoDistancia(campos);
+    if (erroEndereco) {
+      setRetornoPedido(erroEndereco);
+      return;
+    }
     setRetornoPedido("");
     setCalculandoEntrega(true);
-    const endereco = campos.endereco.trim(),
+    const endereco = enderecoPedido(campos),
       bairro = campos.bairro.trim();
     try {
       setCotacaoSalva({
@@ -388,6 +400,7 @@ export function CatalogoPagina({
         entrega,
         {
           ...campos,
+          endereco: enderecoPedido(campos),
           ...(cotacao ? { cotacaoId: cotacao.id } : {}),
           ...(pagamento ? { pagamento } : {}),
         },
@@ -1011,7 +1024,7 @@ function DrawerMeusPedidos({
         role="dialog"
         aria-modal="true"
         aria-label="Meus pedidos"
-        className="scrollbar-invisivel relative max-h-[88dvh] w-full max-w-lg overflow-y-auto p-5 shadow-2xl"
+        className="scrollbar-invisivel relative max-h-[min(88dvh,100%)] w-full max-w-lg overflow-y-auto p-5 shadow-2xl"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,
@@ -1061,35 +1074,37 @@ function DrawerMeusPedidos({
             {atualizando ? "Atualizando…" : "Atualizar status"}
           </button>
         </div>
-        {pedidoConfirmado && (
-          <section
-            role="status"
-            className="mb-4 rounded-xl border p-4"
-            style={{
-              borderColor: hexToRgba(primaria, 0.45),
-              background: hexToRgba(primaria, 0.1),
-            }}
-          >
-            <div className="flex items-start gap-3">
-              <CircleCheck
-                size={22}
-                className="mt-0.5 shrink-0"
-                style={{ color: primaria }}
-                aria-hidden
-              />
-              <div>
-                <h3 className="font-semibold">Pedido enviado!</h3>
-                <p className="mt-1 text-sm opacity-80">
-                  Pedido #{pedidoConfirmado.codigo} ·{" "}
-                  {rotulosModalidade[pedidoConfirmado.modalidade]} · {moeda(pedidoConfirmado.total)}
-                </p>
-                <p className="mt-1 text-xs opacity-75">
-                  Seu pedido aguarda o aceite da loja. Acompanhe as atualizações abaixo.
-                </p>
+        {pedidoConfirmado &&
+          !pedidos.some((p) => p.codigo === pedidoConfirmado.codigo && p.status !== "novo") && (
+            <section
+              role="status"
+              className="mb-4 rounded-xl border p-4"
+              style={{
+                borderColor: hexToRgba(primaria, 0.45),
+                background: hexToRgba(primaria, 0.1),
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <CircleCheck
+                  size={22}
+                  className="mt-0.5 shrink-0"
+                  style={{ color: primaria }}
+                  aria-hidden
+                />
+                <div>
+                  <h3 className="font-semibold">Pedido enviado!</h3>
+                  <p className="mt-1 text-sm opacity-80">
+                    Pedido #{pedidoConfirmado.codigo} ·{" "}
+                    {rotulosModalidade[pedidoConfirmado.modalidade]} ·{" "}
+                    {moeda(pedidoConfirmado.total)}
+                  </p>
+                  <p className="mt-1 text-xs opacity-75">
+                    Seu pedido aguarda o aceite da loja. Acompanhe as atualizações abaixo.
+                  </p>
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
         {pedidos.length === 0 ? (
           <p
             className="rounded-xl border border-dashed p-4 text-sm opacity-75"
@@ -1362,7 +1377,7 @@ function DrawerCarrinho({
         role="dialog"
         aria-modal="true"
         aria-label="Seu pedido"
-        className="scrollbar-invisivel absolute inset-x-0 bottom-0 max-h-[88vh] touch-pan-y overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom @5xl:inset-y-0 @5xl:left-auto @5xl:right-0 @5xl:max-h-none @5xl:w-[min(440px,100vw)] @5xl:border-l @5xl:border-t-0"
+        className="scrollbar-invisivel absolute inset-x-0 bottom-0 max-h-[min(88dvh,100%)] touch-pan-y overflow-y-auto p-4 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom @5xl:inset-y-0 @5xl:left-auto @5xl:right-0 @5xl:max-h-none @5xl:w-[min(440px,100vw)] @5xl:border-l @5xl:border-t-0"
         style={{
           background: site.aparencia.corFundo,
           color: site.aparencia.corTexto,

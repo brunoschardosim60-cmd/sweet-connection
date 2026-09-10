@@ -44,6 +44,7 @@ describe("presets funcionais dos modelos", () => {
       taxaEntrega: 0,
       pedidoMinimo: 0,
       modalidadesPedido: ["entrega", "retirada"],
+      pagamentosAceitos: ["pix", "cartao", "dinheiro"],
       aceitarAgendamento: true,
       fusoHorario: "America/Sao_Paulo",
     });

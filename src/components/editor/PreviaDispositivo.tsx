@@ -8,6 +8,7 @@ import {
   Tablet,
   ZoomIn,
   ZoomOut,
+  BookOpen,
 } from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { PalcoEscalado } from "@/components/editor/PalcoEscalado";
@@ -128,6 +129,7 @@ export function MolduraPrevia({
   const [zoom, setZoom] = useState(1);
   const [escalaAtual, setEscalaAtual] = useState(1);
   const [telaCheia, setTelaCheia] = useState(false);
+  const [leitura, setLeitura] = useState(false);
 
   useEffect(() => {
     const aoMudar = () => setTelaCheia(document.fullscreenElement === areaRef.current);
@@ -158,19 +160,19 @@ export function MolduraPrevia({
         <div
           role="group"
           aria-label="Controles da prévia"
-          className="order-last mt-2 flex shrink-0 items-center gap-0.5 rounded-full border border-border/60 bg-background/90 p-0.5 shadow-sm"
+          className="order-last mt-2 flex max-w-full shrink-0 flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-border/60 bg-background/90 p-0.5 shadow-sm"
         >
           <BotaoControle
             rotulo={horizontal ? "Orientação vertical" : "Orientação horizontal"}
             ativo={horizontal}
-            desabilitado={desktop}
+            desabilitado={desktop || leitura}
             onClick={() => setOrientacao(horizontal ? "vertical" : "horizontal")}
           >
             <RotateCcw size={14} aria-hidden />
           </BotaoControle>
           <BotaoControle
             rotulo="Diminuir zoom"
-            desabilitado={desktop || zoom <= ZOOM_MIN}
+            desabilitado={desktop || leitura || zoom <= ZOOM_MIN}
             onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - 0.1) * 10) / 10))}
           >
             <ZoomOut size={14} aria-hidden />
@@ -179,18 +181,33 @@ export function MolduraPrevia({
             aria-live="polite"
             className="min-w-9 text-center text-[10px] font-semibold tabular-nums text-muted-foreground select-none"
           >
-            {Math.round((desktop ? 1 : escalaAtual) * 100)}%
+            {Math.round((desktop || leitura ? 1 : escalaAtual) * 100)}%
           </span>
           <BotaoControle
             rotulo="Aumentar zoom"
-            desabilitado={desktop || zoom >= ZOOM_MAX}
+            desabilitado={desktop || leitura || zoom >= ZOOM_MAX}
             onClick={() => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + 0.1) * 10) / 10))}
           >
             <ZoomIn size={14} aria-hidden />
           </BotaoControle>
-          <BotaoControle rotulo="Ajustar à tela" desabilitado={desktop} onClick={() => setZoom(1)}>
+          <BotaoControle
+            rotulo="Ajustar à tela"
+            desabilitado={desktop || leitura}
+            onClick={() => setZoom(1)}
+          >
             <span className="text-[10px] font-semibold">Ajustar</span>
           </BotaoControle>
+          {!desktop && (
+            <button
+              type="button"
+              aria-pressed={leitura}
+              onClick={() => setLeitura((v) => !v)}
+              aria-label={leitura ? "Voltar à moldura do dispositivo" : "Ler em tamanho real"}
+              className={`inline-flex h-9 items-center gap-1 rounded-full px-2 text-xs font-semibold ${leitura || escalaAtual < 0.7 ? "bg-ink text-ink-foreground" : "hover:bg-secondary"}`}
+            >
+              <BookOpen size={14} aria-hidden /> {leitura ? "Moldura" : "Ler"}
+            </button>
+          )}
           <button
             type="button"
             aria-label={telaCheia ? "Sair da tela cheia" : "Ver em tela cheia"}
@@ -203,7 +220,18 @@ export function MolduraPrevia({
         </div>
       )}
 
-      {caixa && seguro ? (
+      {leitura && !desktop ? (
+        <div
+          style={{ maxWidth: caixa?.largura, backgroundColor: corFundo }}
+          className="relative isolate min-h-0 w-full flex-1 overflow-hidden rounded-2xl border border-border bg-card [transform:translateZ(0)]"
+          role="region"
+          aria-label="Leitura em tamanho real, sem redução do texto"
+        >
+          <div className="scrollbar-invisivel h-full w-full overflow-y-auto overflow-x-hidden">
+            {children}
+          </div>
+        </div>
+      ) : caixa && seguro ? (
         <PalcoEscalado
           dispositivo={caixa}
           zoom={zoom}

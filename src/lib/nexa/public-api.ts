@@ -38,6 +38,16 @@ export async function calcularEntregaPublica(
       throw new Error("Este endereço está fora da área de entrega configurada.");
     if (codigo === "address_not_found")
       throw new Error("Não localizamos esse endereço. Confira rua, número, bairro e cidade.");
+    if (codigo === "address_ambiguous")
+      throw new Error(
+        "O Google encontrou apenas parte do endereço. Confira número, bairro, cidade e UF antes de tentar novamente.",
+      );
+    if (codigo === "delivery_origin_ambiguous")
+      throw new Error(
+        "O endereço de saída da loja está impreciso no mapa. Entre em contato com a loja ou escolha retirada.",
+      );
+    if (codigo === "invalid_address")
+      throw new Error("Preencha o endereço completo da entrega, incluindo cidade e UF.");
     if (codigo === "rate_limit_exceeded")
       throw new Error("Muitas consultas seguidas. Aguarde um minuto e tente novamente.");
     if (codigo === "delivery_not_configured")

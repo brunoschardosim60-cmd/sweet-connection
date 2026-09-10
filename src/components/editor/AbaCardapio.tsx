@@ -360,6 +360,7 @@ export function AbaCardapio({
         </p>
         <ConfiguracaoEntrega
           valor={comercio}
+          enderecoLoja={site.conteudo.endereco}
           alterar={(valor) => aplicar((s) => ({ ...s, comercio: valor }))}
         />
         <a

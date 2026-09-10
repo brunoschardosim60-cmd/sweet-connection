@@ -1311,7 +1311,7 @@ function AbaSecoes({
 
       <div className="mt-2 flex flex-col gap-3 rounded-xl border border-border p-3">
         <label className="flex items-center justify-between gap-3 text-sm font-semibold">
-          Carrinho de pedidos pelo WhatsApp
+          Carrinho de pedidos
           <input
             type="checkbox"
             checked={site.comercio?.carrinho === true}
@@ -1329,8 +1329,8 @@ function AbaSecoes({
           />
         </label>
         <p className="text-xs text-muted-foreground">
-          Com o carrinho ligado, o visitante escolhe vários itens e envia o resumo do pedido com o
-          total já calculado.
+          Com o carrinho ligado, o visitante escolhe vários itens, revisa o total e envia o pedido
+          para a operação desta loja. O WhatsApp fica disponível para contato.
         </p>
         {site.comercio?.carrinho && (
           <div className="grid grid-cols-2 gap-2">

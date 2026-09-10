@@ -96,6 +96,7 @@ describe("RPC de pedidos v2 em PostgreSQL isolado", () => {
       "20260908040000_checkout_scheduling_delivery.sql",
       "20260908040100_scheduled_order_inventory.sql",
       "20260908041000_business_operations.sql",
+      "20260910040000_operation_form_labels.sql",
     ])
       await db.exec(
         readFileSync(new URL(`../supabase/migrations/${arquivo}`, import.meta.url), "utf8"),
@@ -285,6 +286,10 @@ describe("RPC de pedidos v2 em PostgreSQL isolado", () => {
     const id = sites.find((s) => s.slug === "teste")!.id;
     const outra = sites.find((s) => s.slug === "outra")!.id;
     const pedido = (await pedirDados({})).rows[0]!.pedido;
+    await db.query(
+      "update minisites set published_content=published_content || $1::jsonb where id=$2",
+      [JSON.stringify({ formulario: { campos: [{ id: "c_aleatorio", rotulo: "Nome" }] } }), id],
+    );
     await usuario(1);
     await db.query("select nexa_operacao_acessos($1,'operator@test.invalid')", [id]);
     await usuario(2);
@@ -292,6 +297,12 @@ describe("RPC de pedidos v2 em PostgreSQL isolado", () => {
     expect(lista.rows[0]?.sites.map((s) => s.id)).toEqual([id]);
     expect((await db.query("select * from minisites")).rows).toHaveLength(0);
     await expect(db.query("select nexa_operacao_dados($1)", [id])).resolves.toBeDefined();
+    const operacao = await db.query<{
+      dados: { camposFormulario: { id: string; rotulo: string }[] };
+    }>("select nexa_operacao_dados($1) dados", [id]);
+    expect(operacao.rows[0]?.dados.camposFormulario).toEqual([
+      { id: "c_aleatorio", rotulo: "Nome" },
+    ]);
     await expect(db.query("select nexa_operacao_dados($1)", [outra])).rejects.toThrow(
       "not_allowed",
     );

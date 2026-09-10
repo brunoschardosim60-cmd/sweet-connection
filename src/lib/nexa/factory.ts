@@ -207,6 +207,7 @@ export function criarSite(cliente: Cliente, modeloId: string, slug: string): Sit
     ...(cardapioDigital
       ? {
           comercio: {
+            pagamentosAceitos: ["pix", "cartao", "dinheiro"],
             carrinho: true,
             taxaEntrega: 0,
             pedidoMinimo: 0,

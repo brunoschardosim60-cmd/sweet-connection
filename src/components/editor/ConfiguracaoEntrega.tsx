@@ -6,9 +6,11 @@ const campo =
 export function ConfiguracaoEntrega({
   valor,
   alterar,
+  enderecoLoja,
 }: {
   valor: Comercio;
   alterar: (valor: Comercio) => void;
+  enderecoLoja?: string;
 }) {
   const patch = (mudanca: Partial<Comercio>) => alterar({ ...valor, ...mudanca });
   return (
@@ -40,10 +42,20 @@ export function ConfiguracaoEntrega({
               onChange={(e) => patch({ enderecoOrigem: e.target.value })}
             />
           </label>
+          {enderecoLoja?.trim() && (
+            <button
+              type="button"
+              className="min-h-11 rounded-xl border border-border px-3 text-sm"
+              onClick={() => patch({ enderecoOrigem: enderecoLoja.trim().slice(0, 240) })}
+            >
+              Usar endereço cadastrado da loja
+            </button>
+          )}
           <p className="text-xs text-muted-foreground">
-            A distância é calculada pelas ruas no Google Maps. A menor faixa que atender a distância
-            define a taxa; fora da última faixa, a entrega é recusada. O cliente revisa o valor
-            antes de enviar.
+            Confirme rua, número, cidade e UF da saída. A localização não é detectada
+            automaticamente. A distância é calculada pelas ruas no Google Maps. A menor faixa que
+            atender a distância define a taxa; fora da última faixa, a entrega é recusada. O cliente
+            revisa o valor antes de enviar.
           </p>
           {(valor.faixasDistancia ?? []).map((faixa, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">

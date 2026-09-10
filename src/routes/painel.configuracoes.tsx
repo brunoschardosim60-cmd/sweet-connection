@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BotaoRemover } from "@/components/editor/BotaoRemover";
 import { ExcluirConta } from "@/components/account/ExcluirConta";
@@ -105,8 +105,8 @@ function Configuracoes() {
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          A alteração é salva nos rascunhos. Para atualizar um endereço que já está publicado, abra
-          o projeto e publique-o novamente.
+          A alteração é salva nos seus projetos. Os que já estão publicados também são atualizados,
+          sem precisar despublicar e publicar novamente. Rascunhos continuam privados.
         </p>
       </div>
 
@@ -152,20 +152,25 @@ function Configuracoes() {
 
       <div className="surface space-y-3 p-6">
         <p className="font-semibold">Integrações</p>
-        {["Google Analytics", "Pixel da Meta", "Domínio personalizado", "API do WhatsApp"].map(
-          (integracao) => (
-            <div key={integracao} className="flex items-center justify-between gap-3 text-sm">
-              <span>{integracao}</span>
-              <button
-                type="button"
-                onClick={() => toast("Recurso disponível em breve")}
-                className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold"
-              >
-                Em breve
-              </button>
-            </div>
-          ),
-        )}
+        <p className="text-sm text-muted-foreground">
+          Google Analytics, Meta Pixel e Google Tag Manager são configurados individualmente no
+          editor de cada projeto, em SEO → Rastreamento e anúncios. Use os IDs da empresa que é dona
+          do site para manter as estatísticas separadas.
+        </p>
+        <Link
+          to="/painel"
+          className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-semibold"
+        >
+          Escolher projeto para configurar
+        </Link>
+        {["Domínio personalizado", "API do WhatsApp"].map((integracao) => (
+          <div key={integracao} className="flex items-center justify-between gap-3 text-sm">
+            <span>{integracao}</span>
+            <span className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold">
+              Em breve
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
