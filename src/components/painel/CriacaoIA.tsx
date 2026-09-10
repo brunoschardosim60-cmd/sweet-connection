@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ImagePlus, Loader2, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
@@ -6,7 +6,15 @@ import { criarSite } from "@/lib/nexa/factory";
 import { gerarPlanoSite } from "@/lib/nexa/ia.functions";
 import { aplicarPlanoIA } from "@/lib/nexa/ia-aplicar";
 import { buscarPlanoEmCache, guardarPlanoEmCache } from "@/lib/nexa/ia-cache";
-import { ESTILOS_IA, type EstiloIA, type PlanoIA, type TemaIA } from "@/lib/nexa/ia-tipos";
+import {
+  ESTILOS_IA,
+  type EscopoAjusteIA,
+  type EstiloIA,
+  type PlanoIA,
+  type TemaIA,
+} from "@/lib/nexa/ia-tipos";
+import { MiniSite } from "@/components/minisite/MiniSite";
+import { CatalogoPagina } from "@/components/minisite/CatalogoPagina";
 import { RevisaoIA } from "@/components/painel/RevisaoIA";
 import { AvisoPlano } from "@/components/planos/AvisoPlano";
 
@@ -49,6 +57,15 @@ export function CriacaoIA({
   const entradaVideo = useRef<HTMLInputElement>(null);
   const gerar = useServerFn(gerarPlanoSite);
   const [descricao, setDescricao] = useState(briefingInicial);
+  const [publico, setPublico] = useState("");
+  const [diferenciais, setDiferenciais] = useState("");
+  const [oferta, setOferta] = useState("");
+  const [objetivo, setObjetivo] = useState<"vender" | "agendar" | "orcamento" | "apresentar">(
+    "apresentar",
+  );
+  const [versao, setVersao] = useState(0);
+  const historico = useRef<PlanoIA[]>([]);
+  const [previaPlano, setPreviaPlano] = useState<PlanoIA | null>(null);
   const [capa, setCapa] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
   const [fotosProdutos, setFotosProdutos] = useState<string[]>([]);
@@ -64,6 +81,47 @@ export function CriacaoIA({
   const [mostrarAvisoPlano, setMostrarAvisoPlano] = useState(false);
   const [mostrarAvisoOcr, setMostrarAvisoOcr] = useState(false);
   const [ocrCardapio, setOcrCardapio] = useState(iniciarOcr);
+  const modeloEfetivo =
+    ocrCardapio && !modeloBaseId.startsWith("cardapio-") ? "cardapio-restaurante" : modeloBaseId;
+  const montarSite = useCallback(
+    (aprovado: PlanoIA) =>
+      aplicarPlanoIA(
+        criarSite(
+          { ...cliente, segmento: aprovado.segmento ?? cliente.segmento },
+          modeloEfetivo,
+          slug,
+        ),
+        aprovado,
+        [],
+        { estilo, tema },
+        logo ?? undefined,
+        {
+          associacaoExplicita: true,
+          ...(capa ? { capa } : {}),
+          produtos: fotosProdutos,
+          galeria: fotosGaleria,
+          equipe: equipe.filter((membro) => membro.nome.trim()),
+          videos,
+        },
+      ),
+    [
+      cliente,
+      modeloEfetivo,
+      slug,
+      estilo,
+      tema,
+      logo,
+      capa,
+      fotosProdutos,
+      fotosGaleria,
+      equipe,
+      videos,
+    ],
+  );
+  const sitePrevia = useMemo(
+    () => (previaPlano ? montarSite(previaPlano) : null),
+    [previaPlano, montarSite],
+  );
 
   const enviarImagens = async (
     arquivos: FileList | null,
@@ -150,7 +208,19 @@ export function CriacaoIA({
     }
   };
 
-  const revisar = async () => {
+  const apresentar = (novo: PlanoIA, anterior?: PlanoIA) => {
+    if (anterior ?? plano)
+      historico.current = [...historico.current.slice(-9), structuredClone((anterior ?? plano)!)];
+    setPlano(novo);
+    setPreviaPlano(novo);
+    setVersao((v) => v + 1);
+  };
+  const revisar = async (ajuste?: {
+    pedido: string;
+    escopo: EscopoAjusteIA;
+    anterior: PlanoIA;
+  }) => {
+    if (gerando || criando || enviando || verificandoAcesso) return;
     if (desabilitado) {
       setMostrarAvisoPlano(true);
       toast.error(desabilitado);
@@ -169,6 +239,16 @@ export function CriacaoIA({
     try {
       const entrada = {
         empresa: cliente.empresa,
+        publico,
+        diferenciais,
+        oferta,
+        objetivo,
+        tipoProjeto:
+          modeloBaseId.startsWith("cardapio-") || ocrCardapio
+            ? ("cardapio" as const)
+            : ("minisite" as const),
+        fotosProdutos,
+        ...(ajuste ? { ajuste } : {}),
         nicho: descricao.trim(),
         cidade: cliente.cidade,
         estado: cliente.estado,
@@ -185,7 +265,7 @@ export function CriacaoIA({
       };
       const emCache = await buscarPlanoEmCache(entrada);
       if (emCache) {
-        setPlano(emCache);
+        apresentar(emCache, ajuste?.anterior);
         toast.message("Sugestão recuperada do cache", {
           description: "Nenhum crédito de IA foi consumido.",
         });
@@ -197,7 +277,7 @@ export function CriacaoIA({
       }
       const sugestao = await gerar({ data: { entrada, accessToken: sessao.session.access_token } });
       void guardarPlanoEmCache(entrada, sugestao);
-      setPlano(sugestao);
+      apresentar(sugestao, ajuste?.anterior);
     } catch (e) {
       const mensagem = e instanceof Error ? e.message : "Tente novamente em instantes.";
       if (mensagem.includes("menu_ocr_requires_catalog")) setMostrarAvisoOcr(true);
@@ -214,20 +294,7 @@ export function CriacaoIA({
   const criarAprovado = async (aprovado: PlanoIA) => {
     setCriando(true);
     try {
-      const base = criarSite(
-        { ...cliente, segmento: aprovado.segmento ?? cliente.segmento },
-        modeloBaseId,
-        slug,
-      );
-      await onCriar(
-        aplicarPlanoIA(base, aprovado, [], { estilo, tema }, logo ?? undefined, {
-          ...(capa ? { capa } : {}),
-          produtos: fotosProdutos,
-          galeria: fotosGaleria,
-          equipe: equipe.filter((membro) => membro.nome.trim()),
-          videos,
-        }),
-      );
+      await onCriar(montarSite(aprovado));
     } catch (e) {
       toast.error("Não foi possível criar o mini-site", { description: (e as Error).message });
     } finally {
@@ -245,7 +312,7 @@ export function CriacaoIA({
           <Sparkles size={16} />
         </span>
         <div className="min-w-0">
-          <h2 className="font-display text-base font-bold">Criação automática com IA</h2>
+          <h2 className="font-display text-base font-bold">Criação sob medida com IA</h2>
           <p className="text-xs text-muted-foreground">
             A IA cria uma primeira versão baseada na descrição, fotos, logo e segmento; você pode
             editar tudo depois.
@@ -275,264 +342,336 @@ export function CriacaoIA({
         <AvisoPlano motivo="sem-ia" mensagem={desabilitado} className="mb-4" />
       )}
 
-      <label className="block">
-        <span className="mb-1.5 block text-sm font-medium">O que o negócio faz</span>
-        <textarea
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          rows={3}
-          placeholder="Ex.: barbearia masculina com corte, barba e produtos próprios, atendimento com hora marcada."
-          className="w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
-        />
-        <span className="mt-1 block text-xs text-muted-foreground">
-          Mínimo de 10 caracteres. Quanto mais específico, melhor a sugestão.
-        </span>
-      </label>
-
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <input
-          ref={entradaLogo}
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) => void enviarLogo(e.target.files?.[0] ?? null)}
-        />
-        <input
-          ref={entradaCapa}
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) => void enviarCapa(e.target.files?.[0] ?? null)}
-        />
-        <input
-          ref={entradaProdutos}
-          type="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          onChange={(e) =>
-            void enviarImagens(
-              e.target.files,
-              (urls) => setFotosProdutos((atual) => [...atual, ...urls].slice(0, 8)),
-              8,
-            ).finally(() => {
-              if (entradaProdutos.current) entradaProdutos.current.value = "";
-            })
-          }
-        />
-        <input
-          ref={entradaOcr}
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) =>
-            void enviarImagens(
-              e.target.files,
-              (urls) => {
-                setFotosProdutos((atual) => [...atual, ...urls].slice(0, 8));
-                setOcrCardapio(true);
-              },
-              1,
-            ).finally(() => {
-              e.currentTarget.value = "";
-            })
-          }
-        />
-        <input
-          ref={entradaGaleria}
-          type="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          onChange={(e) =>
-            void enviarImagens(
-              e.target.files,
-              (urls) => setFotosGaleria((atual) => [...atual, ...urls].slice(0, 12)),
-              12,
-            ).finally(() => {
-              if (entradaGaleria.current) entradaGaleria.current.value = "";
-            })
-          }
-        />
-        <input
-          ref={entradaEquipe}
-          type="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          onChange={(e) => void enviarFotosEquipe(e.target.files)}
-        />
-        <input
-          ref={entradaVideo}
-          type="file"
-          accept="video/mp4,video/webm"
-          multiple
-          className="sr-only"
-          onChange={(e) => void enviarVideos(e.target.files)}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => entradaLogo.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
-            Logo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!ocrDisponivel) {
-                setMostrarAvisoOcr(true);
-                return;
-              }
-              entradaOcr.current?.click();
-            }}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-lime-700/40 bg-lime/20 px-4 text-sm font-semibold hover:bg-lime/30 disabled:opacity-60"
-          >
-            <ImagePlus size={15} /> Digitalizar cardápio
-          </button>
-          <button
-            type="button"
-            onClick={() => entradaCapa.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
-            Capa
-          </button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => entradaProdutos.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            <ImagePlus size={15} /> Fotos de produtos
-          </button>
-          <button
-            type="button"
-            onClick={() => entradaGaleria.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            <ImagePlus size={15} /> Galeria
-          </button>
-          <button
-            type="button"
-            onClick={() => entradaEquipe.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            <ImagePlus size={15} /> Equipe
-          </button>
-          <button
-            type="button"
-            onClick={() => entradaVideo.current?.click()}
-            disabled={enviando}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-          >
-            <ImagePlus size={15} /> Vídeos
-          </button>
-        </div>
-      </div>
-
-      {mostrarAvisoOcr && !ocrDisponivel && (
-        <AvisoPlano
-          motivo="menu-ocr"
-          mensagem="Digitalizar cardápio por foto exige o plano Catálogo. Faça upgrade para transformar a foto em produtos, preços e categorias editáveis."
-          className="mt-3"
-        />
+      {plano && (
+        <p className="mb-3 rounded-xl border border-border p-3 text-xs text-muted-foreground">
+          Briefing e arquivos preservados nesta proposta. Use a revisão abaixo para mudar o visual,
+          textos e fotos dos itens; descarte a proposta para alterar os arquivos ou iniciar outro
+          briefing.
+        </p>
       )}
+      <fieldset
+        disabled={!!plano || gerando || criando || enviando}
+        className="min-w-0 space-y-3 disabled:opacity-80"
+      >
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">O que o negócio faz</span>
+          <textarea
+            value={descricao}
+            maxLength={5000}
+            onChange={(e) => setDescricao(e.target.value)}
+            rows={3}
+            placeholder="Ex.: barbearia masculina com corte, barba e produtos próprios, atendimento com hora marcada."
+            className="w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-ink"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Mínimo de 10 caracteres. Quanto mais específico, melhor a sugestão.
+          </span>
+        </label>
 
-      <ResumoMidias
-        logo={logo}
-        capa={capa}
-        produtos={fotosProdutos}
-        galeria={fotosGaleria}
-        equipe={equipe}
-        videos={videos}
-        onRemoverLogo={() => setLogo(null)}
-        onRemoverCapa={() => setCapa(null)}
-        onRemoverProduto={(url) =>
-          setFotosProdutos((atual) => atual.filter((foto) => foto !== url))
-        }
-        onRemoverGaleria={(url) => setFotosGaleria((atual) => atual.filter((foto) => foto !== url))}
-        onRemoverEquipe={(id) => setEquipe((atual) => atual.filter((membro) => membro.id !== id))}
-        onEditarEquipe={(id, campo, valor) =>
-          setEquipe((atual) =>
-            atual.map((membro) => (membro.id === id ? { ...membro, [campo]: valor } : membro)),
-          )
-        }
-        onRemoverVideo={(id) => setVideos((atual) => atual.filter((video) => video.id !== id))}
-      />
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div>
-          <span className="mb-1.5 block text-sm font-medium">Estilo visual</span>
-          <div className="flex flex-wrap gap-2">
-            {(["automatico", ...Object.keys(ESTILOS_IA)] as EstiloIA[]).map((op) => (
-              <button
-                key={op}
-                type="button"
-                aria-pressed={estilo === op}
-                onClick={() => setEstilo(op)}
-                title={
-                  op === "automatico"
-                    ? "A IA decide"
-                    : ESTILOS_IA[op as keyof typeof ESTILOS_IA].descricao
-                }
-                className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
-                  estilo === op
-                    ? "border-ink bg-ink text-ink-foreground"
-                    : "border-border bg-card text-muted-foreground"
-                }`}
-              >
-                {op === "automatico"
-                  ? "Automático"
-                  : ESTILOS_IA[op as keyof typeof ESTILOS_IA].rotulo}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <span className="mb-1.5 block text-sm font-medium">Tema de cores</span>
-          <p className="mb-2 text-xs text-muted-foreground">
-            A escolha orienta as cores sugeridas pela IA; você poderá ajustá-las depois no editor.
+        <fieldset className="mt-4 space-y-3 rounded-2xl border border-border p-4">
+          <legend className="px-1 text-sm font-semibold">Vamos conhecer seu negócio</legend>
+          <label className="block text-sm">
+            Qual o principal objetivo?
+            <select
+              value={objetivo}
+              onChange={(e) => setObjetivo(e.target.value as typeof objetivo)}
+              className="mt-1 min-h-11 w-full rounded-xl border border-border bg-card p-2"
+            >
+              <option value="apresentar">Apresentar meu trabalho</option>
+              <option value="vender">Vender produtos / receber pedidos</option>
+              <option value="agendar">Receber agendamentos</option>
+              <option value="orcamento">Receber pedidos de orçamento</option>
+            </select>
+          </label>
+          {[
+            {
+              titulo: "Quem você quer atender?",
+              valor: publico,
+              alterar: setPublico,
+              max: 1000,
+              exemplo:
+                "Ex.: famílias do bairro, empresas, clientes que procuram atendimento premium…",
+            },
+            {
+              titulo: "O que diferencia seu negócio?",
+              valor: diferenciais,
+              alterar: setDiferenciais,
+              max: 1500,
+              exemplo: "Ex.: fabricação própria, atendimento em domicílio, ingredientes locais…",
+            },
+            {
+              titulo: "O que você oferece?",
+              valor: oferta,
+              alterar: setOferta,
+              max: 5000,
+              exemplo:
+                "Liste produtos ou serviços reais, preços e duração quando souber. Ex.: Corte — R$ 45 — 30 min.",
+            },
+          ].map((pergunta) => (
+            <label key={pergunta.titulo} className="block text-sm">
+              {pergunta.titulo}
+              <textarea
+                rows={2}
+                maxLength={pergunta.max}
+                value={pergunta.valor}
+                onChange={(e) => pergunta.alterar(e.target.value)}
+                placeholder={pergunta.exemplo}
+                className="mt-1 w-full rounded-xl border border-border bg-card p-3"
+              />
+            </label>
+          ))}
+          <p className="text-xs text-muted-foreground">
+            Essas respostas orientam o layout, a linguagem e as funções sugeridas. Não precisa
+            preencher o que ainda não souber.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                ["automatico", "Automática"],
-                ["claro", "Clara"],
-                ["escuro", "Escura"],
-              ] as [TemaIA, string][]
-            ).map(([valor, rotulo]) => (
-              <button
-                key={valor}
-                type="button"
-                aria-pressed={tema === valor}
-                onClick={() => setTema(valor)}
-                className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
-                  tema === valor
-                    ? "border-ink bg-ink text-ink-foreground"
-                    : "border-border bg-card text-muted-foreground"
-                }`}
-              >
-                {rotulo}
-              </button>
-            ))}
+        </fieldset>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <input
+            ref={entradaLogo}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => void enviarLogo(e.target.files?.[0] ?? null)}
+          />
+          <input
+            ref={entradaCapa}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => void enviarCapa(e.target.files?.[0] ?? null)}
+          />
+          <input
+            ref={entradaProdutos}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(e) =>
+              void enviarImagens(
+                e.target.files,
+                (urls) => setFotosProdutos((atual) => [...atual, ...urls].slice(0, 20)),
+                20,
+              ).finally(() => {
+                if (entradaProdutos.current) entradaProdutos.current.value = "";
+              })
+            }
+          />
+          <input
+            ref={entradaOcr}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) =>
+              void enviarImagens(
+                e.target.files,
+                (urls) => {
+                  setFotosProdutos((atual) => [...atual, ...urls].slice(0, 20));
+                  setOcrCardapio(true);
+                },
+                1,
+              ).finally(() => {
+                if (entradaOcr.current) entradaOcr.current.value = "";
+              })
+            }
+          />
+          <input
+            ref={entradaGaleria}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(e) =>
+              void enviarImagens(
+                e.target.files,
+                (urls) => setFotosGaleria((atual) => [...atual, ...urls].slice(0, 12)),
+                12,
+              ).finally(() => {
+                if (entradaGaleria.current) entradaGaleria.current.value = "";
+              })
+            }
+          />
+          <input
+            ref={entradaEquipe}
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(e) => void enviarFotosEquipe(e.target.files)}
+          />
+          <input
+            ref={entradaVideo}
+            type="file"
+            accept="video/mp4,video/webm"
+            multiple
+            className="sr-only"
+            onChange={(e) => void enviarVideos(e.target.files)}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => entradaLogo.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+              Logo
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!ocrDisponivel) {
+                  setMostrarAvisoOcr(true);
+                  return;
+                }
+                entradaOcr.current?.click();
+              }}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-lime-700/40 bg-lime/20 px-4 text-sm font-semibold hover:bg-lime/30 disabled:opacity-60"
+            >
+              <ImagePlus size={15} /> Digitalizar cardápio
+            </button>
+            <button
+              type="button"
+              onClick={() => entradaCapa.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+              Capa
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => entradaProdutos.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              <ImagePlus size={15} /> Fotos de produtos
+            </button>
+            <button
+              type="button"
+              onClick={() => entradaGaleria.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              <ImagePlus size={15} /> Galeria
+            </button>
+            <button
+              type="button"
+              onClick={() => entradaEquipe.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              <ImagePlus size={15} /> Equipe
+            </button>
+            <button
+              type="button"
+              onClick={() => entradaVideo.current?.click()}
+              disabled={enviando}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              <ImagePlus size={15} /> Vídeos
+            </button>
           </div>
         </div>
-      </div>
 
+        {mostrarAvisoOcr && !ocrDisponivel && (
+          <AvisoPlano
+            motivo="menu-ocr"
+            mensagem="Digitalizar cardápio por foto exige o plano Catálogo. Faça upgrade para transformar a foto em produtos, preços e categorias editáveis."
+            className="mt-3"
+          />
+        )}
+
+        <ResumoMidias
+          logo={logo}
+          capa={capa}
+          produtos={fotosProdutos}
+          galeria={fotosGaleria}
+          equipe={equipe}
+          videos={videos}
+          onRemoverLogo={() => setLogo(null)}
+          onRemoverCapa={() => setCapa(null)}
+          onRemoverProduto={(url) =>
+            setFotosProdutos((atual) => atual.filter((foto) => foto !== url))
+          }
+          onRemoverGaleria={(url) =>
+            setFotosGaleria((atual) => atual.filter((foto) => foto !== url))
+          }
+          onRemoverEquipe={(id) => setEquipe((atual) => atual.filter((membro) => membro.id !== id))}
+          onEditarEquipe={(id, campo, valor) =>
+            setEquipe((atual) =>
+              atual.map((membro) => (membro.id === id ? { ...membro, [campo]: valor } : membro)),
+            )
+          }
+          onRemoverVideo={(id) => setVideos((atual) => atual.filter((video) => video.id !== id))}
+        />
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <span className="mb-1.5 block text-sm font-medium">Estilo visual</span>
+            <div className="flex flex-wrap gap-2">
+              {(["automatico", ...Object.keys(ESTILOS_IA)] as EstiloIA[]).map((op) => (
+                <button
+                  key={op}
+                  type="button"
+                  aria-pressed={estilo === op}
+                  onClick={() => setEstilo(op)}
+                  title={
+                    op === "automatico"
+                      ? "A IA decide"
+                      : ESTILOS_IA[op as keyof typeof ESTILOS_IA].descricao
+                  }
+                  className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
+                    estilo === op
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {op === "automatico"
+                    ? "Automático"
+                    : ESTILOS_IA[op as keyof typeof ESTILOS_IA].rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="mb-1.5 block text-sm font-medium">Tema de cores</span>
+            <p className="mb-2 text-xs text-muted-foreground">
+              A escolha orienta as cores sugeridas pela IA; você poderá ajustá-las depois no editor.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["automatico", "Automática"],
+                  ["claro", "Clara"],
+                  ["escuro", "Escura"],
+                ] as [TemaIA, string][]
+              ).map(([valor, rotulo]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  aria-pressed={tema === valor}
+                  onClick={() => setTema(valor)}
+                  className={`min-h-11 rounded-full border px-3 text-xs font-semibold ${
+                    tema === valor
+                      ? "border-ink bg-ink text-ink-foreground"
+                      : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </fieldset>
       <button
         type="button"
         onClick={() => void revisar()}
-        disabled={gerando || verificandoAcesso}
+        disabled={gerando || criando || enviando || verificandoAcesso}
         className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-70 motion-reduce:transform-none sm:w-auto"
       >
         {gerando ? (
@@ -571,13 +710,63 @@ export function CriacaoIA({
         </div>
       )}
 
+      <p className="mt-2 text-xs text-muted-foreground">
+        A criação usa a cota de IA do plano e inclui até 3 tentativas de ajuste do mesmo briefing em
+        24 horas. Escolher uma direção, editar manualmente, atualizar a prévia e desfazer não
+        consome IA. Até 6 imagens são analisadas por geração; confira a associação das fotos aos
+        itens.
+      </p>
+      {historico.current.length > 0 && (
+        <button
+          type="button"
+          disabled={gerando || criando}
+          className="mt-3 min-h-11 rounded-xl border border-border px-4 text-sm"
+          onClick={() => {
+            const anterior = historico.current.pop();
+            if (anterior) {
+              setPlano(anterior);
+              setPreviaPlano(anterior);
+              setVersao((v) => v + 1);
+            }
+          }}
+        >
+          Desfazer última proposta
+        </button>
+      )}
+      {sitePrevia && (
+        <details className="mt-4 rounded-2xl border border-border p-3" open>
+          <summary className="cursor-pointer text-sm font-semibold">
+            Prévia da proposta — nenhuma publicação automática
+          </summary>
+          <div className="relative isolate mt-3 h-[520px] max-h-[70dvh] overflow-auto rounded-xl border border-border [contain:layout_paint]">
+            {modeloEfetivo.startsWith("cardapio-") ? (
+              <CatalogoPagina
+                site={sitePrevia}
+                interacoesExternas={false}
+                mostrarVoltar={false}
+                mostrarCarrinhoFlutuante={false}
+              />
+            ) : (
+              <MiniSite site={sitePrevia} interacoesExternas={false} botaoFlutuante={false} />
+            )}
+          </div>
+        </details>
+      )}
       {plano && (
         <RevisaoIA
+          key={versao}
           plano={plano}
-          criando={criando}
+          fotos={fotosProdutos}
+          criando={criando || gerando}
+          onPrevia={setPreviaPlano}
+          onAjustar={(anterior, pedido, escopo) => void revisar({ anterior, pedido, escopo })}
           onAprovar={(aprovado) => void criarAprovado(aprovado)}
           onRegerar={() => void revisar()}
-          onCancelar={() => setPlano(null)}
+          onCancelar={() => {
+            setPlano(null);
+            setPreviaPlano(null);
+            historico.current = [];
+          }}
         />
       )}
     </div>

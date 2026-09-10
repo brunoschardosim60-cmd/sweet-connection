@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Check, Loader2, RefreshCw, X } from "lucide-react";
-import type { PlanoIA } from "@/lib/nexa/ia-tipos";
+import type { EscopoAjusteIA, PlanoIA } from "@/lib/nexa/ia-tipos";
 import type { TipoSecao } from "@/lib/nexa/types";
 
 const ROTULOS: Partial<Record<TipoSecao, string>> = {
@@ -47,13 +47,30 @@ export function RevisaoIA({
   onAprovar,
   onRegerar,
   onCancelar,
+  fotos = [],
+  onPrevia,
+  onAjustar,
 }: {
   plano: PlanoIA;
   criando?: boolean;
   onAprovar: (plano: PlanoIA) => void;
   onRegerar: () => void;
   onCancelar: () => void;
+  fotos?: string[];
+  onPrevia?: (plano: PlanoIA) => void;
+  onAjustar?: (plano: PlanoIA, pedido: string, escopo: EscopoAjusteIA) => void;
 }) {
+  const [direcao, setDirecao] = useState(
+    () =>
+      plano.direcoes?.findIndex(
+        (d) =>
+          d.layout === plano.layout &&
+          d.fonte === plano.fonte &&
+          d.cores.primaria === plano.cores?.primaria,
+      ) ?? -1,
+  );
+  const [pedido, setPedido] = useState("");
+  const [escopo, setEscopo] = useState<EscopoAjusteIA>("visual");
   const [descricao, setDescricao] = useState(plano.descricao ?? "");
   const [seoTitulo, setSeoTitulo] = useState(plano.seo?.titulo ?? "");
   const [seoDescricao, setSeoDescricao] = useState(plano.seo?.descricao ?? "");
@@ -81,30 +98,97 @@ export function RevisaoIA({
       atual.includes(tipo) ? atual.filter((t) => t !== tipo) : [...atual, tipo],
     );
 
-  const aprovar = () =>
-    onAprovar({
-      ...plano,
-      descricao: descricao.trim() || plano.descricao,
-      secoes,
-      servicos: secoes.includes("servicos") ? servicos : [],
-      produtos: secoes.includes("produtos") ? produtos : [],
-      depoimentos: secoes.includes("depoimentos") ? depoimentos : [],
-      faq: secoes.includes("faq") ? faq : [],
-      seo: {
-        ...plano.seo,
-        ...(seoTitulo.trim() ? { titulo: seoTitulo.trim() } : {}),
-        ...(seoDescricao.trim() ? { descricao: seoDescricao.trim() } : {}),
-      },
-    });
+  const planoAtual = (): PlanoIA => ({
+    ...plano,
+    ...(plano.direcoes?.[direcao]
+      ? {
+          layout: plano.direcoes[direcao]!.layout,
+          fonte: plano.direcoes[direcao]!.fonte,
+          cores: plano.direcoes[direcao]!.cores,
+        }
+      : {}),
+    descricao: descricao.trim() || plano.descricao,
+    secoes,
+    servicos: secoes.includes("servicos") ? servicos : [],
+    produtos: secoes.includes("produtos") ? produtos : [],
+    depoimentos: secoes.includes("depoimentos") ? depoimentos : [],
+    faq: secoes.includes("faq") ? faq : [],
+    seo: {
+      ...plano.seo,
+      ...(seoTitulo.trim() ? { titulo: seoTitulo.trim() } : {}),
+      ...(seoDescricao.trim() ? { descricao: seoDescricao.trim() } : {}),
+    },
+  });
+  const aprovar = () => onAprovar(planoAtual());
 
   return (
-    <div className="mt-4 space-y-3 rounded-2xl border border-ink/20 bg-secondary/40 p-3 sm:p-4">
+    <fieldset
+      disabled={criando}
+      className="mt-4 min-w-0 space-y-3 rounded-2xl border border-ink/20 bg-secondary/40 p-3 sm:p-4"
+    >
       <div>
         <h3 className="font-display text-sm font-bold">Revise antes de criar</h3>
         <p className="text-xs text-muted-foreground">
           Ajuste os textos e escolha as seções. Nada é criado até você aprovar.
         </p>
       </div>
+
+      {!!plano.direcoes?.length && (
+        <Bloco titulo="Escolha a direção visual">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {plano.direcoes.map((opcao, i) => (
+              <label
+                key={i}
+                className={`min-w-0 cursor-pointer rounded-xl border p-3 ${direcao === i ? "border-ink bg-card ring-1 ring-ink" : "border-border"}`}
+              >
+                <input
+                  type="radio"
+                  name="direcao-ia"
+                  checked={direcao === i}
+                  onChange={() => {
+                    setDirecao(i);
+                    onPrevia?.({
+                      ...planoAtual(),
+                      layout: opcao.layout,
+                      fonte: opcao.fonte,
+                      cores: opcao.cores,
+                    });
+                  }}
+                />
+                <strong className="ml-2 text-sm">{opcao.nome}</strong>
+                <span className="my-2 flex gap-1" aria-label="Paleta sugerida">
+                  {Object.values(opcao.cores).map((cor, n) => (
+                    <span
+                      key={n}
+                      className="h-6 w-6 rounded-full border border-border"
+                      style={{ backgroundColor: cor }}
+                      title={cor}
+                    />
+                  ))}
+                </span>
+                <span className="block text-xs text-muted-foreground">{opcao.conceito}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            A primeira é a recomendada pela IA. Trocar a direção não altera os produtos nem consome
+            uma geração.
+          </p>
+        </Bloco>
+      )}
+      {!!plano.recomendacoes?.length && (
+        <Bloco titulo="Configurações sugeridas para seu negócio">
+          <ul className="list-disc space-y-1 pl-4 text-sm">
+            {plano.recomendacoes.map((texto, i) => (
+              <li key={i}>{texto}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-muted-foreground">
+            São sugestões para revisar no editor, não funções ativadas automaticamente. A
+            disponibilidade segue o plano.
+          </p>
+        </Bloco>
+      )}
 
       <Bloco titulo="Texto de apresentação">
         <textarea
@@ -145,7 +229,10 @@ export function RevisaoIA({
         <Bloco titulo="Serviços sugeridos">
           <ul className="space-y-2">
             {servicos.map((s, i) => (
-              <li key={`${s.nome}-${i}`} className="flex items-center gap-2">
+              <li
+                key={i}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2"
+              >
                 <input
                   value={s.nome}
                   onChange={(e) =>
@@ -155,6 +242,40 @@ export function RevisaoIA({
                   }
                   className={campo}
                   aria-label={`Nome do serviço ${i + 1}`}
+                />
+                <input
+                  aria-label={`Preço do serviço ${i + 1}`}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Preço (opcional)"
+                  className={campo}
+                  value={s.preco ?? ""}
+                  onChange={(e) =>
+                    setServicos((lista) =>
+                      lista.map((item, j) => {
+                        if (i !== j) return item;
+                        const { preco: _preco, ...resto } = item;
+                        return e.target.value === ""
+                          ? resto
+                          : { ...resto, preco: Number(e.target.value) };
+                      }),
+                    )
+                  }
+                />
+                <FotoItem
+                  fotos={fotos}
+                  indice={s.imagemIndice}
+                  rotulo={`Foto do serviço ${i + 1}`}
+                  onChange={(indice) =>
+                    setServicos((lista) =>
+                      lista.map((item, j) => {
+                        if (i !== j) return item;
+                        const { imagemIndice: _indice, ...resto } = item;
+                        return indice === undefined ? resto : { ...resto, imagemIndice: indice };
+                      }),
+                    )
+                  }
                 />
                 <button
                   type="button"
@@ -174,7 +295,10 @@ export function RevisaoIA({
         <Bloco titulo="Produtos sugeridos">
           <ul className="space-y-2">
             {produtos.map((p, i) => (
-              <li key={`${p.nome}-${i}`} className="flex items-center gap-2">
+              <li
+                key={i}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2"
+              >
                 <input
                   value={p.nome}
                   onChange={(e) =>
@@ -184,6 +308,46 @@ export function RevisaoIA({
                   }
                   className={campo}
                   aria-label={`Nome do produto ${i + 1}`}
+                />
+                <input
+                  aria-label={`Preço do produto ${i + 1}`}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Informe o preço real"
+                  className={campo}
+                  value={p.preco ?? ""}
+                  onChange={(e) =>
+                    setProdutos((lista) =>
+                      lista.map((item, j) => {
+                        if (i !== j) return item;
+                        const { preco: _preco, ...resto } = item;
+                        return e.target.value === ""
+                          ? resto
+                          : { ...resto, preco: Number(e.target.value) };
+                      }),
+                    )
+                  }
+                />
+                {p.preco === undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    Sem preço informado: o produto será criado indisponível para pedidos, até você
+                    configurar.
+                  </p>
+                )}
+                <FotoItem
+                  fotos={fotos}
+                  indice={p.imagemIndice}
+                  rotulo={`Foto do produto ${i + 1}`}
+                  onChange={(indice) =>
+                    setProdutos((lista) =>
+                      lista.map((item, j) => {
+                        if (i !== j) return item;
+                        const { imagemIndice: _indice, ...resto } = item;
+                        return indice === undefined ? resto : { ...resto, imagemIndice: indice };
+                      }),
+                    )
+                  }
                 />
                 <button
                   type="button"
@@ -266,6 +430,15 @@ export function RevisaoIA({
       </Bloco>
 
       <div className="flex flex-wrap gap-2">
+        {onPrevia && (
+          <button
+            type="button"
+            className="min-h-11 rounded-full border border-border px-4 text-sm"
+            onClick={() => onPrevia(planoAtual())}
+          >
+            Atualizar prévia com minhas edições
+          </button>
+        )}
         <button
           type="button"
           onClick={aprovar}
@@ -293,6 +466,86 @@ export function RevisaoIA({
           Descartar
         </button>
       </div>
+      {onAjustar && (
+        <Bloco titulo="Refinar por conversa">
+          <label className="block text-sm">
+            O que a IA pode alterar?
+            <select
+              className={`${campo} mt-1 min-h-11`}
+              value={escopo}
+              onChange={(e) => setEscopo(e.target.value as EscopoAjusteIA)}
+            >
+              <option value="visual">Somente visual</option>
+              <option value="textos">Somente textos e SEO</option>
+              <option value="itens">Somente produtos e serviços</option>
+              <option value="completo">Toda a proposta</option>
+            </select>
+          </label>
+          <label className="mt-3 block text-sm">
+            Seu pedido
+            <textarea
+              className={`${campo} mt-1`}
+              maxLength={1500}
+              rows={3}
+              value={pedido}
+              onChange={(e) => setPedido(e.target.value)}
+              placeholder="Ex.: deixe mais sofisticado, com cores da minha logo e fotos em destaque."
+            />
+          </label>
+          <p className="my-2 text-xs text-muted-foreground">
+            Preservamos o que estiver fora do escopo. A criação inclui até 3 tentativas de ajuste do
+            mesmo briefing em 24 horas. Você poderá desfazer a proposta.
+          </p>
+          <button
+            type="button"
+            disabled={pedido.trim().length < 3 || criando}
+            className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
+            onClick={() => onAjustar(planoAtual(), pedido.trim(), escopo)}
+          >
+            Pedir ajuste à IA
+          </button>
+        </Bloco>
+      )}
+    </fieldset>
+  );
+}
+
+function FotoItem({
+  fotos,
+  indice,
+  rotulo,
+  onChange,
+}: {
+  fotos: string[];
+  indice: number | undefined;
+  rotulo: string;
+  onChange: (indice: number | undefined) => void;
+}) {
+  if (!fotos.length) return null;
+  return (
+    <div className="flex w-full items-center gap-2">
+      {indice !== undefined && fotos[indice] && (
+        <img
+          src={fotos[indice]}
+          alt="Foto selecionada"
+          className="h-14 w-14 rounded-lg object-cover"
+        />
+      )}
+      <label className="min-w-0 flex-1 text-xs">
+        {rotulo}
+        <select
+          className={`${campo} mt-1 min-h-11`}
+          value={indice ?? ""}
+          onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+        >
+          <option value="">Sem foto — escolher depois</option>
+          {fotos.map((_, i) => (
+            <option value={i} key={i}>
+              Foto {i + 1}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }

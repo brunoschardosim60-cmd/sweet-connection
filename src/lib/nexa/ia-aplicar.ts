@@ -1,6 +1,7 @@
 import { uid } from "./utils";
 import { ESTILOS_IA, type PlanoIA, type PreferenciasIA } from "./ia-tipos";
 import type { ItemVideo, MembroEquipe, Site, TipoSecao } from "./types";
+import { camposFormulario } from "./factory";
 
 const hex = (valor?: string) =>
   valor && /^#[0-9a-fA-F]{6}$/.test(valor.trim()) ? valor.trim() : undefined;
@@ -9,6 +10,7 @@ const limitar = <T>(lista: T[] | undefined, max: number): T[] => (lista ?? []).s
 
 /** Arquivos classificados no assistente de criação; não são conteúdo inventado pela IA. */
 export interface MidiasDaCriacaoIA {
+  associacaoExplicita?: boolean;
   capa?: string;
   produtos?: string[];
   galeria?: string[];
@@ -39,29 +41,33 @@ export function aplicarPlanoIA(
   const capa = midias?.capa ?? capaLegada;
   const fotosProdutos = midias?.produtos ?? restantes;
 
-  const produtos = limitar(plano.produtos, 8).map((p, i) => ({
+  const fotoItem = (indice: number | undefined, ordem: number) => {
+    const posicao = indice ?? (midias?.associacaoExplicita ? -1 : ordem);
+    return Number.isInteger(posicao) && posicao >= 0 ? fotosProdutos[posicao] : undefined;
+  };
+  const produtos = limitar(plano.produtos, 20).map((p, i) => ({
     id: uid("prod"),
     nome: p.nome,
     descricao: p.descricao ?? "",
     preco: typeof p.preco === "number" ? p.preco : 0,
     categoria: p.categoria ?? "Geral",
     variacoes: [] as string[],
-    ...(fotosProdutos[i] ? { imagem: fotosProdutos[i] } : {}),
-    disponivel: true,
+    ...(fotoItem(p.imagemIndice, i) ? { imagem: fotoItem(p.imagemIndice, i)! } : {}),
+    disponivel: typeof p.preco === "number",
     destaque: i === 0,
   }));
 
-  const servicos = limitar(plano.servicos, 8).map((s, i) => ({
+  const servicos = limitar(plano.servicos, 20).map((s, i) => ({
     id: uid("serv"),
     nome: s.nome,
     descricao: s.descricao ?? "",
     duracao: s.duracao ?? "",
     preco: typeof s.preco === "number" ? s.preco : 0,
-    ...(fotosProdutos[i] ? { imagem: fotosProdutos[i] } : {}),
+    ...(fotoItem(s.imagemIndice, i) ? { imagem: fotoItem(s.imagemIndice, i)! } : {}),
   }));
 
   const usadasEmItens = Math.max(produtos.length, servicos.length);
-  const sobrando = fotosProdutos.slice(usadasEmItens);
+  const sobrando = midias?.associacaoExplicita ? [] : fotosProdutos.slice(usadasEmItens);
   const fotosGaleria = midias?.galeria?.length ? midias.galeria : sobrando;
   const galeria = fotosGaleria.map((url, i) => ({
     id: uid("img"),
@@ -95,16 +101,25 @@ export function aplicarPlanoIA(
   if (midias?.videos?.length) ativas.add("videos");
   ativas.add("apresentacao");
   ativas.add("links");
-  ativas.add("formulario");
+  if (!plano.secoes || plano.secoes.includes("formulario")) ativas.add("formulario");
   ativas.add("rodape");
 
-  const secoes = base.secoes.map((secao) => ({
-    ...secao,
-    ativa: ativas.size > 4 ? ativas.has(secao.tipo) : secao.ativa,
-  }));
+  const ordem = plano.secoes ?? base.secoes.map((secao) => secao.tipo);
+  const secoes = [...base.secoes]
+    .sort((a, b) => {
+      const pos = (tipo: TipoSecao) => (ordem.includes(tipo) ? ordem.indexOf(tipo) : 99);
+      return pos(a.tipo) - pos(b.tipo);
+    })
+    .map((secao) => ({
+      ...secao,
+      ativa: ativas.has(secao.tipo),
+    }));
 
   return {
     ...base,
+    links: base.links.map((link) =>
+      link.tipo === "whatsapp" && plano.cta ? { ...link, titulo: plano.cta } : link,
+    ),
     conteudo: {
       ...base.conteudo,
       descricao: plano.descricao || base.conteudo.descricao,
@@ -113,12 +128,14 @@ export function aplicarPlanoIA(
     },
     aparencia: {
       ...base.aparencia,
+      ...(plano.layout ? { layout: plano.layout } : {}),
       corPrimaria: hex(plano.cores?.primaria) ?? base.aparencia.corPrimaria,
       corFundo: hex(plano.cores?.fundo) ?? base.aparencia.corFundo,
       corTexto: hex(plano.cores?.texto) ?? base.aparencia.corTexto,
       tema: temaEscolhido ?? plano.tema ?? base.aparencia.tema,
       capaTipo: capa ? "imagem" : base.aparencia.capaTipo,
       ...(estilo?.aparencia ?? {}),
+      ...(plano.fonte ? { fonte: plano.fonte } : {}),
     },
     secoes,
     produtos: produtos.length ? produtos : base.produtos,
@@ -136,6 +153,9 @@ export function aplicarPlanoIA(
       ...base.formulario,
       tipo: plano.formulario?.tipo ?? base.formulario.tipo,
       titulo: plano.formulario?.titulo ?? base.formulario.titulo,
+      ...(plano.formulario?.tipo && plano.formulario.tipo !== base.formulario.tipo
+        ? { campos: camposFormulario(plano.formulario.tipo) }
+        : {}),
     },
     seo: {
       ...base.seo,

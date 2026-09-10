@@ -901,7 +901,10 @@ function NovoSite() {
                   <div className="overflow-hidden rounded-2xl border border-border transition-all hover:-translate-y-0.5">
                     <button
                       type="button"
-                      onClick={() => setModoCriacao("ia")}
+                      onClick={() => {
+                        setModeloId(modeloPersonalizado.id);
+                        setModoCriacao("ia");
+                      }}
                       aria-pressed={false}
                       className="block w-full text-left"
                     >

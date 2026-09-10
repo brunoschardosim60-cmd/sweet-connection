@@ -1232,6 +1232,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      nexa_limite_ajuste_ia: {Args:{chave:string};Returns:boolean}
       nexa_entrega_criar: {Args:{site_id:string;email:string;manter_acesso?:boolean;guardar_copia?:boolean};Returns:string}
       nexa_entregas_listar: {Args:Record<PropertyKey,never>;Returns:Json}
       nexa_entrega_consultar: {Args:{convite:string};Returns:Json}

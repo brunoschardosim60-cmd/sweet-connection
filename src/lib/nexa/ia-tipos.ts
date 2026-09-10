@@ -1,4 +1,13 @@
-import type { Aparencia, SegmentoId, TipoFormulario, TipoSecao } from "./types";
+import type { Aparencia, LayoutModelo, SegmentoId, TipoFormulario, TipoSecao } from "./types";
+
+export interface DirecaoIA {
+  nome: string;
+  conceito: string;
+  layout: LayoutModelo;
+  cores: { primaria: string; fundo: string; texto: string };
+  fonte: Aparencia["fonte"];
+}
+export type EscopoAjusteIA = "visual" | "textos" | "itens" | "completo";
 
 /** Estilos visuais que a pessoa pode escolher na criação automática. */
 export type EstiloIA = "automatico" | "minimalista" | "moderno" | "elegante" | "vibrante";
@@ -40,13 +49,32 @@ export const ESTILOS_IA: Record<
 
 /** Plano de conteúdo devolvido pela IA para montar o mini-site. */
 export interface PlanoIA {
+  /** Token opaco vinculado à conta e ao briefing; nunca é enviado ao provedor. */
+  sessaoAjustes?: string;
+  layout?: LayoutModelo;
+  fonte?: Aparencia["fonte"];
+  cta?: string;
+  direcoes?: DirecaoIA[];
+  recomendacoes?: string[];
   descricao: string;
   segmento: SegmentoId;
   cores?: { primaria?: string; fundo?: string; texto?: string };
   tema?: "claro" | "escuro";
   secoes?: TipoSecao[];
-  servicos?: { nome: string; descricao: string; duracao?: string; preco?: number }[];
-  produtos?: { nome: string; descricao: string; preco?: number; categoria?: string }[];
+  servicos?: {
+    nome: string;
+    descricao: string;
+    duracao?: string;
+    preco?: number;
+    imagemIndice?: number;
+  }[];
+  produtos?: {
+    nome: string;
+    descricao: string;
+    preco?: number;
+    categoria?: string;
+    imagemIndice?: number;
+  }[];
   faq?: { pergunta: string; resposta: string }[];
   depoimentos?: { nome: string; nota?: number; comentario: string }[];
   galeria?: { titulo: string }[];
