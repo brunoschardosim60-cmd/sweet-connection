@@ -406,53 +406,66 @@ export function PainelCarrinho({
       {etapa === 3 && (
         <section className="rounded-xl border p-3 text-sm" style={borda}>
           <h3 className="font-semibold">Confira antes de enviar</h3>
-          <p className="mt-2">
-            {campos.nome} · {formatarTelefonePedido(campos.whatsapp)}
-          </p>
-          <p>
-            {rotulosModalidade[entrega]}
-            {entrega === "mesa" ? ` · Mesa ${campos.mesa}` : ""}
-          </p>
-          {entrega === "entrega" && (
-            <p>
-              {[campos.endereco, campos.bairro, campos.complemento, campos.referencia]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          )}
-          {entrega === "retirada" && campos.horarioPreferido && (
-            <p>Preferência: {campos.horarioPreferido}</p>
-          )}
-          <p className="mt-2">
-            Pagamento: {pagamento ? rotulosPagamento[pagamento] : "Não escolhido"}
-            {pagamento === "dinheiro" && campos.troco ? ` · Troco para ${campos.troco}` : ""}
-          </p>
-          {campos.observacao && <p className="mt-2">Observação: {campos.observacao}</p>}
-          {campos.agendadoPara && (
-            <p className="mt-2 font-semibold">
-              Agendar para {rotuloAgendamento(site, campos.agendadoPara)}
-            </p>
-          )}
+          <dl className="mt-3 space-y-2">
+            {[
+              { t: "Contato", v: `${campos.nome} · ${formatarTelefonePedido(campos.whatsapp)}` },
+              {
+                t: "Recebimento",
+                v: `${rotulosModalidade[entrega]}${entrega === "mesa" ? ` · Mesa ${campos.mesa}` : ""}`,
+              },
+              entrega === "entrega"
+                ? {
+                    t: "Endereço",
+                    v: [campos.endereco, campos.bairro, campos.complemento, campos.referencia]
+                      .filter(Boolean)
+                      .join(" · "),
+                  }
+                : null,
+              entrega === "retirada" && campos.horarioPreferido
+                ? { t: "Preferência", v: campos.horarioPreferido }
+                : null,
+              {
+                t: "Pagamento",
+                v: `${pagamento ? rotulosPagamento[pagamento] : "Não escolhido"}${
+                  pagamento === "dinheiro" && campos.troco ? ` · Troco para ${campos.troco}` : ""
+                }`,
+              },
+              campos.observacao ? { t: "Observação", v: campos.observacao } : null,
+              campos.agendadoPara
+                ? { t: "Agendamento", v: rotuloAgendamento(site, campos.agendadoPara) }
+                : null,
+            ]
+              .filter((linha): linha is { t: string; v: string } => Boolean(linha?.v))
+              .map((linha) => (
+                <div key={linha.t} className="grid grid-cols-[7.5rem_1fr] gap-2">
+                  <dt className="text-xs tracking-wide uppercase opacity-60">{linha.t}</dt>
+                  <dd className="leading-relaxed break-words">{linha.v}</dd>
+                </div>
+              ))}
+          </dl>
         </section>
       )}
-      <dl className="space-y-1 border-t pt-3 text-sm" style={borda}>
+      <dl
+        className="space-y-1 rounded-xl border p-3 text-sm"
+        style={{ ...borda, background: "var(--ms-surface)" }}
+      >
         <div className="flex justify-between">
-          <dt>Subtotal</dt>
+          <dt className="opacity-75">Subtotal</dt>
           <dd>{moeda(totais.subtotal)}</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt>{rotuloTaxa(site, entrega, campos.bairro, cotacaoValida)}</dt>
+          <dt className="opacity-75">{rotuloTaxa(site, entrega, campos.bairro, cotacaoValida)}</dt>
           <dd>
             {taxaConhecida(site, entrega, campos.bairro, cotacaoValida)
               ? moeda(totais.taxa)
               : "A calcular"}
           </dd>
         </div>
-        <div className="flex justify-between text-lg font-bold">
-          <dt>
+        <div className="mt-2 flex items-baseline justify-between gap-3 border-t pt-2" style={borda}>
+          <dt className="font-semibold">
             {taxaConhecida(site, entrega, campos.bairro, cotacaoValida) ? "Total" : "Total parcial"}
           </dt>
-          <dd>
+          <dd className="text-xl font-bold">
             {moeda(
               taxaConhecida(site, entrega, campos.bairro, cotacaoValida)
                 ? totais.total
@@ -460,6 +473,9 @@ export function PainelCarrinho({
             )}
           </dd>
         </div>
+        {!taxaConhecida(site, entrega, campos.bairro, cotacaoValida) && (
+          <p className="pt-1 text-xs opacity-70">A taxa de entrega ainda será calculada.</p>
+        )}
       </dl>
       {(aviso || retorno) && (
         <p role="alert" className="text-sm font-medium">
