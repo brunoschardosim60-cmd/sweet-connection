@@ -220,12 +220,18 @@ export function PainelCarrinho({
             </div>
           </fieldset>
           {fechada && (
-            <p role="status" className="rounded-xl border p-3 text-sm" style={borda}>
-              Fechado agora.{" "}
-              {horarios.length
-                ? "Você pode agendar para o próximo horário de atendimento."
-                : "Consulte a loja para combinar o atendimento."}
-            </p>
+            <div
+              role="status"
+              className="rounded-xl border p-3 text-sm"
+              style={{ ...borda, background: "var(--ms-surface)" }}
+            >
+              <p className="font-semibold">A loja está fechada agora</p>
+              <p className="mt-1 opacity-80">
+                {horarios.length
+                  ? "Escolha abaixo um horário para agendar o pedido. Ele só é preparado após o aceite da loja."
+                  : "Não há horários para agendamento. Fale com a loja para combinar o atendimento."}
+              </p>
+            </div>
           )}
           {(horarios.length > 0 || campos.agendadoPara) && (
             <label className="block text-sm">
