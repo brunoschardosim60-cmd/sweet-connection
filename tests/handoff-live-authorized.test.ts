@@ -67,16 +67,14 @@ describe.runIf(enabled)("transferência real autorizada, sem cobrança", () => {
     ).toBeNull();
     expect(
       (
-        await a.client
-          .from("media")
-          .insert({
-            owner_id: a.id,
-            bucket: "nexa-media",
-            object_path: path,
-            original_name: "homologacao.png",
-            mime_type: "image/png",
-            size_bytes: bytes.length,
-          })
+        await a.client.from("media").insert({
+          owner_id: a.id,
+          bucket: "nexa-media",
+          object_path: path,
+          original_name: "homologacao.png",
+          mime_type: "image/png",
+          size_bytes: bytes.length,
+        })
       ).error,
     ).toBeNull();
     photo = a.client.storage.from("nexa-media").getPublicUrl(path).data.publicUrl;

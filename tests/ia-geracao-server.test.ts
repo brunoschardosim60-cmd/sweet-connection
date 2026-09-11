@@ -137,7 +137,9 @@ describe("geração de IA autenticada e ajustes limitados no servidor", () => {
       { ...entrada, logo: "https://externo.invalid/logo.png", fotosProdutos: [foto] },
       "token-auth-falso",
     );
-    expect(requisitar.mock.calls.some(([url]) => String(url).includes("externo.invalid"))).toBe(false);
+    expect(requisitar.mock.calls.some(([url]) => String(url).includes("externo.invalid"))).toBe(
+      false,
+    );
     const chamada = requisitar.mock.calls.find(([url]) =>
       String(url).includes("generativelanguage.googleapis.com"),
     );

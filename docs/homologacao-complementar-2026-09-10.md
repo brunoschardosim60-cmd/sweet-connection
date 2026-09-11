@@ -53,3 +53,11 @@ O relatório anterior `auditoria-funcional-2026-09-10.md` mantém as evidências
 - A primeira execução falhou somente na preparação do teste de versões (nenhuma versão havia sido criada). Adicionada a criação explícita de versão antes da entrega; reexecução aprovada. Não se alterou o código de transferência para mascarar essa falha.
 - Contas, sites e mídias fictícios dessas execuções foram removidos ao final, pelo fluxo de exclusão de conta. Os projetos preexistentes do usuário não foram alterados.
 - Typecheck, lint (zero erros, 16 avisos existentes) e novo build com preset Vercel aprovados antes da publicação.
+
+## Administração e saúde das notificações — continuação
+
+- Na interface administrativa de produção, uma conta fictícia autorizada foi promovida a Essential, retornada a Free, suspensa com motivo de homologação e reativada. Os estados foram conferidos no servidor, e a conta foi removida ao final. Não houve cobrança nem anúncio enviado a usuários reais.
+- Integrações remotas de segurança reexecutadas: 14 testes aprovados, com limpeza de contas e arquivos de teste.
+- Web Push publicado e configurado: endpoint autenticado respondeu com fila vazia; chamada sem autenticação foi rejeitada. Isso comprova configuração do despachante, não recebimento no dispositivo.
+- Corrigida a saúde administrativa para separar notificações ignoradas de falhas reais. Adicionadas contagens de Web Push na fila, com falha e aceitos pelo provedor. Migração 20260911030000 aplicada após dry-run restrito a ela.
+- Validação local: 394 testes aprovados, 18 integrações condicionais ignoradas na execução padrão; typecheck e build Vercel aprovados. Lint sem erros após corrigir apenas formatação em dois testes, mantendo 16 avisos existentes.

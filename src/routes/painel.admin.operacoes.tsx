@@ -14,6 +14,10 @@ type Saude = {
   accounts_suspended: number;
   forms_24h: number;
   orders_24h: number;
+  notifications_skipped_7d?: number;
+  push_pending?: number;
+  push_failed_7d?: number;
+  push_sent_24h?: number;
 };
 
 const TIER = {
@@ -150,6 +154,10 @@ function OperacoesAdmin() {
     ? [
         ["Falhas de notificação (7d)", saude.notification_failures_7d],
         ["Notificações pendentes", saude.notifications_pending_24h],
+        ["Canais não configurados / ignorados (7d)", saude.notifications_skipped_7d ?? 0],
+        ["Web Push na fila", saude.push_pending ?? 0],
+        ["Web Push com falha (7d)", saude.push_failed_7d ?? 0],
+        ["Web Push aceitos pelo provedor (24h)", saude.push_sent_24h ?? 0],
         ["Cobranças vencidas", saude.overdue_invoices],
         ["Contas suspensas", saude.accounts_suspended],
         ["Formulários (24h)", saude.forms_24h],
