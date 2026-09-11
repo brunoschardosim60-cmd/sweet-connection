@@ -71,3 +71,18 @@ O relatório anterior `auditoria-funcional-2026-09-10.md` mantém as evidências
 - Correções funcionais publicadas em `main`, implantação Vercel confirmada para `eed6b71`. Build Vercel aprovado após o ajuste de IA.
 - Na operação exclusiva do rascunho, ativação de avisos retornou “Permita notificações nas configurações do navegador para ativar os avisos.” Solicitada liberação manual para o domínio da Nexa. Nenhum evento de teste foi enviado sem dispositivo inscrito. O rascunho e suas duas mídias foram mantidos para continuar esse teste; remover ao concluir.
 - **Pendente:** inscrição do dispositivo e observação de notificação real com a página fechada (e, separadamente, navegador fechado). Aceitação do provedor e teste do despachante não substituem essa observação.
+
+## Web Push após liberação pelo usuário
+
+- O usuário liberou notificações do domínio. A interface confirmou inscrição com o botão “Desativar avisos desta loja” ativo; exatamente um dispositivo inscrito para o rascunho de homologação.
+- Fechada somente a aba da Nexa. Inserido um formulário fictício autorizado, id `6359aeb2-cfa5-499d-b9b4-55e3e2221086`, exclusivamente no rascunho de teste. Sem compra, pagamento ou contato real.
+- Fila observada inicialmente `pending`, zero tentativas. O agendador real enviou automaticamente: estado `sent`, uma tentativa, sem chamada manual do despachante. Isso comprova aceitação pelo provedor com a página fechada.
+- Solicitado ao usuário confirmar visualização no Windows e clicar no aviso. Recebimento visual, destino após clique e navegador totalmente encerrado continuam pendentes dessa observação. Não foram fechadas as demais abas ou o Chrome inteiro.
+
+## Recebimento confirmado e persistência opcional
+
+- O usuário enviou captura da notificação real “Nexa — novo atendimento” no Windows, confirmando entrega com a página fechada. Reenvio fictício `477f9ec0-e881-42b8-aa94-68c7842c6924` aceito pelo provedor após chamada autenticada do despachante.
+- Após clicar, a captura do usuário mostrou `/operacao?site=39edf9e8-9776-4552-8b32-b7d4d4e64a00`, o destino correto, solicitando login. A causa foi confirmada no código: sessão exclusiva em sessionStorage, encerrada ao fechar a aba; retorno à loja preservado pelo login.
+- Com autorização “sim”, adicionada opção desmarcada por padrão “Manter conectado neste dispositivo”, por até 30 dias. Armazena a sessão somente após login bem-sucedido e consentimento, nunca a senha. Uma conta lembrada por vez; abas existentes mantêm sua identidade. Renovações respeitam o vínculo da conexão; sair remove a conexão lembrada correspondente e impede restauração na aba deslogada. Expiração ou bloqueio do armazenamento não libera acesso sem autenticação.
+- Testes locais: 401 aprovados, 18 integrações condicionais ignoradas. Inclui seis novos cenários de persistência/isolamento/saída/renovação/expiração/armazenamento bloqueado. Typecheck, lint (zero erros, 16 avisos existentes) e build Vercel aprovados.
+- Próxima homologação: login real com a opção marcada e reabertura da operação após fechar a aba. Navegador completamente encerrado ainda não testado.

@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { AuthShell, CampoTexto } from "@/components/auth/AuthShell";
 import { CampoSenha } from "@/components/auth/CampoSenha";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, lembrarNesteDispositivo } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { buscaAuth, retornoSeguro } from "@/lib/nexa/auth-retorno";
 
 export const Route = createFileRoute("/login")({
@@ -35,6 +36,7 @@ function Login() {
   const [tocado, setTocado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [lembrar, setLembrar] = useState(false);
 
   const erroEmail = tocado && !emailValido(email) ? "Informe um e-mail válido." : undefined;
   const erroSenha = tocado && senha.length === 0 ? "Informe sua senha." : undefined;
@@ -60,6 +62,10 @@ function Login() {
       return;
     }
 
+    if (!lembrarNesteDispositivo(lembrar) && lembrar)
+      toast.info(
+        "Login realizado, mas o navegador não permitiu manter a conexão neste dispositivo.",
+      );
     await navigate({ href: retornoSeguro(retorno), replace: true });
   };
 
@@ -98,6 +104,23 @@ function Login() {
           onChange={setSenha}
           erro={erroSenha}
         />
+
+        <div className="space-y-1">
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={lembrar}
+              disabled={enviando}
+              onChange={(e) => setLembrar(e.target.checked)}
+              aria-describedby="lembrar-aviso"
+            />
+            Manter conectado neste dispositivo
+          </label>
+          <p id="lembrar-aviso" className="text-xs text-muted-foreground">
+            Por até 30 dias. Use somente em dispositivo pessoal. Uma conta é lembrada por vez;
+            outras abas não trocam de conta. Ao sair desta conta, a conexão salva é removida.
+          </p>
+        </div>
 
         <div className="flex justify-end">
           <Link

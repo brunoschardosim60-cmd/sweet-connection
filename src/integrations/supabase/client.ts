@@ -10,16 +10,28 @@ const SUPABASE_PUBLISHABLE_KEY =
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+function armazenamentoPersistente() {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : undefined;
+  } catch {
+    return undefined;
+  }
+}
+const sessao = sessaoDaAba(
+  typeof window !== "undefined" ? sessionStorage : undefined,
+  "sb-vsnvzgcotnrxrbztrxlp-auth-token",
+  typeof window !== "undefined" ? crypto.randomUUID() : "server",
+  armazenamentoPersistente(),
+);
+export const lembrarNesteDispositivo = (enabled: boolean) => sessao.lembrar?.(enabled) ?? false;
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     // Cada janela/aba mantém sua própria sessão. Isso evita que criar ou entrar
     // com outra conta em uma segunda janela troque silenciosamente a conta em uso.
     // A sessão ainda sobrevive a recarregamentos da mesma aba.
-    ...sessaoDaAba(
-      typeof window !== "undefined" ? sessionStorage : undefined,
-      "sb-vsnvzgcotnrxrbztrxlp-auth-token",
-      typeof window !== "undefined" ? crypto.randomUUID() : "server",
-    ),
+    storageKey: sessao.storageKey,
+    storage: sessao.storage,
     persistSession: true,
     autoRefreshToken: true,
   },
