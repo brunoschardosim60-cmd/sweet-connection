@@ -8,7 +8,7 @@ const admin = vi.hoisted(() => ({
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: admin }));
 
-import { gerarPlano, type EntradaPlano } from "@/lib/nexa/ia.server";
+import { gerarPlano, instrucoesDoPlano, type EntradaPlano } from "@/lib/nexa/ia.server";
 import { validarSessaoIA } from "@/lib/nexa/ia-sessao.server";
 import type { PlanoIA } from "@/lib/nexa/ia-tipos";
 
@@ -102,6 +102,12 @@ afterEach(() => {
 });
 
 describe("geração de IA autenticada e ajustes limitados no servidor", () => {
+  it("não trata objetivo comercial como funcionalidade operacional já configurada", () => {
+    const instrucoes = instrucoesDoPlano({ ...entrada, objetivo: "agendar" });
+    expect(instrucoes).toContain("FAQ, SEO e descrições");
+    expect(instrucoes).toContain("o objetivo do briefing não comprova configuração operacional");
+    expect(instrucoes).toContain("sem prometer confirmação automática, prazo ou disponibilidade");
+  });
   it("envia logo e foto com rótulos distintos e bytes ao Gemini", async () => {
     const base = "https://teste-ia.supabase.co/storage/v1/object/public/nexa-media/";
     const logo = `${base}logo.png`;
