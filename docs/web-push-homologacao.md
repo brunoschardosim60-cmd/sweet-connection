@@ -2,7 +2,7 @@
 
 ## Estado desta entrega
 
-Implementado localmente: opt-in por loja/dispositivo, fila no PostgreSQL, agendador de um minuto, envio Web Push no servidor, service worker e revogação conferida no momento do envio. **Ainda não homologado em produção, sem chaves configuradas ou migrações aplicadas nesta rodada.** Não anunciar como entrega real confirmada até completar a lista abaixo.
+Implementado: opt-in por loja/dispositivo, fila no PostgreSQL, agendador de um minuto, envio Web Push no servidor, service worker e revogação conferida no momento do envio. Em 10/09/2026, após autorização, as duas migrações foram aplicadas e as quatro variáveis de produção configuradas como segredos na Vercel. **Entrega real no dispositivo ainda pendente de homologação.** Não anunciar como entrega real confirmada até completar a lista abaixo.
 
 O service worker não intercepta requisições, não mantém cache do aplicativo e não transforma o checkout em fluxo offline. Os avisos contêm somente texto genérico e um link para a operação, sem nome, endereço ou telefone do cliente. Acesso aos detalhes exige login e autorização da loja.
 

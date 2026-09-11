@@ -43,3 +43,13 @@ O relatório anterior `auditoria-funcional-2026-09-10.md` mantém as evidências
 - Vercel autenticada no navegador; login do CLI oficial iniciado e pendente de autorização explícita para “Allow Access”. Não foram extraídos cookies nem credenciais do navegador.
 - Solicitada autorização específica para contas fictícias com plano temporário, sem cobrança, visando homologar transferência. Não foram criadas nem promovidas essas contas enquanto a autorização estava pendente. Administração privilegiada real também continua não homologada.
 - Auditoria de dependências identificou aviso alto em `js-yaml`, dependência transitiva já presente na cadeia do TanStack/build; não foi feita atualização geral de dependências como parte desta alteração de notificações.
+
+## Transferência real e configuração autorizadas
+
+- Usuário autorizou prosseguir com CLI e planos temporários. Login do CLI Vercel concluído. Projeto existente `nexa` vinculado; nenhuma nova hospedagem criada.
+- Migrações `20260911010000` e `20260911020000` aplicadas após dry-run que mostrou somente essas duas pendências. Chaves VAPID e segredo aleatório configurados na Vercel, apenas em produção; segredo do despachante configurado no PostgreSQL sem exposição em logs ou Git.
+- Teste remoto `handoff-live-authorized.test.ts`: **4 testes passaram**, usando contas fictícias com direito temporário ao plano Catálogo e a API publicada real. Não testou contratação/pagamento; nenhuma cobrança foi realizada.
+- Verificado: bloqueio inicial da conta gratuita; aceite com plano compatível; imagem copiada para armazenamento do destinatário; mesmo slug publicado; cópia limpa em rascunho para criador; versões e histórico fictício preservados; aceite repetido idempotente; criador saiu da equipe e perdeu acesso operacional sem derrubar a loja; rebaixamento do destinatário pausou publicação e preservou histórico.
+- A primeira execução falhou somente na preparação do teste de versões (nenhuma versão havia sido criada). Adicionada a criação explícita de versão antes da entrega; reexecução aprovada. Não se alterou o código de transferência para mascarar essa falha.
+- Contas, sites e mídias fictícios dessas execuções foram removidos ao final, pelo fluxo de exclusão de conta. Os projetos preexistentes do usuário não foram alterados.
+- Typecheck, lint (zero erros, 16 avisos existentes) e novo build com preset Vercel aprovados antes da publicação.
