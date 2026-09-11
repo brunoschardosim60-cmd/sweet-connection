@@ -33,15 +33,15 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
             .eq("id", checkoutId)
             .eq("provider", "asaas")
             .maybeSingle();
-          if (checkoutError || !checkout)
-            return new Response("Checkout não encontrado", { status: 202 });
+          if (checkoutError) throw checkoutError;
+          if (!checkout) return new Response("Checkout não encontrado", { status: 202 });
 
           const customerId = typeof payment["customer"] === "string" ? payment["customer"] : null;
           const subscriptionId =
             typeof payment["subscription"] === "string" ? payment["subscription"] : null;
           const checkoutStatus =
             state === "active" ? "paid" : state === "past_due" ? "past_due" : "cancelled";
-          await supabaseAdmin.from("billing_invoices").upsert(
+          const { error: invoiceError } = await supabaseAdmin.from("billing_invoices").upsert(
             {
               owner_id: checkout.owner_id,
               provider: "asaas",
@@ -56,7 +56,8 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
             },
             { onConflict: "provider_payment_id" },
           );
-          await supabaseAdmin
+          if (invoiceError) throw invoiceError;
+          const { error: checkoutSaveError } = await supabaseAdmin
             .from("billing_checkout_sessions")
             .update({
               status: checkoutStatus,
@@ -65,6 +66,7 @@ export const Route = createFileRoute("/api/webhooks/asaas")({
               paid_at: state === "active" ? new Date().toISOString() : null,
             })
             .eq("id", checkout.id);
+          if (checkoutSaveError) throw checkoutSaveError;
 
           const profileUpdate = {
             subscription_status: state,

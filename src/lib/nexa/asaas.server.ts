@@ -100,9 +100,18 @@ async function requisicaoAsaas(path: string, init?: RequestInit) {
 }
 
 export async function cancelarAssinaturaAsaas(subscriptionId: string) {
-  return requisicaoAsaas(`/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+  const path = `/subscriptions/${encodeURIComponent(subscriptionId)}`;
+  // DELETE may return only an acknowledgement. Read the period before deleting.
+  const assinatura = await requisicaoAsaas(path);
+  if (
+    typeof assinatura["nextDueDate"] !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(assinatura["nextDueDate"])
+  )
+    throw new Error("Não foi possível confirmar o período da assinatura antes do cancelamento.");
+  await requisicaoAsaas(path, {
     method: "DELETE",
   });
+  return assinatura;
 }
 
 export async function listarPagamentosAsaas(subscriptionId: string) {

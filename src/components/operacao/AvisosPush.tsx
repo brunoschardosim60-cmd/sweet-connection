@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { pedirPermissaoDosAvisos } from "@/lib/nexa/push-permission";
 
 async function salvar(
   site: string,
@@ -28,6 +29,7 @@ function suportado() {
 export function AvisosPush({ site, usuario }: { site: string; usuario: string }) {
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
   const [publicKey, setPublicKey] = useState<string | null | undefined>(undefined);
   useEffect(() => {
     let mounted = true;
@@ -59,6 +61,7 @@ export function AvisosPush({ site, usuario }: { site: string; usuario: string })
     };
   }, [site, usuario]);
   async function alternar() {
+    setErro(null);
     if (!suportado()) {
       toast.info(
         "Este navegador não oferece Web Push. No iPhone, use o aplicativo adicionado à Tela de Início.",
@@ -77,10 +80,7 @@ export function AvisosPush({ site, usuario }: { site: string; usuario: string })
       }
       if (!publicKey) throw new Error("Web Push ainda não foi configurado pelo administrador.");
       // Keep the permission request directly in the user gesture (not after a fetch).
-      if ((await Notification.requestPermission()) !== "granted")
-        throw new Error(
-          "Permita notificações nas configurações do navegador para ativar os avisos.",
-        );
+      await pedirPermissaoDosAvisos(Notification);
       const reg = await navigator.serviceWorker.register("/nexa-push-sw.js", {
         scope: "/",
         updateViaCache: "none",
@@ -100,10 +100,12 @@ export function AvisosPush({ site, usuario }: { site: string; usuario: string })
         const key = Uint8Array.from(binary, (c) => c.charCodeAt(0));
         sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
       }
-      setActive(await salvar(site, "enable", sub));
+      const enabled = await salvar(site, "enable", sub);
+      if (!enabled) throw new Error("A loja não confirmou a ativação dos avisos. Tente novamente.");
+      setActive(true);
       toast.success("Avisos ativados para esta loja e dispositivo, mesmo com a página fechada.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível ativar os avisos.");
+      setErro(error instanceof Error ? error.message : "Não foi possível ativar os avisos.");
     } finally {
       setBusy(false);
     }
@@ -123,6 +125,11 @@ export function AvisosPush({ site, usuario }: { site: string; usuario: string })
             ? "Desativar avisos desta loja"
             : "Ativar avisos desta loja"}
       </button>
+      {erro && (
+        <p role="alert" className="mt-2 rounded-lg border border-border bg-muted p-3 text-sm">
+          {erro}
+        </p>
+      )}
       <p className="mt-1 text-xs text-muted-foreground">
         Avisos neste dispositivo com a página fechada. Dependem das permissões do navegador e do
         sistema. Desative antes de sair de um dispositivo compartilhado.
