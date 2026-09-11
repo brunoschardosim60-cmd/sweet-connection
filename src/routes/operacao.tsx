@@ -24,6 +24,7 @@ import { moeda } from "@/lib/nexa/utils";
 import { whatsappLink } from "@/lib/nexa/brand";
 import { ConvitesLoja, EntregarLoja } from "@/components/operacao/EntregaLoja";
 import { AvisosPush } from "@/components/operacao/AvisosPush";
+import { abasDaOperacao, abaDisponivel, type RecursosOperacao } from "@/lib/nexa/operacao-areas";
 
 export const Route = createFileRoute("/operacao")({
   validateSearch: (s: Record<string, unknown>): { site?: string } =>
@@ -81,6 +82,7 @@ type Solicitacao = {
   created_at: string;
 };
 type Dados = {
+  recursosOperacao?: RecursosOperacao;
   camposFormulario?: { id: string; rotulo: string }[];
   pedidos: Pedido[];
   agenda: Agenda[];
@@ -321,7 +323,7 @@ function Operacao() {
 }
 function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
   const [confirmarSaida, setConfirmarSaida] = useState(false);
-  const [aba, setAba] = useState("Pedidos");
+  const [abaDesejada, setAba] = useState("Pedidos");
   const [filtro, setFiltro] = useState("ativos");
   const [som, setSom] = useState(false);
   const vistos = useRef<Set<string> | null>(null);
@@ -398,6 +400,9 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
       </div>
     );
   const dados = q.data;
+  const abas = abasDaOperacao(dados, loja.dono);
+  const aba = abaDisponivel(abaDesejada, abas);
+  const usaPedidos = abas.includes("Pedidos");
   const pedidos = dados.pedidos
     .filter(
       (p) =>
@@ -434,25 +439,27 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            className={`${botao} px-3`}
-            aria-label={som ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
-            aria-pressed={som}
-            onClick={async () => {
-              try {
-                if (!som) {
-                  audio.current ??= new AudioContext();
-                  await audio.current.resume();
+          {usaPedidos && (
+            <button
+              className={`${botao} px-3`}
+              aria-label={som ? "Desativar som de novos pedidos" : "Ativar som de novos pedidos"}
+              aria-pressed={som}
+              onClick={async () => {
+                try {
+                  if (!som) {
+                    audio.current ??= new AudioContext();
+                    await audio.current.resume();
+                  }
+                  setSom(!som);
+                } catch {
+                  toast.error("O navegador não permitiu ativar o som.");
                 }
-                setSom(!som);
-              } catch {
-                toast.error("O navegador não permitiu ativar o som.");
-              }
-            }}
-          >
-            <Bell size={16} />
-            <span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
-          </button>
+              }}
+            >
+              <Bell size={16} />
+              <span className="hidden md:inline">{som ? "Som ativo" : "Ativar som"}</span>
+            </button>
+          )}
           <button
             className={`${botao} px-3`}
             aria-label="Atualizar dados agora"
@@ -470,13 +477,7 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
         aria-label="Área de operação"
         className="scrollbar-invisivel -mx-4 flex gap-1 overflow-x-auto border-y border-border bg-card px-4 py-2 sm:mx-0 sm:rounded-lg sm:border sm:px-2"
       >
-        {[
-          "Pedidos",
-          "Agenda",
-          "Solicitações",
-          "Estatísticas",
-          ...(loja.dono ? ["Equipe e acessos"] : []),
-        ].map((a) => (
+        {abas.map((a) => (
           <button
             key={a}
             id={`aba-${a}`}
@@ -709,9 +710,13 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               ["Visitas", dados.estatisticas.visitas],
               ["Cliques", dados.estatisticas.cliques],
               ["Contatos pelo WhatsApp", dados.estatisticas.whatsapp],
-              ["Pedidos recebidos", dados.estatisticas.pedidos],
-              ["Pedidos concluídos", dados.estatisticas.concluidos],
-              ["Valor dos pedidos concluídos", moeda(dados.estatisticas.receita)],
+              ...(usaPedidos
+                ? [
+                    ["Pedidos recebidos", dados.estatisticas.pedidos],
+                    ["Pedidos concluídos", dados.estatisticas.concluidos],
+                    ["Valor dos pedidos concluídos", moeda(dados.estatisticas.receita)],
+                  ]
+                : []),
             ].map(([nome, valor]) => (
               <div key={nome} className="rounded-xl border border-border bg-card p-5 shadow-soft">
                 <p className="text-sm text-muted-foreground">{nome}</p>
@@ -719,13 +724,15 @@ function AreaLoja({ loja, usuario }: { loja: Loja; usuario: string }) {
               </div>
             ))}
           </div>
-          <div className="rounded-lg border border-border bg-muted p-4 text-sm">
-            <strong>Sobre o valor exibido</strong>
-            <p className="mt-1 text-muted-foreground">
-              É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento
-              recebido. O recebimento continua sob controle do estabelecimento.
-            </p>
-          </div>
+          {usaPedidos && (
+            <div className="rounded-lg border border-border bg-muted p-4 text-sm">
+              <strong>Sobre o valor exibido</strong>
+              <p className="mt-1 text-muted-foreground">
+                É a soma dos pedidos marcados como concluídos, não uma confirmação de pagamento
+                recebido. O recebimento continua sob controle do estabelecimento.
+              </p>
+            </div>
+          )}
         </section>
       )}
       {aba === "Equipe e acessos" && loja.dono && (

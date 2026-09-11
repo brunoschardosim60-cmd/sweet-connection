@@ -97,6 +97,7 @@ describe("RPC de pedidos v2 em PostgreSQL isolado", () => {
       "20260908040100_scheduled_order_inventory.sql",
       "20260908041000_business_operations.sql",
       "20260910040000_operation_form_labels.sql",
+      "20260911040000_operation_enabled_areas.sql",
     ])
       await db.exec(
         readFileSync(new URL(`../supabase/migrations/${arquivo}`, import.meta.url), "utf8"),
@@ -276,6 +277,72 @@ describe("RPC de pedidos v2 em PostgreSQL isolado", () => {
     await configurar({ calculoEntrega: "bairro", taxasPorBairro: [{ bairro: "Centro", taxa: 4 }] });
     expect((await pedirDados({})).rows[0]?.pedido.total).toBe(42);
     await expect(pedirDados({ bairro: "Fora" })).rejects.toThrow("outside_delivery_area");
+  });
+  it.each([
+    [
+      { secoes: [{ tipo: "cardapio", ativa: true }] },
+      { pedidos: true, agenda: false, solicitacoes: false },
+    ],
+    [{ comercio: { carrinho: true } }, { pedidos: true, agenda: false, solicitacoes: false }],
+    [
+      {
+        agenda: { ativa: true },
+        secoes: [
+          { tipo: "agenda", ativa: true },
+          { tipo: "formulario", ativa: true },
+        ],
+      },
+      { pedidos: false, agenda: true, solicitacoes: true },
+    ],
+    [
+      {
+        agenda: { ativa: false },
+        formulario: { tipo: "agendamento" },
+        secoes: [
+          { tipo: "agenda", ativa: true },
+          { tipo: "formulario", ativa: true },
+        ],
+      },
+      { pedidos: false, agenda: false, solicitacoes: true },
+    ],
+    [
+      {
+        secoes: [
+          { tipo: "agenda", ativa: false },
+          { tipo: "formulario", ativa: false },
+        ],
+      },
+      { pedidos: false, agenda: false, solicitacoes: false },
+    ],
+  ])("retorna somente capacidades operacionais configuradas %j", async (config, esperado) => {
+    await db.query(
+      "update minisites set owner_id='00000000-0000-4000-8000-000000000001',published_content=$1::jsonb,draft_content=$2::jsonb",
+      [JSON.stringify(config), JSON.stringify({ comercio: { carrinho: true } })],
+    );
+    const id = (await db.query<{ id: string }>("select id from minisites")).rows[0]!.id;
+    await usuario(1);
+    const result = await db.query<{ dados: { recursosOperacao: unknown } }>(
+      "select nexa_operacao_dados($1) dados",
+      [id],
+    );
+    expect(result.rows[0]!.dados.recursosOperacao).toEqual(esperado);
+  });
+  it("usa configuração do rascunho quando não há conteúdo publicado", async () => {
+    await db.query(
+      "update minisites set owner_id='00000000-0000-4000-8000-000000000001',published_content=null,draft_content=$1::jsonb",
+      [JSON.stringify({ secoes: [{ tipo: "formulario", ativa: true }] })],
+    );
+    const id = (await db.query<{ id: string }>("select id from minisites")).rows[0]!.id;
+    await usuario(1);
+    const result = await db.query<{ dados: { recursosOperacao: unknown } }>(
+      "select nexa_operacao_dados($1) dados",
+      [id],
+    );
+    expect(result.rows[0]!.dados.recursosOperacao).toEqual({
+      pedidos: false,
+      agenda: false,
+      solicitacoes: true,
+    });
   });
   it("isola operação por loja, sem editor, e revoga acesso imediatamente", async () => {
     await db.exec(
